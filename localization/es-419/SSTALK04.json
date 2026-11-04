@@ -1,0 +1,768 @@
+{
+ "file": "SSTALK04.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 19,
+   "note": "G-027",
+   "text": "{hablante}LETRERO{hablante}N: Ciudad Amaterasu\nE: Ciudad Qing Long{fin}"
+  },
+  {
+   "index": 21,
+   "note": "L6",
+   "text": "{hablante}Abuelo Butler{hablante}¡Tienes buena \npinta!{pagina}¡Te pareces a mí cuando era\njoven!{fin}"
+  },
+  {
+   "index": 30,
+   "note": "L6",
+   "text": "{hablante}Bonita Aurora{hablante}¡Eres el que\nderrotó a la\nA.o.A.!{pagina}¡Me gusta! ¡Quiero\ncasarme con alguien\ncomo tú!{fin}"
+  },
+  {
+   "index": 32,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oioioioionk!\n¡Oink, oiinkk!{fin}"
+  },
+  {
+   "index": 33,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡A.o.A. ya no \nsigue por aquí!{pagina}¡Pero no lo\nson todo!{fin}"
+  },
+  {
+   "index": 34,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oioioioionk!\n¡Oink, oiinkk!{fin}"
+  },
+  {
+   "index": 35,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}..Oink, oink\nO-o-oiiink.{fin}"
+  },
+  {
+   "index": 36,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Aprendí mucho\nde esto!{pagina}¡Vale la pena\ndefender a los \ndemás con tu vida!{fin}"
+  },
+  {
+   "index": 37,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}...Oink, oink\nO, o, oiiink.{fin}"
+  },
+  {
+   "index": 43,
+   "note": "G-026",
+   "text": "{hablante}Amante de Filetes Haj{hablante}¡Oin, oink, oink,\noiooink, oooink!{fin}"
+  },
+  {
+   "index": 44,
+   "note": "G-026 L6",
+   "text": "{hablante}Amante de Filetes Haj{hablante}¡Fui yo al\nque casi comen!{pagina}¡Tengo hambre!\nEsta noche...\n¡Filete de ajo!{fin}"
+  },
+  {
+   "index": 45,
+   "note": "G-026",
+   "text": "{hablante}Amante de Filetes Haj{hablante}Oin, oink, oink,\noiooink, oooink!{fin}"
+  },
+  {
+   "index": 47,
+   "note": "L6",
+   "text": "{hablante}Aspirante Yui{hablante}¡Fue humillante\nconvertirse en\nun Oinkmon!{pagina}¿Y si la gente se\nentera? ¿Qué haré?{fin}"
+  },
+  {
+   "index": 50,
+   "note": "G-026",
+   "text": "{hablante}Abuela Grace{hablante}Creí que era el fin\npara mí.{pagina}Pero si no pierdes \nla esperanza,\ntodo es posible.{fin}"
+  },
+  {
+   "index": 51,
+   "note": "L6",
+   "text": "{hablante}Abuela Grace{hablante}......Oink,\n¡oioioink, oinoink!{fin}"
+  },
+  {
+   "index": 53,
+   "note": "G-031",
+   "text": "{hablante}Abuelo Galey{hablante}Estaba bien ser\nun Oinkmon.{pagina}Mientras estuviera\ncon la Abuela Grace.\n¡Ja ja ja ja!{fin}"
+  },
+  {
+   "index": 56,
+   "note": "G-019",
+   "text": "{hablante}Turista Mami{hablante}¡Todavía no he\nnadado!{pagina}¡Y también quiero\nun traje de baño\nbonito!{fin}"
+  },
+  {
+   "index": 62,
+   "note": "L6",
+   "text": "{hablante}Comiquero Kevin{hablante}No me gustan\nlos Oinkmon.{pagina}Preferiría algo más vistoso,\ncomo un héroe.{fin}"
+  },
+  {
+   "index": 68,
+   "note": "L6",
+   "text": "{hablante}Tardón Min{hablante}¡Debería haber \nido directo a \ncasa!{pagina}¡Seguro que\nmañana el profe\nme regaña!{fin}"
+  },
+  {
+   "index": 73,
+   "note": "G-026",
+   "text": "{hablante}BK MagnaGargomon{hablante}No me gusta\nA.o.A.{pagina}¡Espero que se \nvayan pronto!{fin}"
+  },
+  {
+   "index": 74,
+   "note": "G-026",
+   "text": "{hablante}BK MagnaGargomon{hablante}No me gusta\nA.o.A.{pagina}¡Espero que se \nvayan pronto!{fin}"
+  },
+  {
+   "index": 75,
+   "note": "G-026 L6",
+   "text": "{hablante}BK MagnaGargomon{hablante}¡Todos dejarán\nde ser un Oinkmon\ny podremos jugar!{pagina}¡Es bueno divertirse!{fin}"
+  },
+  {
+   "index": 76,
+   "note": "G-026 G-044",
+   "text": "{hablante}BK MagnaGargomon{hablante}¡A.o.A. es tan\nmolesta!{pagina}¡Hay que ganarles!{fin}"
+  },
+  {
+   "index": 82,
+   "note": "L6",
+   "text": "{hablante}Pop Star Lin{hablante}¡Fue divertido\nser Oinkmon!{pagina}La experiencia\ninspiró una\ncanción.{fin}"
+  },
+  {
+   "index": 112,
+   "note": "G-026 G-051",
+   "text": "{hablante}LETRERO{hablante}E: Ciudad Qing Long\nO: Ciudad Amaterasu \nS: Posada del Bosque{fin}"
+  },
+  {
+   "index": 116,
+   "note": "G-018",
+   "text": "{hablante}Supervisora Yumiko{hablante}¡Oink, oink,\noooink, ooink,\nOooinnnnnnk!{fin}"
+  },
+  {
+   "index": 117,
+   "note": "G-018 L6",
+   "text": "{hablante}Supervisora Yumiko{hablante}Oye, ¿has visto\nal Capitán Ichiro?{pagina}Sigue sin venir\na practicar.{fin}"
+  },
+  {
+   "index": 118,
+   "note": "G-018",
+   "text": "{hablante}Supervisora Yumiko{hablante}¡Oink, oink,\noooink, ooink,\nOooinnnnnnk!{fin}"
+  },
+  {
+   "index": 120,
+   "note": "L6",
+   "text": "{hablante}Romeo{hablante}Ahora voy a ver\na la abuela Juliet.{pagina}Siempre pasa algo\ncuando intentamos\nquedar.{fin}"
+  },
+  {
+   "index": 123,
+   "note": "L6",
+   "text": "{hablante}Abuela Juliet{hablante}Otra vez no pude ver a Romeo.{pagina}Me pregunto si \nserá el destino.{fin}"
+  },
+  {
+   "index": 153,
+   "note": "G-026",
+   "text": "{hablante}BK Imperialdramon{hablante}¡A.o.A. es fuerte\nasí que estáte\nen guardia!{fin}"
+  },
+  {
+   "index": 154,
+   "note": "G-026",
+   "text": "{hablante}BK Imperialdramon{hablante}¡A.o.A. es fuerte\nasí que estáte\nen guardia!{fin}"
+  },
+  {
+   "index": 155,
+   "note": "G-026 L6",
+   "text": "{hablante}BK Imperialdramon{hablante}Derrotaste a la\nA.o.A. ¡Eres \nbueno!{pagina}Por supuesto, ¡ya lo sabía!{fin}"
+  },
+  {
+   "index": 156,
+   "note": "G-026 G-045",
+   "text": "{hablante}BK Imperialdramon{hablante}¡Solo tú \npuedes acabar \ncon A.o.A.!{pagina}¡Contamos \ncontigo!{fin}"
+  },
+  {
+   "index": 380,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Conseguí el\nEscudo Caballero!{fin}"
+  },
+  {
+   "index": 381,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo la\nSúper Carga!{fin}"
+  },
+  {
+   "index": 384,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\n1600 BIT!{fin}"
+  },
+  {
+   "index": 385,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nTicket Dorado!{fin}"
+  },
+  {
+   "index": 549,
+   "note": "G-045 L6",
+   "text": "{hablante}Soldado{hablante}...solo \nes un niño.\n¡Qué asco!{fin}"
+  },
+  {
+   "index": 550,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}Oye, ¿quieres una Batalla\nde Cartas?{fin}"
+  },
+  {
+   "index": 552,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}...oh, tú\notra vez.\n¡Qué asco!{fin}"
+  },
+  {
+   "index": 553,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}¡Je je je!\n¡Yo gano!\n¡Qué divertido!{fin}"
+  },
+  {
+   "index": 555,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}Oye, ¡circula!\n¡No me hagas\nperder el tiempo!{fin}"
+  },
+  {
+   "index": 556,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}¡Me regañaron por jugar!{fin}"
+  },
+  {
+   "index": 557,
+   "note": "G-020",
+   "text": "{hablante}Soldado{hablante}Oh, ¡eres ese\ntamer!\n¡Compitamos!{fin}"
+  },
+  {
+   "index": 580,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}¡Eh, tú!\n¿Quién \neres?{fin}"
+  },
+  {
+   "index": 581,
+   "note": "G-019 G-045",
+   "text": "{hablante}Soldado{hablante}Solo un niño.\n¡Vete!{fin}"
+  },
+  {
+   "index": 583,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}Pareces\nsospechoso.{pagina}¡Una Batalla Digimon dirá  \nquién eres!{fin}"
+  },
+  {
+   "index": 589,
+   "note": "G-020 L6",
+   "text": "{hablante}Soldado{hablante}Eres ese tamer. ¡Prepárate!{fin}"
+  },
+  {
+   "index": 718,
+   "note": "G-015 G-016",
+   "text": "{hablante}Gatomon{hablante}¡Bienvenidos!{pagina}Relájense y \ndescansen algo.{fin}"
+  },
+  {
+   "index": 722,
+   "note": "G-050",
+   "text": "{hablante}BK MagnaGargomon{hablante}¡Bum, bum!\nSoy Black \nMagnaGargomon.{pagina}¿Quieres luchar\nconmigo?{fin}"
+  },
+  {
+   "index": 723,
+   "note": "L6",
+   "text": "{hablante}BK Imperialdramon{hablante}Soy Black\nImperialdramon\n¡el jefe!{pagina}¡Tendrás que\nluchar \npara volver!{fin}"
+  },
+  {
+   "index": 728,
+   "note": "G-044 G-045 L6",
+   "text": "{hablante}Panjyamon{hablante}¡Este es mi\ngimnasio! ¡No voy\na ser pieza fácil!{fin}"
+  },
+  {
+   "index": 750,
+   "note": "G-045",
+   "text": "{hablante}Shadramon{hablante}¡Sha sha sha!\nNo me agradezcas.{pagina}¡Solo hago lo que\nharía un tipo malo!{fin}"
+  },
+  {
+   "index": 751,
+   "note": "G-044",
+   "text": "{hablante}Shadramon{hablante}¡Soy Shadramon!\n¡Un tipo malo lógico!{fin}"
+  },
+  {
+   "index": 752,
+   "note": "G-042 G-044 L6",
+   "text": "{hablante}Shadramon{hablante}Oh, tienes una\nGarra Antigua.{pagina}¿Y si la tiras?\n¡Se van a reír de ti!{pagina}Consigue un Colmillo\nSable. ¡Lo convertiré\nen arma de verdad!{fin}"
+  },
+  {
+   "index": 753,
+   "note": "G-008 G-033 G-044 G-045",
+   "text": "{hablante}Shadramon{hablante}Tienes el Colmillo\nSable y la Garra\nAntigua. ¡Dámelos!{pagina}Oooh, esta sensación.\nEs genial...{pagina}Bien, fusionémoslos{pagina}¡Listo!\n¿No es bonito?\n¡Es el Vencer!{pagina}Tenemos muchos\nasí que te daré uno.{pagina}¡Pero no dejes\nque los malos\nse rían de ti!{fin}"
+  },
+  {
+   "index": 754,
+   "note": "G-045",
+   "text": "{hablante}Shadramon{hablante}¡Sha sha sha!\nNo me agradezcas.{pagina}¡Solo hago lo que\nharía un tipo malo!{fin}"
+  },
+  {
+   "index": 755,
+   "note": "G-044",
+   "text": "{hablante}Shadramon{hablante}¡Soy Shadramon!\n¡Un tipo malo lógico!{fin}"
+  },
+  {
+   "index": 756,
+   "note": "G-042 G-044 L6",
+   "text": "{hablante}Shadramon{hablante}Oh, tienes una\nGarra Antigua.{pagina}¿Y si la tiras?\n¡Se van a reír de ti!{pagina}Consigue un Colmillo\nSable. ¡Los convertiré en un arma de verdad!{fin}"
+  },
+  {
+   "index": 757,
+   "note": "G-008 G-033 G-044 G-045",
+   "text": "{hablante}Shadramon{hablante}Tienes el Colmillo\nSable y la Garra\nAntigua. ¡Dámelos!{pagina}Oooh, esta sensación.\nEs genial...{pagina}Bien, fusionémoslos{pagina}¡Listo!\n¿No es bonito?\n¡Es el Vencer!{pagina}Tenemos muchos\nasí que te daré uno.{pagina}¡Pero no dejes\nque los malos\nse rían de ti!{fin}"
+  },
+  {
+   "index": 758,
+   "note": "G-044",
+   "text": "{hablante}Shadramon{hablante}¡Soy Shadramon!\n¡Un tipo malo \nlógico!{fin}"
+  },
+  {
+   "index": 759,
+   "note": "L6",
+   "text": "{hablante}Ponchomon{hablante}Hola amigo, ¿qué pasa?{fin}"
+  },
+  {
+   "index": 760,
+   "note": "G-011 G-042",
+   "text": "{hablante}Ponchomon{hablante}Vamos, no puedes\nusar una Varita Vieja.{pagina}¿Quieres que haga\nun arma total?{pagina}Tráeme un Khakkhara\ny te la haré en un \nmomento.{fin}"
+  },
+  {
+   "index": 761,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}Amigo, ¡la Varita \nVieja y Khakkhara!{pagina}¡Dámelas!{pagina}...cha, cha, cha!\n¡Cha, cha, cha!\n¡Ooooo mambo!{pagina}¡Aquí está!\n¡Un Destello de \núltima generación!{pagina}¡Podrás presumir un\nmontón! ¡Buena suerte!{fin}"
+  },
+  {
+   "index": 763,
+   "note": "G-026 L6",
+   "text": "{hablante}Ponchomon{hablante}Hola amigo, ¿qué tal vas?{fin}"
+  },
+  {
+   "index": 764,
+   "note": "G-011 G-042",
+   "text": "{hablante}Ponchomon{hablante}Vamos, no puedes\nusar una Varita Vieja.{pagina}¿Quieres que haga\nun arma total?{pagina}Tráeme un Khakkhara\ny te la haré en un \nmomento.{fin}"
+  },
+  {
+   "index": 765,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}Amigo, ¡la Varita \nVieja y Khakkhara!{pagina}¡Dámelas!{pagina}...cha, cha, cha!\n¡Cha, cha, cha!\n¡Ooooo mambo!{pagina}¡Aquí está!\n¡Un Destello de \núltima generación!{pagina}¡Podrás presumir un\nmontón! ¡Buena suerte!{fin}"
+  },
+  {
+   "index": 815,
+   "note": "G-026",
+   "text": "{hablante}Etemon{hablante}¿Mm? ¿Qué?\n¡¿Quieres \nluchar?!{fin}"
+  },
+  {
+   "index": 816,
+   "note": "G-026 L6",
+   "text": "{hablante}Etemon{hablante}Chico, ¡fue toda\nuna pelea!\n¡Luchemos de nuevo!{fin}"
+  },
+  {
+   "index": 818,
+   "note": "G-026 L6",
+   "text": "{hablante}Etemon{hablante}Black Agumon\ntiene mi mic...{pagina}Si no lo tengo,\nno tengo ganas de jugar...{fin}"
+  },
+  {
+   "index": 820,
+   "note": "G-026",
+   "text": "{hablante}Etemon{hablante}¿Quieres luchar\notra vez? Soy libre\n¡así que combatamos!{fin}"
+  },
+  {
+   "index": 821,
+   "note": "G-026",
+   "text": "{hablante}Etemon{hablante}¡Tienes buenos\ninstintos!{fin}"
+  },
+  {
+   "index": 822,
+   "note": "G-026",
+   "text": "{hablante}KingEtemon{hablante}Es increíble que un\nchico como tú haya\nllegado hasta aquí.{pagina}¡Pero se acabó tu\nsuerte! ¡Es la hora \nde vencerte!{fin}"
+  },
+  {
+   "index": 823,
+   "note": "G-031",
+   "text": "{hablante}KingEtemon{hablante}Je je je je je je\nje je je je je je\n¡Estás fatal!{fin}"
+  },
+  {
+   "index": 824,
+   "note": "L6",
+   "text": "{hablante}KingEtemon{hablante}¿Qué? Yo, el \ngran KingEtemon\n...¿pierdo?{pagina}¡Tuviste suerte\nde ganarme!{pagina}Por tu suerte \nte doy el\nTrofeo Sol!{pagina}¡Es la prueba del\nRey de la Batalla\nAmaterasu!{fin}"
+  },
+  {
+   "index": 825,
+   "note": "L6",
+   "text": "{hablante}KingEtemon{hablante}¡Un momento!\n¡Se me acaba de ocurrir la mejor carpeta!{pagina}¡Así que espera aquí\nun segundo!{fin}"
+  },
+  {
+   "index": 827,
+   "note": "G-031",
+   "text": "{hablante}KingEtemon{hablante}Je je je je je je\nje je je je je je\n¡Soy el más grande!{fin}"
+  },
+  {
+   "index": 829,
+   "note": "L6",
+   "text": "{hablante}KingEtemon{hablante}¡No peleo con\ngente de mala suerte como tú!{fin}"
+  },
+  {
+   "index": 830,
+   "note": "G-031 L6",
+   "text": "{hablante}MetalEtemon{hablante}¡Je je je je je!\n¡Tendrás que vencerme para seguir!{fin}"
+  },
+  {
+   "index": 831,
+   "note": "G-026 G-031",
+   "text": "{hablante}MetalEtemon{hablante}¡Je je je je je!\n¡No eras rival\npara mí!{fin}"
+  },
+  {
+   "index": 832,
+   "note": "G-026 L6",
+   "text": "{hablante}MetalEtemon{hablante}...¡Pierdo! \n¡Debería haber\nestado atento!{fin}"
+  },
+  {
+   "index": 838,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Vemmon fue a la\nSala Maestra...{pagina}Pero supongo que nos\nsalvó.\n¡No te preocupes!{fin}"
+  },
+  {
+   "index": 841,
+   "note": "L6",
+   "text": "{hablante}Etemon{hablante}Los Etemon somos\nmejores en Batalla\nde Cartas que Divermon.{pagina}¡Somos mucho\nmás listos!{fin}"
+  },
+  {
+   "index": 842,
+   "note": "G-045",
+   "text": "{hablante}Etemon{hablante}¡Solo sobrevivirá el\nmejor en la Batalla!{pagina}¡No puedes\ndescuidarte\nni siendo un Rey!{fin}"
+  },
+  {
+   "index": 844,
+   "note": "G-026 G-045",
+   "text": "{hablante}Etemon{hablante}¡Solo los mejores \npasarán de aquí!{pagina}¡No como tú\nque nunca has tenido \nuna Bolsa de Carpetas!{fin}"
+  },
+  {
+   "index": 853,
+   "note": "G-051",
+   "text": "{hablante}Guilmon{hablante}Este túnel llega\na Asuka y al\nServidor Amaterasu.{pagina}Si vas al norte \nllegarás a la Tumba\nde la Selva de Amaterasu.{fin}"
+  },
+  {
+   "index": 854,
+   "note": "G-045",
+   "text": "{hablante}Guilmon{hablante}Este túnel solo\nestá conectado al\nServidor Amaterasu.{pagina}Si vas al norte \nllegarás al Sector\nNorte.{fin}"
+  },
+  {
+   "index": 856,
+   "note": "L6",
+   "text": "{hablante}Monmon{hablante}Este túnel llega\na Asuka y al\nServidor Amaterasu.{pagina}Al norte está la Ciudad Xuan Wu\nde Amaterasu.{fin}"
+  },
+  {
+   "index": 858,
+   "note": "G-018 G-051 L6",
+   "text": "{hablante}Kumamon{hablante}Este túnel llega\na Asuka y al\nServidor Amaterasu.{pagina}Al norte está el Central\nPark de Amaterasu.{pagina}Al sur están los\nBosques de las Patadas\nde los dos servidores.{fin}"
+  },
+  {
+   "index": 859,
+   "note": "G-026",
+   "text": "{hablante}Kumamon{hablante}Este túnel llega\na Asuka y al\nServidor Amaterasu.{pagina}Al norte Desiertos\ndel sur de Asuka.{pagina}Al sur...no he \nestado, así \nque no lo sé.{fin}"
+  },
+  {
+   "index": 863,
+   "note": "G-051",
+   "text": "{hablante}Agumon{hablante}Este túnel llega\na Asuka y al\nServidor Amaterasu.{pagina}Está conectado a \ntodos los sitios de \nlos dos Servidores.{pagina}Ve al sur para\nla Tumba de la Selva\nAsuka.{fin}"
+  },
+  {
+   "index": 864,
+   "note": "G-045",
+   "text": "{hablante}Agumon{hablante}Este túnel solo\nlleva a \nAmaterasu.{fin}"
+  },
+  {
+   "index": 866,
+   "note": "G-045",
+   "text": "{hablante}Guilmon{hablante}Este túnel solo\nlleva\nal Servidor Asuka.{pagina}Al sur es Sector\nOeste y al norte\nel Norte.{fin}"
+  },
+  {
+   "index": 870,
+   "note": "G-033",
+   "text": "{hablante}Kumamon{hablante}Este túnel está\nbajo el Sector\nNorte Asuka.{fin}"
+  },
+  {
+   "index": 871,
+   "note": "L6",
+   "text": "{hablante}BK Agumon{hablante}¡Estás aquí!\n¡Te estaba \nesperando!{fin}"
+  },
+  {
+   "index": 874,
+   "note": "G-045",
+   "text": "{hablante}BK Agumon{hablante}Perdí...\nMmm...{pagina}Esta es una\nCarta poderosa,\nPuerta de Fortuna.{fin}"
+  },
+  {
+   "index": 875,
+   "note": "G-045",
+   "text": "{hablante}BK Agumon{hablante}Perdí...\nMmm...{pagina}Esta es una\nCarta poderosa,\nAcceso Deseado.{fin}"
+  },
+  {
+   "index": 876,
+   "note": "G-045",
+   "text": "{hablante}BK Agumon{hablante}Perdí...\nMmm...{pagina}Esta es una\nCarta poderosa,\nAnti Poder{fin}"
+  },
+  {
+   "index": 877,
+   "note": "G-045 L6",
+   "text": "{hablante}BK Agumon{hablante}Perdí...\nMmm...{pagina}Esta es la Carta más poderosa, Puerta de Miseria.{fin}"
+  },
+  {
+   "index": 878,
+   "note": "G-045",
+   "text": "{hablante}BK Agumon{hablante}Perdí...\nMmm...{pagina}Esta es una\nCarta poderosa,\nBorrar Matriz.{fin}"
+  },
+  {
+   "index": 879,
+   "note": "G-026 G-045",
+   "text": "{hablante}Seehomon{hablante}...Eh, ¡no \ntienes que\nagradecérmelo!{pagina}¡Solo hay que \nser valiente!{fin}"
+  },
+  {
+   "index": 880,
+   "note": "G-013",
+   "text": "{hablante}Seehomon{hablante}¡Me llamo \nSeehomon!{pagina}¡Vienes de lejos\nmuchacho!{fin}"
+  },
+  {
+   "index": 881,
+   "note": "G-026 G-033 G-035",
+   "text": "{hablante}Seehomon{hablante}Eh, ¡tienes un\nZodíaco!{pagina}¡Tráeme un Brazo\nCiclón!{pagina}¡Te haré un arma\nincreíble!{fin}"
+  },
+  {
+   "index": 882,
+   "note": "G-033 G-035",
+   "text": "{hablante}Seehomon{hablante}Eh, ¡tienes el \nZodíaco y el\nBrazo Ciclón!{pagina}¡Dámelos!{pagina}¡Ahora haremos una\ngran arma!{pagina}...aquí está...\n¡Prominencia!{pagina}¡Diferente de \ncualquier otra arma!{fin}"
+  },
+  {
+   "index": 886,
+   "note": "L6",
+   "text": "{hablante}Depthmon{hablante}Oh, Vencer y \nColmillo\nVeneno.{pagina}Dame los dos.{pagina}Un poco de presión\nde agua aquí...{pagina}¿Y qué sale?\n¡Destrucción!{pagina}Te la daré.\nPor favor, ¡úsala!{fin}"
+  },
+  {
+   "index": 888,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}¡Eres muy bueno!\n¡Pero Numemon es\naún más fuerte!{pagina}¡Así que no perderé\nla siguiente vez!{fin}"
+  },
+  {
+   "index": 889,
+   "note": "G-044 L6",
+   "text": "{hablante}Numemon{hablante}¡Numemon es el\nmás grande!\n¡Grande y genial!{fin}"
+  },
+  {
+   "index": 890,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}Derrota...\nMmmmm...{pagina}Toma Gryphonmon\ncomo prueba de \ntu victoria.{fin}"
+  },
+  {
+   "index": 891,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}Derrota...\nMmmmm...{pagina}Toma SaberLeomon\ncomo prueba de \ntu victoria.{fin}"
+  },
+  {
+   "index": 892,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}Derrota...\nMmmmm...\nTe daré...{pagina}...Rosemon II\ncomo prueba de \ntu victoria.{fin}"
+  },
+  {
+   "index": 893,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}Derrota...\nMmmmm...{pagina}Toma Demon\ncomo prueba de \ntu victoria.{fin}"
+  },
+  {
+   "index": 894,
+   "note": "G-044",
+   "text": "{hablante}Numemon{hablante}Derrota...\nMmmmm...{pagina}MarineAngemon\nes la prueba de \ntu victoria.{fin}"
+  },
+  {
+   "index": 895,
+   "note": "G-018 L6",
+   "text": "{hablante}BK Agumon{hablante}¿Quién eres tú?\n¿El Mic de Etemon?{pagina}¡Nosotros los Black\nKingz lo tenemos!{pagina}¡Sabemos que su \nfuerza viene del mic!{pagina}¡Si quieres saber \ndónde está, lucha \nconmigo!{fin}"
+  },
+  {
+   "index": 896,
+   "note": "L6",
+   "text": "{hablante}BK Agumon{hablante}Esa fue un asco.\n¿Qué tipo de carpeta\nusaré?{fin}"
+  },
+  {
+   "index": 897,
+   "note": "L6",
+   "text": "{hablante}BK Agumon{hablante}Je je je\n¡Somos los Black\nKingz más geniales!{pagina}¡No perderemos\ncontigo!{fin}"
+  },
+  {
+   "index": 898,
+   "note": "G-018 L6",
+   "text": "{hablante}BK Agumon{hablante}¿Qué? ¡Pierdo!{pagina}Bueno, una promesa\nes una promesa.{pagina}Nuestro Líder tiene\nel Mic de Etemon.{pagina}Los Black Kingz están bajo tierra, ve\ny búscalo.{fin}"
+  },
+  {
+   "index": 899,
+   "note": "G-018 L6",
+   "text": "{hablante}BKZ Líder{hablante}¿Quién eres tú?\nSoy el Líder de\nBlack Kingz.{pagina}¿Devolver el Mic\nde Etemon?\n¡Ja ja ja ja ja!{pagina}¿Todo este camino\npara preguntar eso?{pagina}Claro, tómalo. ¡No vale para nada!{pagina}¡Me estoy cansando!\n¡Lucharás conmigo!{fin}"
+  },
+  {
+   "index": 904,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip PM!{fin}"
+  },
+  {
+   "index": 905,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Potencia!{fin}"
+  },
+  {
+   "index": 906,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Armadura!{fin}"
+  },
+  {
+   "index": 907,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Mente!{fin}"
+  },
+  {
+   "index": 908,
+   "note": "G-035 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Sabio!{fin}"
+  },
+  {
+   "index": 909,
+   "note": "G-035 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Impulso!{fin}"
+  },
+  {
+   "index": 910,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip PV!{fin}"
+  },
+  {
+   "index": 911,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip Fuego!{fin}"
+  },
+  {
+   "index": 912,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip Agua!{fin}"
+  },
+  {
+   "index": 913,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip Hielo!{fin}"
+  },
+  {
+   "index": 914,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un Chip Viento!{fin}"
+  },
+  {
+   "index": 915,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nun Chip Rayo!{fin}"
+  },
+  {
+   "index": 916,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Metal!{fin}"
+  },
+  {
+   "index": 917,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Oscuro!{fin}"
+  },
+  {
+   "index": 918,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nBrazo Salvaje!{fin}"
+  },
+  {
+   "index": 919,
+   "note": "G-042 G-046 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nAmuleto Yin Yang!{fin}"
+  },
+  {
+   "index": 920,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nEscudo Ronin!{fin}"
+  },
+  {
+   "index": 921,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo una\nTúnica Divina!{fin}"
+  },
+  {
+   "index": 922,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Vemmon fue a la\nSala Maestra...{pagina}Pero supongo que nos\nsalvó.\n¡No te preocupes!{fin}"
+  },
+  {
+   "index": 923,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Una carpeta fuerte.\n¿Mmm...qué combo?{fin}"
+  },
+  {
+   "index": 924,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}...Debería estar\npatrullando...{pagina}Pero no tengo ganas.\nCreo que comprobaré\nmi lista de Cartas.{fin}"
+  },
+  {
+   "index": 925,
+   "note": "G-014 G-026",
+   "text": "{hablante}Soldado{hablante}...Debería estar\npatrullando...o el \njefe se enojará.{fin}"
+  },
+  {
+   "index": 933,
+   "note": "G-051 L6",
+   "text": "{hablante}Kotemon{hablante}Esta salida es la Tumba de la Selva \nde Amaterasu.{pagina}Si sigues hacia\nel sur llegarás\nal Servidor Asuka.{fin}"
+  },
+  {
+   "index": 934,
+   "note": "G-018 L6",
+   "text": "{hablante}Patamon{hablante}Sal aquí para\nla Jungla de Éter de Asuka.{pagina}Usa el túnel\nCabo Conexión para\nel Sector Norte.{fin}"
+  },
+  {
+   "index": 938,
+   "note": "G-018",
+   "text": "{hablante}Patamon{hablante}Sal aquí para\nla Jungla de\nÉter Asuka.{pagina}Usa el túnel\nCabo Conexión para\nel sector Norte.{fin}"
+  },
+  {
+   "index": 939,
+   "note": "G-042",
+   "text": "{hablante}Kotemon{hablante}Esta salida es \nCabo Conexión \nAsuka.{pagina}¡Ve al norte para\nel Sector Norte!\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 940,
+   "note": "G-042",
+   "text": "{hablante}Patamon{hablante}Creo que sale a\nAsuka Desierto\nNorte Oeste.{pagina}Quizás vuelva al\nnorte y al Sector\nNorte Asuka.{fin}"
+  },
+  {
+   "index": 942,
+   "note": "G-018",
+   "text": "{hablante}Kotemon{hablante}La Jungla de \nÉter Amaterasu\nestá aquí encima.{pagina}¿Sector Norte?\nEl túnel Cabo Conexión\nva a dar allí.{fin}"
+  },
+  {
+   "index": 943,
+   "note": "G-042",
+   "text": "{hablante}Patamon{hablante}Esta es para\nCabo Conexión\nAmaterasu.{pagina}Este túnel lleva\nal Sector Norte\nAmaterasu.{fin}"
+  },
+  {
+   "index": 947,
+   "note": "L6",
+   "text": "{hablante}Veemon{hablante}Ve al sur para\nDesierto O. \ndel Norte Asuka.{pagina}Al norte está la Jungla de Éter.{fin}"
+  },
+  {
+   "index": 957,
+   "note": "G-020",
+   "text": "{hablante}Agumon{hablante}Ve al norte hacia\nSector Norte Asuka.{pagina}Hay Digimon y \ntamers poderosos\nen el Sector Norte.{pagina}Da algo de miedo...{fin}"
+  },
+  {
+   "index": 958,
+   "note": "G-051",
+   "text": "{hablante}Kumamon{hablante}Sigue al Norte \npara Tumba de la Selva\nAmaterasu.{fin}"
+  },
+  {
+   "index": 959,
+   "note": "L6",
+   "text": "{hablante}Agumon{hablante}Sigue la carretera\nal norte para llegar\ncerca de Ciudad Asuka.{fin}"
+  },
+  {
+   "index": 968,
+   "note": "L6",
+   "text": "{hablante}Kumamon{hablante}Sigue hacia el\nnorte. Esa es la\nsalida.{fin}"
+  }
+ ]
+}

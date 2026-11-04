@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adapted from SDL2's android-project template. The activity is SDL's own plus a restart hook (DW3Activity): it loads libSDL2.so and libmain.so
+     (the game, whose main() is exported as SDL_main) and runs it. The app carries no disc, memory card or settings. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:installLocation="auto">
+
+    <!-- OpenGL ES 3.0: PsyCross's renderer on Android (RENDERER_OGLES, OGLES_VERSION 3) -->
+    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
+
+    <!-- Touchscreen is optional (a pad is the main input) -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:theme="@style/AppTheme"
+        android:hardwareAccelerated="true" >
+
+        <activity android:name=".DW3Activity"
+            android:label="@string/app_name"
+            android:alwaysRetainTaskState="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
+            android:preferMinimalPostProcessing="true"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+        </activity>
+
+        <!-- "Restart game": ends the game's process and starts the app again (its own process, see RestartActivity) -->
+        <activity android:name=".RestartActivity"
+            android:process=":restart"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+
+</manifest>

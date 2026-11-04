@@ -1,0 +1,338 @@
+{
+ "file": "SSSKLINF.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 53,
+   "note": "G-018",
+   "text": "Corta con espada y fuego."
+  },
+  {
+   "index": 54,
+   "note": "G-026 G-037 L6",
+   "text": "Apunta al punto débil con resortera."
+  },
+  {
+   "index": 58,
+   "note": "G-042",
+   "text": "Dispara bolas de fuego al enemigo."
+  },
+  {
+   "index": 63,
+   "note": "G-042 L6",
+   "text": "Si lo atacan primero, contraataca."
+  },
+  {
+   "index": 64,
+   "note": "G-018",
+   "text": "Lanza bolas de fuego por la boca."
+  },
+  {
+   "index": 67,
+   "note": "G-018",
+   "text": "Lanza bolas de fuego con 9 colas."
+  },
+  {
+   "index": 77,
+   "note": "G-018",
+   "text": "Lanza 2 ondas rápidas de energía."
+  },
+  {
+   "index": 78,
+   "note": "L6",
+   "text": "Quema al enemigo con láser de fuego."
+  },
+  {
+   "index": 80,
+   "note": "G-018",
+   "text": "Abre puerta y descarta enemigos."
+  },
+  {
+   "index": 81,
+   "note": "G-018",
+   "text": "Reduce el ataque del enemigo."
+  },
+  {
+   "index": 82,
+   "note": "G-018",
+   "text": "Lanza bolas de energía mecánica."
+  },
+  {
+   "index": 83,
+   "note": "G-018",
+   "text": "Dispara bolas de rayo por la boca."
+  },
+  {
+   "index": 84,
+   "note": "G-018",
+   "text": "Ataque oscuro con bolas oscuras."
+  },
+  {
+   "index": 87,
+   "note": "G-018",
+   "text": "Lanza onda que aturde enemigos."
+  },
+  {
+   "index": 90,
+   "note": "L6",
+   "text": "Utiliza escudo para contraataque."
+  },
+  {
+   "index": 92,
+   "note": "G-018 G-042 G-054",
+   "text": "Dispara 7 bolas de fuego contra Digimon malvados."
+  },
+  {
+   "index": 94,
+   "note": "G-018",
+   "text": "Envenena con látigo de espinas."
+  },
+  {
+   "index": 96,
+   "note": "G-042",
+   "text": "Dispara el cañón láser definitivo."
+  },
+  {
+   "index": 98,
+   "note": "G-042",
+   "text": "Dispara los misiles corporales."
+  },
+  {
+   "index": 100,
+   "note": "G-042 G-044",
+   "text": "Revive a los aliados con PV máximos."
+  },
+  {
+   "index": 102,
+   "note": "G-018",
+   "text": "Espada que destruye el mal."
+  },
+  {
+   "index": 104,
+   "note": "G-018",
+   "text": "Poderoso ataque mágico malvado."
+  },
+  {
+   "index": 110,
+   "note": "G-026",
+   "text": "Gran daño de viento."
+  },
+  {
+   "index": 121,
+   "note": "L6",
+   "text": "Contraataca durante la pose."
+  },
+  {
+   "index": 122,
+   "note": "G-018 L6",
+   "text": "Fuerte contraataque durante la pose."
+  },
+  {
+   "index": 123,
+   "note": "G-054",
+   "text": "Daño por golpes rápidos."
+  },
+  {
+   "index": 124,
+   "note": "G-054",
+   "text": "Gran daño por golpes rápidos."
+  },
+  {
+   "index": 128,
+   "note": "G-042",
+   "text": "Ataca y roba rápidamente artículos."
+  },
+  {
+   "index": 134,
+   "note": "G-042",
+   "text": "Gran daño contra Digimon dinosaurio."
+  },
+  {
+   "index": 138,
+   "note": "G-026",
+   "text": "Lanza rayo de fuego."
+  },
+  {
+   "index": 139,
+   "note": "G-018",
+   "text": "Envuelve al enemigo con fuego."
+  },
+  {
+   "index": 143,
+   "note": "G-018",
+   "text": "Ataque mágico: 3 bolas de fuego."
+  },
+  {
+   "index": 149,
+   "note": "G-018",
+   "text": "Dispara carámbanos de hielo."
+  },
+  {
+   "index": 151,
+   "note": "G-018",
+   "text": "Espíritu de nieve daña con hielo."
+  },
+  {
+   "index": 152,
+   "note": "G-018",
+   "text": "Envuelve al enemigo con hielo."
+  },
+  {
+   "index": 155,
+   "note": "G-026",
+   "text": "Poderosa ráfaga de viento."
+  },
+  {
+   "index": 157,
+   "note": "G-054",
+   "text": "Crea dos bolas de rayo y las dispara."
+  },
+  {
+   "index": 159,
+   "note": "G-042",
+   "text": "Bola de rayo enorme contra el enemigo."
+  },
+  {
+   "index": 162,
+   "note": "G-042",
+   "text": "Dispara misiles gigantes con magia."
+  },
+  {
+   "index": 163,
+   "note": "L6",
+   "text": "El misil mágico más poderoso."
+  },
+  {
+   "index": 164,
+   "note": "G-018",
+   "text": "Bola de fuego malvada y oscura."
+  },
+  {
+   "index": 165,
+   "note": "G-018",
+   "text": "Lanza llama malvada al enemigo."
+  },
+  {
+   "index": 166,
+   "note": "G-018 L6",
+   "text": "Envuelve con columna de fuego malvada."
+  },
+  {
+   "index": 168,
+   "note": "G-018",
+   "text": "Daño oscuro con espinas malvadas."
+  },
+  {
+   "index": 171,
+   "note": "G-042",
+   "text": "Agujerea con varias materias oscuras."
+  },
+  {
+   "index": 173,
+   "note": "G-018",
+   "text": "Lanza espuma venenosa con magia."
+  },
+  {
+   "index": 179,
+   "note": "G-018",
+   "text": "Magia que duerme al enemigo."
+  },
+  {
+   "index": 188,
+   "note": "L6",
+   "text": "Cura casi todos los PV de los aliados."
+  },
+  {
+   "index": 190,
+   "note": "G-054",
+   "text": "Cúrate el veneno."
+  },
+  {
+   "index": 192,
+   "note": "G-054",
+   "text": "Cúrate la parálisis."
+  },
+  {
+   "index": 193,
+   "note": "L6",
+   "text": "Cura la parálisis en los aliados."
+  },
+  {
+   "index": 194,
+   "note": "G-026",
+   "text": "Cúrate la confusión."
+  },
+  {
+   "index": 195,
+   "note": "L6",
+   "text": "Cura la confusión en los aliados."
+  },
+  {
+   "index": 196,
+   "note": "G-026",
+   "text": "Cúrate los males."
+  },
+  {
+   "index": 197,
+   "note": "L6",
+   "text": "Cura los males en los aliados."
+  },
+  {
+   "index": 199,
+   "note": "G-018",
+   "text": "Incrementa el ataque de aliados."
+  },
+  {
+   "index": 200,
+   "note": "G-042",
+   "text": "Incrementa la potencia de defensa."
+  },
+  {
+   "index": 201,
+   "note": "G-018",
+   "text": "Incrementa la defensa de aliados."
+  },
+  {
+   "index": 203,
+   "note": "G-042",
+   "text": "Incrementa la velocidad de aliados."
+  },
+  {
+   "index": 207,
+   "note": "G-026",
+   "text": "Reduce la velocidad enemiga."
+  },
+  {
+   "index": 208,
+   "note": "G-042",
+   "text": "Reduce mucho la velocidad enemiga."
+  },
+  {
+   "index": 209,
+   "note": "G-018 G-042 L6",
+   "text": "Acumula Chi para el siguiente golpe."
+  },
+  {
+   "index": 210,
+   "note": "G-018 L6",
+   "text": "Acumula Chi máximo para el siguiente golpe."
+  },
+  {
+   "index": 214,
+   "note": "G-054",
+   "text": "Refuerza agua, debilita fuego."
+  },
+  {
+   "index": 218,
+   "note": "G-042",
+   "text": "Refuerza metal, debilita oscuridad."
+  },
+  {
+   "index": 219,
+   "note": "G-042",
+   "text": "Refuerza oscuridad, debilita rayo."
+  }
+ ]
+}

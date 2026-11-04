@@ -1,0 +1,6 @@
+{
+  "format": "battle_loot-v1",
+  "rows": {
+    "*": { "item": "sample-item:test-gadget", "itemChance": 1023 }
+  }
+}

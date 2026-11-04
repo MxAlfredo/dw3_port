@@ -1,0 +1,668 @@
+{
+ "file": "SSDMG700.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-018",
+   "text": "{hablante}Junior{hablante}Llegan tarde...\n¿Qué hacen Teddy\ne Ivy?{pagina}No tenemos\ntiempo para jugar a\nDigimon Online...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-019 G-018 L6",
+   "text": "{hablante}Junior{hablante}No quería que Ivy\nviniera, pero Teddy\nel chismoso lo dijo.{pagina}Deberían haber conseguido un pase de entrada con anticipación.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 0,
+   "note": "G-045 G-044 L6",
+   "text": "... Última hora.{pagina}La policía internacional S.A.P.\nlocalizó el cuartel general europeo del\ngrupo criminal A.o.A.{pagina}Junto con el ejército,\nentraron en su cuartel\ngeneral anoche...{pagina}Y arrestaron a los líderes\nde A.o.A. en las instalaciones.{pagina}Creen que estos arrestos \nrelacionan el reciente terrorismo\nde Internet con A.o.A.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "G-018 L6",
+   "text": "{hablante}Junior{hablante}A.o.A., ese es el\ngrupo que hizo tantas\ncosas malas con Digimon.{pagina}¡No puedo creer que \nalguien obligue a un Digimon a actuar mal!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 0,
+   "note": "G-018",
+   "text": "{hablante}Ivy{hablante}Junior, ¿estás\nhablando solo?\nDas miedo.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 0,
+   "note": "G-018 L6",
+   "text": "{hablante}Teddy{hablante}Gracias por esperar, Junior. ¡Perdón por \nllegar tarde!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 0,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Ya era hora, Teddy!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}Junior{hablante}¿Por qué \nestá\nIvy aquí?{pagina}¡Si siempre dices que los \nDigimon son de niños!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 0,
+   "note": "G-018 G-026 G-050",
+   "text": "{hablante}Ivy{hablante}¡Eh! Me interesa\nDigimon Online. ¿De acuerdo?{pagina}¡Y nunca dije que \nodiara a Digimon!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 0,
+   "note": "G-011 G-018 L6",
+   "text": "{hablante}Teddy{hablante}Junior, Ivy, ¡rápido, vamos al Centro\nOnline!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "G-012",
+   "text": "{hablante}Junior:{hablante}¿Así que este es el\nCentro Online\nMAGAMI? ¡Genial!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 1,
+   "note": "G-018 G-026",
+   "text": "{hablante}Teddy{hablante}Sí, este es el \nSistema Matriz.{pagina}Digitaliza nuestras ideas\ny pensamientos y los\nenvía a la red.{pagina}¿Cómo funcionará?\nQuiero ver cómo\nfunciona por dentro.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-005 G-011 G-026",
+   "text": "{hablante}Junior:{hablante}¡Eh! ¿Qué hacen\nlos dos aquí?{pagina}¡Vamos, configuremos\nla cuenta y entremos\nen el Mundo Digital!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-005",
+   "text": "{hablante}Administrador:{hablante}Bienvenidos al\nCentro Online\nMAGAMI.{pagina}Este servicio es para\nlos viajeros al \nMundo Digital.{pagina}¿Es la primera vez\nque juegan a \nDigimon Online?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "G-015",
+   "text": "{hablante}Administrador:{hablante}Antes de configurar\nla cuenta...{pagina}... seleccionen el \nDigimon compañero.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 1,
+   "note": "G-015",
+   "text": "{hablante}Administrador:{hablante}Seleccionen el paquete\nde inicio A, B o C.{pagina}Cada paquete tiene\ntres tipos de Digimon.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 1,
+   "note": "G-005 G-018 G-024 G-026",
+   "text": "{hablante}Administrador:{hablante}A es un paquete\nequilibrado: Kotemon,\nRenamon, Patamon.{pagina}B es un paquete\npotente: Monmon,\nAgumon, Renamon.{pagina}C es un paquete\nmaníaco: Kumamon,\nGuilmon, Patamon.{pagina}¿Cuál de los tres\ndesean?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 1,
+   "note": "G-011 G-018 G-026",
+   "text": "{hablante}Ivy{hablante}Vamos, Junior,\n¿qué te\npreocupa?{pagina}¡Elige un paquete\ncon un Digimon\nque te guste!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 1,
+   "note": "G-026 L6",
+   "text": "{hablante}Ivy:{hablante}¿Qué Digimon no te\ngusta?{pagina}¡Descarta el paquete con el Digimon que no te gusta y selecciona!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 1,
+   "note": "G-011",
+   "text": "{hablante}Ivy:{hablante}Bueno, si te gustan\ntodos, ¡no tienes que \npreocuparte!{pagina}Anda, selecciona y\n¡vamos al Mundo \nDigital!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 1,
+   "note": "G-024 L6",
+   "text": "{hablante}Ivy:{hablante}¡Junior! ¿Aún no\nte has decidido?{pagina}¡Decídete o me\nadelanto!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 1,
+   "note": "G-005",
+   "text": "{hablante}Administrador:{hablante}¿Ya decidieron \ntodos?{fin}"
+  },
+  {
+   "index": 16,
+   "part": 1,
+   "note": "G-003 G-004 G-026",
+   "text": "{hablante}Administrador:{hablante}De acuerdo, ahora\nlos registraré con\nsu Digimon.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 2,
+   "note": "G-008",
+   "text": "{hablante}Junior{hablante}¡Bien, Teddy, Ivy!\n¡Vamos al Mundo\nDigital!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}Ivy{hablante}¡E-eh!\n¡Espera, Junior!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 2,
+   "note": "G-018",
+   "text": "{hablante}Teddy{hablante}¡No he acabado\nel registro!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-018 G-022 G-045",
+   "text": "{hablante}Junior{hablante}¡Wow! ¿Esta es \nla Sala de Cámara?{pagina}Puedo empezar el \njuego...\n¡Qué emocionante!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 3,
+   "note": "G-003 G-018",
+   "text": "{hablante}Operador{hablante}¿Cuál es su \nnombre de cuenta\nregistrado?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 3,
+   "note": "G-018",
+   "text": "{hablante}Junior{hablante}¡Es {0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 4,
+   "part": 3,
+   "note": "G-015 G-018 G-026 L6",
+   "text": "{hablante}Operador{hablante}...Confirmado.\nGracias.{pagina}Entren en la Cápsula de Cámara de allá.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 3,
+   "note": "G-008",
+   "text": "{hablante}Junior{hablante}¡Bien!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 3,
+   "note": "G-018 G-026",
+   "text": "{hablante}Ivy{hablante}¡Eh! ¿Te vas\nsin nosotros?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 3,
+   "note": "G-018",
+   "text": "{hablante}Teddy{hablante}¡Junior!\n¡Espera!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}Maestro de Hielo{hablante}¡Espera!\n¡No puedes\npasar!{pagina}¡Si de verdad\nquieres, tienes\nque ganarme!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 9,
+   "note": "G-008 G-045",
+   "text": "{hablante}{0209}{hablante}Bien, solo \nluchar y ganar, \n¿verdad?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Maestro de Hielo{hablante}¡Eso es!\n¡Ya sabes cómo va esto!{pagina}De acuerdo, ¡comencemos!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 9,
+   "note": "G-028",
+   "text": "{hablante}{0209}{hablante}Bueno...\n¡Andando!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-026 L6",
+   "text": "{hablante}Bruja de Hielo{hablante}¡Un momento!\n¡No voy a dejar pasar a un niño como tú!{pagina}¡Ríndete y vete a casa!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 10,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Estás de broma,\n¿no? No tengo\ntiempo para esto.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 10,
+   "note": "G-026",
+   "text": "{hablante}Bruja de Hielo{hablante}¡Soy la Reina de la\nMazmorra de Hielo!\n¡Cuida los modales!{pagina}¡No te perdonaré!\n¡Serás castigado!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 11,
+   "note": "G-026",
+   "text": "{hablante}Bruja de Hielo{hablante}Pasa.\nRezaré por\ntu éxito.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-026 L6",
+   "text": "{hablante}Caballero Fuego{hablante}¡Un segundo!\nLlegas en buen momento. Estaba aburrido.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 12,
+   "note": "G-020 L6",
+   "text": "{hablante}Caballero Fuego{hablante}¿No te aburres?\n¡No me hagas reír!{pagina}Hoy en día los tamers \nson débiles...{pagina}¡Pero tú pareces\nbueno, luchemos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-026 L6",
+   "text": "{hablante}Caballero Fuego{hablante}¡Perdí!\nPerdí esta vez.{pagina}Necesito soltar vapor.\n¡Hagámoslo de nuevo algún día!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 13,
+   "note": "G-026 L6",
+   "text": "{hablante}Caballero Fuego{hablante}¡La Mazmorra Oscura\nestá adelante!\n¡Ten cuidado!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}Caballero Oscuro{hablante}¡Bien!\n¡Parece que tienes\ncoraje!{pagina}La Mazmorra Oscura.\nLa más fuerte del\nServidor Asuka.{pagina}¡Soy el más fuerte,\nel Caballero Oscuro!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "G-020 L6",
+   "text": "{hablante}{0209}{hablante}Soy el mejor tamer.\n¡{0208}{0102}1{01e7} Perdona,\nestás en mi camino.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 14,
+   "note": "L6",
+   "text": "{hablante}Caballero Oscuro{hablante}¡Eh, chico!\n¡Yo no tengo un \nprograma así!{pagina}¡No puedo dejar \npasar a nadie!{pagina}¡Si quieres pasar\ntienes que ganarme!{pagina}Como si pudieras...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 15,
+   "note": "G-020",
+   "text": "{hablante}Caballero Oscuro{hablante}¡Adelante!\n¡Vas a ser un\ngran tamer!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 16,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Genbu{hablante}Eh, ¿qué?\n¿Un retador en un momento como este?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 16,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Líder Genbu,\n¡tengo que pedirle\nun favor!{pagina}¿Puede darme su \npin para volver al Mundo Real?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Líder Genbu{hablante}Lo siento, pero no\npuedo darte el\npin sin más.{pagina}Esas son las reglas.{pagina}¡Si lo quieres,\ntendrás que\nganarme!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}De acuerdo.\n¡Sabía que\ndirías eso!{pagina}¡Acabemos con\nesto!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 17,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí, también \nle gané al Líder\nGenbu!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 17,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Genbu{hablante}{0208}{0102}1 0 perdón por haberte hecho luchar.{pagina}Quería comprobar\nque...{pagina}¡Puedes luchar\ncontra la A.o.A.!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 17,
+   "note": "L6",
+   "text": "{hablante}Líder Genbu{hablante}¡Toma esto\ny detén los \nplanes de A.o.A.!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 17,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Genbu{hablante}Creo que eres lo\nsuficientemente\nfuerte para seguir luchando.{pagina}Ellos también\nson fuertes.\n¡Mantén la guardia en alto!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 18,
+   "note": "G-026 L6",
+   "text": "{hablante}Jefe Xuan Wu{hablante}Así que viniste.\nEl que se opone\na nosotros.{pagina}¡Estoy aquí y no\nvoy a huir ni esconderme!{pagina}¡Ahora pelea\nconmigo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 18,
+   "text": "{hablante}Jefe Xuan Wu{hablante}Mmm, así que\nllegaste...{pagina}Debería haberlo\nsabido por la derrota\nde los otros...{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 4,
+   "part": 18,
+   "note": "G-026 G-035 L6",
+   "text": "{hablante}{0209}{hablante}¡Jefe Xuan Wu!{pagina}¡Tú tienes el\nPase Negro!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 18,
+   "note": "G-026 L6",
+   "text": "{hablante}Jefe Xuan Wu{hablante}¡Sí, lo tengo!\n¿Lo quieres?{pagina}¡Entonces lucha\nconmigo y quítamelo\nde la mano!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 19,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí!\n¡Le gané al\nJefe Xuan Wu!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 20,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestro de Hielo{hablante}Eres bueno. ¡Estoy impresionado!{pagina}¡Toma este regalo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 20,
+   "note": "G-044",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel Chip PM!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 20,
+   "note": "L6",
+   "text": "{hablante}Maestro de Hielo{hablante}¡Desde aquí\nserá difícil!\n¡Prepárate!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 21,
+   "note": "L6",
+   "text": "{hablante}Maestro de Fuego{hablante}¡Es peligroso\na partir de aquí!\n¡Vuélvete!{pagina}¿O quieres\nganarme y seguir?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 21,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Sí, ¡eso es!\n¡Para eso\nvine!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 21,
+   "note": "G-020 L6",
+   "text": "{hablante}Maestro de Fuego{hablante}Eres un \ntamer\nproblemático.{pagina}Si ganas, puedes\npasar.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 22,
+   "note": "L6",
+   "text": "{hablante}Maestro de Fuego{hablante}¡Eres fuerte!\n¡Impresionante!{pagina}Te daré esto.\n¡Úsalo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 22,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nChip Mente!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 22,
+   "note": "L6",
+   "text": "{hablante}Maestro de Fuego{hablante}¡Nuestro Líder\nestá más allá!\n¡Es muy fuerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "G-026 G-050 L6",
+   "text": "{hablante}Maestro Oscuro{hablante}Mmm...\n¿Quién eres?{pagina}¿Viniste a\ndesafiarme?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 23,
+   "note": "G-020 G-026",
+   "text": "{hablante}Maestro Oscuro{hablante}No sabes lo que \nestás pidiendo...{pagina}De acuerdo.\nNo he visto un \ntamer en mucho tiempo.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestro Oscuro{hablante}Eres bueno.\nYo estoy un poco\ndesanimado...{pagina}Pero me ganaste.\nTe daré esto,\n¡tómalo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 24,
+   "note": "G-020 G-026",
+   "text": "{hablante}Maestro Oscuro{hablante}... Puedes \nser un gran\ntamer.{pagina}Buena suerte.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-018 L6",
+   "text": "{hablante}Oficial de Cámara{hablante}Todo bien.\nTerminamos la\ncomprobación de {0208}{0102}1 1{pagina}Invirtiendo el Sistema\nMatriz.{pagina}¿Dónde deseas \n\"realizarte\" en el Mundo\nReal?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 25,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡La Base Militar\nMagasta del\nMundo Real!{pagina}¡Está en el fondo del océano!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 25,
+   "note": "L6",
+   "text": "{hablante}Oficial de Cámara{hablante}Comprendo.\nBase Militar\nMagasta⋯{fin}"
+  },
+  {
+   "index": 4,
+   "part": 25,
+   "note": "G-026 G-045 L6",
+   "text": "{hablante}Oficial de Cámara{hablante}Confirmado. Está en\nrango de salto.{pagina}Sin embargo, debido\nal sistema inestable...{pagina}Tu existencia en \nel Mundo Real durará \nsolo 180 segundos.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 25,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Eh... Espera...\n¿Qué pasa si se\nagota el tiempo?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 25,
+   "note": "L6",
+   "text": "{hablante}Oficial de Cámara{hablante}La Realización se \ndetendrá y la Matriz\nte traerá de vuelta.{pagina}Los datos de la Matriz \nno se romperán, no\nte preocupes.{pagina}Vamos a iniciar el\nSistema Matriz ahora.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 26,
+   "note": "G-026 G-045 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí, el Mundo\nReal!{pagina}¡Wow, mi cuerpo está de verdad aquí!{pagina}¡Espera, no tengo\ntiempo para eso!{pagina}¡Solo tenemos 180\nsegundos! ¡Tenemos\nque darnos prisa!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 27,
+   "note": "G-009",
+   "text": "{hablante}{0209}{hablante}¿Qué es este\npanel de control?{pagina}Aquí hay un botón.\nLo presionaré a ver\nqué pasa.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 28,
+   "note": "L6",
+   "text": "¡180 SEGUNDOS TERMINADOS! ¡180 SEGUNDOS TERMINADOS!{pagina}LA TRANSFERENCIA HA\nLLEGADO AL LÍMITE.\n¡FORZANDO DIGITALIZACIÓN!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}Oficial de Cámara{hablante}Dispositivo Astral\ncorrecto. Datos\nnormales.{pagina}¡Finalizando\nla digitalización!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Oh! ¡Se acabó\nel tiempo y\nvolví!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 29,
+   "note": "L6",
+   "text": "{hablante}Oficial de Cámara{hablante}Dispositivo Astral \nlimpio.\nDatos normales.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 29,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Qué estará \npasando\nen el Mundo Real?{pagina}Espero que todo esté bien.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 29,
+   "note": "L6",
+   "text": "LÍMITE DE LA TRANSFERENCIA ALCANZADO.\nFORZANDO DIGITALIZACIÓN.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 30,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Se llevaron al\nJuggernaut.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 30,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Me pregunto qué\nestá pasando en\nel Mundo Real.{pagina}Espero que \nvaya bien...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 31,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, vamos\na hablar con\nLisa y los otros.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 32,
+   "note": "L6",
+   "text": "Última hora. La Red\nÓptica está desconectada.{pagina}S.A.P. cree que se debe\nal ciberterrorismo y \nestá investigando.{pagina}¡Puede haber muchos problemas \nsi la Red Óptica queda\ndesconectada mucho tiempo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 32,
+   "note": "G-019",
+   "text": "{hablante}Computadora Seiya{hablante}¿Qué?\n¡Digimon Online\ntambién!{pagina}Iba a conectarme, \npero la red está \ndesconectada...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 32,
+   "note": "L6",
+   "text": "{hablante}Científico Nerd Hideki{hablante}Si la red no está \nconectada, es malo \npara Digimon Online.{pagina}El Sistema Matriz no\npuede acceder a los \nservidores, ¿no?{pagina}Entonces, ¿no \nsignifica eso que no\npueden volver?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 32,
+   "note": "G-026 L6",
+   "text": "{hablante}Trabajador Kouta{hablante}... pero ¿quiénes\nson los  \nciberterroristas?{pagina}Creía que habían\ncapturado a toda la\nA.o.A.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 33,
+   "note": "G-019",
+   "text": "{hablante}Computadora Seiya{hablante}¿Qué?\n¿Qué pasa?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 33,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Fan del Correo Saki{hablante}¡Calla! ¡No oigo\nmi teléfono!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 33,
+   "note": "G-018 L6",
+   "text": "{hablante}Compradora Teruko{hablante}¿Quuuué?\n¿Qué hago ahora?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 33,
+   "note": "G-018 L6",
+   "text": "{hablante}Compradora Teruko{hablante}¿Dónde está la\npolicía?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 34,
+   "note": "G-045",
+   "text": "Esto...zzzhh...solo...\nBase... Submarina....\n...zzhhh...{pagina}...ataq...por...terroris...\n...Jugger... A ... Ahora..\n... Ciudad...zzzhh....{pagina}ZZhh... Emergenc... Es...\nGente... Busca.... Protec...\n..y... Escap...zzzhhh{fin}"
+  },
+  {
+   "index": 1,
+   "part": 35,
+   "note": "G-018",
+   "text": "{hablante}Técnico Seiya{hablante}¿Oi?\nOioioio.......\n........{fin}"
+  },
+  {
+   "index": 1,
+   "part": 36,
+   "note": "G-044 L6",
+   "text": "{hablante}{0209}{hablante}Una vez que vencí a\nGalacticmon, todo\nera perfecto.{pagina}Ya han pasado\ntres meses.\nParece un sueño.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Kurt es increíble!\nCreó una nueva \ncompañía...{pagina}Y comenzó Digimon\nOnline en lugar de\nMAGAMI...{fin}"
+  },
+  {
+   "index": 5,
+   "part": 36,
+   "note": "G-026",
+   "text": "{hablante}Ivy{hablante}¿Hablas solo?\n¡Qué miedo!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 36,
+   "note": "G-005",
+   "text": "{hablante}{0209}{hablante}¡Llegan \ntarde!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 36,
+   "note": "G-042",
+   "text": "{hablante}{0209}{hablante}Llevo \nesperando más\nde diez minutos.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Ivy{hablante}¿Y qué quieres\nque haga? ¡Tú\nllegaste muy pronto!{pagina}Si tantas ganas\ntenías, ¿por qué\nno te fuiste?{fin}"
+  },
+  {
+   "index": 10,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}¡Eh, eh,\n{0208}{0102}1 0 Ivy!{pagina}Tranquilos y vamos\nal Centro Online.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 37,
+   "note": "G-042 L6",
+   "text": "{hablante}{0209}{hablante}¡Oh, no!\n¡Han pasado \n180 segundos!{fin}"
+  }
+ ]
+}

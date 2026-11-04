@@ -1,0 +1,168 @@
+{
+ "file": "SSCARDGM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 6,
+   "note": "G-018",
+   "text": "Selecciona y usa una Carta de Programa."
+  },
+  {
+   "index": 10,
+   "note": "G-018",
+   "text": "Selecciona y usa una Carta de Programa."
+  },
+  {
+   "index": 13,
+   "note": "G-018",
+   "text": "Batalla de Cartas"
+  },
+  {
+   "index": 14,
+   "note": "G-042",
+   "text": "¿Utilizar Carta de Programa?"
+  },
+  {
+   "index": 16,
+   "note": "L6",
+   "text": "¡Ganaste!"
+  },
+  {
+   "index": 17,
+   "note": "L6",
+   "text": "¡Perdiste!"
+  },
+  {
+   "index": 19,
+   "note": "G-018",
+   "text": "Puntuación actual"
+  },
+  {
+   "index": 21,
+   "note": "L6",
+   "text": "¡Ganaste esta batalla!"
+  },
+  {
+   "index": 22,
+   "note": "L6",
+   "text": "¡Perdiste esta batalla!"
+  },
+  {
+   "index": 23,
+   "note": "G-018",
+   "text": "Ninguna Carta en Campo."
+  },
+  {
+   "index": 28,
+   "note": "G-018",
+   "text": "Mano del oponente"
+  },
+  {
+   "index": 29,
+   "note": "G-018",
+   "text": "Mazo del oponente"
+  },
+  {
+   "index": 30,
+   "note": "G-018",
+   "text": "Basura del oponente"
+  },
+  {
+   "index": 31,
+   "note": "G-018",
+   "text": "Reto de Batalla de Cartas"
+  },
+  {
+   "index": 32,
+   "note": "L6",
+   "text": "Mano\nCampo\nPapelera\nCancelar\nRendirse"
+  },
+  {
+   "index": 34,
+   "note": "G-018 L6",
+   "text": "Tu oponente no puede sacar 6 cartas,\nasí que ganas este tiempo."
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Elegir {011b} Invocar {0132}"
+  },
+  {
+   "index": 37,
+   "note": "G-042",
+   "text": "En entrenamiento"
+  },
+  {
+   "index": 43,
+   "note": "G-042",
+   "text": "Ganadas\nPerdidas"
+  },
+  {
+   "index": 45,
+   "note": "G-018",
+   "text": "La Puerta de Fortuna\ncambia los PA y los PV."
+  },
+  {
+   "index": 46,
+   "note": "G-018",
+   "text": "Ningún Digimon en Campo."
+  },
+  {
+   "index": 50,
+   "note": "G-018",
+   "text": "No hay Digimon Marrón."
+  },
+  {
+   "index": 51,
+   "note": "G-018",
+   "text": "Sin cartas en Mano."
+  },
+  {
+   "index": 52,
+   "note": "G-018",
+   "text": "Sin cartas en la basura."
+  },
+  {
+   "index": 55,
+   "note": "G-018",
+   "text": "Sin cartas de Programa en el Mazo"
+  },
+  {
+   "index": 57,
+   "note": "G-018",
+   "text": "Selecciona carta para basura"
+  },
+  {
+   "index": 60,
+   "note": "G-018",
+   "text": "Comienza Fase de Carga"
+  },
+  {
+   "index": 61,
+   "note": "G-018",
+   "text": "Comienza Fase de Compilado"
+  },
+  {
+   "index": 63,
+   "note": "G-042",
+   "text": "Pasar"
+  },
+  {
+   "index": 65,
+   "note": "G-018",
+   "text": "Selecciona Carpeta"
+  },
+  {
+   "index": 66,
+   "note": "G-018",
+   "text": "Obtuviste un Sobre de Expansión"
+  },
+  {
+   "index": 69,
+   "note": "G-042",
+   "text": "Sí, usaré una Carta de Programa"
+  }
+ ]
+}

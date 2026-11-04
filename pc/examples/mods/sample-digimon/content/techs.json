@@ -1,0 +1,18 @@
+{
+  "format": "techs-v1",
+  "new": {
+    "flame-jab": {
+      "base": "dw3:tech/9",
+      "mp": 2,
+      "power": 140,
+      "name": {
+        "eng": "Flame Jab",
+        "es-419": "Puñetazo de llama"
+      },
+      "description": {
+        "eng": "A fast, fiery punch.",
+        "es-419": "Un golpe rápido y ardiente."
+      }
+    }
+  }
+}

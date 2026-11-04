@@ -1,0 +1,133 @@
+{
+ "file": "SSMFIGHT.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 6,
+   "note": "L6",
+   "text": "Huir"
+  },
+  {
+   "index": 10,
+   "note": "L6",
+   "text": "¡Contra! ¡{0205}{01e7}"
+  },
+  {
+   "index": 25,
+   "note": "G-042",
+   "text": "Habilidad"
+  },
+  {
+   "index": 31,
+   "note": "L6",
+   "text": "¡Paralizado!"
+  },
+  {
+   "index": 34,
+   "note": "G-042",
+   "text": "¡{0205} <V curados!"
+  },
+  {
+   "index": 37,
+   "note": "L6",
+   "text": "¡Contra!"
+  },
+  {
+   "index": 55,
+   "note": "G-026",
+   "text": "¡Digievolucionado! ¡{0205}{01e7}"
+  },
+  {
+   "index": 57,
+   "note": "G-026",
+   "text": "¡Vamos por ello!"
+  },
+  {
+   "index": 61,
+   "note": "G-018",
+   "text": "¡Defensa total!"
+  },
+  {
+   "index": 64,
+   "note": "L6",
+   "text": "¡Emocionado!"
+  },
+  {
+   "index": 68,
+   "note": "G-042",
+   "text": "¡No puede escapar!"
+  },
+  {
+   "index": 71,
+   "note": "L6",
+   "text": "¡Regresión!"
+  },
+  {
+   "index": 72,
+   "note": "L6",
+   "text": "¡Escapando!"
+  },
+  {
+   "index": 76,
+   "note": "G-042",
+   "text": "¡Fuerza, defensa y velocidad malditas!"
+  },
+  {
+   "index": 86,
+   "note": "L6",
+   "text": "¡Paralizado, sin moverse!"
+  },
+  {
+   "index": 90,
+   "note": "L6",
+   "text": "¡Sin recuperación automática!"
+  },
+  {
+   "index": 110,
+   "note": "G-018",
+   "text": "Abandona"
+  },
+  {
+   "index": 113,
+   "note": "L6",
+   "text": "Enojarse"
+  },
+  {
+   "index": 120,
+   "note": "G-022 L6",
+   "text": "\"¡Wow, estoy mareado!\""
+  },
+  {
+   "index": 121,
+   "note": "L6",
+   "text": "¡Empacando!"
+  },
+  {
+   "index": 127,
+   "note": "G-014",
+   "text": "¡Enojado!"
+  },
+  {
+   "index": 131,
+   "note": "L6",
+   "text": "¡Riendo a carcajadas!"
+  },
+  {
+   "index": 135,
+   "note": "L6",
+   "text": "¡Queriendo ir a casa!"
+  },
+  {
+   "index": 140,
+   "note": "G-044",
+   "text": "¡Galacticmon aprendió una técnica!"
+  },
+  {
+   "index": 142,
+   "note": "L6",
+   "text": "¡Cambio fallido!"
+  }
+ ]
+}

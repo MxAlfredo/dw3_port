@@ -1,0 +1,183 @@
+{
+ "file": "SSSTATUS.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 11,
+   "note": "G-042",
+   "text": "CARPETAS DE CARTAS"
+  },
+  {
+   "index": 15,
+   "note": "G-018",
+   "text": "Cambiar formación Digimon\nBotón {0134}: Volver al Menú"
+  },
+  {
+   "index": 16,
+   "note": "G-018 G-042",
+   "text": "No puede cambiar la formación de Digimon\nBotón {0134}: Volver al Menú"
+  },
+  {
+   "index": 26,
+   "note": "G-018 L6",
+   "text": "Artículos Clave"
+  },
+  {
+   "index": 29,
+   "note": "G-018",
+   "text": "Todas las armaduras"
+  },
+  {
+   "index": 30,
+   "note": "G-018",
+   "text": "Todos los accesorios"
+  },
+  {
+   "index": 31,
+   "note": "G-018",
+   "text": "Todos los importantes"
+  },
+  {
+   "index": 32,
+   "note": "G-018",
+   "text": "Equipar"
+  },
+  {
+   "index": 33,
+   "note": "G-018 L6",
+   "text": "Botón {0132}: Ordenar artículos"
+  },
+  {
+   "index": 36,
+   "note": "G-018 L6",
+   "text": "Ordenar artículos"
+  },
+  {
+   "index": 42,
+   "note": "G-018",
+   "text": "Seleccionar técnica"
+  },
+  {
+   "index": 43,
+   "note": "L6",
+   "text": "¿Usar en quién?"
+  },
+  {
+   "index": 44,
+   "note": "L6",
+   "text": "¿Qué hacer?"
+  },
+  {
+   "index": 45,
+   "note": "G-018",
+   "text": "Ver Digievolución"
+  },
+  {
+   "index": 47,
+   "note": "G-042",
+   "text": "Configuración Demo"
+  },
+  {
+   "index": 52,
+   "note": "G-018",
+   "text": "Digievolución"
+  },
+  {
+   "index": 55,
+   "note": "G-018",
+   "text": "Seleccionar digievolución"
+  },
+  {
+   "index": 56,
+   "note": "G-018 G-042",
+   "text": "NV Habilidad"
+  },
+  {
+   "index": 57,
+   "note": "G-018 G-042",
+   "text": "Digievolución de Batalla activada"
+  },
+  {
+   "index": 58,
+   "note": "G-018 G-042",
+   "text": "Digievolución de Batalla desactivada"
+  },
+  {
+   "index": 59,
+   "note": "G-018",
+   "text": "Explicación de técnica"
+  },
+  {
+   "index": 60,
+   "note": "G-018 G-042",
+   "text": "Digievolución de Batalla activada"
+  },
+  {
+   "index": 61,
+   "note": "G-018 G-042",
+   "text": "Digievolución de Batalla desactivada"
+  },
+  {
+   "index": 68,
+   "note": "L6",
+   "text": "Accesorio"
+  },
+  {
+   "index": 70,
+   "note": "G-018",
+   "text": "Demo digievolución"
+  },
+  {
+   "index": 71,
+   "note": "G-018 (owner: ON toggle, as Italian SÌ/NO)",
+   "text": "Sí"
+  },
+  {
+   "index": 72,
+   "note": "G-018 (owner: OFF toggle, as Italian SÌ/NO)",
+   "text": "No"
+  },
+  {
+   "index": 74,
+   "note": "G-018",
+   "text": "Álbum cartas"
+  },
+  {
+   "index": 77,
+   "note": "G-018",
+   "text": "Izquierda"
+  },
+  {
+   "index": 79,
+   "note": "G-018",
+   "text": "Izquierda o Derecha"
+  },
+  {
+   "index": 84,
+   "note": "L6",
+   "text": "PV máximo + {0205} 1"
+  },
+  {
+   "index": 96,
+   "note": "L6",
+   "text": "Tolerancia al Rayo + {0205} 1"
+  },
+  {
+   "index": 97,
+   "note": "L6",
+   "text": "Tolerancia a la Máquina + {0205} 1"
+  },
+  {
+   "index": 98,
+   "note": "L6",
+   "text": "Tolerancia a la Oscuridad + {0205} 1"
+  },
+  {
+   "index": 104,
+   "note": "G-034",
+   "text": "Ningún Artículo Clave."
+  }
+ ]
+}

@@ -1,0 +1,8 @@
+{
+  "format": "mod-v1",
+  "name": "Sample card",
+  "version": "1.0.0",
+  "kind": "content",
+  "author": "DW3 port",
+  "description": "Adds one new Digimon card with its own art (content/cards.json plus card/test-card.png), sold in the first card shop, in a pack and in an opponent's deck (tables/)."
+}

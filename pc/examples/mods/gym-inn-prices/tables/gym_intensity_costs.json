@@ -1,0 +1,8 @@
+{
+  "format": "gym_intensity_costs-v1",
+  "rows": {
+    "*": {
+      "cost": "*0.5"
+    }
+  }
+}

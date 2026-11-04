@@ -1,0 +1,8 @@
+{
+  "format": "mod-v1",
+  "name": "Sample Model",
+  "version": "1.0.0",
+  "kind": "content",
+  "author": "DW3 port",
+  "description": "Adds a new enemy Digimon with its own 3D model, made from a neutral source (glTF + PNG + model.json) that the port bakes when the game loads (content mod: content/models/robot/ and content/digimon.json)."
+}

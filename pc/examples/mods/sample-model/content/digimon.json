@@ -1,0 +1,16 @@
+{
+  "format": "digimon-v1",
+  "new": {
+    "boxbot": {
+      "base": "dw3:digimon/4",
+      "model": "sample-model:robot",
+      "name": { "eng": "Boxbot", "es-419": "Cajabot" },
+      "description": { "eng": "A robot made of boxes: the sample of a model that comes from a glTF." },
+      "stats": { "attack": 90, "defense": 30, "speed": 60 }
+    }
+  },
+  "encounters": {
+    "34": { "2": { "enemy": "sample-model:boxbot", "level": 3, "hp": 60, "mp": 10, "strength": 16 } },
+    "35": { "2": { "enemy": "sample-model:boxbot", "level": 3, "hp": 60, "mp": 10, "strength": 16 } }
+  }
+}

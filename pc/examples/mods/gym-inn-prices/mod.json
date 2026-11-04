@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Gym and inn prices",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Every inn night costs 1 BIT and the gym's intensities cost half the training points (tables inns, gym_intensity_costs)."
+}

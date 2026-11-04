@@ -1,0 +1,2 @@
+// Android project of the DW3 port, laid out like SDL2's android-project template.
+include ':app'

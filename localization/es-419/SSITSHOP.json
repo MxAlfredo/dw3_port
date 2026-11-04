@@ -1,0 +1,83 @@
+{
+ "file": "SSITSHOP.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 6,
+   "note": "G-018",
+   "text": "Equipar"
+  },
+  {
+   "index": 7,
+   "note": "G-018",
+   "text": "Artículos"
+  },
+  {
+   "index": 13,
+   "note": "G-018",
+   "text": "Ordenar"
+  },
+  {
+   "index": 15,
+   "note": "G-018",
+   "text": "Por nombre"
+  },
+  {
+   "index": 16,
+   "note": "G-018",
+   "text": "¿A quién equipar?"
+  },
+  {
+   "index": 19,
+   "note": "G-026",
+   "text": "Comprar"
+  },
+  {
+   "index": 27,
+   "note": "G-018",
+   "text": "BIT insuficiente"
+  },
+  {
+   "index": 28,
+   "note": "G-018 G-036",
+   "text": "Demasiados ítems"
+  },
+  {
+   "index": 34,
+   "note": "G-026",
+   "text": "Vender"
+  },
+  {
+   "index": 35,
+   "note": "G-018",
+   "text": "Mano Derecha"
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Mano Izquierda"
+  },
+  {
+   "index": 37,
+   "note": "G-042",
+   "text": "Derecha o Izquierda"
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Cabeza"
+  },
+  {
+   "index": 39,
+   "note": "G-018",
+   "text": "Cuerpo"
+  },
+  {
+   "index": 41,
+   "note": "G-018",
+   "text": "Ambas Manos"
+  }
+ ]
+}

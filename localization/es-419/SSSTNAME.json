@@ -1,0 +1,313 @@
+{
+ "file": "SSSTNAME.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 4,
+   "note": "G-018 G-042",
+   "text": "Laboratorio Digimon"
+  },
+  {
+   "index": 5,
+   "note": "G-018",
+   "text": "Sala de Registro"
+  },
+  {
+   "index": 6,
+   "note": "G-018 G-042",
+   "text": "Recepción Estadio"
+  },
+  {
+   "index": 8,
+   "note": "G-042",
+   "text": "Posada Asuka Piso 1"
+  },
+  {
+   "index": 9,
+   "note": "G-042",
+   "text": "Posada Asuka Piso 2"
+  },
+  {
+   "index": 15,
+   "note": "L6",
+   "text": "Túnel de Agua"
+  },
+  {
+   "index": 17,
+   "note": "G-018 G-042",
+   "text": "Centro de Administración Piso 1"
+  },
+  {
+   "index": 20,
+   "note": "G-018 G-042",
+   "text": "Centro de Administración Piso 2"
+  },
+  {
+   "index": 21,
+   "note": "L6",
+   "text": "Sala Maestra"
+  },
+  {
+   "index": 22,
+   "note": "G-018",
+   "text": "Cuartel A.o.A."
+  },
+  {
+   "index": 23,
+   "note": "G-018 G-042",
+   "text": "Centro de Administración Sótano 1"
+  },
+  {
+   "index": 24,
+   "note": "G-018",
+   "text": "Cloaca Asuka"
+  },
+  {
+   "index": 27,
+   "note": "G-018",
+   "text": "Entrada Alambre"
+  },
+  {
+   "index": 29,
+   "note": "L6",
+   "text": "Cabo Conexión"
+  },
+  {
+   "index": 30,
+   "note": "G-018 G-041",
+   "text": "Bosque Alambre Oeste"
+  },
+  {
+   "index": 31,
+   "note": "G-018 G-041",
+   "text": "Bosque Alambre Este"
+  },
+  {
+   "index": 32,
+   "note": "G-051",
+   "text": "Posada del Bosque"
+  },
+  {
+   "index": 33,
+   "note": "G-018 G-042 G-051",
+   "text": "Posada del Bosque Sótano"
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Llanura Viento"
+  },
+  {
+   "index": 39,
+   "note": "G-018 G-051",
+   "text": "Bosque de las Patadas"
+  },
+  {
+   "index": 42,
+   "note": "G-018",
+   "text": "Grieta Profunda"
+  },
+  {
+   "index": 51,
+   "note": "L6",
+   "text": "Punto Confiable"
+  },
+  {
+   "index": 52,
+   "note": "G-035",
+   "text": "Pantano Sereno"
+  },
+  {
+   "index": 53,
+   "note": "G-051",
+   "text": "Posada del Pantano"
+  },
+  {
+   "index": 54,
+   "note": "G-051",
+   "text": "Casa del Chamán"
+  },
+  {
+   "index": 55,
+   "note": "G-051",
+   "text": "Tumba de la Selva"
+  },
+  {
+   "index": 60,
+   "note": "G-051",
+   "text": "Posada de Suzaku"
+  },
+  {
+   "index": 62,
+   "note": "G-042",
+   "text": "Lago Subterráneo Suzaku"
+  },
+  {
+   "index": 67,
+   "note": "G-018",
+   "text": "Pozo Laberinto"
+  },
+  {
+   "index": 70,
+   "note": "G-051",
+   "text": "Oasis de Pelche"
+  },
+  {
+   "index": 71,
+   "note": "G-041",
+   "text": "Desierto Norte Oeste"
+  },
+  {
+   "index": 72,
+   "note": "G-041",
+   "text": "Desierto Norte Este"
+  },
+  {
+   "index": 73,
+   "note": "G-018",
+   "text": "Valle de Balas"
+  },
+  {
+   "index": 75,
+   "note": "G-018",
+   "text": "Sala Ductos 01"
+  },
+  {
+   "index": 76,
+   "note": "G-018",
+   "text": "Sala Ductos 02"
+  },
+  {
+   "index": 77,
+   "note": "G-018",
+   "text": "Sala Ductos 03"
+  },
+  {
+   "index": 78,
+   "note": "G-018",
+   "text": "Sala Ductos 04"
+  },
+  {
+   "index": 79,
+   "note": "G-018",
+   "text": "Sala Operaciones"
+  },
+  {
+   "index": 80,
+   "note": "G-018",
+   "text": "Escalera Secreta"
+  },
+  {
+   "index": 84,
+   "note": "G-018 G-041",
+   "text": "Desierto Ruido Sur"
+  },
+  {
+   "index": 87,
+   "note": "G-051",
+   "text": "Torre de Delirios"
+  },
+  {
+   "index": 88,
+   "note": "G-051",
+   "text": "Salón de Delirios"
+  },
+  {
+   "index": 89,
+   "note": "G-051",
+   "text": "Sala de Delirios"
+  },
+  {
+   "index": 93,
+   "note": "G-036",
+   "text": "Cueva Profunda"
+  },
+  {
+   "index": 96,
+   "note": "L6",
+   "text": "Posada de la Montaña"
+  },
+  {
+   "index": 98,
+   "note": "G-051",
+   "text": "Mina de Kulon"
+  },
+  {
+   "index": 100,
+   "note": "G-029",
+   "text": "Arena Legendaria"
+  },
+  {
+   "index": 103,
+   "note": "G-051",
+   "text": "Mazmorra de Hielo"
+  },
+  {
+   "index": 104,
+   "note": "G-051",
+   "text": "Mazmorra de Fuego"
+  },
+  {
+   "index": 107,
+   "note": "G-018",
+   "text": "Puerta Batalla"
+  },
+  {
+   "index": 112,
+   "note": "G-042",
+   "text": "Magasta Sótano 1"
+  },
+  {
+   "index": 113,
+   "note": "G-042",
+   "text": "Magasta Sótano 2"
+  },
+  {
+   "index": 114,
+   "note": "G-042",
+   "text": "Magasta Piso 1"
+  },
+  {
+   "index": 115,
+   "note": "G-042",
+   "text": "Gunslinger Piso 1"
+  },
+  {
+   "index": 116,
+   "note": "G-042",
+   "text": "Gunslinger Piso 2"
+  },
+  {
+   "index": 120,
+   "note": "G-042",
+   "text": "Posada Amaterasu Piso 1"
+  },
+  {
+   "index": 121,
+   "note": "G-042",
+   "text": "Posada Amaterasu Piso 2"
+  },
+  {
+   "index": 123,
+   "note": "G-018",
+   "text": "Cloaca Amaterasu"
+  },
+  {
+   "index": 127,
+   "note": "G-018",
+   "text": "Posada Zhu Que"
+  },
+  {
+   "index": 129,
+   "note": "G-042",
+   "text": "Lago Subterráneo Zhu Que"
+  },
+  {
+   "index": 134,
+   "note": "G-018 G-051",
+   "text": "Placa de Circuitos"
+  }
+ ]
+}

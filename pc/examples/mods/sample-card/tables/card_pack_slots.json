@@ -1,0 +1,6 @@
+{
+  "format": "card_pack_slots-v1",
+  "rows": {
+    "910": { "card1": "sample-card:test-card", "card2": "sample-card:test-card" }
+  }
+}

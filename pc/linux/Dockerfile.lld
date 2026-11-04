@@ -1,0 +1,13 @@
+# Throwaway-style desktop proof image for the Android risks: the
+# Linux port linked with LLVM lld (what the Android NDK uses) and built against GLES 3 / EGL.
+# Ubuntu 24.04 ships SDL2 2.30 and OpenAL Soft 1.23 as packages, enough for a proof build.
+#   docker build -t dw3port-lld -f pc/linux/Dockerfile.lld pc/linux
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake ninja-build pkg-config python3 file ca-certificates \
+        lld clang \
+        libsdl2-dev libopenal-dev libgl-dev libegl-dev libgles-dev \
+        libegl1 libgles2 libegl-mesa0 libgl1-mesa-dri libgbm1 \
+    && rm -rf /var/lib/apt/lists/*

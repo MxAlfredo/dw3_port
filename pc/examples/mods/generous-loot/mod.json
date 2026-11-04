@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Generous loot",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Enemies leave their item twice as often (data table battle_loot)."
+}

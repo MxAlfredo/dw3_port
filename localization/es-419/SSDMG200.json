@@ -1,0 +1,1352 @@
+{
+ "file": "SSDMG200.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-022 G-026",
+   "text": "{hablante}{0209}{hablante}Wow, ¿así que este\nes el mundo de\nDigimon Online?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-018 G-026",
+   "text": "{hablante}Administrador{hablante}{0208}{0102}1 0\n¡Bienvenido al \nServidor Asuka!{pagina}Recoge los datos\nde tu Digimon en\nel vestíbulo.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 0,
+   "note": "G-023",
+   "text": "{hablante}{0209}{hablante}¿Eh? ¿Digimon?{pagina}Ah, entiendo.\n¡Voy enseguida!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "G-025",
+   "text": "Digimon Online"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-025",
+   "text": "Guía de Ciudad"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-025",
+   "text": "Guía de Campo"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "G-025",
+   "text": "Consejos de Batalla"
+  },
+  {
+   "index": 6,
+   "part": 1,
+   "note": "G-025",
+   "text": "Entrenamiento"
+  },
+  {
+   "index": 7,
+   "part": 1,
+   "note": "G-025",
+   "text": "Pantalla de Estado"
+  },
+  {
+   "index": 9,
+   "part": 1,
+   "note": "G-025",
+   "text": "Digimon Online se administra en 5\nservidores: Amaterasu, Izumo, Asuka,\nYamato y Ikaruga.{pagina}En cada servidor hay una ciudad con\nel mismo nombre (Ciudad Asuka) y \nestán organizadas en el mismo estilo.{pagina}Nadie puede ir a otros servidores,\npero los campeones de servidor pueden\nluchar por el Campeonato Mundial.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 1,
+   "note": "G-025 G-045 L6",
+   "text": "La meta de Digimon Online es ser \nel mejor de 200.000 y ganar\nel Campeonato Mundial.{pagina}Solo los campeones de servidor\nentran en el Campeonato Mundial.{pagina}Tienes que ganar a 4 Líderes de Ciudad para entrar en el\ntorneo de servidor.{pagina}¡Mucha suerte!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 1,
+   "note": "G-020 G-017 G-025",
+   "text": "Hay más ciudades que Ciudad \nAsuka en el servidor. Si ves una\ndurante el viaje, visítala.{pagina}En las ciudades hay Tiendas y Posadas\nque restauran a tu Digimon. Guardromon\nguarda tus datos en las Posadas.{pagina}Cada ciudad es única.\nCiudad Asuka tiene el único Laboratorio\nDigimon, que visitan todos los tamers.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 1,
+   "note": "G-018 G-017 G-025 L6",
+   "text": "Fuera de la ciudad luchas con\nDigimon salvajes. Prepárate antes de salir.{pagina}También hay posadas fuera de la\nciudad. Si tu Digimon está herido,\ndéjalo descansar.{pagina}Al principio, evita las zonas\npeligrosas y entrena a tu Digimon\nantes de ir.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 1,
+   "note": "G-020 G-018 G-025",
+   "text": "Viajas con 3 Digimon, pero luchan de \nuno en uno. Durante la batalla, \npuedes cambiarlos.{pagina}En batalla, los tamers controlan\nlos Digimon con comandos. Selecciona\nun comando adecuado a la situación.{pagina}También hay técnicas especiales que\ngastan PM, y puedes usar artículos.\nPara saber más, ve al Laboratorio.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 1,
+   "note": "G-025",
+   "text": "Los Digimon ganan EXP en batalla.\nSubir de nivel depende de la EXP\nganada.{pagina}Los Digimon suben de poder con el \nnivel y luchan con mejores oponentes,\nganando más EXP.{pagina}Las habilidades pueden mejorar \ncon el entrenamiento. Para saber\nmás, ve a un Laboratorio.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 1,
+   "note": "G-009 G-025 L6",
+   "text": "En ruta, puedes abrir la\nPantalla de Estado desde tu satélite\npresionando el botón START.{pagina}En ella puedes ver a tu Digimon,\nusar artículos y mirar el mapa.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "G-018 G-026",
+   "text": "¿Descargar tu Digimon compañero?"
+  },
+  {
+   "index": 2,
+   "part": 2,
+   "note": "G-026",
+   "text": "¡Sí, por favor!"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-020 G-018 G-026",
+   "text": "{hablante}Servicio de Tamer{hablante}Ahora descargaré los\ndatos de Digimon\ndesde tu satélite.{pagina}Espera en la marca\nonline del suelo.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 3,
+   "note": "G-022",
+   "text": "{hablante}{0209}{hablante}¡Wow! Por fin voy\na ver a mi Digimon.\n¡No puedo esperar!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 3,
+   "note": "G-002 G-005 G-026",
+   "text": "{hablante}{0209}{hablante}¡Oigan! ¿Qué estaban\nhaciendo ustedes dos?\n¡Son muy lentos!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Qué? No, no,\ntú eres el que\nva muy rápido.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Verdad, Ivy?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Kail? ¿Ese es tu\nnombre de cuenta?{pagina}Es raro,\nsuena a nombre\nde chico.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 3,
+   "note": "G-008 G-026",
+   "text": "{hablante}Kail{hablante}¡Oye, es mi\ndecisión! ¿De acuerdo?{fin}"
+  },
+  {
+   "index": 10,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Me dio pereza\ncambiarlo, ¡así que\nsigo siendo Teddy!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Genial!\n¡Aquí están mis\nDigimon!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 3,
+   "note": "G-022 G-026",
+   "text": "{hablante}Teddy{hablante}¡Wow! Me pregunto\na quién se le\nocurrió esto.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Yo también.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 3,
+   "note": "G-016",
+   "text": "{hablante}{0209}{hablante}¡Hola a todos!\nSoy {0208}{0102}1 1\nEncantado de conocerlos.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Kotemon{hablante}Pelearé lo mejor\nque pueda.\n¡Gracias!{fin}"
+  },
+  {
+   "index": 18,
+   "part": 3,
+   "note": "G-002 G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, cuento\ncon todos\nustedes!{pagina}¡Vamos!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 3,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, ¡yo\nme voy!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}...Bueno.\nSeparémonos a partir\nde aquí.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "note": "G-020 G-018 G-026",
+   "text": "{hablante}Servicio de Tamer{hablante}Ahora descargaré los\ndatos de Digimon\ndesde tu satélite.{pagina}Espera en la marca\nonline del suelo.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "G-022",
+   "text": "{hablante}{0209}{hablante}¡Wow! Por fin voy\na ver a mi Digimon.\n¡No puedo esperar!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}...¡Oh!\n¡Eh, {0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 4,
+   "part": 4,
+   "note": "G-002 G-005 G-026",
+   "text": "{hablante}{0209}{hablante}¡Oigan! ¿Qué estaban\nhaciendo ustedes dos?\n¡Son muy lentos!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Qué? No, no,\ntú eres el que\nva muy rápido.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Verdad, Ivy?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Kail? ¿Ese es tu\nnombre de cuenta?{pagina}Es raro,\nsuena a nombre\nde chico.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 4,
+   "note": "G-008 G-026",
+   "text": "{hablante}Kail{hablante}¡Oye, es mi\ndecisión! ¿De acuerdo?{fin}"
+  },
+  {
+   "index": 10,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Me dio pereza\ncambiarlo, ¡así que\nsigo siendo Teddy!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Genial!\n¡Aquí están mis\nDigimon!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 4,
+   "note": "G-022 G-026",
+   "text": "{hablante}Teddy{hablante}¡Wow! Me pregunto\na quién se le\nocurrió esto.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 4,
+   "note": "G-016",
+   "text": "{hablante}{0209}{hablante}¡Hola a todos!\nSoy {0208}{0102}1 1\nEncantado de conocerlos.{fin}"
+  },
+  {
+   "index": 16,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Agumon{hablante}¡Hola, {0208}{0102}1{01e7}\nHagamos todos\nnuestro mejor esfuerzo.{fin}"
+  },
+  {
+   "index": 18,
+   "part": 4,
+   "note": "G-002 G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, cuento\ncon todos\nustedes!{pagina}¡Vamos!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 4,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, ¡yo\nme voy!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}...Bueno.\nSeparémonos a partir\nde aquí.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-020 G-018 G-026",
+   "text": "{hablante}Servicio de Tamer{hablante}Ahora descargaré los\ndatos de Digimon\ndesde tu satélite.{pagina}Espera en la marca\nonline del suelo.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 5,
+   "note": "G-022",
+   "text": "{hablante}{0209}{hablante}¡Wow! Por fin voy\na ver a mi Digimon.\n¡No puedo esperar!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}...¡Oh!\n¡Eh, {0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 4,
+   "part": 5,
+   "note": "G-002 G-005 G-026",
+   "text": "{hablante}{0209}{hablante}¡Oigan! ¿Qué estaban\nhaciendo ustedes dos?\n¡Son muy lentos!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Qué? No, no,\ntú eres el que\nva muy rápido.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Verdad, Ivy?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Kail? ¿Ese es tu\nnombre de cuenta?{pagina}Es raro,\nsuena a nombre\nde chico.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 5,
+   "note": "G-008 G-026",
+   "text": "{hablante}Kail{hablante}¡Oye, es mi\ndecisión! ¿De acuerdo?{fin}"
+  },
+  {
+   "index": 10,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Me dio pereza\ncambiarlo, ¡así que\nsigo siendo Teddy!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Genial!\n¡Aquí están mis\nDigimon!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 5,
+   "note": "G-022 G-026",
+   "text": "{hablante}Teddy{hablante}¡Wow! Me pregunto\na quién se le\nocurrió esto.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 5,
+   "note": "G-016",
+   "text": "{hablante}{0209}{hablante}¡Hola a todos!\nSoy {0208}{0102}1 1\nEncantado de conocerlos.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 5,
+   "note": "G-028",
+   "text": "{hablante}Kumamon{hablante}¡Recibido!\n¡Andando!{fin}"
+  },
+  {
+   "index": 17,
+   "part": 5,
+   "note": "G-018",
+   "text": "{hablante}Patamon{hablante}¡Hola!\n¡Haré todo lo\nque pueda!{fin}"
+  },
+  {
+   "index": 18,
+   "part": 5,
+   "note": "G-002 G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, cuento\ncon todos\nustedes!{pagina}¡Vamos!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 5,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, ¡yo\nme voy!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}...Bueno.\nSeparémonos a partir\nde aquí.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 6,
+   "note": "G-020 G-018",
+   "text": "{hablante}Servicio de Tamer{hablante}Comprendo.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 7,
+   "note": "G-005 G-015 G-020 G-026",
+   "text": "{hablante}Servicio de Tamer{hablante}Comprendo.{pagina}Si quieres sacar a\ntus Digimon, ven\na verme.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Ah, sí! ¡Necesito\nlos datos de mi\nDigimon compañero!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Ah, sí! ¡Necesito\nlos datos de mi\nDigimon compañero!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-045",
+   "text": "{hablante}Guardia DO{hablante}¡Eh, tú! ¡Solo\npuede pasar el \npersonal autorizado!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 11,
+   "note": "G-020 G-026 G-031",
+   "text": "{hablante}Tamer Genji{hablante}Ja, ja, ja.\nNo te había visto\npor aquí.{pagina}¿Eres nuevo?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 11,
+   "note": "G-006",
+   "text": "{hablante}{0209}{hablante}¡Sí!\n¡Acabo de conseguir\na mis Digimon!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 11,
+   "note": "G-013 G-020",
+   "text": "{hablante}Tamer Genji{hablante}Entonces lucharé\ncontigo, muchacho.{pagina}¡No importa si no \nsabes las reglas!{pagina}¡Lo importante es\nganar experiencia!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí, gané!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 12,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Tamer Genji{hablante}Eres bastante bueno\npara ser novato.{pagina}¡Tienes potencial\npara ser Campeón Mundial algún día!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 12,
+   "note": "G-020",
+   "text": "{hablante}Tamer Genji{hablante}Para hacerlo, deberías\naprender más sobre \nDigimon.{pagina}Debes ir al Laboratorio\nDigimon antes de \nsalir de la ciudad.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 12,
+   "note": "G-020 L6",
+   "text": "{hablante}Tamer Genji{hablante}Y además, \n¿tienes una Bolsa\nde Carpetas?{fin}"
+  },
+  {
+   "index": 7,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...¿Qué?\n¿Qué es eso?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 12,
+   "note": "G-013 G-020 G-018 G-026 G-031 L6",
+   "text": "{hablante}Tamer Genji{hablante}Ya veo. Será mejor\nque vayas al\nCrucero Amarillo.{pagina}Allí te enseñarán\ntodo sobre las\nBatallas de Cartas.{pagina}...Ahora ve.\nCuento contigo,\nmuchacho. ¡Ja, ja, ja!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-018 G-026",
+   "text": "{hablante}Digimon Navi{hablante}Aquí encontrarás pistas\nsobre las batallas y\nla crianza de Digimon.{pagina}Mostraré los datos\nen tu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 13,
+   "note": "G-018 G-026",
+   "text": "\"Tipos de Ataque\"\nUsa técnicas físicas, mágicas\ny de apoyo según convenga.{pagina}\"Atributos de Ataque\"\nAtaca a los rivales con atributos\nopuestos y usa los atributos aliados.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 13,
+   "note": "G-018 G-026",
+   "text": "\"Efectos de Técnicas\"\nLa eficacia del veneno, la parálisis\ny otros varía según el Digimon.{pagina}\"Problemas de Estado\"\nSalvo la \"maldición\" de Cardmon,\nse curan al terminar la batalla.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 13,
+   "note": "G-018 G-026",
+   "text": "\"Digievolución ADN\"\nCombina dos Digimon en uno. Tras la\nDigievolución ADN, se intercambian.{pagina}\"Distribución de EXP\"\nTodos los Digimon que participen en\nla batalla recibirán EXP.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 13,
+   "note": "G-018 G-026",
+   "text": "\"Entrenamiento\"\nLos Digimon pueden entrenar en un\ngimnasio usando PE.{pagina}\"Habilidades de Digievolución\"\nLas habilidades de digievolución\naumentan al ganar EXP.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-018",
+   "text": "{hablante}Digimon Navi{hablante}Vamos a ver si \ncomprendes la lucha\ny el entrenamiento.{pagina}Mostraré datos en\ntu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "G-018 G-026",
+   "text": "\"Tipos de Ataque\"\nHay dos tipos de ataque:\nfísico y mágico.{pagina}La fuerza y la defensa se relacionan\ncon los ataques físicos; la sabiduría\ny el espíritu, con los mágicos.{pagina}\"Atributos de Ataque\"\nAtaca a los oponentes con un atributo\nopuesto para tener ventaja en batalla.{pagina}Los oponentes también usarán ataques de\natributo; responde con un Digimon fuerte\ncontra ese atributo.{pagina}\"Efectos de Técnica\"\nHay técnicas con efectos especiales,\nincluido el daño.{pagina}El efecto depende del estado del\noponente. Si no funciona, prueba\ncon otro oponente.{pagina}\"Digievolución en Batalla\"\nDigievoluciona según el rival. También\nexiste la \"Digievolución de Golpe\".{pagina}Al recibir daño, sube el indicador de\ngolpe. Cuando se llena, el Digimon\ndigievoluciona hasta que acabe el tiempo.{pagina}\"Digievolución ADN\"\nCombina 2 Digimon en uno. Tras la\nDigievolución ADN, cambian de lugar.{pagina}Las combinaciones de ADN están\npredeterminadas. Prueba distintas\ncombinaciones.{pagina}\"Problemas de Estado\"\nPor los efectos especiales de un\nataque, un Digimon puede \"envenenarse\".{pagina}Los problemas desaparecen si ganas la\nbatalla, pero la \"maldición\" de Cardmon\nsolo se cura en una posada.{pagina}\"Distribución de EXP\"\nTodos los Digimon que lucharon en la\nbatalla reciben la misma EXP.{pagina}Las habilidades se reparten por igual\nentre los Digimon digievolucionados.{pagina}\"Entrenamiento\"\nLos Digimon entrenan en el gimnasio\nusando PE (Puntos de Entrenamiento).{pagina}Los PE suben 5 con cada nivel. Los\nparámetros entrenados influyen en la\nbatalla y en la digievolución.{pagina}\"Digievolución\"\nTu compañero aprende digievoluciones\nal subir de nivel o de parámetros.{pagina}Hay un truco para digievolucionar en\nbatalla. Pregunta a Navi Digievolución\nlas condiciones para digievolucionar.{pagina}\"Técnicas\"\nSube el nivel de habilidad para aprender\notras técnicas y tipos de digievolución.{pagina}En el Laboratorio Digimon puedes cargar\notras digievoluciones, pero no técnicas\nfinales.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 14,
+   "note": "G-018",
+   "text": "{hablante}Digimon Navi{hablante}Esa es toda la \ninformación.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 15,
+   "note": "G-018 G-026",
+   "text": "{hablante}Navi Digievolución{hablante}Te mostraré consejos\npara criar a tu Digimon\ny que digievolucione.{pagina}Mostraré los datos en\ntu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 15,
+   "note": "G-018 G-026",
+   "text": "\"Kotemon\"\nPuede aprender tipos Agumon y Veemon.\nSi entrena tolerancia a máquina...{pagina}\"Monmon\"\nTras su forma Definitiva, entrena su\nfuerza y tolerancia a máquina/viento.{pagina}\"Kumamon\"\nEntrena sabiduría y espíritu, que\nson los más difíciles de aumentar.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 15,
+   "note": "G-018 G-026",
+   "text": "\"Agumon\"\nSi subes su tolerancia a oscuridad,\naprenderá digievoluciones oscuras.{pagina}\"Guilmon\"\nSus parámetros están desequilibrados;\nla clave es reforzar sus debilidades.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 15,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}Esa es toda la \ninformación.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 16,
+   "note": "G-018",
+   "text": "{hablante}Digimon Navi{hablante}Mostraré los\ndatos en tu\nsatélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 16,
+   "note": "G-024 G-018 G-026",
+   "text": "\"Kotemon\"\nPuede aprender tipos Agumon y Veemon.\nSi entrenas la tolerancia a máquina...{pagina}\"Monmon\"\nTras su forma Definitiva, entrena\nfuerza, tolerancia a máquina y viento.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 16,
+   "note": "G-018 G-026",
+   "text": "\"Kumamon\"\nEntrena sabiduría y espíritu, que\nson los más difíciles de aumentar.{pagina}\"Renamon\"\nEntrena espíritu o fuerza y defensa.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 16,
+   "note": "G-018 G-026",
+   "text": "\"Patamon\"\nEntrena sabiduría o fuerza.{pagina}\"Agumon\"\nSi subes su tolerancia a oscuridad,\naprenderá digievoluciones oscuras.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 16,
+   "note": "G-018 G-026",
+   "text": "\"Guilmon\"\nSus parámetros están desequilibrados;\nla clave es reforzar sus debilidades.{pagina}\"Veemon\"\nNo aprende mucho al principio, pero\nsi entrenas algunos parámetros...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 16,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}Esa es toda la \ninformación.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 17,
+   "note": "G-018 G-026",
+   "text": "{hablante}Ponchomon{hablante}¡Hola! Aquí puedes ver\ninformación sobre estos\nartículos cuando quieras.{pagina}¡La mostraré en tu\nsatélite, amigo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 17,
+   "note": "G-018 G-026",
+   "text": "\"Efectos de Equipo\"\nLos efectos son automáticos al equipar\no se activan al atacar.{pagina}Los efectos de las armas solo valen\ncuando no hay efectos de técnica.{pagina}\"A una Mano o a Dos\"\nLas armas a dos manos son más\npoderosas, pero no permiten armadura.{pagina}Si equipas dos armas a una mano, es\nmás potente que un arma a dos manos,\npero también más caro.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 17,
+   "note": "G-018 G-026",
+   "text": "\"Límite de Accesorios\"\nUn Digimon puede equipar dos, pero no\ntodos pueden equiparse dos veces.{pagina}\"Armas como Armadura\"\nHay armas que se equipan en la cabeza\ny escudos que pueden atacar.{pagina}\"Armas Especializadas\"\nLas armas más potentes solo pueden\nequiparlas ciertos Digimon.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 17,
+   "note": "G-018 G-026",
+   "text": "\"Equipo de Serie\"\nAl equipar ciertas armas y armaduras\npuedes aumentar los parámetros.{pagina}\"Chip\"\nLos aumentos permanentes de parámetros\ncon Chip dependen de la suerte.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 17,
+   "note": "G-018 G-026",
+   "text": "{hablante}Ponchomon{hablante}¡No se lo digas a nadie!\n¡Adiós, amigo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 18,
+   "note": "G-020 G-026",
+   "text": "{hablante}Servicio de Tamer{hablante}Aquí tienes consejos\npara jugar.{pagina}Mostraré los datos\nen tu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 18,
+   "note": "G-018 G-026",
+   "text": "\"Preparación para el Viaje\"\nEn el Laboratorio Digimon, elige tus\nDigimon y sus digievoluciones.{pagina}Equipa a tus Digimon con armas y\narmadura y ordénalos para la batalla.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 18,
+   "note": "G-026 L6",
+   "text": "\"Batalla de Cartas\"\nEn Digimon Online también puedes\njugar Batallas de Cartas.{pagina}En el Crucero Amarillo puedes obtener\ninformación detallada.{pagina}\"Guardar\"\nPor si acaso, guarda la partida\ncon frecuencia.{pagina}Los Guardromon que guardan la partida\nestán en las posadas. ¡Los que están\nen batalla no guardan!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 18,
+   "note": "G-026",
+   "text": "\"Fin del Juego\"\nEl juego termina cuando todos tus\nDigimon compañeros son derrotados.{pagina}Evita las batallas imprudentes.{pagina}\"Añadir Compañeros\"\nPuedes añadir más Digimon compañeros\nademás de los tres que elegiste.{pagina}Esto es todo lo que puedo decirte.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 18,
+   "note": "G-020",
+   "text": "{hablante}Servicio de Tamer{hablante}Esa es toda la \ninformación.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 19,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de los Objetos Ken{hablante}Esto es El Dorado, donde\nse reúnen los amantes\nde los artículos.{pagina}¿Eh? No eres miembro,\n¿verdad?{pagina}Tus Digimon tampoco se\nven muy geniales.\nNo puedes ser miembro.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 20,
+   "note": "G-026 L6",
+   "text": "{hablante}Rapero Mike{hablante}¡Somos amigos, así\nque puedes pasar!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 21,
+   "note": "G-026 L6",
+   "text": "{hablante}Jugador Misterioso{hablante}¡Claro! ¡Te hablo\na ti!{pagina}Tú eres {0208}{0102}1 0 \nel que venció al\nLíder Seiryu, ¿no?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Sí... ¿Y tú\neres...?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}Me llamo Keith, y más\nte vale recordarlo,\nchico.{pagina}¡Yo soy quien va a\nganar el torneo!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Ah, sí? ¡Eso ya\nlo veremos!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}Ja, ja, ja, ya veo.\nEntonces, ¿quieres\nluchar conmigo?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 21,
+   "note": "G-028",
+   "text": "{hablante}{0209}{hablante}¡Andando!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Lo siento, pero no\nme voy a contener!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Pensé que no\nte ibas a contener.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡No sé de qué\nhablas!{pagina}¡Ten cuidado,\nla próxima vez\nte ganaré!{pagina}No me olvides.\n¡Sayonara, tonto!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Oye, Etemon,\ntengo algo que\npreguntarte.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}Etemon{hablante}¡Claro! ¿Qué pasa?\nTe diré todo lo\nque sé.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Maníaco Phillip{hablante}Oye, ¿qué pasa?\n¡Llevo un buen rato\nesperando!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 24,
+   "note": "L6",
+   "text": "{hablante}Vago Fei{hablante}¿Podemos volver\nya?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 24,
+   "note": "G-020 G-018",
+   "text": "{hablante}Servicio de Tamer{hablante}Lo siento, aún no\nhay detalles.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Vago Alan{hablante}¿La Maestra de\nJuego? ¡Debe ser\nun anuncio!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 24,
+   "note": "G-012 G-018 G-043 L6",
+   "text": "{hablante}Señorita Misha{hablante}¡Qué genial!\n¡Yo quiero\nser como ella!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}A todos los jugadores,\nles pedimos disculpas\npor las molestias.{pagina}El mantenimiento de\nla Cámara Matriz\ntardará algo más.{pagina}Tengan paciencia hasta\nque arreglemos el\nsistema.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 24,
+   "note": "L6",
+   "text": "{hablante}Vago Alan{hablante}¿Qué? ¿Eso\nes todo?{fin}"
+  },
+  {
+   "index": 10,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Trabajador Jeff{hablante}Bueno, no hay nada\nque podamos hacer.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 24,
+   "note": "L6",
+   "text": "{hablante}Energético Yuki{hablante}¡Bien!\n¡Entonces puedo\nseguir jugando!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, ¿será culpa\nde Ratón Suerte?{fin}"
+  },
+  {
+   "index": 14,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¿Ratón Suerte?{pagina}...Oye, ¿qué quieres\ndecir con eso?{fin}"
+  },
+  {
+   "index": 15,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}No sé los detalles,\npero Teddy me dijo que\napareció Ratón Suerte.{fin}"
+  },
+  {
+   "index": 17,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Oye, {0208}{0102}1 1\n¡Vamos a buscar\na Teddy!{pagina}Quiero preguntarle\nalgo.{fin}"
+  },
+  {
+   "index": 18,
+   "part": 24,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, vayamos\nal centro \nahora!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}Lo siento, solo el\npersonal autorizado\npuede pasar.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 26,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Qué fastidio...\nNo podemos pasar.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 26,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Bueno, no\ntiene sentido\nquejarse aquí.{pagina}Separémonos\npara investigar.{pagina}Habla con la gente\nde la ciudad.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 26,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, lo haré.{pagina}Me empiezo a \npreocupar por \nTeddy.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¿Y cómo nos\nconvertimos en\nDigimon?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Perfecto, con\nestos no habrá\nproblema.{pagina}¡Nos pondremos los\ntrajes de Agumon y\nbuscaremos a Teddy!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué tal?\n¡Ahora parezco\nun Digimon!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¡Cállate! ¡Cierra\nla boca!{pagina}¡No queremos que\nsepan que no somos\nDigimon!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}Kail{hablante}Quiero investigar algo,\nasí que me adelantaré.{pagina}{0208}{0102}1 0 tú sigue \nbuscando a Teddy.{pagina}¡En cuanto termine,\nte alcanzo!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 28,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}De acuerdo.\nPero ten\ncuidado.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué le pasa a\nKail? Está muy rara\ndesde que llegamos.{pagina}Bueno, tengo que\nencontrar a Teddy.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Ups!{pagina}El Centro de\nAdministración\nestá por ahí...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 30,
+   "note": "G-018 G-026",
+   "text": "{hablante}{0209}{hablante}...¡Oh, espera!{pagina}El Centro de\nAdministración\nestá por ahí...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 31,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}Lo siento, solo\npersonal autorizado\npuede pasar...{pagina}...¿Qué? ¿Otra\nvez un Digimon?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 31,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, sí.\nSoy... ¡un\nDigimon perdido!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 31,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}Primero ese Agumon\nrosa y ahora tú...{pagina}Puedes pasar, pero\nno le estorbes\na nadie.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 32,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Voy a atrapar\na ese Ratón\nSuerte!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 32,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Perdón. Me acabo\nde acordar de que\ntengo que irme...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 32,
+   "note": "G-011",
+   "text": "{hablante}{0209}{hablante}¿Eh? ¿Qué\nle pasa a Kail?{pagina}¡Bueno, tengo Digimon\ncon los que contar!{pagina}Bien, chicos. ¡Vamos \nal Sector Oeste!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 33,
+   "note": "G-026 L6",
+   "text": "{hablante}Teddy{hablante}¡Sí, gracias!{pagina}{0208}{0102}1 0 MAGAMI\nes parte de la A.o.A.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 33,
+   "note": "G-015 G-026 G-043",
+   "text": "{hablante}Doctor Kadomatsu{hablante}¡No somos de la\nA.o.A., créeme!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 33,
+   "note": "L6",
+   "text": "{hablante}Operador DO{hablante}No sabíamos que \nMAGAMI y la A.o.A \ntenían algo que ver.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 33,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Los Líderes de Ciudad\ny la mayoría del \npersonal son leales!{pagina}¡No todo el personal\nde MAGAMI es parte de la A.o.A!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 33,
+   "note": "G-015 G-016 L6",
+   "text": "{hablante}{0209}{hablante}De acuerdo.\n¡Voy a ayudarlos, así\nque esperen un poco!{pagina}¡Voy a derrotar a la\nMaestra de Juego!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 33,
+   "note": "G-018",
+   "text": "{hablante}Operador DO{hablante}Ten cuidado. ¡Dicen \nque hay una trampa \nen la Cámara Maestra!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Yo también lo he\noído! Hay una puerta\nsecreta en algún lugar.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 33,
+   "note": "G-043",
+   "text": "{hablante}Doctor Kadomatsu{hablante}Sí, yo también lo\nhe oído.{pagina}La contraseña es \n\"MONSTER\"...{pagina}Pero no sé qué\nsignifica...{fin}"
+  },
+  {
+   "index": 12,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien, gracias!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¡Buena suerte,\n{0208}{0102}1{01e7}{pagina}¡No pierdas\ncontra la A.o.A.!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Tranquilo.\n¡Déjamelo\na mí!{fin}"
+  },
+  {
+   "index": 15,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...¡Oh,\nTeddy!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 34,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, vamos\nal Sector Norte!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 34,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...Ah, ¿es así?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 34,
+   "note": "G-044 L6",
+   "text": "{hablante}Teddy{hablante}Escuché a los \nguardias en la\nprisión.{pagina}Si preguntas a \nDigmon, podrás llegar\nal Sector Norte...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 34,
+   "note": "G-026 G-044 L6",
+   "text": "{hablante}Teddy{hablante}Pero necesitas el\nDigihuevo de Sabiduría\npara llamar a Digmon...{pagina}Y creo que es un objeto\núnico del Servidor\nAmaterasu...{fin}"
+  },
+  {
+   "index": 8,
+   "part": 34,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}¿Pero cómo vamos\na Amaterasu?{pagina}Seguro que está \nocupado por la A.o.A...{fin}"
+  },
+  {
+   "index": 9,
+   "part": 34,
+   "note": "G-050",
+   "text": "{hablante}{0209}{hablante}...Mmmm...\nAhora que lo\nmencionas...{fin}"
+  },
+  {
+   "index": 10,
+   "part": 34,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Espera. ¿Cómo\nllegó la A.o.A\nallí?{fin}"
+  },
+  {
+   "index": 13,
+   "part": 34,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}¡Seguro que sí,\n{0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 14,
+   "part": 34,
+   "note": "G-008 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien, voy al Sector Oeste \na investigar!{fin}"
+  },
+  {
+   "index": 15,
+   "part": 34,
+   "note": "G-007",
+   "text": "{hablante}Teddy{hablante}Ten cuidado.\n¡Voy a mirar esto\nen mi computadora!{fin}"
+  },
+  {
+   "index": 16,
+   "part": 34,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, si \nencuentras\nalgo, dímelo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 35,
+   "note": "L6",
+   "text": "{hablante}Knightmon{hablante}¡Virus confirmado!\n¡Virus confirmado!{pagina}¡Eliminando virus ahora!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 35,
+   "text": "{hablante}{0209}{hablante}No sirve. ¡Knightmon\nha sido reprogramado\npor la A.o.A!{pagina}Mmm... Por ahora\ndebo comprobar\nlas otras ciudades.{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 1,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Lisa, ¿te refieres a la Maestra\nde Juego?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 36,
+   "note": "G-016 L6",
+   "text": "{hablante}Maestra de Juego{hablante}...¿Qué quieres\ndecir con hablar?{pagina}No tengo ninguna \nintención de \nayudarlos.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 36,
+   "text": "{hablante}Lisa{hablante}¿De verdad?\nMmm{pagina}Me iba a rendir ante ti.{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 6,
+   "part": 36,
+   "note": "G-018",
+   "text": "{hablante}Lisa{hablante}Tienen el\nJuggernaut. Todo\nes inútil.{pagina}Y no quiero morir\ntodavía.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 36,
+   "note": "G-045 L6",
+   "text": "{hablante}Lisa{hablante}{0208}{0102}1 0 eres un\nbuen chico.{pagina}Pero solo \nperderás la vida.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}Eres más lista de lo\nque pareces. Tendré  \nque cambiar de idea.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 36,
+   "note": "G-045 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Sí, el Juggernaut\npertenece a la A.o.A!{pagina}¡Solo el presidente\nde Ciudad Amaterasu\npuede detenerlo!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Lisa{hablante}¿Sí?\n¿Oíste eso,\n{0208}{0102}1{01e6}{fin}"
+  },
+  {
+   "index": 13,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}¿Pero qué digo?\n¡Era un secreto!\n¡Qué idiota soy!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}Lisa{hablante}Como dicen... \nPrimero engaña al aliado y luego al enemigo.{pagina}Entonces, ¿qué tal mi \nrepresentación?{fin}"
+  },
+  {
+   "index": 15,
+   "part": 36,
+   "note": "G-015",
+   "text": "{hablante}Teddy{hablante}¡Dejen de \nperder\ntiempo!{fin}"
+  },
+  {
+   "index": 18,
+   "part": 36,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Qué\npasó?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 37,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}Destromon debería nacer\nahora...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 37,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Un Digimon nacido\nde la fusión de\nVemmon y el Juggernaut!{pagina}¡Es el Digimon\nmás fuerte! ¡Ningún\narma le afecta!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 37,
+   "note": "G-018 L6",
+   "text": "{hablante}Lisa{hablante}¡No tenemos tiempo\nque perder!{pagina}Vayamos por el presidente\nde MAGAMI para\ndetener a Destromon.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 37,
+   "note": "G-043",
+   "text": "{hablante}{0209}{hablante}¡Sí, señora!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 38,
+   "note": "G-008 G-015 L6",
+   "text": "{hablante}Lisa{hablante}¡Knightmon no\naguantará\nmás!{pagina}Bien, ¡primero \nsuelten a la gente de la ciudad!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 38,
+   "note": "G-015",
+   "text": "{hablante}Líder Chuck{hablante}¡Vamos todos!\n¡Carguen!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 38,
+   "note": "L6",
+   "text": "{hablante}Wanda de la Resistencia{hablante}¡Síí!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 38,
+   "note": "L6",
+   "text": "{hablante}Dew de la Resistencia{hablante}¡No vamos a \nperder contra la\nA.o.A!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 38,
+   "note": "L6",
+   "text": "{hablante}Meech de la Resistencia{hablante}¡Recuperemos\nCiudad Amaterasu!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 39,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}No te preocupes, Teddy. ¡Por eso\nluchamos todos!{pagina}¡Vamos a vencer\na la A.o.A!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 39,
+   "note": "G-005",
+   "text": "{hablante}Nick{hablante}¿Qué hacen\ntodavía aquí?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 39,
+   "note": "G-026 G-044 L6",
+   "text": "{hablante}Nick{hablante}Ja ja ja.\n¡Va bien!{pagina}¡La A.o.A. dentro\nde la ciudad se rindió rápido!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 39,
+   "note": "G-045",
+   "text": "{hablante}Nick{hablante}No, ya la \ntenemos.{pagina}Solo queda \nel Centro de \nAdministración.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 39,
+   "note": "G-026 L6",
+   "text": "{hablante}Nick{hablante}Ja ja ja. Por\neso vinimos\npor ti.{pagina}¡Queremos que \nayudes en el \nataque al Centro!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 41,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}{0208}{0102}1 0 la Cámara\ntampoco funciona.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 41,
+   "note": "G-026 L6",
+   "text": "{hablante}Teddy{hablante}N-no, seguro que\nhay un modo de devolverlos a la normalidad.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 41,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}¿Verdad, \n{0208}{0102}1{01e6}{fin}"
+  },
+  {
+   "index": 10,
+   "part": 41,
+   "note": "G-015",
+   "text": "{hablante}{0209}{hablante}Sí, sí.\n¡Estoy seguro!{pagina}Esperen aquí. Yo\nvoy a investigar.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 41,
+   "note": "L6",
+   "text": "{hablante}Kail{hablante}¿Vencimos a\nla A.o.A, verdad?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 44,
+   "note": "G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}Oh, ¿es esa la ID El Dorado?{pagina}¡Entonces eres de \nlos nuestros! ¡Por \naquí!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 48,
+   "note": "G-020",
+   "text": "{hablante}Servicio de Tamer{hablante}De acuerdo.{pagina}Si quieres la\ninformación,\nven a hablar conmigo.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 50,
+   "note": "L6",
+   "text": "{hablante}Navi Digievolución{hablante}Comprendo.{pagina}Habla conmigo\nsi quieres \nla información.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 51,
+   "note": "L6",
+   "text": "{hablante}Navi Digimon{hablante}Comprendo.{pagina}Habla conmigo \nsi quieres \nla información.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 53,
+   "note": "G-020 G-026",
+   "text": "¿Oír las bases del tamer?"
+  },
+  {
+   "index": 1,
+   "part": 54,
+   "note": "G-018 L6",
+   "text": "¿Escuchar la información de Digimon compañero?"
+  },
+  {
+   "index": 3,
+   "part": 54,
+   "note": "G-026",
+   "text": "No, aún no."
+  },
+  {
+   "index": 1,
+   "part": 55,
+   "note": "G-018",
+   "text": "¿Oír sobre la digievolución?"
+  },
+  {
+   "index": 3,
+   "part": 55,
+   "note": "G-026",
+   "text": "No, aún no."
+  },
+  {
+   "index": 1,
+   "part": 56,
+   "note": "G-018",
+   "text": "¿Oír sobre la digievolución?"
+  },
+  {
+   "index": 3,
+   "part": 56,
+   "note": "G-026",
+   "text": "No, aún no."
+  },
+  {
+   "index": 1,
+   "part": 57,
+   "note": "G-018",
+   "text": "¿Oír lo básico de los artículos?"
+  },
+  {
+   "index": 3,
+   "part": 57,
+   "note": "G-026",
+   "text": "No, aún no."
+  }
+ ]
+}

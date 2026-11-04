@@ -1,0 +1,1256 @@
+{
+ "file": "SSDMG260.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-018 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!\n¡Por fin, nuestro\nartículo principal!{pagina}¡La Barrera Divina!\n¡Admirada por todos!{pagina}Escudo exclusivo de\nPatamon. ¡La puja\nempieza en 400 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡700 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 0,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 800 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡Pujo 800 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 1,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡800 BIT!{pagina}¿Alguien ofrece más\nde 800 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Barrera Divina\nvendida por 800 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo la\nBarrera Divina!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "G-012 G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vamos a algún lado!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "G-026",
+   "text": "¿Pujar 800 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 2,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Escudo Peligroso!\n¡Ansiado por todos!{pagina}Escudo exclusivo de\nGuilmon. ¡La puja\nempieza en 400 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 4,
+   "note": "L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡700 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 4,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 800 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-026",
+   "text": "¿Pujar 800 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 5,
+   "note": "G-026",
+   "text": "Sí, a 800 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 5,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡800 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 6,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡800 BIT!{pagina}¿Alguien ofrece más\nde 800 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 6,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Escudo Peligroso\nvendido por 800 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nEscudo Peligroso!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 6,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Me voy de aquí!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 7,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "note": "G-026 G-043 G-046",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Escudo Tirador!\n¡Admirado por todos!{pagina}Escudo exclusivo de\nMonmon. ¡La puja\nempieza en 800 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 8,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡1100 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 8,
+   "note": "L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡1500 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 8,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 1600 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "G-026",
+   "text": "¿Pujar 1600 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡1600 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 10,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡1600 BIT!{pagina}¿Alguien ofrece más\nde 1600 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 10,
+   "note": "G-026 G-043 G-046",
+   "text": "{hablante}Señor Smith{hablante}A la una, a las dos...\n¡Vendido!{pagina}¡Escudo Tirador\nvendido por 1600 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 10,
+   "note": "G-026 G-046",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nEscudo Tirador!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 10,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Hora de irse!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 11,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Escudo Dramon!\n¡Deseado por todos!{pagina}Escudo exclusivo de\nVeemon. ¡La puja\nempieza en 800 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 12,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡1100 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 12,
+   "note": "L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡1500 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 12,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 1600 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-026",
+   "text": "¿Pujar 1600 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 13,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡1600 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡1600 BIT!{pagina}¿Alguien ofrece más\nde 1600 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 14,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}Se va... Se va...\n¡VENDIDO!{pagina}¡Escudo Dramon\nvendido por 1600 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 14,
+   "note": "G-012 G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Voy a probarlo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 16,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡La Vara Yin Yang!\n¡Admirada por todos!{pagina}Arma exclusiva de\nRenamon. ¡La puja\nempieza en 1600 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 16,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡2000 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 16,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡2600 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 16,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 2700 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 17,
+   "note": "G-026",
+   "text": "¿Pujar 2700 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 17,
+   "note": "G-026",
+   "text": "Sí, a 2700 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 17,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 18,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡2700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 18,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡2700 BIT!{pagina}¿Alguien ofrece más\nde 2700 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 18,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Vara Yin Yang\nvendida por 2700 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 18,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo la\nVara Yin Yang!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 18,
+   "note": "G-012 G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Salgamos de aquí!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 19,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 20,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Colmillo Peligroso!\n¡Admirado por todos!{pagina}Arma exclusiva de\nGuilmon. ¡La puja\nempieza en 1600 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 20,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡2000 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 20,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡2600 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 20,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 2700 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 21,
+   "note": "G-026",
+   "text": "¿Pujar 2700 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 21,
+   "note": "G-026",
+   "text": "Sí, a 2700 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 21,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡2700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 22,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡2700 BIT!{pagina}¿Alguien ofrece más\nde 2700 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 22,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}A la una, a las dos...\n¡y a las tres!{pagina}¡Colmillo Peligroso\nvendido por 2700 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nColmillo Peligroso!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 22,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vámonos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 24,
+   "note": "G-026 G-033 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Cañón Tirador!\n¡Admirado por todos!{pagina}Arma exclusiva de\nMonmon. ¡La puja\nempieza en 2700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡3100 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡3500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡3900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 24,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 4000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-026",
+   "text": "¿Pujar 4000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 25,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 26,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡4000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 26,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡4000 BIT!{pagina}¿Alguien ofrece más\nde 4000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 26,
+   "note": "G-026 G-033 G-043",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Cañón Tirador\nvendido por 4000 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 26,
+   "note": "G-033",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nCañón Tirador!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 26,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡En marcha!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 28,
+   "note": "G-024 G-026 G-033 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Acero Ronin!\n¡Admirado por todos!{pagina}Arma exclusiva de\nKotemon. ¡La puja\nempieza en 2700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡3100 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡3500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡3900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 28,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 4000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 29,
+   "note": "G-026",
+   "text": "¿Pujar 4000 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 29,
+   "note": "G-026",
+   "text": "Sí, a 4000 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 29,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 30,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡4000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 30,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡4000 BIT!{pagina}¿Alguien ofrece más\nde 4000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 30,
+   "note": "G-026 G-033 G-043",
+   "text": "{hablante}Señor Smith{hablante}A la una...\na las dos...{pagina}¡Acero Ronin\nvendido por 4000 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 30,
+   "note": "G-033",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nAcero Ronin!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 30,
+   "note": "G-012 G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Larguémonos de aquí!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 31,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 32,
+   "note": "G-021 G-026 G-018 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡Los Lentes Tirador!\n¡Admirados por todos!{pagina}Lentes exclusivos de\nMonmon. ¡La puja\nempieza en 4000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 32,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡4500 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 32,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡5500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 32,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡5900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 32,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 6000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 33,
+   "note": "G-026",
+   "text": "¿Pujar 6000 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 33,
+   "note": "G-026",
+   "text": "Sí, a 6000 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 33,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 34,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡6000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 34,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡6000 BIT!{pagina}¿Alguien ofrece más\nde 6000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 34,
+   "note": "G-021 G-026 G-018 G-043",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Lentes Tirador\nvendidos por 6000 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 34,
+   "note": "G-021 G-018",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo los\nLentes Tirador!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 34,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vámonos ya!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 35,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 36,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡La Corona Divina!\n¡Admirada por todos!{pagina}Corona exclusiva de\nPatamon. ¡La puja\nempieza en 4000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 36,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡4500 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 36,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡5500 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 36,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡5900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 36,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 6000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 37,
+   "note": "G-026",
+   "text": "¿Pujar 6000 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 37,
+   "note": "G-026",
+   "text": "Sí, a 6000 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 37,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 38,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡6000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 38,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡6000 BIT!{pagina}¿Alguien ofrece más\nde 6000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 38,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}Se va... Se va...\n¡VENDIDO!{pagina}¡Corona Divina\nvendida por 6000 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 38,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vámonos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 39,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 40,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Casco Valor!\n¡Admirado por todos!{pagina}Casco exclusivo de\nAgumon. ¡La puja\nempieza en 7000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 40,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡8000 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 40,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡8300 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 40,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡8600 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 40,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 8700 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 41,
+   "note": "G-026",
+   "text": "¿Pujar 8700 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 41,
+   "note": "G-026",
+   "text": "Sí, a 8700 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 41,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 42,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡8700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 42,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡8700 BIT!{pagina}¿Alguien ofrece más\nde 8700 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 42,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}A la una, a las dos...\n¡VENDIDO!{pagina}¡Casco Valor\nvendido por 8700 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 42,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nCasco Valor!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 42,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Salgamos de aquí!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 43,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 44,
+   "note": "G-024 G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Casco Ronin!\n¡Admirado por todos!{pagina}Casco exclusivo de\nKotemon. ¡La puja\nempieza en 7000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 44,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡8000 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 44,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡8300 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 44,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡8600 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 44,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 8700 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 45,
+   "note": "G-026",
+   "text": "¿Pujar 8700 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 45,
+   "note": "G-026",
+   "text": "Sí, a 8700 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 45,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 46,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡8700 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 46,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡8700 BIT!{pagina}¿Alguien ofrece más\nde 8700 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 46,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}Parece que no hay\nnadie más.{pagina}¡Casco Ronin\nvendido por 8700 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 46,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nCasco Ronin!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 46,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vamos a probarlo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 47,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 48,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Traje Yin Yang!\n¡Admirado por todos!{pagina}Traje exclusivo de\nRenamon. ¡La puja\nempieza en 10000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 48,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡10900 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 48,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡11200 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 48,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡11400 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 48,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 11500 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 49,
+   "note": "G-026",
+   "text": "¿Pujar 11500 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 49,
+   "note": "G-026",
+   "text": "Sí, a 11500 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 49,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 50,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡11500 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 50,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡11500 BIT!{pagina}¿Alguien ofrece más\nde 11500 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 50,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Última oportunidad!\n¿Alguien? ¿Nadie?{pagina}¡Traje Yin Yang\nvendido por 11500 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 50,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vamos a probarlo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 51,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 52,
+   "note": "G-024 G-026 G-033 G-043 G-053",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡La Armadura Ronin!\n¡Admirada por todos!{pagina}Armadura exclusiva de\nKotemon. ¡La puja\nempieza en 16000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 52,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡16900 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 52,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡17000 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 52,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡17400 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 52,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 17500 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 53,
+   "note": "G-026",
+   "text": "¿Pujar 17500 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 53,
+   "note": "G-026",
+   "text": "Sí, a 17500 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 53,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 54,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡17500 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 54,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡17500 BIT!{pagina}¿Alguien ofrece más\nde 17500 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 54,
+   "note": "G-026 G-033 G-043 G-053",
+   "text": "{hablante}Señor Smith{hablante}Parece que nadie\nquiere competir.{pagina}¡Armadura Ronin\nvendida por 17500 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 54,
+   "note": "G-026 G-033 G-053",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo la\nArmadura Ronin!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 54,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡A ver qué hace!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 55,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 56,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Es tu oportunidad!{pagina}¡Por fin, nuestro\nartículo principal!{pagina}¡El Traje Salvaje!\n¡Admirado por todos!{pagina}Traje exclusivo de\nKumamon. ¡La puja\nempieza en 23000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 56,
+   "note": "G-026 L6",
+   "text": "{hablante}Tendero Abel{hablante}¡23500 BIT!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 56,
+   "note": "G-026",
+   "text": "{hablante}Jefe Milly{hablante}¡23800 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 56,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡23900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 56,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 24000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 57,
+   "note": "G-026",
+   "text": "¿Pujar 24000 BIT?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 57,
+   "note": "G-026",
+   "text": "Sí, a 24000 BIT.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 57,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 58,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡De acuerdo!\n¡24000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 58,
+   "note": "G-022 G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Wow!\n¡24000 BIT!{pagina}¿Alguien ofrece más\nde 24000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 58,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Smith{hablante}Si nadie más puja,\nentonces...{pagina}¡Traje Salvaje\nvendido por 24000 BIT!{pagina}¡Felicidades\nal chico de ahí!{pagina}¡Estoy transfiriendo\nel artículo a\ntu satélite!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 58,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡Vamos a verlo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 59,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y hay otras cosas\nque quiero.{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 60,
+   "note": "G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Oin oink oooink!{pagina}¡Oink, oin, ooink!{pagina}¡Oin, ooink, ooin oi \noiin oinko!{pagina}¡Oi oinioi oinoink\noinnk oin oinkk oi\n30000 BIT!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 60,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡Oioi!\n¡31000 BIT!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 60,
+   "note": "G-026 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡Oin oi\n31900 BIT!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 60,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Mmm... 32000 BIT\n...mmm...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 61,
+   "note": "G-026",
+   "text": "¿Pujar 32000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 61,
+   "note": "G-026",
+   "text": "No, paso.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 62,
+   "note": "G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}¡Oink! ¡32000 BIT!{pagina}Oinoink, oink\n¿32000 BIT?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 62,
+   "note": "G-043",
+   "text": "{hablante}Señor Smith{hablante}Oin oink oioink\noink oioink oink.{pagina}¡Oioi Oink nk\noionko 32000 BIT!{pagina}¡Oinkoinnnk\noi oink oi oiii!{pagina}¡Oi oinkoo\noinoiko oin\noioinnnk oink!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 62,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nOioi Oink!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 62,
+   "note": "G-012 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! Tengo un\nartículo genial.\n¡A ver qué hace!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 63,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...Es demasiado...\n...y no sé qué es...{pagina}Volveré cuando\ntenga más dinero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 65,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Esto es divertido.{fin}"
+  }
+ ]
+}

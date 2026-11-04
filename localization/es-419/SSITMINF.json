@@ -1,0 +1,673 @@
+{
+ "file": "SSITMINF.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-026",
+   "text": "Equipo: Kotemon, Renamon, Patamon."
+  },
+  {
+   "index": 3,
+   "note": "G-026",
+   "text": "Equipo: Kumamon, Guilmon, Patamon."
+  },
+  {
+   "index": 4,
+   "note": "G-026",
+   "text": "Artículo para dar patadas al árbol."
+  },
+  {
+   "index": 8,
+   "note": "G-026",
+   "text": "Usado para entrar en una tienda."
+  },
+  {
+   "index": 11,
+   "note": "G-044",
+   "text": "Insignia de Líder Byakko."
+  },
+  {
+   "index": 14,
+   "note": "G-018",
+   "text": "Rompe el muro del santuario."
+  },
+  {
+   "index": 16,
+   "note": "G-018 G-044",
+   "text": "Para llamar a Submarimon."
+  },
+  {
+   "index": 17,
+   "note": "G-018 G-054 L6",
+   "text": "Para llamar a Digmon."
+  },
+  {
+   "index": 18,
+   "note": "G-042 L6",
+   "text": "Símbolo del Rey de Duelos del Servidor Asuka."
+  },
+  {
+   "index": 19,
+   "note": "G-026 G-054",
+   "text": "ADN digital de Kotemon."
+  },
+  {
+   "index": 20,
+   "note": "G-042 L6",
+   "text": "Símbolo del Rey de Duelos del Servidor Amaterasu."
+  },
+  {
+   "index": 25,
+   "note": "G-026 G-044",
+   "text": "Jefe Xuan Wu de A.o.A."
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Máximo símbolo del Rey de Cartas."
+  },
+  {
+   "index": 37,
+   "note": "L6",
+   "text": "Tarjeta para ir a la chatarrería."
+  },
+  {
+   "index": 40,
+   "note": "G-048",
+   "text": "Cupón de entrenamiento de rango 2."
+  },
+  {
+   "index": 41,
+   "note": "G-048",
+   "text": "Cupón de entrenamiento de rango 3."
+  },
+  {
+   "index": 42,
+   "note": "G-048",
+   "text": "Cupón de entrenamiento de rango 4."
+  },
+  {
+   "index": 55,
+   "note": "G-026",
+   "text": "Incrementa la tolerancia al fuego."
+  },
+  {
+   "index": 58,
+   "note": "G-026",
+   "text": "Incrementa la tolerancia al viento."
+  },
+  {
+   "index": 60,
+   "note": "G-026 L6",
+   "text": "Incrementa la tolerancia a la máquina."
+  },
+  {
+   "index": 61,
+   "note": "G-026 L6",
+   "text": "Incrementa la tolerancia a la oscuridad."
+  },
+  {
+   "index": 69,
+   "note": "G-018",
+   "text": "Cura toda enfermedad en batalla."
+  },
+  {
+   "index": 72,
+   "note": "G-042",
+   "text": "Temporal: acelerar"
+  },
+  {
+   "index": 73,
+   "note": "G-042",
+   "text": "Temporal: sube fuerza y baja defensa."
+  },
+  {
+   "index": 74,
+   "note": "G-042",
+   "text": "Temporal: sube defensa y baja fuerza."
+  },
+  {
+   "index": 75,
+   "note": "G-018 G-042",
+   "text": "Incrementa ataque de efecto especial."
+  },
+  {
+   "index": 85,
+   "note": "G-044",
+   "text": "Absorbe PV del enemigo."
+  },
+  {
+   "index": 86,
+   "note": "G-026 G-054",
+   "text": "A veces confunde hasta a un aliado."
+  },
+  {
+   "index": 87,
+   "note": "G-035",
+   "text": "Defensa enemiga baja, fuerza sube."
+  },
+  {
+   "index": 88,
+   "note": "G-026",
+   "text": "Baja defensa y fuerza del enemigo."
+  },
+  {
+   "index": 89,
+   "note": "G-026 L6",
+   "text": "Tela de araña que dificulta el movimiento."
+  },
+  {
+   "index": 90,
+   "note": "L6",
+   "text": "Daño de fuego por bloque de pólvora."
+  },
+  {
+   "index": 99,
+   "note": "G-018",
+   "text": "Dicen que cortó el brazo al ogro."
+  },
+  {
+   "index": 110,
+   "note": "G-026",
+   "text": "Brazaletes que infligen daño."
+  },
+  {
+   "index": 114,
+   "note": "L6",
+   "text": "Golpea con velocidad de la luz."
+  },
+  {
+   "index": 116,
+   "note": "G-054",
+   "text": "Oxidado y poco eficaz."
+  },
+  {
+   "index": 117,
+   "note": "G-054",
+   "text": "Cargados con el poder de las bestias."
+  },
+  {
+   "index": 118,
+   "note": "L6",
+   "text": "Guantes que eligen a su usuario."
+  },
+  {
+   "index": 124,
+   "note": "G-026",
+   "text": "Arma legendaria de disparo."
+  },
+  {
+   "index": 131,
+   "note": "G-018",
+   "text": "Rifle definitivo personalizado."
+  },
+  {
+   "index": 135,
+   "note": "G-042",
+   "text": "Varita de ermitaño."
+  },
+  {
+   "index": 137,
+   "note": "G-054",
+   "text": "Varita de adivino de antaño."
+  },
+  {
+   "index": 138,
+   "note": "G-018",
+   "text": "Sirve contra el mal."
+  },
+  {
+   "index": 139,
+   "note": "G-018",
+   "text": "Varita de cristal con magia."
+  },
+  {
+   "index": 141,
+   "note": "G-026",
+   "text": "La magia sigue dormida."
+  },
+  {
+   "index": 143,
+   "note": "G-018",
+   "text": "Varita purificada, poder divino."
+  },
+  {
+   "index": 144,
+   "note": "G-018",
+   "text": "Varita mítica, poder infinito."
+  },
+  {
+   "index": 150,
+   "note": "G-018",
+   "text": "Brazo que apunta al punto débil."
+  },
+  {
+   "index": 152,
+   "note": "G-026",
+   "text": "Colmillo místico de demonio."
+  },
+  {
+   "index": 153,
+   "note": "L6",
+   "text": "Garra con ADN de bestias de antaño."
+  },
+  {
+   "index": 157,
+   "note": "G-026",
+   "text": "Cuchillo corto de principiante."
+  },
+  {
+   "index": 161,
+   "note": "G-018",
+   "text": "Fácil de blandir: ataque rápido."
+  },
+  {
+   "index": 164,
+   "note": "G-036",
+   "text": "Espada divina contra el mal."
+  },
+  {
+   "index": 165,
+   "note": "G-042",
+   "text": "Parte de un Digimon digievolucionado con ADN."
+  },
+  {
+   "index": 166,
+   "note": "G-018",
+   "text": "Espada demoníaca que congela."
+  },
+  {
+   "index": 167,
+   "note": "G-036",
+   "text": "Lanza de bambú como bastón."
+  },
+  {
+   "index": 169,
+   "note": "G-036",
+   "text": "Lanza pequeña pero poderosa."
+  },
+  {
+   "index": 170,
+   "note": "G-036",
+   "text": "Gran punta de lanza, gran daño."
+  },
+  {
+   "index": 172,
+   "note": "G-042",
+   "text": "Gran daño a enemigos subacuáticos."
+  },
+  {
+   "index": 174,
+   "note": "G-026",
+   "text": "Lanza divina de Caballeros Reales."
+  },
+  {
+   "index": 175,
+   "note": "G-036",
+   "text": "Lanza que destruyó a Orochi."
+  },
+  {
+   "index": 180,
+   "note": "G-035",
+   "text": "Espada a dos manos de alto nivel."
+  },
+  {
+   "index": 183,
+   "note": "G-042 G-047",
+   "text": "Mango largo para atacar con eficacia."
+  },
+  {
+   "index": 187,
+   "note": "G-042",
+   "text": "Destruye armadura y todo del enemigo."
+  },
+  {
+   "index": 192,
+   "note": "G-042",
+   "text": "Poderosa con mecanismo de disparo."
+  },
+  {
+   "index": 193,
+   "note": "G-018",
+   "text": "Arco angelical contra el mal."
+  },
+  {
+   "index": 194,
+   "note": "G-018",
+   "text": "Maldición del cuervo: confunde."
+  },
+  {
+   "index": 196,
+   "note": "G-018",
+   "text": "Arco divino del ángel supremo."
+  },
+  {
+   "index": 197,
+   "note": "G-042",
+   "text": "Parte de un Digimon digievolucionado con ADN."
+  },
+  {
+   "index": 199,
+   "note": "G-018 G-042",
+   "text": "Arma defensiva pequeña para atacar."
+  },
+  {
+   "index": 203,
+   "note": "G-018",
+   "text": "Carga legendaria de Dramon."
+  },
+  {
+   "index": 205,
+   "note": "G-046",
+   "text": "\"Protector\" poderoso que es un arma."
+  },
+  {
+   "index": 206,
+   "note": "G-018 G-042",
+   "text": "Carga divina que destruye al enemigo."
+  },
+  {
+   "index": 211,
+   "note": "G-018",
+   "text": "Cuerno legendario de Dramon."
+  },
+  {
+   "index": 215,
+   "note": "G-026",
+   "text": "Colocar en la cabeza para defensa."
+  },
+  {
+   "index": 217,
+   "note": "G-018",
+   "text": "Casco de fácil movimiento."
+  },
+  {
+   "index": 221,
+   "note": "G-054",
+   "text": "Sombrero de adivino de antaño."
+  },
+  {
+   "index": 222,
+   "note": "G-021",
+   "text": "Lentes de tiro legendarios."
+  },
+  {
+   "index": 224,
+   "note": "G-026",
+   "text": "Sombrero que te hace más inteligente."
+  },
+  {
+   "index": 228,
+   "note": "G-018",
+   "text": "Evade ataques enemigos con valor."
+  },
+  {
+   "index": 230,
+   "note": "G-018 G-042 L6",
+   "text": "Utilizada por magos para proteger la cabeza."
+  },
+  {
+   "index": 231,
+   "note": "G-042",
+   "text": "Máscara utilizada en ritual maldito."
+  },
+  {
+   "index": 235,
+   "note": "L6",
+   "text": "Corona mítica usada por una diosa."
+  },
+  {
+   "index": 241,
+   "note": "G-035 L6",
+   "text": "Casco sólido y ligero de aleación."
+  },
+  {
+   "index": 246,
+   "note": "L6",
+   "text": "Hecho de una cáscara de Digitama."
+  },
+  {
+   "index": 247,
+   "note": "G-018",
+   "text": "Analiza ataques y los esquiva."
+  },
+  {
+   "index": 248,
+   "note": "L6",
+   "text": "Hecho de la cabeza de Machinedramon."
+  },
+  {
+   "index": 250,
+   "note": "G-018",
+   "text": "Traje de combate fácil de mover."
+  },
+  {
+   "index": 252,
+   "note": "L6",
+   "text": "Traje resistente al rayo."
+  },
+  {
+   "index": 253,
+   "note": "G-044",
+   "text": "Rara capa que absorbe oscuridad."
+  },
+  {
+   "index": 254,
+   "note": "L6",
+   "text": "Chaqueta para clima ártico."
+  },
+  {
+   "index": 257,
+   "note": "G-026",
+   "text": "Traje de adivino de antaño."
+  },
+  {
+   "index": 260,
+   "note": "G-018 G-042 L6",
+   "text": "Hechiza al enemigo y esquiva ataques."
+  },
+  {
+   "index": 265,
+   "note": "L6",
+   "text": "Cubierta con cáscaras de Digitama."
+  },
+  {
+   "index": 266,
+   "note": "G-026 G-052",
+   "text": "Armadura siniestra con poderes oscuros."
+  },
+  {
+   "index": 267,
+   "note": "G-018 G-042",
+   "text": "Armadura sólida y ligera de aleación."
+  },
+  {
+   "index": 268,
+   "note": "G-018",
+   "text": "Armadura legendaria de Dramon."
+  },
+  {
+   "index": 273,
+   "note": "G-018",
+   "text": "Dificulta detectar al portador."
+  },
+  {
+   "index": 275,
+   "note": "G-026",
+   "text": "Escudo ligero y pequeño."
+  },
+  {
+   "index": 280,
+   "note": "G-026",
+   "text": "Escudo sólido y ligero de aleación."
+  },
+  {
+   "index": 283,
+   "note": "G-046 G-054",
+   "text": "Amuleto de adivino de antaño."
+  },
+  {
+   "index": 285,
+   "note": "G-054",
+   "text": "Hombrera legendaria de combate."
+  },
+  {
+   "index": 288,
+   "note": "G-018",
+   "text": "Escudo legendario de Dramon."
+  },
+  {
+   "index": 293,
+   "note": "G-018",
+   "text": "Incrementa mucho el ataque."
+  },
+  {
+   "index": 295,
+   "note": "G-018",
+   "text": "Incrementa mucho la defensa."
+  },
+  {
+   "index": 297,
+   "note": "G-018",
+   "text": "Incrementa mucho el espíritu."
+  },
+  {
+   "index": 299,
+   "note": "G-026 G-018",
+   "text": "Incrementa mucho la sabiduría."
+  },
+  {
+   "index": 301,
+   "note": "G-018",
+   "text": "Incrementa mucho la velocidad."
+  },
+  {
+   "index": 319,
+   "note": "G-026",
+   "text": "Los enemigos escapan menos."
+  },
+  {
+   "index": 320,
+   "note": "L6",
+   "text": "Los PV se curan lentamente."
+  },
+  {
+   "index": 323,
+   "note": "G-042",
+   "text": "Utiliza poco menos PM para técnicas."
+  },
+  {
+   "index": 327,
+   "note": "L6",
+   "text": "Robar es un poco más fácil."
+  },
+  {
+   "index": 329,
+   "note": "G-035",
+   "text": "Facilita subir el indicador de golpe"
+  },
+  {
+   "index": 330,
+   "note": "G-042",
+   "text": "Más fácil incrementar indicador de golpe."
+  },
+  {
+   "index": 338,
+   "note": "L6",
+   "text": "Entrenamiento mucho más fácil."
+  },
+  {
+   "index": 341,
+   "note": "L6",
+   "text": "Añade fuego intenso a los ataques."
+  },
+  {
+   "index": 344,
+   "note": "G-054",
+   "text": "Añade agua intensa a los ataques."
+  },
+  {
+   "index": 347,
+   "note": "G-054",
+   "text": "Añade hielo intenso a los ataques."
+  },
+  {
+   "index": 350,
+   "note": "G-026 G-054",
+   "text": "Añade viento intenso a los ataques."
+  },
+  {
+   "index": 353,
+   "note": "G-054",
+   "text": "Añade rayo intenso a los ataques."
+  },
+  {
+   "index": 354,
+   "note": "G-026",
+   "text": "Añade máquina débil a los ataques."
+  },
+  {
+   "index": 356,
+   "note": "G-026 G-054",
+   "text": "Añade máquina intensa a los ataques."
+  },
+  {
+   "index": 357,
+   "note": "G-042",
+   "text": "Añade oscuridad débil a los ataques."
+  },
+  {
+   "index": 359,
+   "note": "G-026 G-054",
+   "text": "Añade oscuridad intensa a los ataques."
+  },
+  {
+   "index": 390,
+   "note": "G-018",
+   "text": "6 cartas raras de batalla."
+  },
+  {
+   "index": 391,
+   "note": "G-018",
+   "text": "6 cartas raras de batalla."
+  },
+  {
+   "index": 392,
+   "note": "G-018",
+   "text": "6 cartas raras de batalla."
+  },
+  {
+   "index": 393,
+   "note": "G-018",
+   "text": "6 cartas raras de batalla."
+  },
+  {
+   "index": 394,
+   "note": "G-018",
+   "text": "6 cartas raras de batalla."
+  },
+  {
+   "index": 396,
+   "note": "G-035 G-044",
+   "text": "ID de tropa de bajo nivel de la A.o.A."
+  },
+  {
+   "index": 398,
+   "note": "G-026 L6",
+   "text": "Tarjeta para subir a la góndola."
+  },
+  {
+   "index": 399,
+   "note": "G-026 L6",
+   "text": "¿Tarjeta para subir a la góndola?"
+  },
+  {
+   "index": 401,
+   "note": "G-044",
+   "text": "Pase de personal DO de Asuka."
+  }
+ ]
+}

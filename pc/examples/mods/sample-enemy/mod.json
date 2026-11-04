@@ -1,0 +1,8 @@
+{
+  "format": "mod-v1",
+  "name": "Sample Enemy",
+  "version": "1.0.0",
+  "kind": "content",
+  "author": "DW3 port",
+  "description": "Adds a new enemy Digimon (Sproutmon, on the model of an original enemy) and places it in two early encounters (content mod: content/digimon.json)."
+}

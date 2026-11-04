@@ -1,0 +1,13 @@
+{
+ "file": "SSSKLNAM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 90,
+   "note": "G-042",
+   "text": "Purificación Final"
+  }
+ ]
+}

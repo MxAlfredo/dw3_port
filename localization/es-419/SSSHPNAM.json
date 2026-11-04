@@ -1,0 +1,153 @@
+{
+ "file": "SSSHPNAM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 6,
+   "note": "G-042",
+   "text": "Mercado Negro Asuka"
+  },
+  {
+   "index": 7,
+   "note": "G-042",
+   "text": "Tienda Artículos Amaterasu"
+  },
+  {
+   "index": 8,
+   "note": "G-042",
+   "text": "Mercado Negro Amaterasu"
+  },
+  {
+   "index": 14,
+   "note": "G-044",
+   "text": "Tienda Qing Long"
+  },
+  {
+   "index": 20,
+   "note": "G-042",
+   "text": "Oficina de Armería Oculta"
+  },
+  {
+   "index": 26,
+   "note": "G-044",
+   "text": "Armería Qing Long"
+  },
+  {
+   "index": 27,
+   "note": "G-018",
+   "text": "Escondite Bai Hu"
+  },
+  {
+   "index": 29,
+   "note": "G-018",
+   "text": "Escondite Byakko"
+  },
+  {
+   "index": 31,
+   "note": "G-042",
+   "text": "Crucero Amarillo Asuka"
+  },
+  {
+   "index": 32,
+   "note": "G-042",
+   "text": "Crucero Amarillo Amaterasu"
+  },
+  {
+   "index": 34,
+   "note": "G-042",
+   "text": "Tienda Cartas Qing Long"
+  },
+  {
+   "index": 36,
+   "note": "G-042",
+   "text": "Tienda Cartas Zhu Que"
+  },
+  {
+   "index": 40,
+   "note": "G-042",
+   "text": "Tienda Cartas Xuan Wu"
+  },
+  {
+   "index": 45,
+   "note": "G-018 G-051 G-066",
+   "text": "Posada Pantano Asuka"
+  },
+  {
+   "index": 46,
+   "note": "G-051",
+   "text": "Posada de Suzaku"
+  },
+  {
+   "index": 47,
+   "note": "G-042",
+   "text": "Desierto Sur Asuka"
+  },
+  {
+   "index": 49,
+   "note": "G-042",
+   "text": "Herrería Asuka Kulon"
+  },
+  {
+   "index": 53,
+   "note": "G-042 G-051 G-066",
+   "text": "Posada Bosque Amat."
+  },
+  {
+   "index": 56,
+   "note": "G-042 G-066",
+   "text": "Desierto Sur Amat."
+  },
+  {
+   "index": 58,
+   "note": "G-042 G-066",
+   "text": "Herrería Kulon Amat."
+  },
+  {
+   "index": 59,
+   "note": "G-044",
+   "text": "Ciudad Xuan Wu"
+  },
+  {
+   "index": 60,
+   "note": "G-051 G-066",
+   "text": "Posada Bosque Asuka"
+  },
+  {
+   "index": 61,
+   "note": "G-051 G-066",
+   "text": "Sala Delirios Asuka"
+  },
+  {
+   "index": 62,
+   "note": "G-051 G-066",
+   "text": "Oasis Pelche Asuka"
+  },
+  {
+   "index": 63,
+   "note": "G-018 L6 G-066",
+   "text": "Posada Montaña Asuka"
+  },
+  {
+   "index": 64,
+   "note": "G-018 G-042 G-051 G-066",
+   "text": "Posada Pantano Amat."
+  },
+  {
+   "index": 65,
+   "note": "G-042 G-066",
+   "text": "Sala Delirios Amat."
+  },
+  {
+   "index": 66,
+   "note": "G-042 G-051 G-066",
+   "text": "Oasis Pelche Amat."
+  },
+  {
+   "index": 67,
+   "note": "G-018 G-042 L6 G-066",
+   "text": "Posada Montaña Amat."
+  }
+ ]
+}

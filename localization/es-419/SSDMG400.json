@@ -1,0 +1,516 @@
+{
+ "file": "SSDMG400.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}MasterTyranno,\n¡lucha conmigo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}MasterTyranno{hablante}¡Claro!\nAcabo de comer,\nestoy recargado.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 0,
+   "note": "G-011 L6",
+   "text": "{hablante}{0209}{hablante}¡Vamos! te enseñaré cómo lucho.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}MasterTyranno{hablante}Muy optimista,\nchico.{pagina}¡Pero hace falta\nmás que eso para\nganarme!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "L6",
+   "text": "{hablante}MasterTyranno{hablante}¡Llévala al Líder\nSeiryu!{pagina}Y él luchará\ncontigo.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Gracias,\nMasterTyranno!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "L6",
+   "text": "{hablante}MasterTyranno{hablante}El Líder Seiryu \nes muy fuerte.\n¡Prepárate!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Líder Seiryu,\ngané a\nMasterTyranno.{pagina}¿Luchará ahora\ncontra mí?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 2,
+   "note": "G-033",
+   "text": "{hablante}Líder Seiryu{hablante}Ya veo, tienes\nla Garra Antigua.{pagina}¡De acuerdo,\nempieza!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 3,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Soy {0208}{0102}1 1\n¡Fue un\ncombate digno!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 3,
+   "note": "G-008",
+   "text": "{hablante}Líder Seiryu{hablante}Bien, {0208}{0102}1 0\nllévate esto\ncontigo.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 3,
+   "note": "L6",
+   "text": "{hablante}Líder Seiryu{hablante}Reta al Líder Suzaku\nen el Sector Sur.{pagina}Te queda mucho camino,\npero puedes hacerlo.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "G-026",
+   "text": "¡Código Rojo! ¡Código Rojo!\nVamos a parar unos instantes\npor motivos de seguridad.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "L6",
+   "text": "Gracias por esperar.\nVamos a continuar el\nfuncionamiento de la góndola.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 6,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Llegué al\nSector Sur!{pagina}Pero no sé qué\nDigimon era...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 7,
+   "note": "G-026",
+   "text": "{hablante}Voz{hablante}¡Uuhhh!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 7,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Q-Qué?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¡Eh, espera,\nespeeera!{pagina}¡No te voy a \ndejar pasar por \naquí!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 8,
+   "note": "G-044",
+   "text": "{hablante}Zanbamon{hablante}Entonces intenta\nganarme.{pagina}¡Por supuesto!\n¡Yo nunca pierdo!\n¡Ja ja ja ja!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "G-044 L6",
+   "text": "{hablante}Zanbamon{hablante}¿Qué? ¿Te vas en medio de la batalla?{pagina}¡No eres rival \npara mí!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 9,
+   "note": "G-045",
+   "text": "{hablante}{0209}{hablante}¿Qué está \npasando?{pagina}Solo mira, ¡voy \na ganar!\n¡Volveré!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¡Eres un\nbocas, niño!\n¡Ja ja ja ja!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 10,
+   "note": "G-026",
+   "text": "{hablante}Voz{hablante}Uuhh...\n...¡cof, cof!\n{pagina}Sí, ¿qué\nquieres?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 10,
+   "note": "L6",
+   "text": "{hablante}Sepikmon{hablante}Perdí mi \nmáscara en algún sitio.{pagina}¡Si no la tengo, nadie\npuede verme!{pagina}Encuéntrala y te \ndiré lo que quieras\nsaber.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 10,
+   "note": "L6",
+   "text": "{hablante}Voz{hablante}... Sí, ¿qué quieres?{fin}"
+  },
+  {
+   "index": 9,
+   "part": 10,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, de acuerdo.\nIré a buscar \ntu máscara.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 11,
+   "text": "{hablante}{0209}{hablante}Mmm, no hay\nnadie...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}Sepikmon{hablante}Corre y busca\nmi máscara. ¿Sí?{pagina}La tenía cuando\nestaba con\nBaronmon...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-026",
+   "text": "{hablante}Sepikmon{hablante}¡Todos dicen que he\nestado gastando bromas\nen Ciudad Asuka!{pagina}¡Ese debe tener mi\nmáscara!{pagina}Encuéntralo y tráeme\nla máscara. ¡Gracias!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "G-022",
+   "text": "{hablante}Sepikmon{hablante}¡Wooow!\n¡Gracias!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}Sepikmon{hablante}......\n......{fin}"
+  },
+  {
+   "index": 5,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}Sepikmon{hablante}Eh... ¿Puedes\ndarte la vuelta?{fin}"
+  },
+  {
+   "index": 13,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}Sepikmon{hablante}¡Esta bolsa de\npapel no funcionó!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¡Ohhh! ¿Es-es eso\nuna Hierba\nOlorosa?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 15,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Bien! ¡Ya\npuedo ir!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¡N-No lo soporto!\nEstá bien,\npasa esta vez.{pagina}¡Pero no lo\nolvidaré, chico!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 19,
+   "note": "G-026 G-018",
+   "text": "{hablante}{0209}{hablante}Eh, MetalGreymon.\nTengo un favor que\npedirte...{pagina}¿Puedes darme una\nmuestra de DADN\nAgumon de tu\nDADN?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 19,
+   "text": "{hablante}MetalGreymon{hablante}Mmm, perdona, pero\nno puedo dártela\ntan fácilmente.{pagina}¡Si de verdad la \nquieres, tendrás\nque ganarme!{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 3,
+   "part": 20,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN\nAgumon!{pagina}¡Gracias,\nMetalGreymon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 21,
+   "note": "G-026 G-018",
+   "text": "{hablante}{0209}{hablante}Eh, WarGrowlmon.\nTengo un favor\nque pedirte.{pagina}¿Puedes darme una\nmuestra de DADN\nGuilmon de tu DADN?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 21,
+   "note": "L6",
+   "text": "{hablante}WarGrowlmon{hablante}¡Ni hablar!\n¡Si la quieres,\ntienes que luchar!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 22,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN \nGuilmon!{pagina}¡Gracias,\nWarGrowlmon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "G-033 L6",
+   "text": "{hablante}{0209}{hablante}GrapLeomon,\ntengo un favor\nque pedirte.{pagina}¿Puedes darme el DADN Kumamon\nde tu DADN?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}GrapLeomon{hablante}¡Ja ja ja ja!\n¡Qué gracioso, chico!{pagina}¡Si me ganas\npodrás tenerlo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 24,
+   "note": "L6",
+   "text": "{hablante}GrapLeomon{hablante}De acuerdo, mantendré mi\npromesa.{pagina}Es mi código\nde honor.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 24,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN \nKumamon!{pagina}¡Gracias,\nGrapLeomon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-033",
+   "text": "{hablante}{0209}{hablante}Paildramon,\ntengo un favor que\npedirte.{pagina}¿Puedes darme el \nDADN Veemon de \ntu DADN?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 25,
+   "note": "G-045",
+   "text": "{hablante}{0209}{hablante}De acuerdo,\nsolo tengo que \nganar, ¿no?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 26,
+   "note": "G-011 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Gané!{pagina}¡Vamos, \ndámelo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 26,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN \nVeemon!{pagina}¡Gracias, Paildramon!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 26,
+   "note": "L6",
+   "text": "{hablante}Paildramon{hablante}Sí, sí, no voy \na hacer esto \nnunca más. ¡Hasta luego!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 27,
+   "note": "G-018",
+   "text": "{hablante}BK Imperialdramon{hablante}¡Tienes valor!\nMe gustas.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 28,
+   "note": "L6",
+   "text": "{hablante}BK Imperialdramon{hablante}¡Eh, perdí!\n¡Tienes \npotencia!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 28,
+   "note": "G-040 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel Casco\nPeligroso!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 28,
+   "note": "L6",
+   "text": "{hablante}BK Imperialdramon{hablante}Fue divertido. ¡Vuelve cuando quieras!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 29,
+   "text": "{hablante}{0209}{hablante}Eh. ¿Quién manda\naquí? ¿Dónde \nestán todos?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 29,
+   "note": "G-042 L6",
+   "text": "Bip Bip...\nENCENDIDO. SISTEMA REINICIANDO.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 29,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Uff, ¿qué?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 29,
+   "note": "L6",
+   "text": "SOY EL SISTEMA OPERATIVO DE LA\nGÓNDOLA DE GRIETA PROFUNDA.{pagina}PARA ACTIVAR LA GÓNDOLA\nHACIA EL SECTOR SUR...{pagina}ES NECESARIO UN REGISTRO DE \nCUENTA CON UNA TARJETA AZUL.{pagina}LA TIENE UN DIGIMON NACIDO DE UNA TARJETA AZUL, OBTÉNLA\nDE ESE DIGIMON.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 29,
+   "note": "G-027",
+   "text": "{hablante}{0209}{hablante}Ya veo, Digimon\nnacido de una\nTarjeta Azul.{pagina}Creo que ese es \nGuilmon...{pagina}Le preguntaré\na Guilmon en \nla ciudad.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 30,
+   "note": "L6",
+   "text": "Bip Bip.\nESPERE. CONFIRMANDO DATOS.{pagina}......\nERROR EN LA TARJETA AZUL.{pagina}FINALIZANDO REGISTRO\nDE CUENTA...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 30,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Por qué\nno puedo entrar?{pagina}¡Tengo la Tarjeta Azul!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 30,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Eh? ¿Qué? ¡No es la Tarjeta Azul!{pagina}¡La A es un 8!\n¡Es la Tarjeta 8zul!{pagina}¡Es falsa!\n¡Me\nengañaron!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 31,
+   "note": "L6",
+   "text": "Bip Bip\nESPERE. CONFIRMANDO DATOS.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 32,
+   "note": "L6",
+   "text": "ACCEDIENDO AL SATÉLITE... CUENTA CONFIRMADA, INICIANDO GÓNDOLA{fin}"
+  },
+  {
+   "index": 1,
+   "part": 33,
+   "note": "L6",
+   "text": "ACCEDIENDO AL SATÉLITE... CUENTA CONFIRMADA, INICIANDO GÓNDOLA{fin}"
+  },
+  {
+   "index": 1,
+   "part": 34,
+   "note": "G-026 G-042",
+   "text": "{hablante}{0209}{hablante}¡Voy a encontrar a\nVeemon y conseguir\nlas Botas Árbol!{pagina}¡Tengo que tener\ncuidado de no salir\ndel Bosque de las Patadas!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 38,
+   "note": "G-026 L6",
+   "text": "{hablante}Veemon{hablante}¡Oh, me\nencontraste!{pagina}De acuerdo. ¡Te\ndaré las Botas Árbol\ntal como prometí!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 40,
+   "note": "G-018 G-054 L6",
+   "text": "{hablante}{0209}{hablante}¡Estupendo! ¡Tengo el Digihuevo de Sinceridad!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 41,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}Jefe Qing Long, ¿dónde\nestá el Digihuevo de\nSabiduría?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 41,
+   "note": "L6",
+   "text": "{hablante}Jefe Qing Long{hablante}Yo tampoco lo sé,\npero ¿por qué preguntas?{pagina}No eres de nosotros.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 41,
+   "note": "G-005",
+   "text": "{hablante}{0209}{hablante}Si no lo soy,\n¿qué van a \nhacer?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 41,
+   "note": "G-018",
+   "text": "{hablante}Jefe Qing Long{hablante}¡Te capturaré\ncomo a los \notros!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 42,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Gané al\nJefe Qing Long!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 43,
+   "note": "G-044 L6",
+   "text": "{hablante}{0209}{hablante}No sé qué planea\nla A.o.A, \npero...{pagina}¡Pero no voy a dejar\nque la A.o.A. se salga con la suya!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 44,
+   "note": "G-035 L6",
+   "text": "{hablante}Soldado{hablante}¿Es eso el \nPase Azul?{pagina}L-Lo siento.\n¡No sabía que era el Jefe Qing Long!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 44,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¿Qué? Oh,\nah, sí...{pagina}El uniforme es muy\nobvio. ¡Voy de patrulla\nde incógnito!{pagina}Vamos a guardar el\nsecreto, \n¿sí?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 44,
+   "note": "L6",
+   "text": "{hablante}Soldado{hablante}¡Es usted genial, jefe! ¡Un gran \ntrabajador!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 44,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Uff, estuvo\ncerca...{pagina}Pero ahora puedo\nir a la Ciudad Zhu Que.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 45,
+   "note": "G-011",
+   "text": "{hablante}{0209}{hablante}Airdramon, ¿puedes ir \na Ciudad Qing Long\ny soplar un poco?{pagina}No tenemos suficiente\nenergía para\nrecuperar a todos...{pagina}Airdramon, ayúdame.\n¡Vamos, despierta!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 45,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Pero me imagino\nque no es posible...{pagina}Bueno, encontraré\notra manera...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 46,
+   "text": "{hablante}{0209}{hablante}Mmm, no veo\na Veemon.{pagina}Mmm...\n¿Qué puedo hacer? Mmm.{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 1,
+   "part": 47,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, no veo\na Veemon.{pagina}Mmm...\n¿Qué puedo hacer?\nMmm.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 48,
+   "text": "{hablante}{0209}{hablante}Mmm, no veo\na Veemon.{pagina}Mmm...\n¿Qué puedo hacer? Mmm.{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 2,
+   "part": 50,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Q-Qué\nestá pasando?{fin}"
+  }
+ ]
+}

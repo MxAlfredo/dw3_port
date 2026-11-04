@@ -1,0 +1,10 @@
+{
+  "format": "stage-text-v1",
+  "texts": {
+    "welcome": "¡Bienvenido al parque, amigo! Toma estos 100 BIT, va por la casa.",
+    "again": "Qué gusto verte otra vez. ¡Disfruta el parque!",
+    "thanks": "¡Gracias por venir! El portón del este lleva a otro lugar.",
+    "visitor": "Vengo de otro pueblo. Este parque tiene una vista muy bonita.",
+    "rival": "¡Oye! ¿Me parezco a ti? Marcho en el lugar con un sprite propio."
+  }
+}

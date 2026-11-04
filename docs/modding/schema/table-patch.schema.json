@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port tables/<table>.json (a table patch, <table>-v1)",
+  "description": "A patch of a data table of the game (pc/shim/table_mods.c). The field names and ranges of each table are in the reference file the port writes in <pref>/data/tables/<table>.json (its \"notes\"); this schema checks the shape every table shares.",
+  "type": "object",
+  "required": [
+    "format",
+    "rows"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string",
+      "pattern": "^[a-z_0-9]+-v1$",
+      "description": "<table>-v1, the name of the file without .json."
+    },
+    "rows": {
+      "type": "object",
+      "description": "The row key (see the table's reference file) -> fields. \"*\" is every row; a row with its own key wins on the fields it names.",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Field name -> a number (replaces), an operation \"*k\" \"+k\" \"-k\" on the current value, or for a list field a list of ids/names or {\"add\": [...], \"remove\": [...]}.",
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "pattern": "^[*+-]\\s*-?[0-9]*\\.?[0-9]+([eE][+-]?[0-9]+)?$"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]+:[a-z0-9_/-]+$",
+              "description": "A name a content mod defines (<mod>:<name>)."
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": [
+                  "integer",
+                  "string"
+                ]
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "add": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  }
+                },
+                "remove": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "integer",
+                      "string"
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "description": "Ignored by the port."
+    }
+  },
+  "additionalProperties": true
+}

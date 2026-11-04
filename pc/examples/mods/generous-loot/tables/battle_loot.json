@@ -1,0 +1,6 @@
+{
+  "format": "battle_loot-v1",
+  "rows": {
+    "*": { "itemChance": "*2" }
+  }
+}

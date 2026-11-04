@@ -1,0 +1,9 @@
+{
+  "format": "mod-v1",
+  "name": "_template",
+  "version": "1.0.0",
+  "author": "your name",
+  "description": "What it does, in one line.",
+  "kind": "content",
+  "port": ">=0.4"
+}

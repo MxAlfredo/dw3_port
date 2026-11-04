@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port content/items.json (items-v1)",
+  "description": "New items. Derived from pc/shim/item_ext.c (kItem, takeField) and content.c.",
+  "type": "object",
+  "required": [
+    "format",
+    "new"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "items-v1"
+    },
+    "new": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_-]{1,48}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "base",
+          "name"
+        ],
+        "properties": {
+          "base": {
+            "type": "string",
+            "pattern": "^(dw3:item/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$",
+            "description": "The record the entry starts from: dw3:item/<id> (1..402) or another content mod's <mod>:<key>."
+          },
+          "name": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "sellPrice": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "effect": {
+            "type": "object",
+            "description": "Only for a usable base item.",
+            "properties": {
+              "kind": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 17
+              },
+              "flags": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 7
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

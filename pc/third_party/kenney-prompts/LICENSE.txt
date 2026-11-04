@@ -1,0 +1,22 @@
+Button prompt atlas (pc/third_party/kenney-prompts/prompts.png and pc/shim/prompt_atlas_data.c)
+
+Derived from "Input Prompts Pixel 16x" version 1.0 (23-09-2021)
+Created/distributed by Kenney (www.kenney.nl)
+Source used: https://opengameart.org/sites/default/files/input-prompts-pixel-16.zip
+(Kenney's page: https://kenney.nl/assets/input-prompts-pixel)
+
+License: Creative Commons Zero, CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+CC0 needs no credit; we give it anyway: Kenney (www.kenney.nl).
+
+What was changed: 23 of the pack's 16x16 tiles were cropped by one pixel per side and packed
+into one atlas (pc/gen_prompt_atlas.py reproduces it from the pack). The four PlayStation face
+buttons (cross, circle, square, triangle) are not in this version of the pack: the script draws
+them (simple geometric shapes) on Kenney's blank round button. The PlayStation L1/R1/options/select are Kenney tiles in his neutral style, not Sony art. The
+Switch A/B/X/Y, L/R, +/- icons come from Kenney's newer "Input Prompts" 1.5A (11-07-2026,
+https://kenney.nl/assets/input-prompts, CC0 1.0; its license text is in switch/LICENSE.txt), set
+"Nintendo Switch / Default": the eight PNGs in switch/ are unchanged copies, shrunk to 14x14 by the
+script (neutral lettered keys, not Nintendo logos or artwork). The Xbox "View" icon (two overlapping squares) is drawn the same way, on Kenney's blank pill.
+
+This is not data from the game's disc.

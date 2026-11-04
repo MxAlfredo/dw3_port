@@ -1,0 +1,73 @@
+{
+ "file": "SSNAMEET.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-003 G-015 G-024",
+   "text": "Bienvenido a Digimon Online.{0202}{0202}{0102}{0102}{0123}amos a comenzar el registro \nde su cuenta en línea y \ncompañero Digimon.{0202}{0202}{0102}{0102}⋯l nombre de cuenta será\nsu nombre en el Mundo\nDigital.{0202}{0202}{0102}{0102}{0120}eleccionen su compañero\nDigimon de uno de los tres\nPaquetes Iniciales.{0202}{0202}{0102}{0102}{010e}hora comenzaremos el proceso.{fin}"
+  },
+  {
+   "index": 6,
+   "note": "G-024",
+   "text": "Selección de Paquete Inicial"
+  },
+  {
+   "index": 10,
+   "note": "G-024 L6",
+   "text": "Paquete Equilibrado"
+  },
+  {
+   "index": 11,
+   "note": "G-024",
+   "text": "Paquete Potente"
+  },
+  {
+   "index": 12,
+   "note": "G-024",
+   "text": "Paquete Maníaco"
+  },
+  {
+   "index": 13,
+   "note": "G-024",
+   "text": "Espadachín equilibrado.\nTambién aprende a curar."
+  },
+  {
+   "index": 14,
+   "note": "G-024",
+   "text": "Poderoso artista marcial\nmuy rápido."
+  },
+  {
+   "index": 15,
+   "note": "G-024",
+   "text": "Tiene varias armas.\nTirador experto."
+  },
+  {
+   "index": 16,
+   "note": "G-024",
+   "text": "Le gusta escupir fuego.\nMuy agresivo."
+  },
+  {
+   "index": 18,
+   "note": "G-024",
+   "text": "Digimon travieso.\nAprende movimientos raros."
+  },
+  {
+   "index": 21,
+   "note": "G-024",
+   "text": "Pantalla de Confirmación"
+  },
+  {
+   "index": 26,
+   "note": "G-024",
+   "text": "Armas, ataques mágicos y curación.\nEl mejor paquete para un equipo."
+  },
+  {
+   "index": 28,
+   "note": "G-024 G-045",
+   "text": "Todos extravagantes y difíciles.\nSolo puedes contar con Patamon."
+  }
+ ]
+}

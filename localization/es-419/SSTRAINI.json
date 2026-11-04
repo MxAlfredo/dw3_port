@@ -1,0 +1,258 @@
+{
+ "file": "SSTRAINI.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 5,
+   "note": "G-026",
+   "text": "Botón {0134}: Parar entrenamiento."
+  },
+  {
+   "index": 6,
+   "note": "G-026",
+   "text": "¿Qué Digimon entrenar?"
+  },
+  {
+   "index": 8,
+   "note": "G-018",
+   "text": "Selecciona PE a usar"
+  },
+  {
+   "index": 17,
+   "note": "G-042 L6",
+   "text": "¡Oportunidad de Ultra Entrenamiento!"
+  },
+  {
+   "index": 28,
+   "note": "G-026 L6",
+   "text": "Super Saltar Cuerda"
+  },
+  {
+   "index": 35,
+   "note": "L6",
+   "text": "Hechizo"
+  },
+  {
+   "index": 36,
+   "note": "G-042 G-049",
+   "text": "Tolerancia Calor S"
+  },
+  {
+   "index": 37,
+   "note": "G-042 G-049",
+   "text": "Tolerancia Agua S"
+  },
+  {
+   "index": 38,
+   "note": "G-026 G-049",
+   "text": "Tolerancia Hielo S"
+  },
+  {
+   "index": 39,
+   "note": "G-026 G-049",
+   "text": "Tolerancia Viento S"
+  },
+  {
+   "index": 40,
+   "note": "L6",
+   "text": "Defensa Rayo S"
+  },
+  {
+   "index": 41,
+   "note": "G-026 L6",
+   "text": "Súper Defensa de Misil"
+  },
+  {
+   "index": 42,
+   "note": "L6",
+   "text": "Súper Hechizo"
+  },
+  {
+   "index": 43,
+   "note": "L6",
+   "text": "Entrenar fuerza del Digimon."
+  },
+  {
+   "index": 44,
+   "note": "L6",
+   "text": "Entrenar defensa del Digimon."
+  },
+  {
+   "index": 45,
+   "note": "L6",
+   "text": "Entrenar espíritu del Digimon."
+  },
+  {
+   "index": 46,
+   "note": "L6",
+   "text": "Entrenar sabiduría del Digimon."
+  },
+  {
+   "index": 47,
+   "note": "L6",
+   "text": "Entrenar velocidad del Digimon."
+  },
+  {
+   "index": 48,
+   "note": "G-026 L6",
+   "text": "¡Súper entrenar fuerza del Digimon!"
+  },
+  {
+   "index": 49,
+   "note": "G-026 L6",
+   "text": "¡Súper entrenar defensa del Digimon!"
+  },
+  {
+   "index": 50,
+   "note": "G-018 L6",
+   "text": "¡Súper entrenar espíritu!"
+  },
+  {
+   "index": 51,
+   "note": "G-018 L6",
+   "text": "¡Súper entrenar sabiduría!"
+  },
+  {
+   "index": 52,
+   "note": "G-018 L6",
+   "text": "¡Súper entrenar velocidad!"
+  },
+  {
+   "index": 63,
+   "note": "G-026",
+   "text": "¡Fortalecer más contra viento!"
+  },
+  {
+   "index": 65,
+   "note": "G-026",
+   "text": "¡Fortalecer más contra máquina!"
+  },
+  {
+   "index": 66,
+   "note": "L6",
+   "text": "¡Fortalecer más contra oscuridad!"
+  },
+  {
+   "index": 70,
+   "note": "G-026",
+   "text": "Fallido..."
+  },
+  {
+   "index": 73,
+   "note": "G-042",
+   "text": "Espíritu"
+  },
+  {
+   "index": 74,
+   "note": "G-042",
+   "text": "Sabiduría"
+  },
+  {
+   "index": 75,
+   "note": "G-036 L6",
+   "text": "Velocidad"
+  },
+  {
+   "index": 82,
+   "note": "G-018",
+   "text": "Oscura"
+  },
+  {
+   "index": 83,
+   "note": "G-042",
+   "text": "PV máximos"
+  },
+  {
+   "index": 84,
+   "note": "G-042",
+   "text": "PM máximos"
+  },
+  {
+   "index": 91,
+   "note": "G-018",
+   "text": "Defensa Oscura"
+  },
+  {
+   "index": 96,
+   "note": "G-026",
+   "text": "Resultado: \n¡Espíritu + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 99,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Fuego +{0205}{01e7}{fin}"
+  },
+  {
+   "index": 100,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Agua + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 101,
+   "note": "G-042 L6",
+   "text": "Resultado: \n¡Defensa Hielo + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 102,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Viento + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 103,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Rayo + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 104,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Máquina + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 105,
+   "note": "G-026 G-042",
+   "text": "Resultado: \n¡Defensa Oscuridad + {0205}{01e7}{fin}"
+  },
+  {
+   "index": 106,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Fuego +{0205}{01e7}\n¡PM máximos + {0205}{02e7}{fin}"
+  },
+  {
+   "index": 107,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Agua + {0205}{01e7}\nDefensa - {0205}{0202}{0202}"
+  },
+  {
+   "index": 108,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Hielo + {0205}{01e7}\nVelocidad - {0205}{0202}{0202}"
+  },
+  {
+   "index": 109,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Viento + {0205}{01e7}\nFuerza - {0205}{0202}{0202}"
+  },
+  {
+   "index": 110,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Rayo + {0205}{01e7} \nSabiduría - {0205}{0202}{0202}"
+  },
+  {
+   "index": 111,
+   "note": "G-026 G-042 L6",
+   "text": "Resultado: {pagina}¡Defensa Máquina + {0205}{01e7}\n¡PV máximos + {0205}{02e7}{fin}"
+  },
+  {
+   "index": 112,
+   "note": "G-026 G-042",
+   "text": "Resultado: {pagina}¡Defensa Oscuridad + {0205}{01e7}\nEspíritu - {0205}{0202}{0202}"
+  },
+  {
+   "index": 113,
+   "note": "G-026",
+   "text": "Resultado: \nNinguna mejora...{fin}"
+  }
+ ]
+}

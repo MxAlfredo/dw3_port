@@ -1,0 +1,18 @@
+{
+  "format": "digimon-v1",
+  "new": {
+    "sproutmon": {
+      "base": "dw3:digimon/4",
+      "model": "dw3:digimon/25",
+      "name": { "eng": "Sproutmon", "es-419": "Brotemon" },
+      "description": { "eng": "A sprout that learned to bite." },
+      "stats": { "attack": 120, "defense": 40, "speed": 70 },
+      "item": "dw3:item/45",
+      "itemChance": 1023
+    }
+  },
+  "encounters": {
+    "34": { "2": { "enemy": "sample-enemy:sproutmon", "level": 3, "hp": 60, "mp": 10, "strength": 16 } },
+    "35": { "2": { "enemy": "sample-enemy:sproutmon", "level": 3, "hp": 60, "mp": 10, "strength": 16 } }
+  }
+}

@@ -1,0 +1,851 @@
+{
+ "file": "SSITMNAM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-036 G-042",
+   "text": "Paquete Balance"
+  },
+  {
+   "index": 2,
+   "note": "G-036 G-042",
+   "text": "Paquete Potente"
+  },
+  {
+   "index": 3,
+   "note": "G-036 G-042",
+   "text": "Paquete Maníaco"
+  },
+  {
+   "index": 7,
+   "note": "L6",
+   "text": "Anzuelo Rojo"
+  },
+  {
+   "index": 13,
+   "note": "G-042",
+   "text": "Hierba Olorosa"
+  },
+  {
+   "index": 16,
+   "note": "G-054",
+   "text": "DH Sinceridad"
+  },
+  {
+   "index": 22,
+   "note": "G-035",
+   "text": "Pase Azul"
+  },
+  {
+   "index": 23,
+   "note": "G-035",
+   "text": "Pase Rojo"
+  },
+  {
+   "index": 24,
+   "note": "G-035",
+   "text": "Pase Blanco"
+  },
+  {
+   "index": 25,
+   "note": "G-035",
+   "text": "Pase Negro"
+  },
+  {
+   "index": 35,
+   "note": "G-018",
+   "text": "DADN Veemon"
+  },
+  {
+   "index": 36,
+   "text": "Trofeo KoC"
+  },
+  {
+   "index": 37,
+   "note": "G-042",
+   "text": "Tarjeta Platino"
+  },
+  {
+   "index": 43,
+   "note": "G-018",
+   "text": "Carga Energía"
+  },
+  {
+   "index": 44,
+   "note": "L6",
+   "text": "Súper Carga"
+  },
+  {
+   "index": 52,
+   "note": "G-035",
+   "text": "Chip Sabio"
+  },
+  {
+   "index": 53,
+   "note": "G-035",
+   "text": "Chip Impulso"
+  },
+  {
+   "index": 62,
+   "note": "G-042",
+   "text": "Chip 1 Entrenamiento"
+  },
+  {
+   "index": 63,
+   "note": "G-042",
+   "text": "Chip 2 Entrenamiento"
+  },
+  {
+   "index": 64,
+   "note": "G-042",
+   "text": "Chip 3 Entrenamiento"
+  },
+  {
+   "index": 65,
+   "note": "G-042",
+   "text": "Chip V Entrenamiento"
+  },
+  {
+   "index": 66,
+   "note": "G-035",
+   "text": "Disco Remedio"
+  },
+  {
+   "index": 67,
+   "note": "G-052",
+   "text": "Disco Antiparálisis"
+  },
+  {
+   "index": 68,
+   "note": "L6",
+   "text": "Disco Sobrio"
+  },
+  {
+   "index": 70,
+   "note": "G-052",
+   "text": "Disco Revivir"
+  },
+  {
+   "index": 71,
+   "note": "G-052",
+   "text": "Enchufe Vida"
+  },
+  {
+   "index": 72,
+   "note": "G-054",
+   "text": "Enchufe Mach"
+  },
+  {
+   "index": 73,
+   "note": "G-036",
+   "text": "Enchufe Poder"
+  },
+  {
+   "index": 74,
+   "note": "G-036 G-042 G-046",
+   "text": "Enchufe Protector"
+  },
+  {
+   "index": 75,
+   "note": "G-054",
+   "text": "Enchufe Aura"
+  },
+  {
+   "index": 76,
+   "note": "G-054",
+   "text": "Enchufe DV"
+  },
+  {
+   "index": 83,
+   "note": "G-018",
+   "text": "Campo Oscuro"
+  },
+  {
+   "index": 84,
+   "note": "G-035",
+   "text": "Campo Extraño"
+  },
+  {
+   "index": 87,
+   "note": "G-036",
+   "text": "Gas Encanto"
+  },
+  {
+   "index": 88,
+   "note": "G-042",
+   "text": "Marioneta Maldita"
+  },
+  {
+   "index": 91,
+   "note": "G-054",
+   "text": "Expansión 01a"
+  },
+  {
+   "index": 95,
+   "note": "G-036",
+   "text": "Acero Poder"
+  },
+  {
+   "index": 97,
+   "note": "G-036",
+   "text": "Acero Brillo"
+  },
+  {
+   "index": 102,
+   "note": "G-036",
+   "text": "Katana Oxidada"
+  },
+  {
+   "index": 112,
+   "note": "G-035",
+   "text": "Guante Feroz"
+  },
+  {
+   "index": 114,
+   "note": "G-035",
+   "text": "Brazo Ciclón"
+  },
+  {
+   "index": 124,
+   "note": "G-032",
+   "text": "Cañón Tirador"
+  },
+  {
+   "index": 137,
+   "note": "G-036",
+   "text": "Vara Yin Yang"
+  },
+  {
+   "index": 145,
+   "note": "G-042",
+   "text": "Colmillo Lobo"
+  },
+  {
+   "index": 146,
+   "note": "G-042",
+   "text": "Colmillo Fantasma"
+  },
+  {
+   "index": 147,
+   "note": "G-042",
+   "text": "Colmillo Cerbero"
+  },
+  {
+   "index": 148,
+   "note": "G-042",
+   "text": "Colmillo Malvado"
+  },
+  {
+   "index": 149,
+   "note": "G-040 G-042",
+   "text": "Colmillo Peligroso"
+  },
+  {
+   "index": 150,
+   "note": "G-042",
+   "text": "Colmillo Sable"
+  },
+  {
+   "index": 151,
+   "note": "G-042",
+   "text": "Colmillo Veneno"
+  },
+  {
+   "index": 152,
+   "note": "G-042",
+   "text": "Colmillo Belial"
+  },
+  {
+   "index": 167,
+   "note": "G-036",
+   "text": "Lanza Bambú"
+  },
+  {
+   "index": 168,
+   "note": "G-054",
+   "text": "Jabalina"
+  },
+  {
+   "index": 173,
+   "note": "G-018",
+   "text": "Lanza Vampiro"
+  },
+  {
+   "index": 174,
+   "note": "G-036",
+   "text": "Lanza Real"
+  },
+  {
+   "index": 175,
+   "note": "G-036",
+   "text": "Lanza Orochi"
+  },
+  {
+   "index": 186,
+   "note": "G-036",
+   "text": "Hoz del Alma"
+  },
+  {
+   "index": 189,
+   "note": "G-042",
+   "text": "Alabarda Omega"
+  },
+  {
+   "index": 193,
+   "note": "G-054",
+   "text": "Arco de Ángel"
+  },
+  {
+   "index": 198,
+   "note": "G-036",
+   "text": "Cañón Positrón"
+  },
+  {
+   "index": 199,
+   "note": "G-046",
+   "text": "Mini Protector"
+  },
+  {
+   "index": 200,
+   "note": "G-039 G-046",
+   "text": "Protector Pulso"
+  },
+  {
+   "index": 201,
+   "note": "G-046",
+   "text": "Protector Metal"
+  },
+  {
+   "index": 202,
+   "note": "G-046",
+   "text": "Protector Poder"
+  },
+  {
+   "index": 203,
+   "note": "G-046",
+   "text": "Protector Dramon"
+  },
+  {
+   "index": 204,
+   "note": "G-046",
+   "text": "Protector Mach"
+  },
+  {
+   "index": 205,
+   "note": "G-046",
+   "text": "Mega Protector"
+  },
+  {
+   "index": 206,
+   "note": "G-046",
+   "text": "Protector Deus"
+  },
+  {
+   "index": 207,
+   "note": "G-054",
+   "text": "Cuerno Metal"
+  },
+  {
+   "index": 208,
+   "note": "G-036",
+   "text": "Cuerno Broca"
+  },
+  {
+   "index": 209,
+   "note": "G-042",
+   "text": "Cuerno Kabuteri"
+  },
+  {
+   "index": 210,
+   "note": "G-036",
+   "text": "Cuerno Choque"
+  },
+  {
+   "index": 221,
+   "note": "G-036",
+   "text": "Gorro Yin Yang"
+  },
+  {
+   "index": 222,
+   "note": "G-021",
+   "text": "Lentes Tirador"
+  },
+  {
+   "index": 223,
+   "note": "G-036",
+   "text": "Visión Noche"
+  },
+  {
+   "index": 229,
+   "note": "G-036",
+   "text": "Corona Mythril"
+  },
+  {
+   "index": 230,
+   "note": "G-036",
+   "text": "Corona Mágica"
+  },
+  {
+   "index": 231,
+   "note": "G-042",
+   "text": "Máscara Chamán"
+  },
+  {
+   "index": 232,
+   "note": "G-036",
+   "text": "Corona Divina"
+  },
+  {
+   "index": 233,
+   "note": "G-054",
+   "text": "Anillo Ángel"
+  },
+  {
+   "index": 234,
+   "note": "G-036",
+   "text": "Corona Real"
+  },
+  {
+   "index": 235,
+   "note": "G-036",
+   "text": "Corona Diosa"
+  },
+  {
+   "index": 236,
+   "note": "G-054",
+   "text": "Casco de Piel"
+  },
+  {
+   "index": 237,
+   "note": "G-035",
+   "text": "Casco Estaño"
+  },
+  {
+   "index": 239,
+   "note": "G-042",
+   "text": "Casco Caballero"
+  },
+  {
+   "index": 242,
+   "note": "G-035",
+   "text": "Casco Feroz"
+  },
+  {
+   "index": 245,
+   "note": "G-040",
+   "text": "Casco Peligroso"
+  },
+  {
+   "index": 247,
+   "note": "G-054",
+   "text": "Casco Matrix"
+  },
+  {
+   "index": 250,
+   "note": "G-036",
+   "text": "Traje Deporte"
+  },
+  {
+   "index": 254,
+   "note": "G-054",
+   "text": "Abrigo de Plumas"
+  },
+  {
+   "index": 257,
+   "note": "G-036",
+   "text": "Traje Yin Yang"
+  },
+  {
+   "index": 258,
+   "note": "G-036",
+   "text": "Traje Salvaje"
+  },
+  {
+   "index": 260,
+   "note": "G-036",
+   "text": "Manto Ilusión"
+  },
+  {
+   "index": 263,
+   "note": "G-018 G-035",
+   "text": "Cota Estaño"
+  },
+  {
+   "index": 264,
+   "note": "G-038 G-053",
+   "text": "Armadura Hierro"
+  },
+  {
+   "index": 266,
+   "note": "G-038 G-052",
+   "text": "Armadura Oscura"
+  },
+  {
+   "index": 267,
+   "note": "G-038 G-053",
+   "text": "Armadura Kulon"
+  },
+  {
+   "index": 268,
+   "note": "G-038 G-053",
+   "text": "Armadura Dramon"
+  },
+  {
+   "index": 269,
+   "note": "G-038 G-053",
+   "text": "Armadura Ronin"
+  },
+  {
+   "index": 270,
+   "note": "G-038 G-040 G-053",
+   "text": "Armadura Peligrosa"
+  },
+  {
+   "index": 271,
+   "note": "G-038 G-053",
+   "text": "Armadura Valor"
+  },
+  {
+   "index": 272,
+   "note": "G-038 G-039 G-053",
+   "text": "Armadura Láser"
+  },
+  {
+   "index": 273,
+   "note": "G-038 G-053",
+   "text": "Armadura Niebla"
+  },
+  {
+   "index": 275,
+   "note": "G-027",
+   "text": "Escudo Pequeño"
+  },
+  {
+   "index": 276,
+   "note": "G-035",
+   "text": "Escudo Estaño"
+  },
+  {
+   "index": 278,
+   "note": "G-042",
+   "text": "Escudo Caballero"
+  },
+  {
+   "index": 279,
+   "note": "G-042 G-046",
+   "text": "Barrera Protectora"
+  },
+  {
+   "index": 281,
+   "note": "G-018",
+   "text": "Barrera Divina"
+  },
+  {
+   "index": 282,
+   "note": "G-042",
+   "text": "Escudo Tirador"
+  },
+  {
+   "index": 283,
+   "note": "G-042 G-046",
+   "text": "Amuleto Yin Yang"
+  },
+  {
+   "index": 285,
+   "note": "G-035",
+   "text": "Escudo Feroz"
+  },
+  {
+   "index": 287,
+   "note": "G-040",
+   "text": "Escudo Peligroso"
+  },
+  {
+   "index": 289,
+   "note": "G-039",
+   "text": "Escudo Láser"
+  },
+  {
+   "index": 290,
+   "note": "G-042",
+   "text": "Alta Seguridad"
+  },
+  {
+   "index": 291,
+   "text": "Apocalipsis"
+  },
+  {
+   "index": 294,
+   "note": "G-046",
+   "text": "Gema Protectora"
+  },
+  {
+   "index": 295,
+   "note": "G-042 G-046",
+   "text": "Anillo Protector"
+  },
+  {
+   "index": 297,
+   "note": "G-035 G-054",
+   "text": "Anillo Espíritu"
+  },
+  {
+   "index": 298,
+   "note": "G-035",
+   "text": "Gema Sabia"
+  },
+  {
+   "index": 299,
+   "note": "G-035",
+   "text": "Anillo Sabio"
+  },
+  {
+   "index": 300,
+   "note": "G-035",
+   "text": "Gema Impulso"
+  },
+  {
+   "index": 301,
+   "note": "G-042",
+   "text": "Anillo Impulso"
+  },
+  {
+   "index": 303,
+   "note": "G-018",
+   "text": "Anillo Carisma"
+  },
+  {
+   "index": 309,
+   "note": "G-042",
+   "text": "Anillo Máquina"
+  },
+  {
+   "index": 311,
+   "note": "G-042",
+   "text": "Anillo Antídoto"
+  },
+  {
+   "index": 312,
+   "note": "G-035 G-052",
+   "text": "Anillo Antiparálisis"
+  },
+  {
+   "index": 313,
+   "note": "G-035",
+   "text": "Anillo Alerta"
+  },
+  {
+   "index": 314,
+   "note": "G-035",
+   "text": "Anillo Sobrio"
+  },
+  {
+   "index": 315,
+   "note": "G-054",
+   "text": "Anillo Plegaria"
+  },
+  {
+   "index": 316,
+   "note": "G-027",
+   "text": "Multiemblema"
+  },
+  {
+   "index": 317,
+   "note": "G-027",
+   "text": "Emblema Buscar"
+  },
+  {
+   "index": 318,
+   "note": "G-027",
+   "text": "Emblema Contra"
+  },
+  {
+   "index": 319,
+   "note": "G-027",
+   "text": "Emblema Unión"
+  },
+  {
+   "index": 320,
+   "note": "G-027 G-052",
+   "text": "Emblema Regenerador"
+  },
+  {
+   "index": 327,
+   "note": "G-042 G-047",
+   "text": "Estampa Hack"
+  },
+  {
+   "index": 328,
+   "note": "G-042 G-047",
+   "text": "Sistema Hack"
+  },
+  {
+   "index": 331,
+   "note": "G-021",
+   "text": "Lentes"
+  },
+  {
+   "index": 332,
+   "note": "G-021 G-042",
+   "text": "Lentes Protectores"
+  },
+  {
+   "index": 335,
+   "note": "G-036",
+   "text": "Sandalia Veloz"
+  },
+  {
+   "index": 336,
+   "note": "G-036",
+   "text": "Zapato Veloz"
+  },
+  {
+   "index": 337,
+   "note": "G-042",
+   "text": "Libro Entrenamiento"
+  },
+  {
+   "index": 338,
+   "note": "G-036",
+   "text": "Brazal Poder"
+  },
+  {
+   "index": 339,
+   "note": "G-042 G-049",
+   "text": "Potencia Fuego 1"
+  },
+  {
+   "index": 340,
+   "note": "G-042 G-049",
+   "text": "Potencia Fuego 2"
+  },
+  {
+   "index": 341,
+   "note": "G-042 G-049",
+   "text": "Potencia Fuego S"
+  },
+  {
+   "index": 342,
+   "note": "G-042 G-049",
+   "text": "Potencia Agua 1"
+  },
+  {
+   "index": 343,
+   "note": "G-042 G-049",
+   "text": "Potencia Agua 2"
+  },
+  {
+   "index": 344,
+   "note": "G-042 G-049",
+   "text": "Potencia Agua S"
+  },
+  {
+   "index": 345,
+   "note": "G-042 G-049",
+   "text": "Potencia Hielo 1"
+  },
+  {
+   "index": 346,
+   "note": "G-042 G-049",
+   "text": "Potencia Hielo 2"
+  },
+  {
+   "index": 347,
+   "note": "G-042 G-049",
+   "text": "Potencia Hielo S"
+  },
+  {
+   "index": 348,
+   "note": "G-042 G-049",
+   "text": "Potencia Viento 1"
+  },
+  {
+   "index": 349,
+   "note": "G-042 G-049",
+   "text": "Potencia Viento 2"
+  },
+  {
+   "index": 350,
+   "note": "G-042 G-049",
+   "text": "Potencia Viento S"
+  },
+  {
+   "index": 351,
+   "note": "G-042 G-049",
+   "text": "Potencia Rayo 1"
+  },
+  {
+   "index": 352,
+   "note": "G-042 G-049",
+   "text": "Potencia Rayo 2"
+  },
+  {
+   "index": 353,
+   "note": "G-042 G-049",
+   "text": "Potencia Rayo S"
+  },
+  {
+   "index": 354,
+   "note": "G-042 G-049",
+   "text": "Potencia Metal 1"
+  },
+  {
+   "index": 355,
+   "note": "G-042 G-049",
+   "text": "Potencia Metal 2"
+  },
+  {
+   "index": 356,
+   "note": "G-042 G-049",
+   "text": "Potencia Metal S"
+  },
+  {
+   "index": 357,
+   "note": "G-042 G-049",
+   "text": "Potencia Oscura 1"
+  },
+  {
+   "index": 358,
+   "note": "G-042 G-049",
+   "text": "Potencia Oscura 2"
+  },
+  {
+   "index": 359,
+   "note": "G-042 G-049",
+   "text": "Potencia Oscura S"
+  },
+  {
+   "index": 390,
+   "note": "G-036",
+   "text": "Paquete R 01"
+  },
+  {
+   "index": 391,
+   "note": "G-036",
+   "text": "Paquete R 02"
+  },
+  {
+   "index": 392,
+   "note": "G-036",
+   "text": "Paquete R 03"
+  },
+  {
+   "index": 393,
+   "note": "G-036",
+   "text": "Paquete R 04"
+  },
+  {
+   "index": 394,
+   "note": "G-036",
+   "text": "Paquete R 05"
+  },
+  {
+   "index": 402,
+   "note": "G-036 G-044",
+   "text": "Bolsa de Carpetas"
+  }
+ ]
+}

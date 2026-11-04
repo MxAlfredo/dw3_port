@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port mod.json (mod-v1)",
+  "description": "The manifest of a mod: <pref>/mods/<mod>/mod.json. Derived from checkMod in pc/shim/mods.c.",
+  "type": "object",
+  "required": [
+    "format"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional; points editors at this schema."
+    },
+    "format": {
+      "const": "mod-v1",
+      "description": "Always mod-v1; another value rejects the mod."
+    },
+    "name": {
+      "type": "string",
+      "description": "Informational. The id other mods and settings.ini use is the folder name."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]+){0,2}(-.*)?$",
+      "description": "Digits and dots (1.2.0); a -suffix is ignored when comparing. 0 when missing."
+    },
+    "author": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "assets",
+        "content"
+      ],
+      "default": "assets",
+      "description": "assets replaces resources; content also adds items, techniques and Digimon (content/*.json is read only for content mods)."
+    },
+    "port": {
+      "type": "string",
+      "pattern": "^(>=|<=|>|<|==|=)\\s*[0-9]+(\\.[0-9]+){0,2}(-.*)?$",
+      "description": "Minimum port version, like >=0.4. An older port disables the mod."
+    },
+    "requires": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9._-]+\\s*((>=|<=|>|<|==|=)\\s*[0-9]+(\\.[0-9]+){0,2}(-.*)?)?$"
+      },
+      "description": "Mods it depends on, by folder name: base or base>=1.2. At most 8."
+    }
+  },
+  "additionalProperties": true
+}

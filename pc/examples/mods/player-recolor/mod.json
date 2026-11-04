@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Player recolor",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Field sprite of the protagonist (P001PLAY): blue to red (palette only)."
+}

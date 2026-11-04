@@ -1,0 +1,113 @@
+{
+ "file": "SSCARDNM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-036",
+   "text": "Lanza Sagrada"
+  },
+  {
+   "index": 7,
+   "note": "L6",
+   "text": "Maremoto"
+  },
+  {
+   "index": 13,
+   "note": "L6",
+   "text": "Empuñar Aura"
+  },
+  {
+   "index": 24,
+   "note": "G-042",
+   "text": "Invocar Goburimon"
+  },
+  {
+   "index": 25,
+   "note": "L6",
+   "text": "Tormenta Oscura"
+  },
+  {
+   "index": 27,
+   "note": "L6",
+   "text": "Virus Caótico"
+  },
+  {
+   "index": 28,
+   "note": "G-042 G-047",
+   "text": "Hackeo Malicioso"
+  },
+  {
+   "index": 32,
+   "note": "G-036",
+   "text": "Puerta Fortuna"
+  },
+  {
+   "index": 33,
+   "note": "G-036",
+   "text": "Puerta Miseria"
+  },
+  {
+   "index": 36,
+   "note": "G-036",
+   "text": "Carga Revive"
+  },
+  {
+   "index": 37,
+   "note": "G-018",
+   "text": "Cronoequilibrio"
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Sala Seguridad"
+  },
+  {
+   "index": 41,
+   "note": "G-018",
+   "text": "Poder Super Metal"
+  },
+  {
+   "index": 44,
+   "note": "G-018",
+   "text": "Carga Programa"
+  },
+  {
+   "index": 45,
+   "note": "G-042 G-047",
+   "text": "Intercambiar Carga"
+  },
+  {
+   "index": 50,
+   "note": "G-018 L6",
+   "text": "Invocar Hagurumon"
+  },
+  {
+   "index": 56,
+   "note": "G-042",
+   "text": "Cancelar Invocación"
+  },
+  {
+   "index": 58,
+   "note": "G-042 G-047",
+   "text": "Sabotear Equipo"
+  },
+  {
+   "index": 59,
+   "note": "G-036",
+   "text": "Armadura Defensa"
+  },
+  {
+   "index": 60,
+   "note": "L6",
+   "text": "Armadura Asalto"
+  },
+  {
+   "index": 277,
+   "note": "L6",
+   "text": "BK Imperialdramon"
+  }
+ ]
+}

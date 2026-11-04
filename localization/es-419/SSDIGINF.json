@@ -1,0 +1,168 @@
+{
+ "file": "SSDIGINF.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-018",
+   "text": "Equilibrado con espada de fuego."
+  },
+  {
+   "index": 3,
+   "note": "G-018",
+   "text": "Usa cualquier arma de fuego."
+  },
+  {
+   "index": 4,
+   "note": "G-026",
+   "text": "Exhala fuego por la boca."
+  },
+  {
+   "index": 5,
+   "note": "G-042 L6",
+   "text": "Nuevo, no aparece en Paquete Inicial."
+  },
+  {
+   "index": 6,
+   "note": "G-026",
+   "text": "Embaucador con velocidad y trucos."
+  },
+  {
+   "index": 7,
+   "note": "G-035",
+   "text": "Listo y calmo. Bueno con magia."
+  },
+  {
+   "index": 8,
+   "note": "G-035",
+   "text": "Frágil, digievoluciona a ángel."
+  },
+  {
+   "index": 9,
+   "note": "G-018",
+   "text": "Cura; muchas técnicas de espada."
+  },
+  {
+   "index": 10,
+   "note": "G-018",
+   "text": "Bueno golpeando puntos débiles."
+  },
+  {
+   "index": 12,
+   "note": "G-018",
+   "text": "Garras filosas, aliento de fuego."
+  },
+  {
+   "index": 13,
+   "note": "G-042 L6",
+   "text": "Bueno en todo. Puede digievolucionar con ADN."
+  },
+  {
+   "index": 16,
+   "note": "G-018",
+   "text": "Buena defensa y buena curación."
+  },
+  {
+   "index": 17,
+   "note": "G-018 L6",
+   "text": "Digimon oscuro, técnicas malvadas."
+  },
+  {
+   "index": 19,
+   "note": "G-018",
+   "text": "Digimon bueno que cura estados."
+  },
+  {
+   "index": 23,
+   "note": "G-026 L6",
+   "text": "Digimon dinosaurio mitad máquina."
+  },
+  {
+   "index": 25,
+   "note": "L6",
+   "text": "Digimon de digievolución ADN."
+  },
+  {
+   "index": 27,
+   "note": "G-018",
+   "text": "Mago fuerte contra la oscuridad."
+  },
+  {
+   "index": 29,
+   "note": "G-042",
+   "text": "Noble y oscuro, le gusta causar dolor."
+  },
+  {
+   "index": 31,
+   "note": "G-026",
+   "text": "Insectoide con técnicas venenosas."
+  },
+  {
+   "index": 32,
+   "note": "G-026 L6",
+   "text": "Extraño Digimon que parece un Digitama."
+  },
+  {
+   "index": 33,
+   "note": "G-018",
+   "text": "Mega Digimon espadachín."
+  },
+  {
+   "index": 34,
+   "note": "G-035",
+   "text": "Digimon dinosaurio, gran tirador."
+  },
+  {
+   "index": 36,
+   "note": "L6",
+   "text": "Mega Digimon para la especie Agumon."
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Caballero veloz y sabio."
+  },
+  {
+   "index": 41,
+   "note": "L6",
+   "text": "Digimon androide versátil."
+  },
+  {
+   "index": 42,
+   "note": "G-026",
+   "text": "Cura todos los males de estado."
+  },
+  {
+   "index": 43,
+   "note": "G-042",
+   "text": "WarGreymon orientado a la oscuridad."
+  },
+  {
+   "index": 45,
+   "note": "G-026",
+   "text": "Convierte el espacio en oscuridad."
+  },
+  {
+   "index": 46,
+   "note": "L6",
+   "text": "Digimon androide de mega nivel."
+  },
+  {
+   "index": 47,
+   "note": "G-026 L6",
+   "text": "Mega nivel para insectoides malvados."
+  },
+  {
+   "index": 50,
+   "note": "G-018",
+   "text": "Máximo nivel de ataque y curación."
+  },
+  {
+   "index": 52,
+   "note": "G-018",
+   "text": "Virus oscuro: confunde estados."
+  }
+ ]
+}

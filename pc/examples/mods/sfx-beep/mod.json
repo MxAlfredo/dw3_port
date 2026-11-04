@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Sound effect: beep",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Replaces one sound effect of the common bank with a synthetic two-tone beep (audio/COMMON/vag_050.wav, generated at install time)."
+}

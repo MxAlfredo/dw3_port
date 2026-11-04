@@ -1,0 +1,16 @@
+{
+  "format": "model-src-v1",
+  "name": "robot",
+  "gltf": "robot.gltf",
+  "fitHeight": 1800,
+  "effects": "dw3:digimon/383",
+  "template": "dw3:digimon/4",
+  "info": {
+    "distance": -1500
+  },
+  "motions": {
+    "0": "idle",
+    "1": "idle"
+  },
+  "fill": "idle"
+}

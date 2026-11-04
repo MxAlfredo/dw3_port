@@ -1,0 +1,6 @@
+{
+  "format": "shop_stock-v1",
+  "rows": {
+    "0": { "items": { "add": ["sample-item:test-gadget"] } }
+  }
+}

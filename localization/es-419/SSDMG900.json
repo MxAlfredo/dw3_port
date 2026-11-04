@@ -1,0 +1,428 @@
+{
+ "file": "SSDMG900.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Eh?\nIvy y Teddy\nno están aquí.{pagina}¡Pff! Conociéndolos,\nseguro ya se\nadelantaron.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-026 G-033 G-043 L6",
+   "text": "{hablante}Líder de la Gira{hablante}Señor {0208}{0102}1 0 ¿verdad?\n¡Bienvenido\na Digimon Online!{pagina}Hoy practicaremos\npara que puedas\nempezar.{pagina}Solo puedes ir a los\nsectores Este y\nCentral de Amaterasu.{pagina}Pero hay más zonas\nde Placa de Circuitos\ny de Fondo Marino.{pagina}Se usarán los datos\nde Digimon tal como\nestaban antes.{pagina}Y claro, técnicas y\ndigievoluciones\nseguirán iguales.{pagina}Pero me gustaría\nhacer una revisión\nde datos por si acaso.{pagina}Antes de salir,\nno olvides guardar\ncon Guardromon.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien!\n¡Esto será\ndivertido!{fin}"
+  },
+  {
+   "index": 1,
+   "note": "G-035",
+   "text": "Kotemon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 2,
+   "note": "G-035",
+   "text": "Monmon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 3,
+   "note": "G-035",
+   "text": "Kumamon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 4,
+   "note": "G-035",
+   "text": "Renamon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 5,
+   "note": "G-035",
+   "text": "Patamon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 6,
+   "note": "G-035",
+   "text": "Agumon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 7,
+   "note": "G-035",
+   "text": "Guilmon Evoluciona",
+   "part": 1
+  },
+  {
+   "index": 9,
+   "part": 1,
+   "note": "G-026 G-018 G-026 G-018",
+   "text": "Aprende los tipos Greymon y\nVeemon. Debe aprender Stingmon para\nir más allá de ExVeemon. Si mejoras{pagina}la habilidad de Greymon y su Defensa\nOscura, aprenderá SkullGreymon. No\npuedo decirte qué viene después.{pagina}Si mejoras la habilidad de Kyukimon\ny su Defensa Máquina, aprenderá\nMetalMamemon. Luego se conectará{pagina}con las digievoluciones Máquina.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 1,
+   "note": "G-026",
+   "text": "Aprende ExVeemon al principio.\nAprenderá tipos Máquina, Angemon y\notros después de aprender Armormon.{pagina}Al mejorar su Defensa Máquina,\naprenderá tipos Máquina. Al mejorar\nsu Defensa Viento, aprenderá{pagina}tipos Angemon. Al mejorar la\nhabilidad de Armormon y su Fuerza,\naprenderá Digitamamon, que lleva{pagina}a digievoluciones con técnicas\nmisteriosas.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 1,
+   "note": "G-026",
+   "text": "Al mejorar la habilidad de Grizzmon\ny su Espíritu, aprenderá\nKyubimon, que lleva a{pagina}Taomon y otros a partir de ahí. Al\nmejorar la habilidad de Grizzmon y su\nSabiduría, aprenderá Digitamon, que{pagina}lleva a digievoluciones con técnicas\nmisteriosas. Al mejorar la habilidad\nde GrapLeomon y su Defensa Máquina,{pagina}podrá alcanzar las digievoluciones\nde tipo Máquina.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 1,
+   "note": "G-026",
+   "text": "Al mejorar la habilidad de Kyubimon\ny su Fuerza, aprenderá Stingmon.\nLuego conectará con Insectoides{pagina}como Kabuterimon. Al mejorar la\nhabilidad de Kyubimon y su Espíritu,\naprenderá Angewomon, que lleva a{pagina}Rosemon y otros tipos de\nRecuperación. Al mejorar la habilidad\nde Taomon y su Defensa Viento,{pagina}aprenderá ExVeemon. Si mejoras su\nDefensa Máquina, aprenderá\nMetalMamemon.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 1,
+   "note": "G-026",
+   "text": "Si mejoras la habilidad de Angemon\ny su Fuerza, o la de Digitamamon\ny su Sabiduría, aprenderán{pagina}Angewomon. Si mejoras la habilidad\nde Angewomon, aprenderá Rosemon.\nSi mejoras la habilidad de{pagina}Rosemon, aprenderá Hououmon. Si\nmejoras la habilidad de Holy\nAngewomon, aprenderá{pagina}Stingmon si mejoras su Defensa\nRayo, y Greymon si mejoras su\nDefensa Fuego.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 1,
+   "note": "G-026",
+   "text": "Aprende Growlmon al principio.\nAprenderá los tipos Growlmon en orden\nal mejorar su habilidad. Si mejoras{pagina}su Defensa Oscura, aprenderá\nSkullGreymon. Algo especial ocurre\nsi mejoras su habilidad al{pagina}máximo. Al mejorar la habilidad de\nMetalGreymon y su Espíritu,\naprenderá Kyubimon.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 1,
+   "note": "G-026",
+   "text": "Cuando mejores su Defensa\nal principio, aprenderá\nMetalmon. Luego podrá acceder{pagina}a los tipos Metal. Al mejorar la\nhabilidad de Growlmon y su Defensa\nRayo, aprenderá Stingmon,{pagina}que lleva a los Insectoides.\nAprenderá varias digievoluciones de\nMegagroumon mejorando su{pagina}Espíritu, Defensa Oscura y\nDefensa Agua.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "G-018",
+   "text": "Digimon sin paquete"
+  },
+  {
+   "index": 4,
+   "part": 2,
+   "note": "G-018",
+   "text": "Límites de mejora"
+  },
+  {
+   "index": 6,
+   "part": 2,
+   "note": "G-026",
+   "text": "Sé sabio"
+  },
+  {
+   "index": 7,
+   "part": 2,
+   "note": "G-026",
+   "text": "Usa tipos Guilmon"
+  },
+  {
+   "index": 9,
+   "part": 2,
+   "note": "G-026",
+   "text": "Puedes ser compañero de Veemon,\nque no está en ningún paquete.\nDescubre cómo por tu cuenta.{pagina}Veemon aprende ExVeemon, Stingmon\ny Paildramon, y luego aprende muchos\ntipos de digievolución. Por{pagina}ejemplo, al mejorar la habilidad de\nPaildramon y su Defensa Máquina,\naprenderá MetalMamemon. Aprende{pagina}Devimon si mejoras su Defensa\nOscura.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 2,
+   "note": "G-026",
+   "text": "Los compañeros de bajo nivel pueden\nganar EXP sin riesgo si entran al\ncomienzo de la batalla y luego{pagina}los cambias enseguida. Se sube de\nnivel más rápido si metes a dos\ncompañeros en una misma batalla.{pagina}Los Digimon aprenden digievoluciones\ny técnicas al subir de nivel o cuando\nsu habilidad llega a un múltiplo de 5.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 2,
+   "note": "G-026",
+   "text": "Cualquier compañero puede adquirir los\n14 tipos de digievolución según\ncómo lo críes. Las digievoluciones{pagina}del mismo tipo se muestran en filas\nen la Tabla de Digievolución. Al\nsubir el nivel de habilidad del Digimon,{pagina}aprende nuevas digievoluciones\ndel mismo tipo. También se aprenden\nsubiendo de nivel. Algunas{pagina}no se pueden conseguir sin\naprender otras digievoluciones.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 2,
+   "note": "G-026",
+   "text": "Los límites de Nivel y Habilidad\nson 99. El límite de los Parámetros\nes 999. Aunque un Digimon alcance{pagina}el límite de Nivel, puede seguir\nmejorando sus Parámetros con chips.\nDicen que hay chips que suben los PE,{pagina}pero no se venden en tiendas.\nPrueba pescando y pateando árboles.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 2,
+   "note": "G-026 G-018 L6",
+   "text": "Usa los artículos Enchufe. Aunque\nno conozcas ninguna técnica de\napoyo, los artículos pueden ayudarte{pagina}en la batalla. Las digievoluciones\nBlast dependen del compañero y de\nsu nivel. Cuando la barra se llene,{pagina}espera tu oportunidad para usarla.\nLejos de los hoteles, vigila tus\nPM. Si decides retirarte,{pagina}¡no te preocupes por\nnada más!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 2,
+   "note": "G-026",
+   "text": "Aunque mejores tus Digimon de forma\ndesigual, puedes ganar puntos EXP\nrápido si eliges enemigos que sean{pagina}débiles en ciertas áreas. Usa\nataques Mágicos contra enemigos fuertes\nen ataques Físicos, y viceversa.{pagina}Algunos enemigos son vulnerables ante\nciertos atributos y ataques. Descubre\nsus debilidades y crea una estrategia.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 2,
+   "note": "G-026",
+   "text": "Growlmon y otras digievoluciones de\ntipo Guilmon aprenden técnicas\ninusuales como Steal y Counter.{pagina}Algunos enemigos tienen artículos\nque no se venden en tiendas. Es\nfácil conseguirlos con Steal.{pagina}La fuerza de los Contraataques depende\nde la cantidad de daño recibido. Intenta\nrecibir daño a propósito.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-026 L6",
+   "text": "{hablante}Recepción Estadio{hablante}{0208}{0102}1 0 ¡derrotaste a los cuatro líderes!{pagina}¡Por favor, pasa\nal Estadio!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}Recepción Estadio{hablante}¡Je je je!\n¡Tendrás que esperar\npara verlo!{pagina}Anda, ve. Tu\noponente ya te\nestá esperando.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 3,
+   "note": "G-020 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! ¡El\ntamer más\nfuerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Así que este\nes el Estadio.{pagina}¿Quién será mi\noponente? ¡Estoy\nlisto!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Oye,\n{0208}{0102}1{01e7}{pagina}¡Sabía que\nllegarías hasta\nel final!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Así es!\nMe alegra enfrentarte\naquí. ¡Siempre{pagina}quise luchar contigo\ncon todo!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Yo también!\n¡No hay oponente\nmás digno que tú!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Ja ja! Voy a\ndisfrutar esto.{pagina}¡Que empiece la\ndiversión! ¡No te\ncontengas!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Lo hice!\n¡Vencí a Kurt!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 5,
+   "note": "G-019 G-020 G-026",
+   "text": "{hablante}Kurt{hablante}¡Felicidades,\n{0208}{0102}1{01e7} Me\nganaste limpiamente.{pagina}¡Ahora eres el nuevo\ntamer más fuerte!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}Pronto restaurarán\nDigimon Online. Como\nprimer Campeón{pagina}Mundial, deberás\nenfrentar a todos los\nretadores del mundo.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Yo?\n¿El primer Campeón\nMundial?{pagina}Bueno, ¡haré\nmi mejor\nesfuerzo!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Cuento contigo!\nAunque aún tienes\ntiempo.{pagina}Hasta entonces,\n¡pelea más y hazte\naún más fuerte!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}No te preocupes.\n¡Voy a ser el\nCampeón{pagina}Mundial más\nfuerte de todos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Guardromon{hablante}Ahora accederé a la\nUnidad Matriz.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 7,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señor Wedge{hablante}En ese caso, ven\npor aquí. ¡Tengo\nbuenos artículos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "note": "G-018",
+   "text": "Batallas de Cartas"
+  },
+  {
+   "index": 2,
+   "part": 8,
+   "note": "G-018",
+   "text": "Desarrollo"
+  },
+  {
+   "index": 9,
+   "part": 8,
+   "note": "G-026",
+   "text": "Además de las batallas Digimon, los\ntamers pueden competir en batallas\nde cartas.{pagina}Para ello, deben coleccionar 314\ntipos de cartas y crear sus\nMazos personales.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 8,
+   "note": "G-026 G-018 L6",
+   "text": "Antes de la Batalla de Cartas, elige\nuna Carpeta para usarla como Mazo.\nAl elegirla, empezará la batalla.{pagina}Una batalla de cartas consta de 3\npartidas. El primer tamer en ganar 2 partidas gana y recibe un Sobre de Expansión.{pagina}Cada partida se divide en 6 fases.\nPara más información, lee la sección\nllamada \"Fases\".{fin}"
+  },
+  {
+   "index": 11,
+   "part": 8,
+   "note": "G-026 G-018",
+   "text": "Fase Inicial\nSe decide el orden de juego. Quien\nsaque a Calumon va primero.{pagina}Fase de Extracción\nSaca 6 cartas del Mazo\npara formar tu Mano.{pagina}Aquí se forma la D-Energía del\nmismo color que la carta sacada.\nSe usará en la Fase de Invocación.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 8,
+   "note": "G-020 G-026 G-018",
+   "text": "Fase de Carga\nPor turnos, los tamers usan Cartas de\nPrograma para preparar invocaciones.{pagina}La fase acaba cuando ambos pasan.\nA veces aparecen aquí Cartas de\nPrograma que no se pueden usar.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 8,
+   "note": "G-020 G-026",
+   "text": "Fase de Invocación\nEn esta fase, los tamers eligen cartas\nDigimon e invocan a los Digimon.{pagina}Se pueden invocar hasta 6 Digimon\nal campo. Se necesita D-Energía\npara invocar Digimon Campeones{pagina}o superiores.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 8,
+   "note": "G-026 G-018",
+   "text": "Fase de Compilación\nEn esta fase, los tamers usan por\nturnos sus Cartas de Programa{pagina}para hacer varias acciones. Acaba\ncuando ambos pasan. Se pueden\nusar todas las Cartas de Programa.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 8,
+   "note": "G-026",
+   "text": "Fase de Batalla\nEn esta fase, los Digimon\nluchan entre sí por la victoria.{pagina}La victoria se decide por el total\nde PA y PV de cada Digimon. Pierde\nquien llegue a 0 PV en total.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 9,
+   "note": "G-026",
+   "text": "Cartas Digimon"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-018",
+   "text": "Carta de Programa"
+  },
+  {
+   "index": 4,
+   "part": 9,
+   "note": "G-026",
+   "text": "Colores de Cartas"
+  },
+  {
+   "index": 5,
+   "part": 9,
+   "note": "G-026",
+   "text": "D-Energía"
+  },
+  {
+   "index": 6,
+   "part": 9,
+   "note": "L6",
+   "text": "Combinaciones"
+  },
+  {
+   "index": 7,
+   "part": 9,
+   "note": "G-018",
+   "text": "Sobre de Expansión"
+  },
+  {
+   "index": 10,
+   "part": 9,
+   "note": "G-026",
+   "text": "Las Cartas Digimon invocan Digimon.\nLos puntos PA y PV están en\nlas cartas. PA es Poder de Ataque{pagina}y PV son los Puntos de Vida.\nLos Digimon van a la Basura\ncuando sus PV llegan a 0.{pagina}Por ejemplo, si aparece 5/3,\nPA es 5 y PV es 3.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 9,
+   "note": "G-026 G-018",
+   "text": "Las Cartas de Programa pueden\nfortalecer a tus Digimon o hacer\nque tu oponente descarte cartas.{pagina}Cada carta tiene un valor de efecto.\nLee las cartas para ver\nqué pueden hacer.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 9,
+   "note": "G-026",
+   "text": "Las cartas son de color blanco,\nazul, verde, rojo, negro o café.{pagina}Al sacar una carta, aumenta la\nD-Energía del color de esa carta.{pagina}La D-Energía se usa para invocar\nDigimon Campeones o superiores.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 9,
+   "note": "G-026",
+   "text": "Usa D-Energía del mismo color que\nla carta Digimon para invocar\nal Digimon. Los Digimon Campeones{pagina}cuestan 1 punto, los Definitivos\ncuestan 2 y los Digimon Mega\ncuestan 3 puntos.{pagina}Los Digimon Novatos pueden\ninvocarse sin usar D-Energía.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 9,
+   "note": "G-026 G-018",
+   "text": "Si hay 3 o más cartas Digimon\niguales en tu campo durante la\nFase de Batalla, habrá combinación.{pagina}Los puntos totales de las cartas\nde la combinación se suman a tu\ntotal. Con 4 o más, recibes un bono.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 9,
+   "note": "G-020 G-026 G-018 G-026 G-018",
+   "text": "Al conseguir Sobres de Expansión y\nabrirlos en las tiendas de cartas,\nrecibes cartas. Los tamers{pagina}ganan Sobres al vencer. Se dice que\nalgunos Digimon también los llevan.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruka{hablante}Bien, entonces.\n¡Sé valiente en\ntu viaje!{pagina}¡Y agradece mi\ngenerosidad!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 11,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Poemy{hablante}¡Ve, entonces,\npoderoso Héroe!\n¡Busca tu destino!{pagina}¡Mi espíritu siempre\nestará contigo!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Pierre{hablante}¡Sé valiente en\ntu viaje! Espero\ncon ansias{pagina}tu batalla contra\nel Rey.\n¡Au revoir!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Así que te vas.\n¡Domina el camino\nde las cartas!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-020",
+   "text": "{hablante}Tamer Alice{hablante}Bien...Ve...\nentonces. El...\nRey...aguarda.{fin}"
+  }
+ ]
+}

@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Stage objects: purple",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Recolours the map-object art of stage 233 to purple (images/field/stage/s233mask/, generated at install time)."
+}

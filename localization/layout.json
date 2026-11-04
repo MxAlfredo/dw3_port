@@ -1,0 +1,39 @@
+{
+  "format": "layout-v1",
+  "note": "Presupuestos de caja para el reacomodo automatico de texto (L4a). Solo se reacomodan las cadenas que cambian respecto al disco. Anchos en pixeles de la fuente 1 (la de los dialogos). Ver localization/README.md.",
+  "files": {
+    "TALK*": {
+      "note": "Dialogos del campo: caja de charla (95 a 139 px, talk_box.c) o caja de mensaje (18 px de margen por lado = 284 px, message_box.c); 3 lineas. La clase de cada cadena sale de su texto original: si cabia en 139 px, es de caja de charla.",
+      "maxWidthPx": 284,
+      "tightWidthPx": 139,
+      "maxLines": 3
+    },
+    "DMG*": {
+      "note": "Paquetes de dialogo con etiqueta de hablante: mismas cajas que TALK*.",
+      "maxWidthPx": 284,
+      "tightWidthPx": 139,
+      "maxLines": 3
+    },
+    "ITMINF": {
+      "note": "Descripcion de item: ventana de una linea en el menu del campo (equip_panel.c, item_screen.c) a x=20; no se puede partir. Solo se informa lo que no cabe.",
+      "maxWidthPx": 280,
+      "maxLines": 1
+    },
+    "CARDNM": {"noreflow": true},
+    "CRDABM": {"noreflow": true},
+    "CRDDEK": {"noreflow": true},
+    "DGNMET": {"noreflow": true},
+    "DIGINF": {"noreflow": true},
+    "DIGNAM": {"noreflow": true},
+    "HTLNAM": {"noreflow": true},
+    "ITMNAM": {"noreflow": true},
+    "ITSHOP": {"noreflow": true},
+    "MFIGHT": {"noreflow": true},
+    "SHPNAM": {"noreflow": true},
+    "SKLINF": {"noreflow": true},
+    "SKLNAM": {"noreflow": true},
+    "STAREA": {"noreflow": true},
+    "STNAME": {"noreflow": true},
+    "SYSTEM": {"noreflow": true}
+  }
+}

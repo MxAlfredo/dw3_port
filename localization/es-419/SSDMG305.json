@@ -1,0 +1,570 @@
+{
+ "file": "SSDMG305.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Kail{hablante}¡Es la Maestra de Juego!\n¡Escondámonos!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-005 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Por Dios!\n¿Qué hacen aquí?{pagina}¡No podemos \nseguir el plan!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 0,
+   "text": "{hablante}{0209}{hablante}Mmm, ¿de qué\nhablarán?{fin}"
+  },
+  {
+   "index": 7,
+   "part": 0,
+   "note": "G-006 G-015",
+   "text": "{hablante}Guardia DO{hablante}¡Parece \nsospechoso!\n¡Atrápenlo!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡No puedes\nescapar!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "G-005 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¿Qué hacen aquí?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-016 G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}Ya veo... Perdón\npor sorprenderlos.{pagina}Yo también me\npreocupo por él. Ratón\nSuerte lo tendrá preso.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Es un hombre malvado!\n¡Intenta destruir\nDigimon Online!{pagina}¡Por su culpa\ntenemos problemas\ncon el sistema!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Pero todo el mundo\nse divierte mucho en\nDigimon Online...{fin}"
+  },
+  {
+   "index": 7,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡No puedo creer lo\nque hizo Ratón Suerte!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 1,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}Todo nuestro personal\nestá buscando a\nRatón Suerte.{pagina}¡Oh, ya sé!\n¿Podrían ayudarnos?{fin}"
+  },
+  {
+   "index": 11,
+   "part": 1,
+   "note": "G-002 G-018 G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}Gracias, \ncuento con\nustedes.{pagina}¡Nos dijeron que\nfue hacia el\nSector Oeste!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "G-009 G-026",
+   "text": "{hablante}{0209}{hablante}¿Eh? ¿Los presioné\nen el orden\nequivocado?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Genial! ¡Sí había\nuna puerta secreta!{pagina}¡La Maestra de\nJuego debe estar\nmás adelante!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "note": "G-026 L6",
+   "text": "{hablante}Lisa{hablante}...¡Ahora habla!{pagina}¿Qué planeaba\nhacer la A.o.A.?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "G-005 G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Je, je, je!\n¡Llegan tarde!{pagina}¡Nuestro plan no\nha fracasado! ¡Apenas\nacaba de empezar!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡¿Q-qué?!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 4,
+   "note": "G-005 G-018 L6",
+   "text": "{hablante}Maestra de Juego{hablante}Je je...\n¿Ven? Lo que\nyo decía...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Vemmon...\n¡Es ese\nDigimon!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 4,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Con la Red Óptica,\npuede fusionarse\ncon cualquier máquina!{pagina}Ratón Suerte robó el\nDigitama y casi lo\ndestruye, pero...{fin}"
+  },
+  {
+   "index": 8,
+   "part": 4,
+   "note": "G-026 G-044",
+   "text": "{hablante}Nick{hablante}¿Qué podemos hacer?\n¡La A.o.A. tiene\nla ventaja!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Primero, hay que\navisarle al Mundo Real!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Cómo vamos a\ncomunicarnos\ncon ellos...?{fin}"
+  },
+  {
+   "index": 11,
+   "part": 4,
+   "note": "G-026 L6",
+   "text": "{hablante}Lisa{hablante}Una vez me\ndijeron...{pagina}que hay una Cámara de Emergencia en algún\nlugar del Sector Norte...{fin}"
+  },
+  {
+   "index": 12,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}Entonces, si la\nusamos, podríamos...{fin}"
+  },
+  {
+   "index": 13,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Mmm...\n¡Creo que sí!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 4,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}Je je...\n¡Nunca funcionará!{fin}"
+  },
+  {
+   "index": 16,
+   "part": 4,
+   "note": "G-044 L6",
+   "text": "{hablante}{0209}{hablante}¡Sí!\n¡Eso es!{pagina}¡No vamos a dejar\nque la A.o.A. ría\nla última!{fin}"
+  },
+  {
+   "index": 17,
+   "part": 4,
+   "note": "G-044",
+   "text": "{hablante}{0209}{hablante}¡No vamos a dejar \nque la A.o.A. ría\nla última!{fin}"
+  },
+  {
+   "index": 18,
+   "part": 4,
+   "note": "G-008 G-026",
+   "text": "{hablante}Lisa{hablante}¡Bien! ¡Vamos todos\na buscar esa Cámara!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Vengan por\naquí!{fin}"
+  },
+  {
+   "index": 21,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡No te preocupes!\n¡Todo saldrá\nbien!{fin}"
+  },
+  {
+   "index": 25,
+   "part": 4,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Todas las redes\ninformáticas \nserán de la A.o.A.!{fin}"
+  },
+  {
+   "index": 26,
+   "part": 4,
+   "note": "L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Y nuestro Vemmon\ndestruirá el\nmundo!{fin}"
+  },
+  {
+   "index": 27,
+   "part": 4,
+   "note": "G-003 G-018 L6",
+   "text": "{hablante}Maestra de Juego{hablante}¡Y será \nsu fin!{pagina}¡La victoria\nes nuestra!{fin}"
+  },
+  {
+   "index": 28,
+   "part": 4,
+   "note": "G-018 G-026",
+   "text": "{hablante}Lisa{hablante}¡Y si podemos\ncortar la Red Óptica,\nsu plan fracasará!{fin}"
+  },
+  {
+   "index": 29,
+   "part": 4,
+   "note": "G-015",
+   "text": "{hablante}Lisa{hablante}Esperen aquí \nhasta entonces.{fin}"
+  },
+  {
+   "index": 30,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Me pregunto qué\npasa en el Mundo\nReal...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-026 G-044",
+   "text": "{hablante}{0209}{hablante}¡Lisa! ¡La A.o.A.\ntiene el\nJuggernaut!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 5,
+   "note": "G-007 G-026 L6",
+   "text": "{hablante}Teddy{hablante}¡Con esta computadora\npodemos ver los\nmovimientos de la A.o.A.!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 5,
+   "note": "G-018",
+   "text": "{hablante}Keith{hablante}¿Ahora qué? ¡El\nJuggernaut es \nmuy poderoso!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡¿No podemos\ndetenerlo de\nalguna forma?!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 5,
+   "note": "G-008",
+   "text": "{hablante}Lisa{hablante}Mmm... Veamos...{pagina}Bien, vamos a \npreguntarle a ella...{fin}"
+  },
+  {
+   "index": 9,
+   "part": 5,
+   "note": "G-011 G-026",
+   "text": "{hablante}Lisa{hablante}Bien, ¡vamos,\n{0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 10,
+   "part": 5,
+   "note": "G-016 G-026",
+   "text": "{hablante}Lisa{hablante}Keith y Nick,\nquédense aquí\ncon Teddy.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Es el arma más\npotente del mundo!{pagina}Por eso la sellaron,\npara que nadie la\nusara mal.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡¿?!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 6,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Lisa{hablante}Pero la pregunta es\ncómo entrar en \nCiudad Amaterasu.{pagina}Es el cuartel general\nde la A.o.A., así que\nhay mucha seguridad.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}El líder de la\nResistencia dijo algo...{pagina}¡Se necesitan cuatro\nPases de Código para\ndetener a Knightmon!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¿Pases de\nCódigo...?\n¿Qué es eso?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 6,
+   "note": "G-018 G-035",
+   "text": "{hablante}Lisa{hablante}Ah, ya sé...\nSon los pases de \ncolores.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 6,
+   "note": "G-026 G-035",
+   "text": "{hablante}{0209}{hablante}¿Pases de\ncolores?{pagina}Entonces, ¿estos\nPases Rojo\ny Azul?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 6,
+   "note": "G-026 G-044",
+   "text": "{hablante}{0209}{hablante}¡Los tenían los\nJefes de Ciudad de\nla A.o.A. que vencí!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Si consigues los\notros dos, podremos\nvencer a Knightmon!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 6,
+   "note": "G-018 G-026",
+   "text": "{hablante}Keith{hablante}¡Sí! Entonces los\notros Jefes de Ciudad\ntambién deben tenerlos.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Sí, eso\nayudaría!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Oh, pero espera!{pagina}Hay que hacer \nalgo con Ciudad\nBai Hu...{pagina}¡Allí la seguridad\nes muy estricta!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 6,
+   "note": "G-018 G-026",
+   "text": "{hablante}Lisa{hablante}¿En serio?\nMmm...\n¿Qué hacemos?{fin}"
+  },
+  {
+   "index": 14,
+   "part": 6,
+   "note": "G-026 G-051",
+   "text": "{hablante}Lisa{hablante}¡Ya sé! ¡Podemos\npedirle ayuda a la\nResistencia!{pagina}Están en la Torre\nde Delirios, ¿no?{fin}"
+  },
+  {
+   "index": 15,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡S-sí!{fin}"
+  },
+  {
+   "index": 17,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Sí, déjanoslo\na nosotros!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Entonces volveré\na Ciudad Bai Hu!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Buena suerte,\n{0208}{0102}1 1{fin}"
+  },
+  {
+   "index": 21,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí, déjamelo\na mí!{fin}"
+  },
+  {
+   "index": 22,
+   "part": 6,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Keith,\nvámonos.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 7,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Lisa{hablante}Pero la pregunta es\ncómo entrar en \nCiudad Amaterasu.{pagina}Es el cuartel general\nde la A.o.A., así que\nhay mucha seguridad.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 7,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}Eso es verdad...\nSi alguien nos\nayudara...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 7,
+   "note": "L6",
+   "text": "{hablante}Keith{hablante}¡Es imposible!\n¡Convirtieron a \ntodos en Oinkmon!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 7,
+   "note": "G-011 G-026",
+   "text": "{hablante}Keith{hablante}Digo, vamos...\n¡Mira a tu alrededor!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 7,
+   "text": "{hablante}{0209}{hablante}Mmm...\nAyuda...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 7,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}De acuerdo. ¡Volveré\nal Servidor Amaterasu\na buscar!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Eh, {0208}{0102}1{01e7}\n¿Y bien? ¿Encontraste\na alguien?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí, me reuní con\nla gente de la\nResistencia!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Buen trabajo!\nEres genial,\n{0208}{0102}1 1{fin}"
+  },
+  {
+   "index": 4,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Pero para entrar en\nCiudad Amaterasu...{pagina}Necesitamos los cuatro\nPases de Código para\ndetener a Knightmon.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¿Pases de\nCódigo...?\n¿Qué es eso?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 8,
+   "note": "G-026 G-035",
+   "text": "{hablante}Lisa{hablante}Ah, eso...{pagina}Yo sé lo que son.\nSon los pases\nde colores.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 8,
+   "note": "G-026 G-035",
+   "text": "{hablante}{0209}{hablante}¿Pases de\ncolores?{pagina}Entonces, ¿estos\nPases Rojo\ny Azul?{fin}"
+  },
+  {
+   "index": 9,
+   "part": 8,
+   "note": "G-018 G-026 G-044",
+   "text": "{hablante}{0209}{hablante}¡Los tenía el Jefe\nde Ciudad de la\nA.o.A. que vencí!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Si consigues los\notros dos, podremos\nvencer a Knightmon!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 8,
+   "note": "G-018 G-026",
+   "text": "{hablante}Keith{hablante}¡Sí! Entonces los\notros Jefes de Ciudad\ntambién deben tenerlos.{fin}"
+  },
+  {
+   "index": 13,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Oh, pero espera!{pagina}Hay que hacer \nalgo con Ciudad\nBai Hu...{pagina}¡Allí la seguridad\nes muy estricta!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 8,
+   "note": "G-018 G-026",
+   "text": "{hablante}Lisa{hablante}¿En serio?\nMmm...\n¿Qué hacemos?{fin}"
+  },
+  {
+   "index": 15,
+   "part": 8,
+   "note": "G-026 G-051",
+   "text": "{hablante}Lisa{hablante}¡Ya sé! ¡Podemos\npedirle ayuda a la\nResistencia!{pagina}Están en la Torre\nde Delirios, ¿no?{fin}"
+  },
+  {
+   "index": 16,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡S-sí!{fin}"
+  },
+  {
+   "index": 18,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Sí, déjanoslo\na nosotros!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Entonces volveré\na Ciudad Bai Hu!{fin}"
+  },
+  {
+   "index": 21,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Buena suerte,\n{0208}{0102}1 1{fin}"
+  },
+  {
+   "index": 22,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí, déjamelo\na mí!{fin}"
+  },
+  {
+   "index": 23,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Keith,\nvámonos.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}La Maestra de Juego\nde Asuka enviaba a\nVemmon a algún lado...{pagina}¡Puede que haya una\npista! ¡Sigamos\navanzando!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡¿Qué?!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¿Qué?\n¿Qué hace Oinkmon\nen el Servidor Asuka?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien!\n¡Sigamos\nadelante!{fin}"
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+DW3 Port - credits and third-party notices
+==========================================
+
+The full license texts are in the licenses folder (Windows) or in
+usr/share/doc/dw3port inside the AppImage (Linux); the Android APK carries the
+same software, named below, and its texts are in the project repository.
+
+
+The game's code
+---------------
+dw3_decomp, the decompilation of Digimon World 3 by ReGame Labs and its
+contributors: https://github.com/ReGame-Labs/dw3_decomp
+MIT License, Copyright (c) 2026 ReGame Labs (licenses/dw3_decomp-MIT.txt).
+The port's own code is MIT licensed too (licenses/DW3port-MIT.txt).
+
+
+Libraries
+---------
+PsyCross (Psy-X), the PlayStation SDK replacement from the REDRIVER2 Project:
+  https://github.com/OpenDriver2/PsyCross
+  MIT License, Copyright (c) 2020 REDRIVER2 Project (licenses/PsyCross-MIT.txt).
+  Built into the executable.
+
+SDL2 2.32.10, Simple DirectMedia Layer: https://www.libsdl.org/
+  zlib License, Copyright (C) 1997-2025 Sam Lantinga (licenses/SDL2-zlib.txt).
+  SDL2.dll (Windows), libSDL2-2.0.so.0 (Linux) and libSDL2.so (Android). The
+  Android app also uses SDL's own Java glue (org.libsdl.app, from the same
+  2.32.10 source release, zlib License, headers kept in the files); the
+  build downloads it pinned and sha256-checked, it is not copied into git.
+
+tinyfiledialogs, the file dialogs: https://sourceforge.net/projects/tinyfiledialogs/
+  zlib License (licenses/tinyfiledialogs-zlib.txt). Built into the executable.
+
+OpenAL Soft 1.24.3, the audio library: https://openal-soft.org/
+  GNU Lesser General Public License, version 2 or later
+  (licenses/OpenAL-Soft-LGPL.txt).
+  It is used unmodified and linked dynamically: OpenAL32.dll on Windows (the
+  official 1.24.3 binary release) and libopenal.so.1 inside the AppImage on
+  Linux (built from the unmodified 1.24.3 source). Its source code is
+  available at https://github.com/kcat/openal-soft/releases/tag/1.24.3
+  You may replace it with your own build of OpenAL Soft: on Windows, put your
+  OpenAL32.dll in place of ours; on Linux, extract the AppImage
+  (--appimage-extract) and replace squashfs-root/usr/lib/libopenal.so.1.
+  On Android it is libopenal.so (arm64, the unmodified 1.24.3 source built with
+  the NDK, OpenSL ES backend), dynamically linked. To use your own build,
+  rebuild the APK with pc/android/build.sh, which takes the pinned source
+  tarball from the URL above, and install it signed with your own key.
+
+Android toolchain (build time only; none of it is in the APK except as noted):
+  LLVM libc++ (static, in libmain.so): Apache License 2.0 with LLVM
+  Exceptions, from the Android NDK r27c. The Gradle wrapper (gradle-wrapper.jar,
+  Apache License 2.0, the Gradle project) and the Android Gradle Plugin only run
+  the build and are not shipped. The app icon is original art of this project.
+
+
+Art
+---
+Button prompt icons: derived from "Input Prompts Pixel 16x" and "Input Prompts"
+by Kenney (www.kenney.nl), Creative Commons Zero (CC0 1.0). CC0 needs no credit;
+we give it anyway. Built into the executable.
+
+
+Not included
+------------
+Digimon World 3 itself. Its code is rebuilt from the decompilation, but every
+game asset (graphics, sound, text, video) is read at run time from the
+player's own disc. Digimon is a trademark of its owners; this project is not
+affiliated with or endorsed by Bandai Namco or Sony.

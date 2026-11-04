@@ -1,0 +1,480 @@
+{
+ "file": "SSDMG500.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 2,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Uummmm, ¿quién, yo?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Oh, umm,\nsoy {0208}{0102}1 1..{fin}"
+  },
+  {
+   "index": 5,
+   "part": 0,
+   "note": "G-008 G-026",
+   "text": "{hablante}Lisa{hablante}{0208}{0102}1 0 bien,\nlo recordaré.{pagina}Por cierto, Junior,\n¿has visto a un\nlindo Digimon verde?{fin}"
+  },
+  {
+   "index": 8,
+   "part": 0,
+   "text": "{hablante}{0209}{hablante}Bueno... Mmm\n¿¿??{fin}"
+  },
+  {
+   "index": 10,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, ¿qué\nle pasa?{fin}"
+  },
+  {
+   "index": 11,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Encantada de\nhablar contigo,\n{0208}{0102}1 1{fin}"
+  },
+  {
+   "index": 5,
+   "part": 2,
+   "note": "G-026 G-045 G-054",
+   "text": "{hablante}Líder Suzaku{hablante}El Sector Oeste está\nal otro lado del mar\ny es muy difícil llegar.{pagina}Solo hay un camino.\nTienes que llamar a \nSubmarimon.{pagina}Necesitas el Digihuevo de\nSinceridad para\nllamarlo.{pagina}Pregunta en el sector\npara obtener información.{pagina}Es lo único que puedo\ndecirte. Buena suerte.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 3,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Sí, vencí a los Líderes\nSeiryu y Suzaku, así que\npor ahora está bien.{pagina}Pero ¿y Teddy? \n¡Hay que encontrarlo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 3,
+   "note": "G-018 G-026",
+   "text": "{hablante}Kail{hablante}Teddy está bien.{pagina}Está en el Centro de\nAdministración de\nCiudad Asuka.{pagina}La última vez que lo\nvi, dijo que iba para\nallá.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Sí, ese es\nel plan.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué?\n¿Por qué no?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 4,
+   "note": "G-008 G-026",
+   "text": "{hablante}Numemon{hablante}¡Mejor regresa\ndesde aquí!\n¿De acuerdo?{fin}"
+  },
+  {
+   "index": 7,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Se fue...{pagina}...pero ¿qué pasa\ncon Ciudad\nByakko?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 5,
+   "note": "G-026 G-051",
+   "text": "{hablante}Numemon{hablante}¡Eso no es asunto\ntuyo!{pagina}Si quieres ver al \nverdadero Líder, \nve al Desierto Mobius.{pagina}Está en la Torre de Delirios\nmás allá del desierto.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}¡No puedo decirte\nnada más!{pagina}¡No te acerques\na Ciudad Byakko!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Muy bien. ¡Busquemos\nal verdadero Líder\ny hablemos con él!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 6,
+   "note": "L6",
+   "text": "{hablante}Numemon{hablante}Eres tú.\n¿Por qué\nvolviste?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 7,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, qué\nraro.{pagina}Numemon no\nestá aquí.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¡No eres rival\npara mí!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}...¿Tienes miedo\nde perder?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¿Q-qué?\n¡No es verdad!{pagina}¡De acuerdo! \n¡Si quieres,\nluchemos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-026 L6",
+   "text": "{hablante}Zanbamon{hablante}¿Q-qué...?\nPerdí...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 13,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}Oh, está bien...\nTe daré esto,\n¡así que perdóname!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-026 G-018",
+   "text": "{hablante}{0209}{hablante}Oye, MagnaAngemon,\ntengo un favor que\npedirte.{pagina}¿Puedes darme el DADN\nPatamon de tu DADN?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "L6",
+   "text": "{hablante}MagnaAngemon{hablante}Lo siento, pero no\nes algo que se dé\ntan fácilmente.{pagina}Si me derrotas, lo\npensaré...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}MagnaAngemon{hablante}De acuerdo.\nTómalo.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 15,
+   "note": "G-026 G-033",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nDADN Patamon!{pagina}¡Gracias,\nMagnaAngemon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 16,
+   "note": "G-033 L6",
+   "text": "{hablante}{0209}{hablante}Eh, Taomon.\nTengo un favor\nque pedirte.{pagina}¿Puedes darme el DADN Renamon \nde tu DADN?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Taomon{hablante}...Sí, pero no\ngratis.{pagina}Veamos si estás\ncalificado.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 17,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN \nRenamon!{pagina}¡Gracias, Taomon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 18,
+   "note": "G-024 G-033 L6",
+   "text": "{hablante}{0209}{hablante}Kyukimon.\n¿Puedo pedirte\nun favor?{pagina}¿Puedes darme el DADN Kotemon\nde tu DADN?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 19,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí!\n¡Gané a\nKyukimon!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 19,
+   "note": "G-026 L6",
+   "text": "{hablante}Kyukimon{hablante}Tus Digimon deben\nser muy fuertes\npara vencerme.{pagina}Me divertí \nmucho contigo.\n¡Toma esto!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 19,
+   "note": "G-024 G-026 G-018",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo\nel DADN \nKotemon!{pagina}¡Gracias,\nKyukimon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 20,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Qué quieres\ndecir\ncon eso?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 20,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Entendido.\n¡Entonces,\nhagámoslo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡En eso\nnadie me gana!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}BK Seraphimon{hablante}¡Ese es el espíritu!{pagina}Aprobaste.\nTe daré esto\ncomo prueba.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}BK Seraphimon{hablante}¡El pase se\nrevelará con\nvalor!{pagina}¡No cedas ante\nningún enemigo\ny resiste!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Te\nencontré!{pagina}¡No voy a dejar \nque te vayas \nesta vez!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}¡Deberías\nrendirte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Vaya... Numemon\nes muy rápido...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Vaya, ahora está\nahí dentro...{pagina}Bueno, \n¡tendré que\nseguirlo!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Ni hablar!\n¡Me gusta lo\nque hago!{pagina}¡Soy libre!\n¡Libertad!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 28,
+   "note": "G-015",
+   "text": "{hablante}{0209}{hablante}Perdonen...{fin}"
+  },
+  {
+   "index": 10,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}Oh, tú eres\nel chico de...{fin}"
+  },
+  {
+   "index": 12,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Ah, no. Lisa\nme pidió que...{pagina}...buscara a Keith\ny a Nick.{fin}"
+  },
+  {
+   "index": 14,
+   "part": 28,
+   "note": "G-019 G-026",
+   "text": "{hablante}Nick{hablante}¡Ah, mejor será\nque vayamos o se\nenojará!{fin}"
+  },
+  {
+   "index": 15,
+   "part": 28,
+   "note": "G-015 G-026",
+   "text": "{hablante}{0209}{hablante}Oh... Ah,\n¡esperen!{fin}"
+  },
+  {
+   "index": 16,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡No tenemos\ntiempo que\nperder! ¡Vamos!{fin}"
+  },
+  {
+   "index": 17,
+   "part": 28,
+   "note": "G-011 G-026",
+   "text": "{hablante}Nick{hablante}¡Vamos,\nllévanos con\nella ya mismo!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Vaya,\n¿qué es eso?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}Líder Suzaku{hablante}Un agujero de\nseguridad. ¡Es como un\nagujero en la red!{pagina}Esa debe ser la\ncausa del terremoto.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Esa voz... Viene \nde la góndola...{pagina}¡Ya sé! ¡Es\nBulbmon!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 29,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Suzaku{hablante}Te lo dije,\n¡no puedes ir!{pagina}No sabes qué puede\npasar. ¡Es demasiado\npeligroso!{pagina}Como Líder del Sector\nSur, no dejaré que\nnadie salga herido.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 29,
+   "note": "G-011",
+   "text": "{hablante}{0209}{hablante}Vamos... ¡De verdad\nque tengo que pasar\nal otro lado!{pagina}Has oído hablar de la \nA.o.A, ¿verdad?{pagina}¡Alguien tiene que ir \nahora o pasarán \ncosas peores!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 29,
+   "note": "G-008",
+   "text": "{hablante}Líder Suzaku{hablante}¡Está bien...!{pagina}Pero si es muy\npeligroso, regresa.\n¿De acuerdo?{fin}"
+  },
+  {
+   "index": 9,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Cuatro pines\nde Líder?{pagina}¡Entendido!\n¡Gracias, Líder\nSuzaku!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Si paso por este\nagujero, encontraré el\nServidor Amaterasu?{fin}"
+  },
+  {
+   "index": 12,
+   "part": 29,
+   "note": "G-026 G-033",
+   "text": "{hablante}Líder Suzaku{hablante}¿Hablas de la \nCámara Matriz\nde Emergencia?{pagina}Está en el sótano\nde la Mina de Kulon.{pagina}Pero necesitas cuatro\npines de Líder para \nusarla.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 30,
+   "note": "G-026 G-035",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nPase Rojo!{pagina}...Pero ¿dónde\nestá el Digihuevo\nde Sabiduría?{pagina}¡Tengo que\nencontrarlo ya para\ndetener el Juggernaut!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 31,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Gané\na Bulbmon!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 31,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Eh? ¡El\nagujero sigue\nhacia delante!{pagina}A lo mejor llega\nhasta el Servidor\nAmaterasu...{pagina}Bueno, vamos a \nver...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 32,
+   "text": "{hablante}Patamon{hablante}Eh... No sé.\nPero en la selva\noí un ruido raro.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 32,
+   "note": "G-026",
+   "text": "{hablante}Patamon{hablante}¡Sí, un sonido como\nuna máquina o un\nDigimon! ¡Muy raro!{pagina}La Líder lo oyó\ny se fue...{pagina}No estoy seguro,\npero a lo mejor se\nfue a la selva.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 33,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡El terremoto lo\ncausó al hacer\nagujeros!{pagina}Ya verás.\n¡Esta vez le \nganaré!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 34,
+   "note": "G-045",
+   "text": "{hablante}Jefe Zhu Que{hablante}¡Solo los miembros\nde la A.o.A \npueden entrar aquí!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 34,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}Jefe Zhu Que, ¿dónde\nestá el Digihuevo de\nSabiduría?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 34,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Qué\nquieres decir\ncon eso?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 34,
+   "text": "{hablante}Jefe Zhu Que{hablante}Ja ja ja. ¡Te lo\ndiré!{pagina}¡Tomamos la \nBase Submarina \nMagasta!{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 6,
+   "part": 34,
+   "note": "G-026",
+   "text": "{hablante}Jefe Zhu Que{hablante}Y ahora vamos a...{pagina}¡Lanzar el fuerte\nmóvil Juggernaut!{pagina}¡Ahora el mundo\nse arrodillará\nante la A.o.A!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 34,
+   "note": "G-011",
+   "text": "{hablante}Jefe Zhu Que{hablante}Ja ja ja.\n¡Anda, inténtalo!{pagina}¡Pero primero\ndebes ganarme!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 35,
+   "note": "G-026 G-044 L6",
+   "text": "{hablante}{0209}{hablante}¡Ya puedo llamar a Digmon!{pagina}¡Volvamos al Servidor\nAsuka para ir al\nSector Norte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 36,
+   "note": "G-011",
+   "text": "{hablante}{0209}{hablante}¡Eso es!\n¡Vamos!\n¡Luchemos!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 36,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}¿Q-qué?\n¡No es verdad!{pagina}¡De acuerdo!\n¡Si lo quieres,\nte lo mostraré!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 37,
+   "note": "G-026 L6",
+   "text": "{hablante}Zanbamon{hablante}¿Q-qué...?\nPerdí...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 37,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué tal?\nSoy fuerte, \n¿verdad?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 37,
+   "note": "G-026",
+   "text": "{hablante}Zanbamon{hablante}Ah, de acuerdo...\n¡Te daré esto para\nque me perdones!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 37,
+   "note": "G-026 L6",
+   "text": "{hablante}Zanbamon{hablante}Y-Yo viviré en paz aquí...{pagina}¡Déjame solo!{fin}"
+  }
+ ]
+}

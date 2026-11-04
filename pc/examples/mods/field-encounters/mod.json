@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Field encounters",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "The two first Central Park enemies swap places and random battles come twice as often (tables field_enemies, field_encounters, battle_rates)."
+}

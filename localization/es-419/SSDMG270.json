@@ -1,0 +1,272 @@
+{
+ "file": "SSDMG270.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-018 L6",
+   "text": "{hablante}Maestro de Cartas Ken{hablante}Mostraré la \ninformación en \ntu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-020 G-026",
+   "text": "\"Batalla de Cartas\"\nEsta lucha se realiza como un\njuego de cartas.{pagina}Crea tu propio mazo con más de\n300 cartas y lucha con otros\ntamers.{pagina}\"Cartas\"\nHay 314 cartas en total.\nPuedes tener hasta nueve de cada.{pagina}Hay dos tipos de cartas:\nCartas de Programa y de Digimon.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 0,
+   "note": "G-026 G-018",
+   "text": "\"Carta de Digimon\"\nCartas para invocar Digimon.{pagina}En esta carta hay dos números:\nPA y PV.{pagina}PA es el poder de ataque y PV, los\npuntos de vida. Si los PV llegan a\ncero, el Digimon va a la papelera.{pagina}5/3 significa 5 PA y 3 PV.{pagina}\"Carta de Programa\"\nLas Cartas PG atacan la mano de tu\noponente o refuerzan la tuya.{pagina}Cada carta tiene un efecto distinto.\nLee cada carta para conocer\nsu efecto.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "G-026 G-018",
+   "text": "\"Carpetas\"\nAntes de la batalla, crea una Carpeta\ncon 40 Cartas.{pagina}Las Carpetas son necesarias para\nluchar. Puedes poner hasta cuatro\ncartas iguales en una Carpeta.{pagina}\"Preparar la Batalla de Cartas\"\nQuien gane primero dos tiempos\nganará la batalla.{pagina}Antes de la batalla, escoge la\nCarpeta que será tu mazo. Al\nelegirla, comienza la batalla.{pagina}Un tiempo está formado por seis\nfases. Ahora explicaré cada una.{fin}"
+  },
+  {
+   "index": 5,
+   "part": 0,
+   "note": "G-026",
+   "text": "\"Fase Inicial\"\nSe decide quién va primero. Quien\nsaque a Calumon, empieza.{pagina}\"Fase de Extracción\"\nSe extraen seis cartas del mazo\na tu mano.{pagina}Si no puedes extraer seis cartas en\nesta fase, pierdes. En batalla, tu\nmano tiene un máximo de 10 cartas.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 0,
+   "note": "G-001 G-026 G-018",
+   "text": "\"Fase de Carga\"\nSelecciona una Carta PG para\npreparar la Fase de Invocación.{pagina}Los turnos se alternan hasta que\nambos jugadores pasen. Aquí hay\nCartas PG que no pueden usarse.{pagina}\"Fase de Invocación\"\nSelecciona una Carta de Digimon\npara invocar a un Digimon.{pagina}Puedes invocar hasta seis al campo.\nHace falta S-Energía para invocar\nDigimon de nivel superior a Novato.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 0,
+   "note": "G-026 G-018 G-044",
+   "text": "\"Fase de Compilación\"\nUsa tus Cartas PG para obtener\ndiferentes efectos.{pagina}Los turnos se alternan hasta que\nambos jugadores pasen. Aquí pueden\nusarse todas las Cartas PG.{pagina}\"Fase de Batalla\"\nLos Digimon luchan para decidir\nel ganador.{pagina}El ganador se decide comparando\nlos PA y los PV. El que se quede\nsin PV, pierde.{pagina}Así termina un tiempo. Quien gane\ndos tiempos gana la batalla. Si\nganas, recibes un Sobre de Expansión.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 0,
+   "note": "G-018 L6",
+   "text": "{hablante}Maestro de Cartas Ken{hablante}Eso es todo en cuanto\na las reglas.{pagina}Si quieres saber más,\npregunta a Luke.\n¡Diviértete!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "L6",
+   "text": "{hablante}Coleccionista Luke{hablante}Estoy enviando datos\na tu satélite.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 1,
+   "note": "G-026",
+   "text": "\"S-Energía\"\nLas Cartas son: Blancas, Azules,\nVerdes, Rojas, Negras y Marrones.{pagina}La S-Energía crece al\nextraer del mazo una carta de \nese color.{pagina}La S-Energía se usa para invocar\nDigimon de nivel superior a Novato.{pagina}\"S-Energía para invocar\"\nPara invocar un Digimon, hace falta\nS-Energía del mismo color.{pagina}Digimon campeón: un punto.\nDigimon definitivo: dos puntos.\nMega Digimon: tres puntos.{pagina}Los Digimon novatos pueden \ninvocarse sin S-Energía.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-020 G-026",
+   "text": "\"Combinaciones\"\nUna combinación se forma con más de\ntres cartas iguales en el campo.{pagina}Se suma el total de las cartas y si\nhay más de 4, hay una bonificación.{pagina}\"Coleccionar Cartas\"\nAl ganar una batalla, obtienes una \nexpansión que contiene cartas.{pagina}Recibes expansiones si ganas\ncontra tamers.{pagina}También se rumorea que cierto\nDigimon las tiene.{pagina}\"Cardmon\"\nHay un Digimon llamado Cardmon\noculto en este mundo.{pagina}Si derrotas a Cardmon, obtendrás\nexpansiones. Puede ocultarse en los\nárboles o en el agua.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-020 G-026 G-018 L6",
+   "text": "\"Congelar Bicho\"\nEs una Carta PG Azul.{pagina}Si la usas después de una Carta PG\ndel oponente, puedes descartarla\nantes de que se ejecute.{pagina}Es una carta poderosa; si consigues\nuna, ponla en tu Carpeta.{pagina}\"Rumores de Cartas Especiales\"\nSe rumorea que hay cartas especiales\nque no vienen en las expansiones.{pagina}Dicen que algún tamer las tiene. ¡Búscalas y consíguelas!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 1,
+   "note": "L6",
+   "text": "{hablante}Coleccionista Luke{hablante}No lo memorices ahora,\napréndelo con la \nexperiencia.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 2,
+   "note": "G-026 G-018",
+   "text": "{hablante}Divermon{hablante}Entonces te daré una\nBolsa de Carpetas.{pagina}Puedes guardar en ella\ntres Carpetas que\nhayas creado.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}Divermon{hablante}Una Carpeta es un\njuego de 40 cartas\nque tú mismo armas.{pagina}Puedes poner hasta\ncuatro cartas iguales\nen un juego.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 2,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¿Juego de cartas?\n¿Qué haces con\neso?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 2,
+   "note": "G-026 G-018",
+   "text": "{hablante}Divermon{hablante}!!\n¡Eres imposible!{pagina}¡Para la Batalla de\nCartas! Luchas contra\notros jugadores.{pagina}Sacas cartas, pones\nDigimon en el campo\ny ¡a luchar!{pagina}¡Mira allá!\nHay alguien en plena\nbatalla.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 2,
+   "note": "G-020 G-018",
+   "text": "{hablante}Tamer Nacky{hablante}Saqué a Calumon,\nvoy primero.{pagina}Es la Fase de\nExtracción, extraeré\nseis de mi mazo...{pagina}¡Bien! ¡Tengo \nbuenas cartas!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Nacky{hablante}Ahora es la Fase de\nCarga, así que puedo\nsacar una Carta PG...{pagina}...¿Oh?\nYo... paso.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Steve{hablante}Mmm...\nPaso también.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Nacky{hablante}Ambos pasamos, así\nque termina la Fase\nde Carga.{pagina}¡Ahora, Fase de\nInvocación! ¡Mostremos\njuntos las cartas!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Steve{hablante}De acuerdo.\n¡Al mismo \ntiempo!{fin}"
+  },
+  {
+   "index": 11,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Nacky{hablante}¡Tengo dos Hawkmon,\ndos Agumon y dos\nMeramon!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Steve{hablante}¡Yo tengo un\nCandlemon!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Nacky{hablante}¿Qué?\n¿Te ríes de\nmí?{fin}"
+  },
+  {
+   "index": 14,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Steve{hablante}No...\nTengo un plan.{pagina}Un verdadero \ntamer lucha con\nel mazo completo.{fin}"
+  },
+  {
+   "index": 15,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gloria{hablante}Tu Cañón de Fuego\ncontra mi Renamon...{pagina}...queda anulado con\nCongelar Bicho.\n¿Qué sigue?{fin}"
+  },
+  {
+   "index": 16,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Wong{hablante}Mmm, tenías \nCongelar \nBicho...{pagina}No puedo \nhacer nada.\nPaso...{fin}"
+  },
+  {
+   "index": 17,
+   "part": 2,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Tamer Gloria{hablante}Es una Carpeta Azul,\nasí que tengo cuatro\nCongelar Bicho.{pagina}Bien, yo también paso.\nAsí termina la Fase\nde Compilación.{fin}"
+  },
+  {
+   "index": 18,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Wong{hablante}Mmm, Fase de\nBatalla...{pagina}Sumemos los PA y \nPV de nuestros \nDigimon.{pagina}Tengo un Growlmon.\n18 PA, 20 PV...{fin}"
+  },
+  {
+   "index": 19,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gloria{hablante}Tengo tres Renamon\ncon 4 PA y 4 PV.\nEn total 12 PA y PV.{pagina}Pero son tres cartas,\nasí que, con 12 PA y\n12 PV, invoco a Taomon.{fin}"
+  },
+  {
+   "index": 20,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Wong{hablante}.....\nAhhh, es cierto.{pagina}Así que tus PA y PV\nahora son 24 y 24...\nGanas...{fin}"
+  },
+  {
+   "index": 21,
+   "part": 2,
+   "note": "G-020",
+   "text": "{hablante}Tamer Gloria{hablante}¡Sí, gané!{pagina}Pero una batalla es\nal mejor de tres.\n¡No se ha acabado!{fin}"
+  },
+  {
+   "index": 22,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}Divermon{hablante}¿Ves?\nEs emocionante...{pagina}No creo que llegues\ntan rápido, pero...{pagina}Aquí tienes una Bolsa\nde Carpetas con lugar\npara tres.{pagina}También te daré mi\nCarpeta de Prácticas\nPersonalizada.{fin}"
+  },
+  {
+   "index": 23,
+   "part": 2,
+   "note": "G-022",
+   "text": "{hablante}{0209}{hablante}¡Wow!\n¡Gracias!\n¡Daré lo mejor de mí!{pagina}Pero no tengo ni\nidea de qué \nestaban hablando...{fin}"
+  },
+  {
+   "index": 24,
+   "part": 2,
+   "note": "G-020 G-026",
+   "text": "{hablante}Divermon{hablante}Ve con Ken o Luke.\nEllos te enseñarán.{pagina}Cuando mejore tu\ncompañero, podrás\nluchar con todos.{pagina}Un buen jugador es \ntambién buen tamer.{pagina}Por eso, los tamers\ncon compañeros\nfuertes luchan mucho.{fin}"
+  },
+  {
+   "index": 26,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}Divermon{hablante}Suerte.\nNos vemos...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Maestro de Cartas Ken{hablante}Bueno, habla conmigo\ncuando quieras\nescuchar.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "note": "G-018 L6",
+   "text": "{hablante}Coleccionista Luke{hablante}Si quieres saber\nmás, ven a\nhablar conmigo.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-018",
+   "text": "¿Oír las reglas básicas?"
+  },
+  {
+   "index": 2,
+   "part": 5,
+   "note": "G-026",
+   "text": "¡Sí, me encantaría!"
+  },
+  {
+   "index": 3,
+   "part": 5,
+   "note": "G-026",
+   "text": "No, aún no."
+  },
+  {
+   "index": 2,
+   "part": 6,
+   "note": "G-026",
+   "text": "¡Sí, me encantaría!"
+  },
+  {
+   "index": 3,
+   "part": 6,
+   "note": "G-026",
+   "text": "No, aún no."
+  }
+ ]
+}

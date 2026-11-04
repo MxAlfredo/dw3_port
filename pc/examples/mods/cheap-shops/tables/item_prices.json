@@ -1,0 +1,6 @@
+{
+  "format": "item_prices-v1",
+  "rows": {
+    "*": { "price": "*0.5" }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port text/<lang>/stages.json (named texts for stage talks, stage-text-v1)",
+  "description": "The lines a stage patch's talks say by name (\"text\": \"<mod>:<name>\", docs/stages.md section 8). One file per language folder (eng fra ita ger spa es-419) under the mod's text/ folder; English is required for every name, another language falls back to it (es-419 to Spanish first). The line is written in the readable text syntax of the other text files (docs/modding/README.md) and is fitted to the talk box when the stage starts.",
+  "type": "object",
+  "required": [
+    "format",
+    "texts"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "stage-text-v1"
+    },
+    "about": {
+      "type": "string",
+      "description": "Free text for people; the game does not read it."
+    },
+    "texts": {
+      "type": "object",
+      "description": "The lines by name. The full name a patch uses is \"<mod folder>:<name>\".",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_/-]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

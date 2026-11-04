@@ -1,0 +1,42 @@
+# fetched by scripts/fetch_deps.sh (pinned in deps.lock, patched by patches/)
+/deps/
+/external/
+/src
+/include
+/tools/extract_disc.py
+
+# build output
+build/
+build-*/
+pc/build*/
+pc/android/app/build/
+pc/android/.gradle/
+*.log
+
+# your game and your data: never commit them
+/disks/
+*.cue
+*.iso
+*.img
+*.mcd
+*.mcr
+*.chd
+*.ecm
+*.pbp
+*.bin
+settings.ini
+# the only .bin files in the repository are synthetic test models
+!/pc/examples/mods/sample-model/content/models/robot/robot.bin
+!/pc/test_fixtures/model/robot/*.bin
+
+# signing keys and local build settings
+*.jks
+*.keystore
+*.p12
+key.properties
+local.properties
+*.pass
+
+.vscode/
+.venv/
+__pycache__/

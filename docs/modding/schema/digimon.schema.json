@@ -1,0 +1,619 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port content/digimon.json (digimon-v1)",
+  "description": "New Digimon, changes to existing ones and where new enemies appear. Derived from pc/shim/digimon_ext.c (kPartnerFields, kEnemyFields, takeKey) and content.c.",
+  "type": "object",
+  "required": [
+    "format"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "digimon-v1"
+    },
+    "new": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_-]{1,48}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "base",
+          "name"
+        ],
+        "description": "A new Digimon: the partner and enemy fields of its base, plus the model and the evolution.",
+        "properties": {
+          "base": {
+            "type": "string",
+            "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+          },
+          "model": {
+            "type": "string",
+            "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+          },
+          "name": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "blastForms": {
+            "description": "A new partner form: the five forms a blast turns it into by level tier (1-3, 4-18, 19-38, 39-69, 70 and up), each a partner form by name; the base's stay without it.",
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "string"
+            }
+          },
+          "pairPartner": {
+            "description": "A new partner form: the partner form it does its pair technique with, by name, or 0 for none; the base's stays without it.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          "evolution": {
+            "type": "object",
+            "properties": {
+              "partner": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "needs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "digimon": {
+                      "type": "string",
+                      "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+                    },
+                    "level": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 99
+                    }
+                  },
+                  "required": [
+                    "digimon"
+                  ]
+                }
+              },
+              "stat": {
+                "type": "string"
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "hp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "mp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "hpGrowth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "mpGrowth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "expRate": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "expLevel": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "family": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original partner uses."
+          },
+          "stats": {
+            "type": "object",
+            "description": "A partner form takes strength, defense, spirit, wisdom, speed, charisma (0..999); an enemy takes attack, defense, spirit, wisdom, speed (0..32767).",
+            "properties": {
+              "strength": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "attack": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "defense": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "spirit": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "wisdom": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "speed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "charisma": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              }
+            },
+            "additionalProperties": false
+          },
+          "resistances": {
+            "type": "array",
+            "minItems": 7,
+            "maxItems": 7,
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "description": "Seven values; a partner form 0..999, an enemy 0..32767."
+          },
+          "statusResists": {
+            "type": "object",
+            "properties": {
+              "poison": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "paralysis": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "confusion": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "sleep": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "knockOut": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              }
+            },
+            "additionalProperties": false
+          },
+          "skills": {
+            "type": "object",
+            "description": "Skill slot (1..6) -> technique and level.",
+            "propertyNames": {
+              "pattern": "^[1-6]$"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "tech": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 99
+                }
+              },
+              "required": [
+                "tech"
+              ]
+            }
+          },
+          "itemChance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1023
+          },
+          "techs": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "item": {
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": "dw3:item/<id>, a number or <mod>:<key>."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "change": {
+      "type": "object",
+      "description": "dw3:digimon/<id> (or the number) -> the facet to change.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "partner": {
+            "type": "object",
+            "description": "The partner facet of a partner form.",
+            "properties": {
+              "hp": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "mp": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "hpGrowth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "mpGrowth": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "expRate": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "expLevel": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "family": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255,
+                "description": "A value some original partner uses."
+              },
+              "stats": {
+                "type": "object",
+                "properties": {
+                  "strength": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  },
+                  "defense": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  },
+                  "spirit": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  },
+                  "wisdom": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  },
+                  "speed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  },
+                  "charisma": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999
+                  }
+                },
+                "additionalProperties": false
+              },
+              "resistances": {
+                "type": "array",
+                "minItems": 7,
+                "maxItems": 7,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 999
+                }
+              },
+              "statusResists": {
+                "type": "object",
+                "properties": {
+                  "poison": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "paralysis": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "confusion": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "sleep": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "knockOut": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  }
+                },
+                "additionalProperties": false
+              },
+              "skills": {
+                "type": "object",
+                "description": "Skill slot (1..6) -> technique and level.",
+                "propertyNames": {
+                  "pattern": "^[1-6]$"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "tech": {
+                      "type": [
+                        "string",
+                        "integer"
+                      ]
+                    },
+                    "level": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 99
+                    }
+                  },
+                  "required": [
+                    "tech"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "enemy": {
+            "type": "object",
+            "description": "The enemy facet of an enemy row.",
+            "properties": {
+              "family": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255,
+                "description": "A value some original enemy uses."
+              },
+              "itemChance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1023
+              },
+              "stats": {
+                "type": "object",
+                "properties": {
+                  "attack": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "defense": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "spirit": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "wisdom": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "speed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  }
+                },
+                "additionalProperties": false
+              },
+              "resistances": {
+                "type": "array",
+                "minItems": 7,
+                "maxItems": 7,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 32767
+                }
+              },
+              "statusResists": {
+                "type": "object",
+                "properties": {
+                  "poison": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "paralysis": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "confusion": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "sleep": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  },
+                  "knockOut": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32767
+                  }
+                },
+                "additionalProperties": false
+              },
+              "techs": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                }
+              },
+              "item": {
+                "type": [
+                  "string",
+                  "integer"
+                ],
+                "description": "dw3:item/<id>, a number or <mod>:<key>."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "encounters": {
+      "type": "object",
+      "description": "Encounter number -> slot (1..3) -> the enemy placed there.",
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "pattern": "^[1-3]$"
+        },
+        "additionalProperties": {
+          "type": "object",
+          "required": [
+            "enemy"
+          ],
+          "properties": {
+            "enemy": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "hp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "strength": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

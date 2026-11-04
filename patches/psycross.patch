@@ -1,0 +1,1272 @@
+diff --git a/include/PsyX/PsyX_overlay.h b/include/PsyX/PsyX_overlay.h
+new file mode 100644
+index 0000000..17f82ca
+--- /dev/null
++++ b/include/PsyX/PsyX_overlay.h
+@@ -0,0 +1,54 @@
++#ifndef PSYX_OVERLAY_H
++#define PSYX_OVERLAY_H
++
++/*
++ * A small 2D overlay drawn over the finished frame, in window pixels, after the game image (and the scanlines) and
++ * right before the window is shown. It is for things that belong to the host and not to the game: an on-screen
++ * controller, a debug counter. The game never sees it (it is drawn after the frame was copied to VRAM).
++ *
++ * The host registers one hook; PsyX_EndScene runs it with the window's GL state set up (full-window viewport,
++ * alpha blending, no depth/scissor/stencil) and the hook calls PsyX_OverlayShape for every shape. The shapes are
++ * signed-distance shapes inside a rectangle, antialiased, so the host needs no textures and no GL calls of its own.
++ */
++#if defined(__cplusplus)
++extern "C" {
++#endif
++
++enum {
++    PSYX_SHAPE_DISC = 0,    /* filled circle inscribed in the rect */
++    PSYX_SHAPE_RING,        /* circle outline, line width = param (pixels) */
++    PSYX_SHAPE_PILL,        /* filled rounded rectangle, fully rounded ends */
++    PSYX_SHAPE_CROSS,       /* an X (the PlayStation cross), line width = param */
++    PSYX_SHAPE_TRIANGLE,    /* an upward triangle outline, line width = param */
++    PSYX_SHAPE_SQUARE,      /* a square outline, line width = param */
++    PSYX_SHAPE_CIRCLE,      /* a small circle outline (the PlayStation circle), line width = param */
++    PSYX_SHAPE_PLAY,        /* a filled triangle pointing right */
++    PSYX_SHAPE_BARS,        /* two horizontal bars */
++    PSYX_SHAPE_GLYPH        /* a 5x7 bitmap: rows[0..6], bit 4 = leftmost column */
++};
++
++typedef struct PsyXOverlayShape {
++    int kind;
++    float x, y, w, h;       /* window pixels, origin top left */
++    float r, g, b, a;       /* 0..1, straight (not premultiplied) alpha */
++    float param;            /* line width for the outline shapes */
++    unsigned char rows[7];  /* PSYX_SHAPE_GLYPH only */
++} PsyXOverlayShape;
++
++typedef void (*PsyXOverlayHook)(void);
++
++/* Registers the hook (NULL removes it). One hook; the host owns it. */
++void PsyX_SetOverlayHook(PsyXOverlayHook hook);
++/* Runs the hook now with the GL state set up. PsyX_EndScene calls it; a host that saves the frame itself before
++   the swap may call it first so the shot shows the overlay. A no-op without a hook. */
++void PsyX_OverlayRun(void);
++/* Draws one shape. Only valid while the hook runs. */
++void PsyX_OverlayShape(const PsyXOverlayShape *shape);
++/* Where the game image is in the window right now (window pixels, origin top left), as the scaling mode lays it out. */
++void PsyX_GetViewRect(int *x, int *y, int *w, int *h);
++
++#if defined(__cplusplus)
++}
++#endif
++
++#endif
+diff --git a/include/PsyX/PsyX_public.h b/include/PsyX/PsyX_public.h
+index 91b0297..a49c35b 100644
+--- a/include/PsyX/PsyX_public.h
++++ b/include/PsyX/PsyX_public.h
+@@ -57,7 +57,9 @@ extern GameOnTextInputHandler		g_cfg_gameOnTextInput;
+ /* Graphics configuration */
+ extern int							g_cfg_swapInterval;
+ extern int							g_cfg_pgxpZBuffer;
+-extern int							g_cfg_bilinearFiltering;
++extern int							g_cfg_bilinearFiltering;	// kept at 0: the bilinear mode bled VRAM neighbours
++extern int							g_cfg_integerScale;		// 0: stretch to the window, 1: biggest whole multiple, centred, 2: biggest rectangle of the game's own shape, centred
++extern int							g_cfg_scanlines;			// 1: darken every other line of the game image
+ extern int							g_cfg_pgxpTextureCorrection;
+ 
+ /* Debug inputs */
+@@ -100,6 +102,12 @@ extern void PsyX_GetPSXWidescreenMappedViewport(struct _RECT16* rect);
+ /* Waits for timer */
+ extern void PsyX_WaitForTimestep(int count);
+ 
++/* Stops (1) or restarts (0) the vblank clock: the app is in the background (Android). The restart does not catch up. */
++extern void PsyX_Sys_SetSuspended(int suspended);
++
++/* Vblanks counted so far */
++extern int PsyX_Sys_GetVBlankCount();
++
+ /* Changes swap interval state */
+ extern void PsyX_EnableSwapInterval(int enable);
+ 
+diff --git a/include/PsyX/PsyX_render.h b/include/PsyX/PsyX_render.h
+index ad168c3..9379db9 100644
+--- a/include/PsyX/PsyX_render.h
++++ b/include/PsyX/PsyX_render.h
+@@ -6,7 +6,9 @@
+ /*
+  * Platform specific emulator setup
+  */
+-#if (defined(_WIN32) || defined(__APPLE__) || defined(__linux__)) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__RPI__)
++// PSYX_FORCE_GLES: opt-in, on a desktop Linux build, for the OpenGL ES 3 renderer the Android build uses
++// (SDL asks for an ES 3.0 context, shaders are `#version 300 es`, no glad). It lets the ES path be tested without a phone.
++#if (defined(_WIN32) || defined(__APPLE__) || defined(__linux__)) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__RPI__) && !defined(PSYX_FORCE_GLES)
+ #   define RENDERER_OGL
+ #   define USE_GLAD
+ #elif defined(__RPI__)
+@@ -15,7 +17,7 @@
+ #elif defined(__EMSCRIPTEN__)
+ #   define RENDERER_OGLES
+ #   define OGLES_VERSION (2)
+-#elif defined(__ANDROID__)
++#elif defined(__ANDROID__) || defined(PSYX_FORCE_GLES)
+ #   define RENDERER_OGLES
+ #   define OGLES_VERSION (3)
+ #endif
+@@ -196,6 +198,7 @@ extern void			GR_Perspective3D(const float fov, const float width, const float h
+ extern void			GR_Ortho2D(float left, float right, float bottom, float top, float znear, float zfar);
+ 
+ extern void			GR_SetBlendMode(BlendMode blendMode);
++extern void			GR_SetStpPass(int pass);
+ extern void			GR_SetPolygonOffset(float ofs);
+ extern void			GR_SetStencilMode(int drawPrim);
+ extern void			GR_EnableDepth(int enable);
+@@ -203,6 +206,7 @@ extern void			GR_SetScissorState(int enable);
+ extern void			GR_SetOffscreenState(const RECT16* offscreenRect, int enable);
+ extern void			GR_SetupClipMode(const RECT16* clipRect, int enable);
+ extern void			GR_SetViewPort(int x, int y, int width, int height);
++extern void			GR_DrawScanlines(void);
+ extern void			GR_SetTexture(TextureID texture, TexFormat texFormat);
+ extern void			GR_SetOverrideTextureSize(int width, int height);
+ extern void			GR_SetWireframe(int enable);
+diff --git a/include/psx/libgpu.h b/include/psx/libgpu.h
+index b924865..1b80ab2 100644
+--- a/include/psx/libgpu.h
++++ b/include/psx/libgpu.h
+@@ -329,7 +329,7 @@ typedef struct _RECT16 {
+ 
+ #if USE_EXTENDED_PRIM_POINTERS
+ 
+-#if defined(_M_X64) || defined(__amd64__)
++#if defined(_M_X64) || defined(__amd64__) || defined(_M_ARM64) || defined(__aarch64__)
+ 
+ #define DECLARE_P_ADDR \
+ 		uintptr_t addr; \
+@@ -347,7 +347,7 @@ typedef struct _RECT16 {
+ 
+ #define P_LEN		2		// 2 longs
+ 
+-#endif // _M_X64 || __amd64__
++#endif // 64-bit: x86-64, arm64
+ 
+ #define DECLARE_P_ADDR_PTAG DECLARE_P_ADDR
+ 
+diff --git a/src/PsyX_main.cpp b/src/PsyX_main.cpp
+index f558b40..db4f47c 100644
+--- a/src/PsyX_main.cpp
++++ b/src/PsyX_main.cpp
+@@ -3,6 +3,7 @@
+ #include "PsyX/PsyX_version.h"
+ #include "PsyX/PsyX_globals.h"
+ #include "PsyX/PsyX_public.h"
++#include "PsyX/PsyX_overlay.h"
+ #include "PsyX/util/timer.h"
+ 
+ #include "gpu/PsyX_GPU.h"
+@@ -66,6 +67,7 @@ volatile int g_psxSysCounters[PsxCounter_Num];
+ SDL_Thread* g_intrThread = NULL;
+ SDL_mutex* g_intrMutex = NULL;
+ volatile char g_stopIntrThread = 0;
++volatile char g_suspendIntrThread = 0;
+ 
+ #if defined(_LANGUAGE_C_PLUS_PLUS)||defined(__cplusplus)||defined(c_plusplus)
+ extern "C" {
+@@ -146,6 +148,11 @@ int PsyX_Sys_SetVMode(int mode)
+ 	return old;
+ }
+ 
++void PsyX_Sys_SetSuspended(int suspended)
++{
++	g_suspendIntrThread = suspended ? 1 : 0;
++}
++
+ int PsyX_Sys_GetVBlankCount()
+ {
+ 	if (g_skipSwapInterval)
+@@ -163,28 +170,67 @@ int intrThreadMain(void* data)
+ {
+ 	Util_InitHPCTimer(&g_vblTimer);
+ 
++	// Each vblank has an absolute deadline (the previous one plus the step),
++	// so the late wake-up of one tick is taken back by the next and the rate
++	// does not drift below the nominal one (resetting the timer on every
++	// vblank, as before, lost the overshoot and ran ~49 Hz instead of 50).
++	const double freq = (double)SDL_GetPerformanceFrequency();
++	const Uint64 t0 = SDL_GetPerformanceCounter();
++	double lastStep = 0.0;
++	double next = 0.0;
++	int wasSuspended = 0;
++
+ 	while (!g_stopIntrThread)
+ 	{
+-		// step counters
++		// the app is in the background: no vblanks (the game, its streams and its sound stop with them) and
++		// no CPU; on return the deadline restarts one step ahead, so the lost time is not played back
++		if (g_suspendIntrThread)
++		{
++			wasSuspended = 1;
++			SDL_Delay(20);
++			continue;
++		}
++		if (wasSuspended)
+ 		{
+-			const double timestep = g_vmode == MODE_NTSC ? FIXED_TIME_STEP_NTSC : FIXED_TIME_STEP_PAL;
+-			const double vblDelta = Util_GetHPCTime(&g_vblTimer, 0);
++			wasSuspended = 0;
++			lastStep = 0.0;
++		}
+ 
+-			if (vblDelta > timestep)
+-			{
+-				SDL_LockMutex(g_intrMutex);
+-				
+-				if (vsync_callback)
+-					vsync_callback();
+-				
+-				SDL_UnlockMutex(g_intrMutex);
+-				
+-				// do vblank events
+-				g_psxSysCounters[PsxCounter_VBLANK]++;
+-			
+-				Util_GetHPCTime(&g_vblTimer, 1);
+-			}
+-			
++		const double timestep = g_vmode == MODE_NTSC ? FIXED_TIME_STEP_NTSC : FIXED_TIME_STEP_PAL;
++		const double now = (double)(SDL_GetPerformanceCounter() - t0) / freq;
++
++		if (timestep != lastStep)
++		{
++			// first pass or the video mode changed
++			lastStep = timestep;
++			next = now + timestep;
++		}
++
++		if (now >= next)
++		{
++			SDL_LockMutex(g_intrMutex);
++
++			if (vsync_callback)
++				vsync_callback();
++
++			SDL_UnlockMutex(g_intrMutex);
++
++			// do vblank events
++			g_psxSysCounters[PsxCounter_VBLANK]++;
++
++			next += timestep;
++
++			// after a long stall (a breakpoint, a suspended machine) do not
++			// fire a burst of catch-up vblanks
++			if (now - next > 4.0 * timestep)
++				next = now + timestep;
++		}
++		else if ((next - now) * 1000.0 > 1.4)
++		{
++			// sleep until about 0.4 ms before the deadline (the usual wake-up
++			// lateness of SDL_Delay is below that) instead of spinning a whole
++			// core on the timer; the short rest still spins
++			SDL_Delay((Uint32)((next - now) * 1000.0 - 0.4));
+ 		}
+ 	}
+ 
+@@ -543,11 +589,11 @@ void PrintMessageToOutput(SpewType_t spewtype, char const* pMsgFormat, va_list a
+ 		}, pTempBuffer);
+ 	}
+ #else
+-	printf(pTempBuffer);
++	printf("%s", pTempBuffer);
+ #endif
+ 
+ 	if(g_logStream)
+-		fprintf(g_logStream, pTempBuffer);
++		fprintf(g_logStream, "%s", pTempBuffer);
+ }
+ 
+ void PsyX_Log(const char* fmt, ...)
+@@ -839,6 +885,8 @@ void PsyX_EndScene()
+ 	
+ 	GR_StoreFrameBuffer(activeDispEnv.disp.x, activeDispEnv.disp.y, activeDispEnv.disp.w, activeDispEnv.disp.h);
+ 
++	GR_DrawScanlines();
++	PsyX_OverlayRun();
+ 	GR_SwapWindow();
+ 	
+ 	SDL_Delay(0);
+@@ -917,10 +965,6 @@ void PsyX_Sys_DoDebugKeys(int nKey, char down)
+ 			PsyX_TakeScreenshot();
+ 			break;
+ #endif
+-		case SDL_SCANCODE_F3:
+-			g_cfg_bilinearFiltering ^= 1;
+-			eprintwarn("filtering mode: %d\n", g_cfg_bilinearFiltering);
+-			break;
+ 		case SDL_SCANCODE_F4:
+ 
+ 			g_activeKeyboardControllers++;
+@@ -999,6 +1043,10 @@ void PsyX_WaitForTimestep(int count)
+ 			emscripten_sleep(0);
+ #endif
+ 			vbl = PsyX_Sys_GetVBlankCount();
++			// the vblank comes from the interrupt thread: yield the core
++			// while waiting for it instead of spinning on the counter
++			if (vbl - swapLastVbl < count)
++				SDL_Delay(1);
+ 		}
+ 		while (vbl - swapLastVbl < count);
+ 
+diff --git a/src/audio/PsyX_SPUAL.cpp b/src/audio/PsyX_SPUAL.cpp
+index 2909ee3..03518ae 100644
+--- a/src/audio/PsyX_SPUAL.cpp
++++ b/src/audio/PsyX_SPUAL.cpp
+@@ -467,6 +467,10 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+ 			sp = iData[i];
+ 			flag = iData[i+1];
+ 			i += 2;
++
++			// the SPU repeats from the start of the block flagged LoopStart
++			if (breakOn == -1 && (flag & LoopStart))
++				loopStrt = k;
+ 		}
+ 
+ 		sd = (int)iData[i] & 0xF;
+@@ -481,11 +485,6 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+ 		if (breakOn == -1)
+ 		{
+ 			// flags parsed
+-			if (flag & LoopStart)
+-			{
+-				loopStrt = k + 26; // FIXME: is that correct?
+-			}
+-
+ 			if (flag & LoopEnd)
+ 			{
+ 				loopEnd = k + 26;
+@@ -567,7 +566,7 @@ static void UpdateVoiceSample(SPUALVoice* voice)
+ 	{
+ 		loopStart += voice->attr.loop_addr - voice->attr.addr;
+ 
+-		if (loopStart - 54 > 0 && loopStart + loopLen <= count)
++		if (loopStart >= 0 && loopStart + loopLen <= count)
+ 		{
+ 			int sampleOffs[] = { loopStart, loopStart + loopLen };
+ 			alBufferiv(alBuffer, AL_LOOP_POINTS_SOFT, sampleOffs);
+diff --git a/src/gpu/PsyX_GPU.cpp b/src/gpu/PsyX_GPU.cpp
+index 6e9e6f6..0d6e2bb 100644
+--- a/src/gpu/PsyX_GPU.cpp
++++ b/src/gpu/PsyX_GPU.cpp
+@@ -6,6 +6,7 @@
+ 
+ #include "../PsyX_main.h"
+ 
++#include <algorithm>
+ #include <assert.h>
+ #include <math.h>
+ #include <string.h>
+@@ -742,7 +743,32 @@ void DrawSplit(const GPUDrawSplit& split)
+ 
+ 	GR_SetBlendMode(split.blendMode);
+ 
++	/* T32: honour the CLUT entry's bit 15 (STP) the way the real GPU does:
++	   texels without the bit draw opaque, texels with it blend per the ABR.
++	   BM_AVERAGE already implements the rule with the fragment alpha. For
++	   ADD/SUBTRACT/quarter-add the draw is issued twice, masked by the
++	   shader's stpPass: pass 1 replaces the non-STP texels, pass 2 blends
++	   the STP ones. Untextured primitives ride a white texture whose decoded
++	   alpha is 0 (STP), so they end up in pass 2 only, unchanged. */
++	{
++		const int stpTexture = (split.texFormat == TF_4_BIT ||
++					split.texFormat == TF_8_BIT ||
++					split.texFormat == TF_16_BIT);
++		const int stpSplit = stpTexture &&
++				     (split.blendMode == BM_ADD ||
++				      split.blendMode == BM_SUBTRACT ||
++				      split.blendMode == BM_ADD_QUATER_SOURCE);
++
++		if (stpSplit != 0)
++		{
++			GR_SetStpPass(1);
++			GR_DrawTriangles(split.startVertex, split.numVerts / 3);
++			GR_SetStpPass(2);
++		}
++	}
++
+ 	GR_DrawTriangles(split.startVertex, split.numVerts / 3);
++	GR_SetStpPass(0);
+ 
+ 	if (split.debugText)
+ 		GR_PopDebugLabel();
+@@ -863,6 +889,47 @@ inline int IsNull(POLY_FT3* poly)
+ 		poly->y2 == -1;
+ }
+ 
++// PS1 GPU polygon size limit. psx-spx "GPU Render Polygon Commands": a polygon whose vertices are
++// 1024 or more pixels apart horizontally, or 512 or more vertically, is not drawn at all (the GPU
++// silently skips it). Games rely on it to hide near-camera polygons whose projected vertices
++// explode. It applies per triangle (a quad is the two triangles v0 v1 v2 / v1 v2 v3) on the
++// vertex coordinates; the drawing offset does not change the differences.
++// https://psx-spx.consoledev.net/graphicsprocessingunitgpu/#gpu-render-polygon-commands
++static bool PolyTriangleTooLarge(const VERTTYPE* p0, const VERTTYPE* p1, const VERTTYPE* p2)
++{
++	const int minX = std::min((int)p0[0], std::min((int)p1[0], (int)p2[0]));
++	const int maxX = std::max((int)p0[0], std::max((int)p1[0], (int)p2[0]));
++	const int minY = std::min((int)p0[1], std::min((int)p1[1], (int)p2[1]));
++	const int maxY = std::max((int)p0[1], std::max((int)p1[1], (int)p2[1]));
++	const bool big = (maxX - minX) > 1023 || (maxY - minY) > 511;
++	return big;
++}
++
++// Number of vertices to keep for a triangle just written at g_vertexIndex (0 or 3).
++static int PolyCommitTriangle(const VERTTYPE* p0, const VERTTYPE* p1, const VERTTYPE* p2)
++{
++	return PolyTriangleTooLarge(p0, p1, p2) ? 0 : 3;
++}
++
++// Triangulates the quad just written at firstVertex and drops the half (or both) that the GPU
++// would skip. Returns the number of vertices kept (0, 3 or 6).
++static int PolyCommitQuad(GrVertex* firstVertex, const VERTTYPE* p0, const VERTTYPE* p1, const VERTTYPE* p2, const VERTTYPE* p3)
++{
++	TriangulateQuad();
++	const bool dropA = PolyTriangleTooLarge(p0, p1, p2);
++	const bool dropB = PolyTriangleTooLarge(p1, p2, p3);
++	if (dropA && dropB)
++		return 0;
++	if (dropA)
++	{
++		firstVertex[0] = firstVertex[3];
++		firstVertex[1] = firstVertex[4];
++		firstVertex[2] = firstVertex[5];
++		return 3;
++	}
++	return dropB ? 3 : 6;
++}
++
+ static int ProcessFlatLines(P_TAG* polyTag)
+ {
+ #if USE_PGXP && USE_EXTENDED_PRIM_POINTERS
+@@ -1103,7 +1170,7 @@ static int ProcessFlatPoly(P_TAG* polyTag)
+ 		MakeTexcoordTriangleZero(firstVertex, 0);
+ 		MakeColourTriangle(firstVertex, shadeTexOn, &poly->r0, &poly->r0, &poly->r0);
+ 
+-		g_vertexIndex += 3;
++		g_vertexIndex += PolyCommitTriangle(&poly->x0, &poly->x1, &poly->x2);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+@@ -1125,7 +1192,7 @@ static int ProcessFlatPoly(P_TAG* polyTag)
+ 			MakeTexcoordTriangle(firstVertex, &poly->u0, &poly->u1, &poly->u2, poly->tpage, poly->clut, GET_TPAGE_DITHER(activeDrawEnv.tpage) || activeDrawEnv.dtd);
+ 			MakeColourTriangle(firstVertex, shadeTexOn, &poly->r0, &poly->r0, &poly->r0);
+ 
+-			g_vertexIndex += 3;
++			g_vertexIndex += PolyCommitTriangle(&poly->x0, &poly->x1, &poly->x2);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 			polygon_count++;
+@@ -1144,9 +1211,7 @@ static int ProcessFlatPoly(P_TAG* polyTag)
+ 		MakeTexcoordQuadZero(firstVertex, 0);
+ 		MakeColourQuad(firstVertex, shadeTexOn, &poly->r0, &poly->r0, &poly->r0, &poly->r0);
+ 
+-		TriangulateQuad();
+-
+-		g_vertexIndex += 6;
++		g_vertexIndex += PolyCommitQuad(firstVertex, &poly->x0, &poly->x1, &poly->x2, &poly->x3);
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+ #endif
+@@ -1164,9 +1229,7 @@ static int ProcessFlatPoly(P_TAG* polyTag)
+ 		MakeTexcoordQuad(firstVertex, &poly->u0, &poly->u1, &poly->u3, &poly->u2, poly->tpage, poly->clut, GET_TPAGE_DITHER(activeDrawEnv.tpage) || activeDrawEnv.dtd);
+ 		MakeColourQuad(firstVertex, shadeTexOn, &poly->r0, &poly->r0, &poly->r0, &poly->r0);
+ 
+-		TriangulateQuad();
+-
+-		g_vertexIndex += 6;
++		g_vertexIndex += PolyCommitQuad(firstVertex, &poly->x0, &poly->x1, &poly->x2, &poly->x3);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+@@ -1202,7 +1265,7 @@ static int ProcessGouraudPoly(P_TAG* polyTag)
+ 		MakeTexcoordTriangleZero(firstVertex, 1);
+ 		MakeColourTriangle(firstVertex, shadeTexOn, &poly->r0, &poly->r1, &poly->r2);
+ 
+-		g_vertexIndex += 3;
++		g_vertexIndex += PolyCommitTriangle(&poly->x0, &poly->x1, &poly->x2);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+@@ -1221,7 +1284,7 @@ static int ProcessGouraudPoly(P_TAG* polyTag)
+ 		MakeTexcoordTriangle(firstVertex, &poly->u0, &poly->u1, &poly->u2, poly->tpage, poly->clut, GET_TPAGE_DITHER(activeDrawEnv.tpage) || activeDrawEnv.dtd);
+ 		MakeColourTriangle(firstVertex, shadeTexOn, &poly->r0, &poly->r1, &poly->r2);
+ 
+-		g_vertexIndex += 3;
++		g_vertexIndex += PolyCommitTriangle(&poly->x0, &poly->x1, &poly->x2);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+@@ -1239,9 +1302,7 @@ static int ProcessGouraudPoly(P_TAG* polyTag)
+ 		MakeTexcoordQuadZero(firstVertex, 1);
+ 		MakeColourQuad(firstVertex, shadeTexOn, &poly->r0, &poly->r1, &poly->r3, &poly->r2);
+ 
+-		TriangulateQuad();
+-
+-		g_vertexIndex += 6;
++		g_vertexIndex += PolyCommitQuad(firstVertex, &poly->x0, &poly->x1, &poly->x2, &poly->x3);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+@@ -1260,9 +1321,7 @@ static int ProcessGouraudPoly(P_TAG* polyTag)
+ 		MakeTexcoordQuad(firstVertex, &poly->u0, &poly->u1, &poly->u3, &poly->u2, poly->tpage, poly->clut, GET_TPAGE_DITHER(activeDrawEnv.tpage) || activeDrawEnv.dtd);
+ 		MakeColourQuad(firstVertex, shadeTexOn, &poly->r0, &poly->r1, &poly->r3, &poly->r2);
+ 
+-		TriangulateQuad();
+-
+-		g_vertexIndex += 6;
++		g_vertexIndex += PolyCommitQuad(firstVertex, &poly->x0, &poly->x1, &poly->x2, &poly->x3);
+ 
+ #if defined(DEBUG_POLY_COUNT)
+ 		polygon_count++;
+diff --git a/src/platform.h b/src/platform.h
+index 3f16bbe..01a1496 100644
+--- a/src/platform.h
++++ b/src/platform.h
+@@ -33,8 +33,8 @@
+ #   include <android/log.h>
+ #   define LOG_TAG_EMU "[PsyX] "
+ #   define eprintf(fmt, ...)       __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG_EMU, fmt, ##__VA_ARGS__)
+-#   define eprintinfof(fmt, ...)   __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG_EMU " [INFO]", fmt, ##__VA_ARGS__)
+-#   define eprintwarnf(fmt, ...)   __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG_EMU " [WARN]", fmt, ##__VA_ARGS__)
++#   define eprintinfo(fmt, ...)    __android_log_print(ANDROID_LOG_INFO, LOG_TAG_EMU " [INFO]", fmt, ##__VA_ARGS__)
++#   define eprintwarn(fmt, ...)    __android_log_print(ANDROID_LOG_WARN, LOG_TAG_EMU " [WARN]", fmt, ##__VA_ARGS__)
+ #   define eprinterr(fmt, ...)     eprintf("[%s] - " fmt, FUNCNAME, ##__VA_ARGS__);
+ #else
+ #   define eprintf(fmt, ...)       PsyX_Log("[Psy-X] " fmt, ##__VA_ARGS__)
+diff --git a/src/psx/LIBGPU.C b/src/psx/LIBGPU.C
+index 8d11166..2e8bf90 100644
+--- a/src/psx/LIBGPU.C
++++ b/src/psx/LIBGPU.C
+@@ -193,7 +193,7 @@ u_long* ClearOTag(u_long* ot, int n)
+ 	setlen(&ptag_list[n-1], 0);
+ 
+ 	// make a linked list with it's next items
+-	for (int i = (n-1); i >= 0; --i)
++	for (int i = (n-2); i >= 0; --i)
+ 	{
+ 		setaddr(&ptag_list[i], &ptag_list[i+1]);
+ 		setlen(&ptag_list[i], 0);
+diff --git a/src/render/PsyX_render.cpp b/src/render/PsyX_render.cpp
+index 9324471..724b947 100644
+--- a/src/render/PsyX_render.cpp
++++ b/src/render/PsyX_render.cpp
+@@ -4,6 +4,7 @@
+ #include "../gpu/PsyX_GPU.h"
+ 
+ #include "PsyX/PsyX_render.h"
++#include "PsyX/PsyX_overlay.h"
+ #include "PsyX/PsyX_globals.h"
+ #include "PsyX/util/timer.h"
+ 
+@@ -53,6 +54,7 @@ int g_PreviousBlendMode = BM_NONE;
+ int g_PreviousDepthMode = 0;
+ int g_PreviousStencilMode = 0;
+ int g_PreviousScissorState = 0;
++static int g_scanlinesDrawn = 0;
+ int g_PreviousOffscreenState = 0;
+ RECT16 g_PreviousFramebuffer = { 0,0,0,0 };
+ RECT16 g_PreviousOffscreen = { 0,0,0,0 };
+@@ -79,6 +81,8 @@ int g_dbg_texturelessMode = 0;
+ int g_cfg_pgxpTextureCorrection = 1;
+ int g_cfg_pgxpZBuffer = 1;
+ int g_cfg_bilinearFiltering = 0;
++int g_cfg_integerScale = 0;
++int g_cfg_scanlines = 0;
+ 
+ int vram_need_update = 1;
+ int framebuffer_need_update = 0;
+@@ -299,10 +303,8 @@ int GR_InitialiseGLContext(char* windowName, int fullscreen)
+ 	SDL_DisplayMode displayMode;
+ 	if (SDL_GetCurrentDisplayMode(0, &displayMode) == 0)
+ 	{
+-		screenWidth = displayMode.w;
+-		windowWidth = displayMode.w;
+-		screenHeight = displayMode.h;
+-		windowHeight = displayMode.h;
++		g_windowWidth = displayMode.w;
++		g_windowHeight = displayMode.h;
+ 	}
+ #endif
+ 
+@@ -433,6 +435,81 @@ void GR_UpdateSwapIntervalState(int swapInterval)
+ #endif
+ }
+ 
++// The screen rectangle inside a winW x winH window. `mode` 0: all of it (stretched);
++// 1 (integer): the biggest whole multiple of baseW x baseH that fits, centred, and a
++// window smaller than one base image falls back to all of it; 2 (keep aspect): the
++// biggest rectangle with the base image's shape, centred, black bars on the long side.
++extern "C" void PsyX_CalcScreenRect(int winW, int winH, int baseW, int baseH, int mode, int* x, int* y, int* w, int* h)
++{
++	int n = 0;
++
++	if (mode == 2 && baseW > 0 && baseH > 0 && winW > 0 && winH > 0)
++	{
++		// compare winW/winH with baseW/baseH without floats
++		if ((long long)winW * baseH <= (long long)winH * baseW)
++		{
++			*w = winW;
++			*h = (int)((long long)winW * baseH / baseW);
++		}
++		else
++		{
++			*h = winH;
++			*w = (int)((long long)winH * baseW / baseH);
++		}
++		*x = (winW - *w) / 2;
++		*y = (winH - *h) / 2;
++		return;
++	}
++
++	if (mode == 1 && baseW > 0 && baseH > 0)
++	{
++		n = winW / baseW;
++		if (winH / baseH < n)
++			n = winH / baseH;
++	}
++
++	if (n < 1)
++	{
++		*x = 0;
++		*y = 0;
++		*w = winW;
++		*h = winH;
++		return;
++	}
++
++	*w = n * baseW;
++	*h = n * baseH;
++	*x = (winW - *w) / 2;
++	*y = (winH - *h) / 2;
++}
++
++// Where the game image goes in the window right now (GL origin: bottom left)
++static void GR_GetViewRect(int* x, int* y, int* w, int* h)
++{
++#if USE_PGXP
++	*x = 0;
++	*y = 0;
++	*w = g_windowWidth;
++	*h = g_windowHeight;
++#else
++	const int baseW = activeDispEnv.disp.w > 0 ? activeDispEnv.disp.w : 320;
++	const int baseH = activeDispEnv.disp.h > 0 ? activeDispEnv.disp.h : 240;
++
++	// keep aspect: a TV showed every display mode (320x240, 320x416 movies, 640x480) as 4:3, so the shape is 4:3 whatever the display height
++	if (g_cfg_integerScale == 2)
++		PsyX_CalcScreenRect(g_windowWidth, g_windowHeight, 4, 3, 2, x, y, w, h);
++	else
++		PsyX_CalcScreenRect(g_windowWidth, g_windowHeight, baseW, baseH, g_cfg_integerScale, x, y, w, h);
++#endif
++}
++
++static void GR_SetGameViewPort()
++{
++	int x, y, w, h;
++	GR_GetViewRect(&x, &y, &w, &h);
++	GR_SetViewPort(x, y, w, h);
++}
++
+ void GR_BeginScene()
+ {
+ 	g_lastBoundTexture = 0;
+@@ -448,7 +525,26 @@ void GR_BeginScene()
+ #endif
+ 
+ 	GR_UpdateVRAM();
+-	GR_SetViewPort(0, 0, g_windowWidth, g_windowHeight);
++
++#if USE_OPENGL
++	{
++		// integer scaling leaves borders: black, whatever the scene clears to
++		int x, y, w, h;
++		GR_GetViewRect(&x, &y, &w, &h);
++		if (w != g_windowWidth || h != g_windowHeight)
++		{
++			if (g_PreviousScissorState)
++				glDisable(GL_SCISSOR_TEST);
++			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
++			glClear(GL_COLOR_BUFFER_BIT);
++			if (g_PreviousScissorState)
++				glEnable(GL_SCISSOR_TEST);
++		}
++	}
++#endif
++
++	GR_SetGameViewPort();
++	g_scanlinesDrawn = 0;
+ 
+ 	if (g_dbg_wireframeMode)
+ 	{
+@@ -495,6 +591,7 @@ typedef struct
+ 	GLint texelSizeLoc;
+ 	GLint texLoc;
+ 	GLint lutLoc;
++	GLint stpPassLoc;
+ #endif
+ } PSXGPU_Shader;
+ 
+@@ -508,6 +605,11 @@ PSXGPU_Shader g_gpu_shader_32_rgba;
+ GLint u_projectionLoc;
+ GLint u_projection3DLoc;
+ GLint u_texelSizeLoc;
++GLint u_stpPassLoc;
++
++/* T32: state owned by GR_SetStpPass — pass 1 needs blending disabled while
++   the rest of the pipeline believes the split's blend mode is still active */
++static int g_stpBlendDisabled;
+ 
+ #define GPU_SAMPLE_TEXTURE_4BIT_FUNC\
+     "   // returns 16 bit colour\n"\
+@@ -530,6 +632,11 @@ GLint u_texelSizeLoc;
+ 	"		vec2 comp = VRAM(uv);\n"\
+ 	"		vec2 clut_pos = v_page_clut.zw;\n"\
+ 	"		int index = int(mod(tc.x, 2.0));\n"\
++	/* T33: artbyte comes out of the RG8 VRAM texture as a normalized UNORM
++	   value (byte/255), but the CLUT halfword lookup needs the byte index in
++	   halfword units: denormalize with *255.0 before stepping one halfword
++	   per entry (*c_VRAMTexel.x). (byte/255)*255 is exact in float32 for all
++	   byte values, so no half-texel offset is needed. */\
+ 	"		clut_pos.x += _idx2(comp, index) * 255.0 * c_VRAMTexel.x;\n"\
+ 	"		vec2 color_rg = VRAM(clut_pos);\n"\
+ 	"		return VRAM(clut_pos);\n"\
+@@ -616,10 +723,21 @@ GLint u_texelSizeLoc;
+ 	"		return t;\n"\
+ 	"	}\n"\
+ 	"	uniform int bilinearFilter;\n"\
+-	"	void main() {\n"\
+-	"		vec4 color = (bilinearFilter > 0) ? bilinearTextureSample(v_texcoord.xy) : nearestTextureSample(v_texcoord.xy);\n"\
+-	"		fragColor = dither(color * v_color);\n"\
+-	"	}\n"
++		/* T32: per-texel PS1 transparency (bit 15 of the CLUT entry, decoded
++		   by GR_InitRG8LUT into alpha 0.5 for STP texels and 1.0 otherwise).
++		   stpPass picks the pass the real hardware needs for every ABR other
++		   than AVERAGE: pass 1 draws only non-STP texels with blending off
++		   (opaque replace), pass 2 draws only STP texels with the blend
++		   equation on. Pass 0 keeps the old single-pass behaviour. */ \
++	"	uniform float stpPass;\n"\
++		"	void main() {\n"\
++		"		vec4 color = (bilinearFilter > 0) ? bilinearTextureSample(v_texcoord.xy) : nearestTextureSample(v_texcoord.xy);\n"\
++		"		if (stpPass > 0.5) {\n"\
++		"			if (stpPass < 1.5) { if (color.w < 0.75) discard; }\n"\
++		"			else { if (color.w > 0.75) discard; }\n"\
++		"		}\n"\
++		"		fragColor = dither(color * v_color);\n"\
++		"	}\n"
+ 	
+ static const char* gpu_shader_common = R"(
+ 	varying vec4 v_texcoord;
+@@ -722,21 +840,18 @@ int GR_Shader_CheckProgramStatus(GLuint program)
+ ShaderID GR_Shader_Compile(const char* source, int isPsxShader)
+ {
+ #if defined(ES2_SHADERS)
+-	const char* GLSL_HEADER_VERT = R"(
+-		#version 100
++	const char* GLSL_HEADER_VERT = R"(#version 100
+ 		precision lowp  int;
+ 		precision highp float;
+ 	)";
+ 
+-	const char* GLSL_HEADER_FRAG = R"(
+-		#version 100
++	const char* GLSL_HEADER_FRAG = R"(#version 100
+ 		precision lowp  int;
+ 		precision highp float;
+ 		#define fragColor gl_FragColor
+ 	)";
+ #elif defined(ES3_SHADERS)
+-	const char* GLSL_HEADER_VERT = R"(
+-		#version 300 es
++	const char* GLSL_HEADER_VERT = R"(#version 300 es
+ 		precision lowp  int;
+ 		precision highp float;
+ 		#define varying   out
+@@ -744,8 +859,7 @@ ShaderID GR_Shader_Compile(const char* source, int isPsxShader)
+ 		#define texture2D texture
+ 	)";
+ 
+-	const char* GLSL_HEADER_FRAG = R"(
+-		#version 300 es
++	const char* GLSL_HEADER_FRAG = R"(#version 300 es
+ 		precision lowp  int;
+ 		precision highp float;
+ 		#define varying     in
+@@ -753,8 +867,7 @@ ShaderID GR_Shader_Compile(const char* source, int isPsxShader)
+ 		out vec4 fragColor;
+ 	)";
+ #else
+-	const char* GLSL_HEADER_VERT = R"(
+-		#version 140
++	const char* GLSL_HEADER_VERT = R"(#version 140
+ 		precision lowp  int;
+ 		precision highp float;
+ 		#define varying   out
+@@ -762,8 +875,7 @@ ShaderID GR_Shader_Compile(const char* source, int isPsxShader)
+ 		#define texture2D texture
+ 	)";
+ 
+-	const char* GLSL_HEADER_FRAG = R"(
+-		#version 140
++	const char* GLSL_HEADER_FRAG = R"(#version 140
+ 		precision lowp  int;
+ 		precision highp float;
+ 		#define varying     in
+@@ -926,6 +1038,7 @@ void GR_CompilePSXShader(PSXGPU_Shader* sh, const char* source)
+ 	sh->texelSizeLoc = glGetUniformLocation(sh->shader, "texelSize");
+ 	sh->texLoc = glGetUniformLocation(sh->shader, "s_texture");
+ 	sh->lutLoc = glGetUniformLocation(sh->shader, "s_rgLut");
++	sh->stpPassLoc = glGetUniformLocation(sh->shader, "stpPass");
+ #if USE_PGXP
+ 	sh->projection3DLoc = glGetUniformLocation(sh->shader, "Projection3D");
+ #endif
+@@ -1181,13 +1294,16 @@ void GR_SetupClipMode(const RECT16* rect, int enable)
+ 
+ #if USE_OPENGL
+ 	// adjust scissor rectangle by the backbuffer size (window dimensions)
+-	const float flipOffset = g_windowHeight - clipRectH * (float)g_windowHeight;
+-	const float crx = clipRectX * (float)g_windowWidth;
+-	const float cry = clipRectY * (float)g_windowHeight;
+-	const float crw = clipRectW * (float)g_windowWidth;
+-	const float crh = clipRectH * (float)g_windowHeight;
++	int vx, vy, vw, vh;
++	GR_GetViewRect(&vx, &vy, &vw, &vh);
+ 
+-	glScissor(crx, flipOffset - cry, crw, crh);
++	const float flipOffset = vh - clipRectH * (float)vh;
++	const float crx = clipRectX * (float)vw;
++	const float cry = clipRectY * (float)vh;
++	const float crw = clipRectW * (float)vw;
++	const float crh = clipRectH * (float)vh;
++
++	glScissor(vx + crx, vy + flipOffset - cry, crw, crh);
+ #endif
+ }
+ 
+@@ -1248,6 +1364,7 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ 		u_projection3DLoc = g_gpu_shader_4.projection3DLoc;
+ 		texLoc = g_gpu_shader_4.texLoc;
+ 		lutLoc = g_gpu_shader_4.lutLoc;
++		u_stpPassLoc = g_gpu_shader_4.stpPassLoc;
+ 		u_texelSizeLoc = -1;
+ 		break;
+ 	case TF_8_BIT:
+@@ -1257,6 +1374,7 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ 		u_projection3DLoc = g_gpu_shader_8.projection3DLoc;
+ 		texLoc = g_gpu_shader_8.texLoc;
+ 		lutLoc = g_gpu_shader_8.lutLoc;
++		u_stpPassLoc = g_gpu_shader_8.stpPassLoc;
+ 		u_texelSizeLoc = -1;
+ 		break;
+ 	case TF_16_BIT:
+@@ -1266,6 +1384,7 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ 		u_projection3DLoc = g_gpu_shader_16.projection3DLoc;
+ 		texLoc = g_gpu_shader_16.texLoc;
+ 		lutLoc = g_gpu_shader_16.lutLoc;
++		u_stpPassLoc = g_gpu_shader_16.stpPassLoc;
+ 		u_texelSizeLoc = -1;
+ 		break;
+ 	case TF_32_BIT_RGBA:
+@@ -1275,6 +1394,7 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ 		u_projection3DLoc = g_gpu_shader_32_rgba.projection3DLoc;
+ 		texLoc = g_gpu_shader_32_rgba.texLoc;
+ 		lutLoc = -1;
++		u_stpPassLoc = -1;
+ 		u_texelSizeLoc = g_gpu_shader_32_rgba.texelSizeLoc;
+ 		break;
+ 	}
+@@ -1283,7 +1403,16 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ 		texture = g_whiteTexture;
+ 	}
+ 
+-	if (g_lastBoundTexture == texture) {
++	/* T33: the sampler uniforms (s_texture/s_rgLut/bilinearFilter) belong to
++	   the currently bound program, while all VRAM draws share one texture
++	   handle. Bailing out on a texture match alone left every new PSX shader
++	   (e.g. shader_8 after shader_4 splits) with uninitialised samplers, so
++	   8bpp CLUT lookups decoded garbage -- colored noise on the
++	   language-select artwork. Re-set uniforms whenever either the texture or
++	   the shader program changed. */
++	static ShaderID g_uniformedShader = -1;
++	if (g_lastBoundTexture == texture && g_uniformedShader == g_PreviousShader)
++	{
+ 		return;
+ 	}
+ 
+@@ -1304,6 +1433,7 @@ void GR_SetTexture(TextureID texture, TexFormat texFormat)
+ #endif
+ 
+ 	g_lastBoundTexture = texture;
++	g_uniformedShader = g_PreviousShader;
+ }
+ 
+ void GR_SetOverrideTextureSize(int width, int height)
+@@ -1358,7 +1488,28 @@ void GR_Clear(int x, int y, int w, int h, unsigned char r, unsigned char g, unsi
+ 
+ #if USE_OPENGL
+ 	glClearColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
++
++	int vx, vy, vw, vh;
++	GR_GetViewRect(&vx, &vy, &vw, &vh);
++	if (vw != g_windowWidth || vh != g_windowHeight)
++	{
++		// keep the black borders of integer scaling out of the clear
++		glEnable(GL_SCISSOR_TEST);
++		glScissor(vx, vy, vw, vh);
++		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
++		if (!g_PreviousScissorState)
++			glDisable(GL_SCISSOR_TEST);
++	}
++	else
++	{
++		// the previous frame's last draw left its clip as the scissor; the clear covers the whole
++		// frame, so it must not be cut by it (an uncleared rim keeps blending frame after frame)
++		if (g_PreviousScissorState)
++			glDisable(GL_SCISSOR_TEST);
++		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
++		if (g_PreviousScissorState)
++			glEnable(GL_SCISSOR_TEST);
++	}
+ #endif
+ }
+ 
+@@ -1545,7 +1696,7 @@ void GR_SetOffscreenState(const RECT16* offscreenRect, int enable)
+ 	}
+ 	else
+ 	{
+-		GR_SetViewPort(0, 0, g_windowWidth, g_windowHeight);
++		GR_SetGameViewPort();
+ 
+ #if USE_OFFSCREEN_BLIT
+ 		// before drawing set source and target
+@@ -1614,7 +1765,10 @@ void GR_StoreFrameBuffer(int x, int y, int w, int h)
+ 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);					// source is backbuffer
+ 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_glBlitFramebuffer);
+ 
+-		glBlitFramebuffer(0, 0, g_windowWidth, g_windowHeight, x, y + h, x + w, y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
++		int vx, vy, vw, vh;
++		GR_GetViewRect(&vx, &vy, &vw, &vh);
++
++		glBlitFramebuffer(vx, vy, vx + vw, vy + vh, x, y + h, x + w, y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+ 
+ 		// Blit framebuffer to VRAM screen area
+ 
+@@ -1701,8 +1855,280 @@ void GR_UpdateVRAM()
+ 	glTexImage2D(GL_TEXTURE_2D, 0, VRAM_INTERNAL_FORMAT, VRAM_WIDTH, VRAM_HEIGHT, 0, VRAM_FORMAT, GL_UNSIGNED_BYTE, vram);
+ #else
+ 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, VRAM_WIDTH, VRAM_HEIGHT, VRAM_FORMAT, GL_UNSIGNED_BYTE, vram);
++
++#endif
++#endif
++}
++
++// Scanlines: every other line of the game image (as scaled on screen) darkened, drawn
++// once over the finished frame, after it was copied to VRAM so the game never sees it.
++// One fullscreen triangle; the fragment shader picks the lines from gl_FragCoord.
++static const char* scanlines_shader = R"(
++	uniform vec4 u_rect;
++	uniform vec2 u_params;
++#ifdef VERTEX
++	void main() {
++		gl_Position = vec4((gl_VertexID == 1) ? 3.0 : -1.0, (gl_VertexID == 2) ? 3.0 : -1.0, 0.0, 1.0);
++	}
++#endif
++#ifdef FRAGMENT
++	void main() {
++		vec2 d = gl_FragCoord.xy - u_rect.xy;
++		if (d.x < 0.0 || d.y < 0.0 || d.x >= u_rect.z || d.y >= u_rect.w)
++			discard;
++		float line = floor((u_rect.w - d.y) * u_params.x / u_rect.w);
++		if (mod(line, 2.0) < 0.5)
++			discard;
++		fragColor = vec4(0.0, 0.0, 0.0, u_params.y);
++	}
++#endif
++)";
++
++void GR_DrawScanlines()
++{
++#if USE_OPENGL
++	static ShaderID prog = 0;
++	static GLuint vao = 0;
++	static GLint rectLoc = -1, paramsLoc = -1;
++
++	if (!g_cfg_scanlines || g_scanlinesDrawn)
++		return;
++	g_scanlinesDrawn = 1;
++
++	if (!prog)
++	{
++		prog = GR_Shader_Compile(scanlines_shader, false);
++		rectLoc = glGetUniformLocation(prog, "u_rect");
++		paramsLoc = glGetUniformLocation(prog, "u_params");
++		glGenVertexArrays(1, &vao);
++	}
++
++	// save what is touched, so the cached state of the other draws stays true
++	GLint oldProg, oldVao, oldSrcRgb, oldDstRgb, oldSrcA, oldDstA, oldEqRgb, oldEqA;
++	glGetIntegerv(GL_CURRENT_PROGRAM, &oldProg);
++	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &oldVao);
++	glGetIntegerv(GL_BLEND_SRC_RGB, &oldSrcRgb);
++	glGetIntegerv(GL_BLEND_DST_RGB, &oldDstRgb);
++	glGetIntegerv(GL_BLEND_SRC_ALPHA, &oldSrcA);
++	glGetIntegerv(GL_BLEND_DST_ALPHA, &oldDstA);
++	glGetIntegerv(GL_BLEND_EQUATION_RGB, &oldEqRgb);
++	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &oldEqA);
++	const GLboolean oldBlend = glIsEnabled(GL_BLEND);
++	const GLboolean oldDepth = glIsEnabled(GL_DEPTH_TEST);
++	const GLboolean oldScissor = glIsEnabled(GL_SCISSOR_TEST);
++	const GLboolean oldStencil = glIsEnabled(GL_STENCIL_TEST);
++
++	int x, y, w, h;
++	GR_GetViewRect(&x, &y, &w, &h);
++
++	glViewport(0, 0, g_windowWidth, g_windowHeight);
++	glDisable(GL_DEPTH_TEST);
++	glDisable(GL_SCISSOR_TEST);
++	glDisable(GL_STENCIL_TEST);
++	glEnable(GL_BLEND);
++	glBlendEquation(GL_FUNC_ADD);
++	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
++
++	glUseProgram(prog);
++	glUniform4f(rectLoc, (float)x, (float)y, (float)w, (float)h);
++	glUniform2f(paramsLoc, activeDispEnv.disp.h > 0 ? (float)activeDispEnv.disp.h : 240.0f, 0.4f);
++	glBindVertexArray(vao);
++	glDrawArrays(GL_TRIANGLES, 0, 3);
++
++	glBindVertexArray(oldVao);
++	glUseProgram(oldProg);
++	glBlendEquationSeparate(oldEqRgb, oldEqA);
++	glBlendFuncSeparate(oldSrcRgb, oldDstRgb, oldSrcA, oldDstA);
++	if (!oldBlend) glDisable(GL_BLEND);
++	if (oldDepth) glEnable(GL_DEPTH_TEST);
++	if (oldScissor) glEnable(GL_SCISSOR_TEST);
++	if (oldStencil) glEnable(GL_STENCIL_TEST);
++#endif
++}
++
++// ---- the host overlay (include/PsyX/PsyX_overlay.h) ----
++// Signed-distance shapes inside a rectangle, drawn as a four-vertex strip with the finished frame's alpha blending.
++// The shader gets everything in uniforms: no textures, no buffers.
++static const char* overlay_shader = R"(
++	uniform vec4 u_rect;
++	uniform vec2 u_res;
++	uniform vec4 u_color;
++	uniform vec2 u_shape;
++	uniform float u_rows[7];
++	varying vec2 v_p;
++#ifdef VERTEX
++	void main() {
++		vec2 c = vec2(mod(float(gl_VertexID), 2.0), floor(float(gl_VertexID) / 2.0));
++		v_p = c * 2.0 - 1.0;
++		gl_Position = vec4((u_rect.xy + c * u_rect.zw) / u_res * 2.0 - 1.0, 0.0, 1.0);
++	}
++#endif
++#ifdef FRAGMENT
++	float seg(vec2 p, vec2 a, vec2 b) {
++		vec2 pa = p - a, ba = b - a;
++		float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
++		return length(pa - ba * h);
++	}
++	float tri(vec2 p, vec2 a, vec2 b, vec2 c) {
++		vec2 e0 = b - a, e1 = c - b, e2 = a - c;
++		vec2 v0 = p - a, v1 = p - b, v2 = p - c;
++		vec2 p0 = v0 - e0 * clamp(dot(v0, e0) / dot(e0, e0), 0.0, 1.0);
++		vec2 p1 = v1 - e1 * clamp(dot(v1, e1) / dot(e1, e1), 0.0, 1.0);
++		vec2 p2 = v2 - e2 * clamp(dot(v2, e2) / dot(e2, e2), 0.0, 1.0);
++		float s = sign(e0.x * e2.y - e0.y * e2.x);
++		vec2 d = min(min(vec2(dot(p0, p0), s * (v0.x * e0.y - v0.y * e0.x)),
++		                 vec2(dot(p1, p1), s * (v1.x * e1.y - v1.y * e1.x))),
++		             vec2(dot(p2, p2), s * (v2.x * e2.y - v2.y * e2.x)));
++		return -sqrt(d.x) * sign(d.y);
++	}
++	void main() {
++		vec2 half_ = 0.5 * u_rect.zw;
++		vec2 p = v_p * half_;
++		float k = u_shape.x;
++		float w = u_shape.y;
++		float R = min(half_.x, half_.y);
++		float d = 1.0;
++		if (k < 0.5) {
++			d = length(p) - R;
++		} else if (k < 1.5) {
++			d = abs(length(p) - (R - 0.5 * w)) - 0.5 * w;
++		} else if (k < 2.5) {
++			vec2 q = abs(p) - half_ + R;
++			d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - R;
++		} else if (k < 3.5) {
++			float a = R * 0.5;
++			d = min(seg(p, vec2(-a, -a), vec2(a, a)), seg(p, vec2(-a, a), vec2(a, -a))) - 0.5 * w;
++		} else if (k < 4.5) {
++			float r = R * 0.55;
++			vec2 a = vec2(0.0, r), b = vec2(-0.866 * r, -0.5 * r), c = vec2(0.866 * r, -0.5 * r);
++			d = min(min(seg(p, a, b), seg(p, b, c)), seg(p, c, a)) - 0.5 * w;
++		} else if (k < 5.5) {
++			float s = R * 0.48;
++			d = abs(max(abs(p.x), abs(p.y)) - s) - 0.5 * w;
++		} else if (k < 6.5) {
++			d = abs(length(p) - R * 0.5) - 0.5 * w;
++		} else if (k < 7.5) {
++			float r = R * 0.55;
++			d = tri(p, vec2(r, 0.0), vec2(-0.5 * r, 0.866 * r), vec2(-0.5 * r, -0.866 * r));
++		} else if (k < 8.5) {
++			vec2 q1 = abs(p - vec2(0.0, half_.y * 0.38)) - vec2(half_.x * 0.55, half_.y * 0.1);
++			vec2 q2 = abs(p + vec2(0.0, half_.y * 0.38)) - vec2(half_.x * 0.55, half_.y * 0.1);
++			d = min(length(max(q1, 0.0)) + min(max(q1.x, q1.y), 0.0), length(max(q2, 0.0)) + min(max(q2.x, q2.y), 0.0));
++		} else {
++			vec2 g = vec2(v_p.x * 0.5 + 0.5, 0.5 - v_p.y * 0.5) * vec2(5.0, 7.0);
++			float col = floor(g.x), row = floor(g.y);
++			d = 1.0;
++			if (col >= 0.0 && col < 5.0 && row >= 0.0 && row < 7.0) {
++				float bits = u_rows[int(row)];
++				float on = mod(floor(bits / exp2(4.0 - col)), 2.0);
++				d = on > 0.5 ? -1.0 : 1.0;
++			}
++		}
++		float a = clamp(0.5 - d, 0.0, 1.0);
++		if (a <= 0.0)
++			discard;
++		fragColor = vec4(u_color.rgb, u_color.a * a);
++	}
++#endif
++)";
++
++static PsyXOverlayHook g_overlayHook = NULL;
++static int g_overlayActive = 0;
++static ShaderID g_overlayProg = 0;
++static GLint g_overlayLoc[5];
++
++void PsyX_SetOverlayHook(PsyXOverlayHook hook)
++{
++	g_overlayHook = hook;
++}
++
++void PsyX_GetViewRect(int* x, int* y, int* w, int* h)
++{
++	int gx, gy, gw, gh;
++	GR_GetViewRect(&gx, &gy, &gw, &gh);
++	*x = gx;
++	*w = gw;
++	*h = gh;
++	*y = g_windowHeight - (gy + gh); // GL origin is the bottom left
++}
++
++void PsyX_OverlayShape(const PsyXOverlayShape* shape)
++{
++#if USE_OPENGL
++	if (!g_overlayActive || !shape)
++		return;
++	float rows[7];
++	for (int i = 0; i < 7; i++)
++		rows[i] = (float)shape->rows[i];
++	glUniform4f(g_overlayLoc[0], shape->x, (float)g_windowHeight - (shape->y + shape->h), shape->w, shape->h);
++	glUniform4f(g_overlayLoc[2], shape->r, shape->g, shape->b, shape->a);
++	glUniform2f(g_overlayLoc[3], (float)shape->kind, shape->param);
++	if (g_overlayLoc[4] >= 0)
++		glUniform1fv(g_overlayLoc[4], 7, rows);
++	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+ #endif
++}
++
++void PsyX_OverlayRun(void)
++{
++#if USE_OPENGL
++	static GLuint vao = 0;
++
++	if (!g_overlayHook)
++		return;
++
++	if (!g_overlayProg)
++	{
++		g_overlayProg = GR_Shader_Compile(overlay_shader, false);
++		g_overlayLoc[0] = glGetUniformLocation(g_overlayProg, "u_rect");
++		g_overlayLoc[1] = glGetUniformLocation(g_overlayProg, "u_res");
++		g_overlayLoc[2] = glGetUniformLocation(g_overlayProg, "u_color");
++		g_overlayLoc[3] = glGetUniformLocation(g_overlayProg, "u_shape");
++		g_overlayLoc[4] = glGetUniformLocation(g_overlayProg, "u_rows");
++		glGenVertexArrays(1, &vao);
++	}
+ 
++	// save what is touched, so the cached state of the other draws stays true
++	GLint oldProg, oldVao, oldSrcRgb, oldDstRgb, oldSrcA, oldDstA, oldEqRgb, oldEqA, oldVp[4];
++	glGetIntegerv(GL_CURRENT_PROGRAM, &oldProg);
++	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &oldVao);
++	glGetIntegerv(GL_BLEND_SRC_RGB, &oldSrcRgb);
++	glGetIntegerv(GL_BLEND_DST_RGB, &oldDstRgb);
++	glGetIntegerv(GL_BLEND_SRC_ALPHA, &oldSrcA);
++	glGetIntegerv(GL_BLEND_DST_ALPHA, &oldDstA);
++	glGetIntegerv(GL_BLEND_EQUATION_RGB, &oldEqRgb);
++	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &oldEqA);
++	glGetIntegerv(GL_VIEWPORT, oldVp);
++	const GLboolean oldBlend = glIsEnabled(GL_BLEND);
++	const GLboolean oldDepth = glIsEnabled(GL_DEPTH_TEST);
++	const GLboolean oldScissor = glIsEnabled(GL_SCISSOR_TEST);
++	const GLboolean oldStencil = glIsEnabled(GL_STENCIL_TEST);
++
++	glViewport(0, 0, g_windowWidth, g_windowHeight);
++	glDisable(GL_DEPTH_TEST);
++	glDisable(GL_SCISSOR_TEST);
++	glDisable(GL_STENCIL_TEST);
++	glEnable(GL_BLEND);
++	glBlendEquation(GL_FUNC_ADD);
++	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
++
++	glUseProgram(g_overlayProg);
++	glUniform2f(g_overlayLoc[1], (float)g_windowWidth, (float)g_windowHeight);
++	glBindVertexArray(vao);
++
++	g_overlayActive = 1;
++	g_overlayHook();
++	g_overlayActive = 0;
++
++	glBindVertexArray(oldVao);
++	glUseProgram(oldProg);
++	glBlendEquationSeparate(oldEqRgb, oldEqA);
++	glBlendFuncSeparate(oldSrcRgb, oldDstRgb, oldSrcA, oldDstA);
++	glViewport(oldVp[0], oldVp[1], oldVp[2], oldVp[3]);
++	if (!oldBlend) glDisable(GL_BLEND);
++	if (oldDepth) glEnable(GL_DEPTH_TEST);
++	if (oldScissor) glEnable(GL_SCISSOR_TEST);
++	if (oldStencil) glEnable(GL_STENCIL_TEST);
+ #endif
+ }
+ 
+@@ -1799,6 +2225,35 @@ void GR_SetBlendMode(BlendMode blendMode)
+ 	g_PreviousBlendMode = blendMode;
+ }
+ 
++/* T32: per-texel PS1 transparency. The real GPU lets the CLUT entry's bit 15
++   (STP) decide, per texel, whether a semi-transparent primitive blends or
++   draws opaque. PsyX already decodes bit 15 into the fragment alpha (0.5 STP,
++   1.0 non-STP) but blending for ADD/SUBTRACT ignores alpha, so every texel
++   blends. The caller splits the draw in two passes: pass 1 (blend off) draws
++   the non-STP texels opaque, pass 2 draws the STP texels with the equation
++   on. Pass 0 restores the plain single-pass behaviour. */
++void GR_SetStpPass(int pass)
++{
++#if USE_OPENGL
++	if (u_stpPassLoc != -1)
++		glUniform1f(u_stpPassLoc, (float)pass);
++
++	if (pass == 1)
++	{
++		if (g_stpBlendDisabled == 0)
++		{
++			glDisable(GL_BLEND);
++			g_stpBlendDisabled = 1;
++		}
++	}
++	else if (g_stpBlendDisabled != 0)
++	{
++		glEnable(GL_BLEND);
++		g_stpBlendDisabled = 0;
++	}
++#endif
++}
++
+ void GR_SetPolygonOffset(float ofs)
+ {
+ #if USE_OPENGL

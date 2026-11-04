@@ -1,0 +1,173 @@
+{
+ "file": "SSASKMAP.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "G-018 G-029",
+   "text": "Arena Legendaria"
+  },
+  {
+   "index": 4,
+   "note": "G-051",
+   "text": "Montaña de Nieve"
+  },
+  {
+   "index": 6,
+   "note": "G-018",
+   "text": "Ciudad Genbu"
+  },
+  {
+   "index": 9,
+   "note": "G-018",
+   "text": "Agujero Kulon"
+  },
+  {
+   "index": 10,
+   "note": "G-051",
+   "text": "Montaña de Bota"
+  },
+  {
+   "index": 11,
+   "note": "G-018 L6",
+   "text": "Posada de la Montaña"
+  },
+  {
+   "index": 12,
+   "note": "G-018 G-051",
+   "text": "Posada del Bosque"
+  },
+  {
+   "index": 13,
+   "note": "G-018 G-051",
+   "text": "Posada del Pantano"
+  },
+  {
+   "index": 14,
+   "note": "G-018",
+   "text": "Ruinas Protocolo\nBosque Protocolo"
+  },
+  {
+   "index": 16,
+   "note": "G-051",
+   "text": "Valle de Tyranno"
+  },
+  {
+   "index": 17,
+   "note": "G-051",
+   "text": "Valle de Balas"
+  },
+  {
+   "index": 18,
+   "note": "G-018",
+   "text": "Cabo Conexión"
+  },
+  {
+   "index": 20,
+   "note": "G-018",
+   "text": "Ciudad Asuka"
+  },
+  {
+   "index": 21,
+   "note": "G-018",
+   "text": "Bosque Alambre"
+  },
+  {
+   "index": 22,
+   "note": "G-018",
+   "text": "Entrada Alambre"
+  },
+  {
+   "index": 23,
+   "note": "G-051",
+   "text": "Lago de Divermon"
+  },
+  {
+   "index": 24,
+   "note": "G-018",
+   "text": "Llanura Viento"
+  },
+  {
+   "index": 25,
+   "note": "G-018 G-051",
+   "text": "Bosque de las Patadas"
+  },
+  {
+   "index": 27,
+   "note": "G-041",
+   "text": "Desierto Norte Este"
+  },
+  {
+   "index": 29,
+   "note": "G-041",
+   "text": "Desierto Norte Oeste"
+  },
+  {
+   "index": 33,
+   "note": "G-018",
+   "text": "Playa de Conchas"
+  },
+  {
+   "index": 34,
+   "note": "G-018",
+   "text": "Ciudad Byakko"
+  },
+  {
+   "index": 35,
+   "note": "G-018",
+   "text": "Desierto Ruido"
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Santuario Jungla"
+  },
+  {
+   "index": 37,
+   "note": "G-051",
+   "text": "Casa del Chamán"
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Pantano Bios"
+  },
+  {
+   "index": 39,
+   "note": "G-051",
+   "text": "Torre de Delirios"
+  },
+  {
+   "index": 40,
+   "note": "G-018",
+   "text": "Desierto Mobius"
+  },
+  {
+   "index": 42,
+   "note": "G-018",
+   "text": "Ciudad Suzaku"
+  },
+  {
+   "index": 43,
+   "note": "G-018",
+   "text": "Pantano Yermo\nPuente Yermo"
+  },
+  {
+   "index": 44,
+   "note": "G-018 G-035",
+   "text": "Pantano Sereno"
+  },
+  {
+   "index": 45,
+   "note": "G-051",
+   "text": "Tumba de la Selva"
+  },
+  {
+   "index": 46,
+   "note": "G-051",
+   "text": "Bahía de Fénix"
+  }
+ ]
+}

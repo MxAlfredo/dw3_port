@@ -1,0 +1,148 @@
+{
+ "file": "SSCRDDEK.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 2,
+   "note": "G-042",
+   "text": "Carpeta Moderna Digimon"
+  },
+  {
+   "index": 5,
+   "note": "G-042 G-047",
+   "text": "Carpeta Patamon Maravillosa"
+  },
+  {
+   "index": 7,
+   "note": "G-036",
+   "text": "Carpeta Madre Natura"
+  },
+  {
+   "index": 10,
+   "note": "G-042",
+   "text": "Carpeta Animal Acuático"
+  },
+  {
+   "index": 17,
+   "note": "G-042",
+   "text": "Carpeta Programa Novicio"
+  },
+  {
+   "index": 18,
+   "note": "G-020 G-042",
+   "text": "Carpeta Tamer Veterano"
+  },
+  {
+   "index": 34,
+   "note": "G-042",
+   "text": "Carpeta Programa Veterano"
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Carpeta Ataque Total"
+  },
+  {
+   "index": 37,
+   "note": "G-018",
+   "text": "Carpeta Guardia Total"
+  },
+  {
+   "index": 41,
+   "note": "G-042",
+   "text": "Maestro Verde Amaterasu"
+  },
+  {
+   "index": 42,
+   "note": "G-042",
+   "text": "Maestro Negro Amaterasu"
+  },
+  {
+   "index": 43,
+   "note": "G-042",
+   "text": "Maestro Blanco Amaterasu"
+  },
+  {
+   "index": 45,
+   "note": "G-042",
+   "text": "Carpeta Ataque Completo"
+  },
+  {
+   "index": 47,
+   "note": "G-042",
+   "text": "Carpeta Programa Marrón"
+  },
+  {
+   "index": 48,
+   "note": "G-042 G-047",
+   "text": "Carpeta Potenciadora"
+  },
+  {
+   "index": 49,
+   "note": "G-042",
+   "text": "Carpeta Esperanza Alada"
+  },
+  {
+   "index": 50,
+   "note": "G-042",
+   "text": "Carpeta Desfile Digimon"
+  },
+  {
+   "index": 51,
+   "note": "G-042",
+   "text": "Carpeta Destructor de Mazo"
+  },
+  {
+   "index": 52,
+   "note": "G-045",
+   "text": "Carpeta Solo Programa"
+  },
+  {
+   "index": 55,
+   "note": "G-042",
+   "text": "Carpeta de Gran Invocación"
+  },
+  {
+   "index": 56,
+   "note": "G-042",
+   "text": "Carpeta Digimon Raros"
+  },
+  {
+   "index": 58,
+   "note": "G-042",
+   "text": "Carpeta Mal Oceánico"
+  },
+  {
+   "index": 59,
+   "note": "G-042",
+   "text": "Carpeta Guardia Perfecta"
+  },
+  {
+   "index": 63,
+   "note": "G-042",
+   "text": "Carpeta Fuerza Monstruo"
+  },
+  {
+   "index": 70,
+   "note": "G-042",
+   "text": "Carpeta Falsa Negra"
+  },
+  {
+   "index": 71,
+   "note": "G-042",
+   "text": "Carpeta Falsa Blanca"
+  },
+  {
+   "index": 77,
+   "note": "L6",
+   "text": "Carpeta Guardián Fuego"
+  },
+  {
+   "index": 79,
+   "note": "G-042",
+   "text": "Emperatriz Resplandeciente"
+  }
+ ]
+}

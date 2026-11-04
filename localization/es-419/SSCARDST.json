@@ -1,0 +1,153 @@
+{
+ "file": "SSCARDST.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 2,
+   "note": "L6",
+   "text": "Lleva 2 Angemon al \ncampo en la Compilación."
+  },
+  {
+   "index": 6,
+   "note": "L6",
+   "text": "Llama a Patamon al\ncampo en la Compilación."
+  },
+  {
+   "index": 7,
+   "note": "G-018",
+   "text": "Devuelve Digimon no azules\nen cada Mano."
+  },
+  {
+   "index": 8,
+   "note": "G-018",
+   "text": "Saca 1 Digimon del campo\ndel oponente."
+  },
+  {
+   "index": 12,
+   "note": "L6",
+   "text": "Llama a Gomamon al\ncampo en la Compilación."
+  },
+  {
+   "index": 14,
+   "note": "G-036",
+   "text": "Recupera 1 Carta de la\npapelera a la Mano. 1 uso."
+  },
+  {
+   "index": 18,
+   "note": "L6",
+   "text": "Llama a Palmon al\ncampo en la Compilación."
+  },
+  {
+   "index": 24,
+   "note": "L6",
+   "text": "Llama a Goburimon al\ncampo en la Compilación."
+  },
+  {
+   "index": 25,
+   "note": "G-018 G-042",
+   "text": "Todas las Cartas no negras\nde la Mano oponente a la papelera."
+  },
+  {
+   "index": 28,
+   "note": "G-042",
+   "text": "Pon una Carta de Mano de\noponente en la papelera."
+  },
+  {
+   "index": 30,
+   "note": "L6",
+   "text": "Llama a Devimon al\ncampo en la Compilación."
+  },
+  {
+   "index": 32,
+   "note": "G-018",
+   "text": "Intercambia el total PA y PV\nde ambos jugadores."
+  },
+  {
+   "index": 36,
+   "note": "G-026",
+   "text": "Devuelve las Cartas de la\npapelera al Mazo."
+  },
+  {
+   "index": 40,
+   "note": "G-042 G-044 L6",
+   "text": "Llama a un Digimon de la Mano\nal campo en la Fase de Compilación."
+  },
+  {
+   "index": 45,
+   "note": "G-042",
+   "text": "Saca una Carta del Mazo y\npon 1 de la Mano en la papelera."
+  },
+  {
+   "index": 49,
+   "note": "G-018",
+   "text": "Pon 1 Digimon Marrón de la\nMano rival en la papelera."
+  },
+  {
+   "index": 50,
+   "note": "L6",
+   "text": "Llama a 2 Hagurumon al \ncampo en la Compilación."
+  },
+  {
+   "index": 51,
+   "note": "G-042",
+   "text": "Resta 2 puntos de la \nS-Energía Blanca del oponente."
+  },
+  {
+   "index": 52,
+   "note": "G-042 L6",
+   "text": "Resta 2 puntos de la \nS-Energía Azul del oponente."
+  },
+  {
+   "index": 53,
+   "note": "G-042",
+   "text": "Resta 2 puntos de la \nS-Energía Verde del oponente."
+  },
+  {
+   "index": 54,
+   "note": "G-042",
+   "text": "Resta 2 puntos de la \nS-Energía Roja del oponente."
+  },
+  {
+   "index": 55,
+   "note": "G-042",
+   "text": "Resta 2 puntos de la \nS-Energía Negra del oponente."
+  },
+  {
+   "index": 58,
+   "note": "L6",
+   "text": "Pon un Digimon Marrón del \ncampo en la papelera."
+  },
+  {
+   "index": 60,
+   "note": "G-026",
+   "text": "PA +10 a un Digimon."
+  },
+  {
+   "index": 69,
+   "note": "G-044",
+   "text": "PA y PV = 20x número\nde tu Digimon en el campo."
+  },
+  {
+   "index": 112,
+   "note": "G-018 G-042",
+   "text": "Añade 10x el número de Cartas\nde tu Mano al PA y PV."
+  },
+  {
+   "index": 155,
+   "note": "G-026 G-018 G-042",
+   "text": "Añade 20x el número de Cartas\nde la papelera a PA y PV."
+  },
+  {
+   "index": 198,
+   "note": "G-026 G-042",
+   "text": "PA y PV = 10x número\nde Digimon en todos los campos."
+  },
+  {
+   "index": 241,
+   "note": "G-026 G-018",
+   "text": "Añade 10x número de Cartas\nen la papelera a PA y PV."
+  }
+ ]
+}

@@ -1,0 +1,103 @@
+{
+ "file": "SSDGLABO.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 10,
+   "note": "G-018",
+   "text": "Aún no puede cargar técnica."
+  },
+  {
+   "index": 11,
+   "note": "G-018",
+   "text": "No puede cargar la técnica."
+  },
+  {
+   "index": 15,
+   "note": "G-018",
+   "text": "OK"
+  },
+  {
+   "index": 17,
+   "note": "G-042",
+   "text": "Cargar"
+  },
+  {
+   "index": 20,
+   "note": "L6",
+   "text": "Botón {012f}: Detalles"
+  },
+  {
+   "index": 24,
+   "note": "G-018",
+   "text": "¿Cambiar a quién?"
+  },
+  {
+   "index": 25,
+   "note": "G-018",
+   "text": "¿Ver digievolución de quién?"
+  },
+  {
+   "index": 26,
+   "note": "G-018",
+   "text": "¿Ver tabla de quién?"
+  },
+  {
+   "index": 29,
+   "note": "G-018",
+   "text": "¿Cambiar con quién?"
+  },
+  {
+   "index": 30,
+   "note": "G-018",
+   "text": "No puede digievolucionar."
+  },
+  {
+   "index": 31,
+   "note": "G-018",
+   "text": "Elegir digievolución."
+  },
+  {
+   "index": 33,
+   "note": "G-018",
+   "text": "Cambiar digievolución."
+  },
+  {
+   "index": 34,
+   "note": "G-018",
+   "text": "Cargar técnica."
+  },
+  {
+   "index": 36,
+   "note": "G-018",
+   "text": "Digievolución bloqueada"
+  },
+  {
+   "index": 37,
+   "note": "G-018",
+   "text": "No puede cargar técnica."
+  },
+  {
+   "index": 38,
+   "note": "G-018",
+   "text": "Elegir una técnica."
+  },
+  {
+   "index": 39,
+   "note": "G-018",
+   "text": "{0205} &igievolución"
+  },
+  {
+   "index": 43,
+   "note": "G-042",
+   "text": "Digievolución de Batalla desactivada. Selecciona Digievolución de Batalla."
+  },
+  {
+   "index": 44,
+   "note": "G-018",
+   "text": "No configurar."
+  }
+ ]
+}

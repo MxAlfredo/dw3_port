@@ -1,0 +1,1268 @@
+{
+ "file": "SSTALK09.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 6,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un\nColmillo Sable.{fin}"
+  },
+  {
+   "index": 11,
+   "note": "G-035",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un Chip\nSabio.{fin}"
+  },
+  {
+   "index": 12,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un\nColmillo Veneno.{fin}"
+  },
+  {
+   "index": 13,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un\nCañón Láser.{fin}"
+  },
+  {
+   "index": 16,
+   "note": "G-035",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un Brazo\nCiclón.{fin}"
+  },
+  {
+   "index": 17,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo un Ticket Dorado.{fin}"
+  },
+  {
+   "index": 19,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo una\nKatana Oxidada.{fin}"
+  },
+  {
+   "index": 20,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien!\nTengo una\nVarita Vieja.{fin}"
+  },
+  {
+   "index": 21,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Mira nada más! ¿Pero\nno es {0208}{0102}1{01e6}{pagina}Me encanta que\npodamos jugar\nuna vez más.{fin}"
+  },
+  {
+   "index": 22,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Como tenemos\nesta oportunidad,\n¿qué tal una batalla{pagina}de cartas? Eres\nun oponente digno.{fin}"
+  },
+  {
+   "index": 23,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Oh!\n¡Gané!\n¡Gracias!{pagina}Estaré aquí\nsiempre que quieras\njugar de nuevo.{fin}"
+  },
+  {
+   "index": 24,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Oh!\n¡Perdí!\nDe veras eres increíble,{pagina}{0208}{0102}1 1 No tengo\nninguna oportunidad\ncontra ti.{fin}"
+  },
+  {
+   "index": 25,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Tamer Peter{hablante}Así que eres\nel que derrotó a la\nA.o.A.{pagina}¡Pff! No me pareces\ntan especial.{fin}"
+  },
+  {
+   "index": 26,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Peter{hablante}Bien, veamos\nqué es lo que\ntienes.{pagina}¡Prepárate para\nun duelo de cartas!{fin}"
+  },
+  {
+   "index": 27,
+   "note": "G-020 L6",
+   "text": "{hablante}Tamer Peter{hablante}¡Pff! ¿Eso es\ntodo lo\nque tienes?{pagina}¿Eres de verdad\nel que venció\na la A.o.A.?{fin}"
+  },
+  {
+   "index": 28,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Peter{hablante}Me rindo. Eres tal\ncomo dicen los\nrumores.{pagina}Pero ten cuidado: hay\ntipos más fuertes\nen este lugar.{fin}"
+  },
+  {
+   "index": 29,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Tamer Mitsuko{hablante}¡No puede ser!\nEres {0208}{0102}1 0 ¿verdad?{pagina}¡Soy tu fan número\nuno! ¡Ay, creo que\nme desmayo!{fin}"
+  },
+  {
+   "index": 30,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mitsuko{hablante}Ya que tenemos un\nmomento, ¿jugarías\na las cartas conmigo?{fin}"
+  },
+  {
+   "index": 31,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mitsuko{hablante}Eso es muy propio\nde ti, {0208}{0102}1 1{pagina}Dejar ganar a una\nanciana como yo.\n¡Eres todo un{pagina}caballero! ¡Te\nadoro aún más!{fin}"
+  },
+  {
+   "index": 32,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mitsuko{hablante}Eso es muy propio\nde ti, {0208}{0102}1 1\n¡Eres tan{pagina}fuerte! ¡Te adoro\naún más!{fin}"
+  },
+  {
+   "index": 33,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mitsuko{hablante}¡Qué bien que Digimon\nOnline haya vuelto!\nAhora puedo jugar{pagina}sin tener que\npreocuparme\npor nada.{fin}"
+  },
+  {
+   "index": 34,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mai{hablante}Ya que tenemos\nun momento,\n¿qué tal una batalla?{pagina}¡Antes no tenía\ntiempo de jugar\na las cartas!{fin}"
+  },
+  {
+   "index": 35,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mai{hablante}¿Y bien? Increíble\nmi habilidad, ¿no?\nEn realidad, he{pagina}entrenado en\nsecreto desde la\núltima vez.{fin}"
+  },
+  {
+   "index": 36,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Mai{hablante}¡Vaya, qué fuerte\neres para ser niño!{pagina}¡Esto no puede ser!\n¡Tengo que hacerme\nmás fuerte!{fin}"
+  },
+  {
+   "index": 37,
+   "note": "G-010 G-017 G-020 G-026",
+   "text": "{hablante}Tamer George{hablante}Vaya, qué chasco.\n¿Dónde están los\ntamers DE VERDAD?{pagina}Desde que entré no he\nhecho más que aburrirme.{fin}"
+  },
+  {
+   "index": 38,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer George{hablante}¿Qué miras?\n¿Quieres jugar\nconmigo?{pagina}¡Ja! Muy bien,\nveamos de qué\nestás hecho, chico.{fin}"
+  },
+  {
+   "index": 39,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer George{hablante}¿Eso es todo lo que\ntienes? ¡Pff! ¡Fuera\nde mi vista!{pagina}¡Regresa al kínder,\nque es donde\nperteneces!{fin}"
+  },
+  {
+   "index": 40,
+   "note": "G-008 G-020 G-026",
+   "text": "{hablante}Tamer George{hablante}¡Sí! ¡ESO sí fue una\nbatalla! Perdí, pero\nya no estoy aburrido.{pagina}Oye, tenemos que\njugar alguna otra\nvez. ¿De acuerdo?{fin}"
+  },
+  {
+   "index": 41,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Masato{hablante}¡Hoy Tomomi y yo\nnos conectamos\njuntos!{pagina}¡Y ahora estamos\ncompitiendo entre\nnosotros!{fin}"
+  },
+  {
+   "index": 42,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Masato{hablante}Competimos para\nver quién derrota a\nmás tamers.{pagina}Así que no te lo\ntomes a mal si\nte gano.{fin}"
+  },
+  {
+   "index": 43,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Masato{hablante}¡Ah, claro! Puede que\ntodavía no pueda\nvencer a Tomomi.{pagina}Es más fuerte que\nyo, y eso es\nvergonzoso...{pagina}¡porque soy hombre!{fin}"
+  },
+  {
+   "index": 44,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Masato{hablante}¡Oh, no! Yo...\n¡Perdí!{pagina}¡Esto es horrible!\n¡Tomomi me va a\ndejar!{fin}"
+  },
+  {
+   "index": 45,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alexei{hablante}Cuando me convirtieron\nen Oinkmon, juré a\nlos dioses que si{pagina}volvía a ser humano,\ndejaría de beber.{fin}"
+  },
+  {
+   "index": 46,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alexei{hablante}Je je je. Muy bien,\nchico, prepárate para\ncontemplar el poder{pagina}de mí... ¡sobrio!{fin}"
+  },
+  {
+   "index": 47,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alexei{hablante}¡Ja ja ja! ¿Ya\ntuviste suficiente?{pagina}¡Nadie volverá a\nllamarme Alexei\nel Alcohólico!{fin}"
+  },
+  {
+   "index": 48,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alexei{hablante}¡Agh! ¡No lo\nsoporto! Necesito\nun traguito...{pagina}¡No, no puedo!\n¡Juré que no\nbebería más!{fin}"
+  },
+  {
+   "index": 49,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Tomomi{hablante}¡Hoy me conecté\ncon Masato! Estamos\ncompitiendo para ver{pagina}quién derrota a más\ntamers.{fin}"
+  },
+  {
+   "index": 50,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Tomomi{hablante}Anda, ayúdame.\n¡Con una partida de\ncartas me basta!{fin}"
+  },
+  {
+   "index": 51,
+   "note": "G-020",
+   "text": "{hablante}Tamer Tomomi{hablante}¡Sí!\n¡Gracias!{pagina}Ahora presumiré\nde esto ante\nMasato.{fin}"
+  },
+  {
+   "index": 52,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Tomomi{hablante}Bueno, perdí. La\nverdad es que no me\nimporta mucho{pagina}esta competencia.\nSolo quería jugar\npor mi cuenta.{fin}"
+  },
+  {
+   "index": 53,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Akiba{hablante}¡Lalalalalala!\n¡Soy Akiba, el\ntamer alegre!{pagina}¡Volví a\nDigimon Online!\n¡Lalalalalala!{fin}"
+  },
+  {
+   "index": 54,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Akiba{hablante}Sería maravilloso\npoder jugar una{pagina}partida de cartas.\n¿Qué dices?{fin}"
+  },
+  {
+   "index": 55,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Akiba{hablante}Sí, soy increíble.\nTe derroté, así es.\n¡Lalalalalala!{pagina}Por eso nunca podré\ndejar Digimon\nOnline.{fin}"
+  },
+  {
+   "index": 56,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Akiba{hablante}¡Es horrible!\nP-Perdí...\nCreo que estoy{pagina}en shock. ¡Hoy ya\nno puedo cantar\nmás!{fin}"
+  },
+  {
+   "index": 57,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gon{hablante}¡Aah! Justo cuando\nme escondí, ¡alguien\nme encontró!{pagina}¡Uy! Hay hábitos\nque cuesta dejar.{fin}"
+  },
+  {
+   "index": 58,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gon{hablante}En efecto, eso fue\nbastante\nvergonzoso.{pagina}¿Qué tal si lo\ncompenso con una\npartida de cartas?{fin}"
+  },
+  {
+   "index": 59,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gon{hablante}En efecto, gané.\n¡Lo siento!\nEspera un momento.{pagina}¡La culpa es tuya\npor no entrenar\nlo suficiente!{fin}"
+  },
+  {
+   "index": 60,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Gon{hablante}En efecto, eres muy\npoderoso. Me siento\na salvo sabiendo que{pagina}hay tamers fuertes\ncomo tú por aquí.{fin}"
+  },
+  {
+   "index": 61,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Wan{hablante}Sabía que Digimon\nOnline volvería a\nfuncionar. Qué bien{pagina}que Ratón Suerte,\ndigo, Kurt, lo haya\nreactivado.{fin}"
+  },
+  {
+   "index": 62,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Wan{hablante}¿Qué tal una partida\nde cartas? ¡No me\ncontendré!{fin}"
+  },
+  {
+   "index": 63,
+   "note": "G-020",
+   "text": "{hablante}Tamer Wan{hablante}Perdóname por\nganar.{pagina}¿Qué ocurrió?\n¿Te encuentras \nbien hoy?{fin}"
+  },
+  {
+   "index": 64,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Wan{hablante}¡Increíble! Eres\ntan fuerte como\ndecían.{pagina}Luchar contigo es\ntodo un aprendizaje.{fin}"
+  },
+  {
+   "index": 65,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Kenny{hablante}Ey, {0208}{0102}1{0102}{0120}oy yo, ¡Kenny!\n¿Cómo has estado?{pagina}¡Lo que hiciste hace\nun tiempo fue\nincreíble!{fin}"
+  },
+  {
+   "index": 66,
+   "note": "G-020",
+   "text": "{hablante}Tamer Kenny{hablante}Hacía tiempo.\n¿Una partida de\ncartas?{fin}"
+  },
+  {
+   "index": 67,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Kenny{hablante}¡Bien!\n¡Vencí a {0208}{0102}1{01e7}{pagina}¡Oh, sí! ¡Se lo voy\na contar a todos!{fin}"
+  },
+  {
+   "index": 68,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Kenny{hablante}¡Eres tan increíble\ncomo siempre,\n{0208}{0102}1{01e7}{pagina}¡Algún día quiero\nser tan fuerte\ncomo tú!{fin}"
+  },
+  {
+   "index": 69,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Jessica{hablante}De verdad, este es\nun mundo muy\ndivertido.{pagina}¡Podría quedarme\naquí para siempre!{fin}"
+  },
+  {
+   "index": 70,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Jessica{hablante}¿Qué te parece?\n¿Una partida,\nhijito?{pagina}No te contengas\nporque sea vieja.\n¡Jejejejejeje!{fin}"
+  },
+  {
+   "index": 71,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Jessica{hablante}Ay, me siento mal\npor ganarte. Pero no\ntienes ni de cerca{pagina}tanta experiencia\ncomo yo en las\ncartas.{fin}"
+  },
+  {
+   "index": 72,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Jessica{hablante}Cielos, ¡de verdad\neres bueno en esto!\nTengo ganas de{pagina}ver lo fuerte que\nllegarás a ser.\n¡Jeeejejejejeje!{fin}"
+  },
+  {
+   "index": 73,
+   "note": "G-020 G-026 G-022 L6",
+   "text": "{hablante}Tamer Haruko{hablante}¿Mm? Oye, tú eres\nel que derrotó a la\nA.o.A., ¿verdad?{pagina}¡Wow! ¡Un solo tamer\nsalvó al mundo\nentero!{fin}"
+  },
+  {
+   "index": 74,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruko{hablante}Siempre quise una\nbatalla contra ti.{pagina}¿Qué tal si le\ncumples su sueño a\nesta anciana?{fin}"
+  },
+  {
+   "index": 75,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruko{hablante}¡Vaya! Te gané,\n¿verdad? Los\ntamers de hoy en día{pagina}ya no son lo que\neran antes.{fin}"
+  },
+  {
+   "index": 76,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruko{hablante}¡Ay, no, perdí!{pagina}Creo que mis días de\n\"Haruko la Chica\nJugadora\" se acabaron.{fin}"
+  },
+  {
+   "index": 77,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Catherine{hablante}¡Me llamo Catherine!\n¡Estoy tan feliz de\npoder jugar hoy!{fin}"
+  },
+  {
+   "index": 78,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Catherine{hablante}Adoro las cartas.\nSi quieres, podemos\njugar una partida.{fin}"
+  },
+  {
+   "index": 79,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Catherine{hablante}¡Sí!\n¡Gané, gané!{pagina}¡Gracias!\n¿Jugamos\notra?{fin}"
+  },
+  {
+   "index": 80,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Catherine{hablante}¡Ay, perdí!\nBueno, ni modo.\nLa próxima vez{pagina}quiero jugar\ncon mejores\ncartas.{fin}"
+  },
+  {
+   "index": 81,
+   "note": "G-006 G-012 G-017 G-026",
+   "text": "{hablante}Keith{hablante}¡Mi amigo {0208}{0102}1{01e7}\n¿Qué hay? Has llegado\nlejos, pero me temo que{pagina}tu suerte se acaba aquí.\nDeja que te explique.\nEl Rey de las Cartas,{pagina}o sea yo, ¡es perfecto!\nSoy demasiado genial\npara perder, ¿entiendes?{fin}"
+  },
+  {
+   "index": 82,
+   "note": "G-006 G-026",
+   "text": "{hablante}Keith{hablante}¿Entendiste?\nMuy bien, entonces,\n¡aquí vamos!{fin}"
+  },
+  {
+   "index": 83,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Jajajaja!\n¿Ves? Es lo que decía.\n¡Soy el Rey de las{pagina}Cartas! No tienes lo\nque se necesita\npara vencerme.{fin}"
+  },
+  {
+   "index": 84,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡No! Esto no puede\nestar pasando.{pagina}Eres absolutamente\nincreíble. Toma\nesto, es el Trofeo{pagina}KoC. La prueba\nde que venciste al\nRey de las Cartas.{pagina}Pero la batalla de\nverdad apenas empieza.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 85,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Hay que ser muy\nbueno para vencerme!\nPero hay muchos{pagina}forajidos más crueles\nallá afuera, así que\n¡cuídate las espaldas!{fin}"
+  },
+  {
+   "index": 86,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alice{hablante}Has...llegado...\nlejos. Sí...tú...\neres...fuerte.{fin}"
+  },
+  {
+   "index": 87,
+   "note": "G-020",
+   "text": "{hablante}Tamer Alice{hablante}Tú...quieres...\npasar. ¡No! {pagina}Debes...vencerme\na...las...cartas...\npara...pasar.{fin}"
+  },
+  {
+   "index": 88,
+   "note": "G-020",
+   "text": "{hablante}Tamer Alice{hablante}Gané...\nNo se puede...\npasar.{fin}"
+  },
+  {
+   "index": 89,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alice{hablante}Yo...perdí.\nMuy...bien.{fin}"
+  },
+  {
+   "index": 90,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Alice{hablante}En verdad...eres...\npoderoso. Yo...\nadmiro...eso.{fin}"
+  },
+  {
+   "index": 91,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Dime, ¿qué son las\ncartas para nosotros?{pagina}Lo he pensado largo\ny tendido, pero sin\nllegar a nada.{fin}"
+  },
+  {
+   "index": 92,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Lo siento, pero aún\nno puedo dejarte\npasar por aquí.{pagina}Si insistes,\ntendrás que\nvencerme.{fin}"
+  },
+  {
+   "index": 93,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Sí, gané a las cartas,\npero ¿de qué sirve?{pagina}Este sentimiento me\ndespierta todo tipo\nde dudas.{fin}"
+  },
+  {
+   "index": 94,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Mmm. Quizás la\nrespuesta que\nbusco está en ti.{pagina}Muy bien.\nPuedes proseguir.{fin}"
+  },
+  {
+   "index": 95,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bomujii{hablante}Así que te vas.\n¡Domina el camino\nde las cartas!{fin}"
+  },
+  {
+   "index": 96,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Pierre{hablante}Bonjour, Monsieur.\n¡Me divierto tres bien!\nPero si desea{pagina}pasar por aquí...\n¡oh, non, non!{fin}"
+  },
+  {
+   "index": 97,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Pierre{hablante}Si absolument\ninsiste, ¡deberá\nvencer a moi!{pagina}Una partida,\n¡s'il vous plait!{fin}"
+  },
+  {
+   "index": 98,
+   "note": "G-020",
+   "text": "{hablante}Tamer Pierre{hablante}¡Sacre Bleu! Estoy\nmuy apenado.{pagina}Estaré aquí si desea\nvolver a jugar.\n¡Au revoir!{fin}"
+  },
+  {
+   "index": 99,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Pierre{hablante}¡Tres bien! ¡Me\nderrotó por completo!{pagina}Muy bien, puede\npasar.{fin}"
+  },
+  {
+   "index": 100,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Pierre{hablante}¡El poder de Monsieur\nes incroyable!{pagina}Yo también me\nesforzaré para no\nperder.{fin}"
+  },
+  {
+   "index": 101,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Poemy{hablante}¡Venerable héroe!\nMás allá de aquí\nacecha el peligro.{pagina}¡Le ruego que cese\ny desista de\nsu avance!{fin}"
+  },
+  {
+   "index": 102,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Poemy{hablante}¿Insiste en pasar?\nSin embargo, yo no\npuedo abandonar mi{pagina}posición. ¡Oh, qué\ntragedia! ¡Esta es una\nhistoria de amor de{pagina}proporciones románticas!{fin}"
+  },
+  {
+   "index": 103,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Poemy{hablante}¿Qué fue eso?\n¿Dónde está el Héroe?\n¡Qué desilusión!{pagina}¿Por qué tenías que\narruinar el momento\nasí? ¡Te odio!{fin}"
+  },
+  {
+   "index": 104,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Poemy{hablante}¡Oh, qué valiente,\nHéroe!{fin}"
+  },
+  {
+   "index": 105,
+   "note": "G-020",
+   "text": "{hablante}Tamer Poemy{hablante}¡Oh, valiente Héroe!{pagina}¡Siempre pienso\nen ti!{fin}"
+  },
+  {
+   "index": 106,
+   "note": "G-020 G-031",
+   "text": "{hablante}Tamer Haruka{hablante}¡Je je je! ¡Soy\nuna tamer\ninvencible!{pagina}¡No dejaré que\nsigas adelante!{fin}"
+  },
+  {
+   "index": 107,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruka{hablante}¿Te atreves a\nretarme? No conocer\nlos propios límites{pagina}podría llamarse\nvalor, supongo.{fin}"
+  },
+  {
+   "index": 108,
+   "note": "G-020 G-026 G-031",
+   "text": "{hablante}Tamer Haruka{hablante}¡Je je je je!\n¡Contempla mi poder!\nY ahora, si ya viste{pagina}lo tonto que eres,\n¡retírate de aquí\nde inmediato!{fin}"
+  },
+  {
+   "index": 109,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Haruka{hablante}Bueno, de vez en\ncuando hay que dejar\nganar a los demás.{fin}"
+  },
+  {
+   "index": 110,
+   "note": "G-020 G-026 G-031",
+   "text": "{hablante}Tamer Haruka{hablante}Sabes que te dejé\nganar, ¿verdad?\nEsto es prueba de lo{pagina}increíblemente\nfuerte que soy.\n¡Je je je je!{fin}"
+  },
+  {
+   "index": 111,
+   "note": "G-026",
+   "text": "{hablante}Panjyamon{hablante}¡Este es un nuevo\ngimnasio de\nentrenamiento!{pagina}Si entrenas duro,\n¡seguro te harás\nmuy poderoso!{fin}"
+  },
+  {
+   "index": 112,
+   "note": "G-018",
+   "text": "{hablante}Letrero{hablante}Norte: Ciudad Amaterasu\nEste: Ciudad Qing Long{fin}"
+  },
+  {
+   "index": 113,
+   "note": "G-026",
+   "text": "{hablante}Togemon{hablante}Ojalá pronto arreglen\nlos otros servidores.{pagina}Así podré volver a ser\nrecepcionista de un\ngimnasio.{fin}"
+  },
+  {
+   "index": 115,
+   "note": "G-026 G-044 L6",
+   "text": "{hablante}Agumon{hablante}Si sigues derecho\nhacia el este,\nllegarás al{pagina}Sector Este. Pero\nseguro ya lo sabías.{fin}"
+  },
+  {
+   "index": 116,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Leomon{hablante}No bajes la guardia\nsolo por haber\nvencido a la A.o.A.{pagina}¡Un maestro tamer\nnunca descuida su\nentrenamiento!{fin}"
+  },
+  {
+   "index": 117,
+   "note": "G-031",
+   "text": "{hablante}Tai Kong Wang{hablante}Ja ja ja. Soy\nTai Kong, pescador\nextraordinario. {pagina}Me alegro de poder\nvolver a pescar así.{fin}"
+  },
+  {
+   "index": 118,
+   "note": "G-026 G-031",
+   "text": "{hablante}Tai Kong Wang{hablante}Déjame compartir\nparte de mi alegría.\nToma esta caña{pagina}de pescar. ¡Cuídala!\n¡Ahora puedes pescar\ncomo yo!{pagina}¡Ja ja ja!{fin}"
+  },
+  {
+   "index": 119,
+   "note": "G-031",
+   "text": "{hablante}Tai Kong Wang{hablante}¡Todo esto es gracias\na ti, ja ja ja!{fin}"
+  },
+  {
+   "index": 121,
+   "note": "G-026",
+   "text": "{hablante}Guilmon{hablante}Las áreas fuera de\nlos sectores Central\ny Este siguen{pagina}cerradas. ¡Pero oí\nque mejoraron la\nPlaca de Circuitos!{fin}"
+  },
+  {
+   "index": 123,
+   "note": "G-026",
+   "text": "{hablante}Chico Futbolista{hablante}¿Qué? ¿Todavía no\ntienes unas Botas\nÁrbol?{pagina}Bueno, qué más da.\nTengo un par para ti.\nAsí tú también{pagina}podrás patear árboles.\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 124,
+   "note": "G-026",
+   "text": "{hablante}Chico Futbolista{hablante}¡Intentemos completar\nnuestras colecciones\nde cartas!{fin}"
+  },
+  {
+   "index": 125,
+   "note": "G-020 G-026",
+   "text": "{hablante}Asuramon{hablante}Vaya, si es {0208}{0102}1 1\nHe oído hablar de ti.\nTe queda un largo{pagina}y duro camino por\nrecorrer antes de\nser un maestro{pagina}tamer. Para hacerte\nmás fuerte, ¡tienes\nque luchar!{fin}"
+  },
+  {
+   "index": 126,
+   "note": "G-026 L6",
+   "text": "{hablante}Maníaco Masaki{hablante}¡Digimon Online es lo\nmejor! Espero que\npronto podamos ir a{pagina}otras áreas.{fin}"
+  },
+  {
+   "index": 127,
+   "note": "G-018",
+   "text": "{hablante}Letrero{hablante}Este: Ciudad Qing Long\nOeste: Ciudad Amaterasu\nSur: Posada del Bosque{fin}"
+  },
+  {
+   "index": 128,
+   "note": "G-026",
+   "text": "{hablante}Shakkoumon{hablante}Tener Digimon Online\nde vuelta parece\nun sueño.{pagina}¡Se lo debemos a Kurt\ny su increíble equipo!{fin}"
+  },
+  {
+   "index": 129,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Zhu Que{hablante}¿Qué? ¿Tienes el\ndescaro de retarme?\nNormalmente ni te{pagina}haría caso, pero\naceptaré con una\ncondición.{pagina}Primero reúne los\n5 Artículos Épicos\nmás poderosos. No{pagina}pelearé hasta entonces.\n¿Entendido?{fin}"
+  },
+  {
+   "index": 130,
+   "note": "G-018 G-017 G-026",
+   "text": "{hablante}Líder Zhu Que{hablante}¿Qué? ¿Tienes el\ndescaro de retarme?\nAsí que tienes{pagina}los 5 Artículos Épicos\nmás poderosos. ¡No\nestás nada mal! Bien.{pagina}Muéstrame lo que\ntienes. ¡Pelearé\ncontigo ahora!{fin}"
+  },
+  {
+   "index": 131,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Zhu Que{hablante}¡Hay que ser muy\nbueno para vencerme!\nPero recuerda:{pagina}siempre hay alguien\nmejor. En cuanto\nbajes la guardia,{pagina}te meterás en\nproblemas, ¡así que\nten cuidado!{fin}"
+  },
+  {
+   "index": 132,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Bai Hu{hablante}Oh, no, otro retador.\nSin ofender, pero no\nestás listo para{pagina}pelear conmigo. Si\ninsistes, primero busca\nlos 5 Artículos Épicos{pagina}más poderosos que hay\nen este mundo. Sí,\neso estará bien.{fin}"
+  },
+  {
+   "index": 133,
+   "note": "G-020 G-018 G-017 G-026",
+   "text": "{hablante}Líder Bai Hu{hablante}Oh, no, otro retador.\n¿Mm? ¿No serán esos\nlos 5 Artículos Épicos{pagina}más poderosos? Jamás\nsoñé que un tamer\nlograra conseguirlos.{pagina}¡Quizá sí puedas\nentretenerme después\nde todo!{pagina}Muy bien, entonces\nven por mí.{pagina}¡Y no me\ndecepciones!{fin}"
+  },
+  {
+   "index": 134,
+   "note": "G-020 G-018 G-026",
+   "text": "{hablante}Líder Bai Hu{hablante}¿Pero qué clase de\ntamer eres, que\npudiste derrotarme?{pagina}¡Tienes potencial,\nchico, mucho potencial!{fin}"
+  },
+  {
+   "index": 137,
+   "note": "G-026",
+   "text": "{hablante}Kotemon{hablante}Ese lugar está lleno\nde jugadores\nfuertes.{pagina}¿Cuántos tamers\nllegarán a la cima?{fin}"
+  },
+  {
+   "index": 138,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}El tipo que está\nen la cumbre es el\nRey de las Cartas.{pagina}Pero el rey actual es\nalgo extraño. ¡De\nhecho, es rarísimo!{fin}"
+  },
+  {
+   "index": 139,
+   "note": "G-026",
+   "text": "{hablante}Patamon{hablante}No puedes pasar\nde aquí sin una\nBolsa de Carpetas.{fin}"
+  },
+  {
+   "index": 140,
+   "note": "G-026",
+   "text": "{hablante}Kumamon{hablante}¡Sí, señorrr! Nada\ninusual que reportar\npor aquí. También somos{pagina}de la Patrulla.\nProtegemos la paz\ndel Mundo Digital,{pagina}¡así que descansa\ntranquilo!{fin}"
+  },
+  {
+   "index": 141,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}Me rindo. ¡Me perdí\npor completo! Hay\ntantos árboles por{pagina}aquí que no sé cómo\nalguien puede\nencontrar el camino.{fin}"
+  },
+  {
+   "index": 142,
+   "note": "G-026",
+   "text": "{hablante}Guilmon{hablante}Me pregunto dónde\npuede estar Veemon.\nPrometió que vendría.{pagina}¡Siempre llega tarde!{fin}"
+  },
+  {
+   "index": 143,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Xuan Wu{hablante}¿Quieres problemas,\ntonto? ¿Quieres\npelear conmigo? ¿Crees{pagina}que pelearía con\nalguien que no tiene\nlos 5 Artículos Épicos{pagina}más poderosos? ¡Ja!\nNo me hagas reír.\nVuelve cuando tengas{pagina}las armas.{fin}"
+  },
+  {
+   "index": 144,
+   "note": "G-018 G-017 G-026",
+   "text": "{hablante}Líder Xuan Wu{hablante}¿Quieres problemas,\ntonto? ¿Pelear?\nLo siento, amigo, pero{pagina}a menos que tengas\nlos 5 Artículos Épicos\n... ¿Qué?{pagina}¿Los tienes? ¡Bien!\nTendré que luchar \ncontigo.{pagina}No te la voy a\nponer fácil.\n¡Ten cuidado!{fin}"
+  },
+  {
+   "index": 145,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Xuan Wu{hablante}¡Oye! ¿Quién te\ncrees que eres para\nganarme? ¿Cómo te{pagina}hiciste tan fuerte?\nSi tienes algún tipo\nde programa de{pagina}entrenamiento\nsecreto, ¡quiero\nconocerlo!{fin}"
+  },
+  {
+   "index": 146,
+   "note": "G-020 G-026",
+   "text": "{hablante}Veterano Shiro{hablante}¡Oye, mírame! Llegué\nhasta aquí yo\nsolo. ¡Ahora yo{pagina}también soy un\ntamer de verdad!{fin}"
+  },
+  {
+   "index": 147,
+   "note": "G-018 G-026",
+   "text": "{hablante}Personal DO{hablante}El Sector Sur y lo\nque está más allá\nsiguen cerrados por{pagina}construcción. Lo\nsiento, pero debes\nretirarte de aquí.{fin}"
+  },
+  {
+   "index": 148,
+   "note": "G-026",
+   "text": "{hablante}Agumon{hablante}El Sector Sur necesita\nreparaciones importantes\ndebido al terremoto.{pagina}Pero mejoraron la\nPlaca de Circuitos.\n¡Me gustaría ir{pagina}algún día!{fin}"
+  },
+  {
+   "index": 149,
+   "note": "G-026",
+   "text": "{hablante}Kabukimon{hablante}Kotetsu es la hoja\nmás afilada y\nprestigiosa que{pagina}existe. Asegúrate\nde cuidarla de\nforma especial.{fin}"
+  },
+  {
+   "index": 152,
+   "note": "G-026",
+   "text": "{hablante}Kabukimon{hablante}¡Oh, en tu mano\ntienes la gran\nOnimaru!{pagina}Entonces fundiré\nOnimaru con\nKatana Oxidada...{pagina}¡y crearé la\nmejor arma:\nKotetsu!{pagina}Muy bien, espera\nun momento...\n¡Iaiiiiiiiii!{pagina}¡Mm! ¡Aquí\ntenemos a\nKotetsu!{pagina}Te la daré. Es muy\nvaliosa, así que\nten cuidado.{fin}"
+  },
+  {
+   "index": 156,
+   "note": "G-026",
+   "text": "{hablante}Shurimon{hablante}Tienes el Rifle\nOxidado y el Cañón\nRacimo.{pagina}¿Me los quieres\ndar?{pagina}¡Evolución de arma\nShurimon!\n¡Sííííííí!{pagina}Bien, ahora es\nJusticia.{pagina}Te daré esto, así\nque ¡úsalo con\ncuidado!{fin}"
+  },
+  {
+   "index": 157,
+   "note": "G-026",
+   "text": "{hablante}Nohemon{hablante}¿No es genial el\nZodíaco? ¡Úsalo bien!{fin}"
+  },
+  {
+   "index": 158,
+   "note": "G-026",
+   "text": "{hablante}Nohemon{hablante}¡Soy Nohemon, no\nun espantapájaros!{fin}"
+  },
+  {
+   "index": 159,
+   "note": "G-026",
+   "text": "{hablante}Nohemon{hablante}Tienes el\nGuante Óxido.{pagina}Consigue el\nPuño Kaiser.{pagina}¡Cuando lo tengas,\nte haré un arma\ngenial!{fin}"
+  },
+  {
+   "index": 160,
+   "note": "G-008 G-026",
+   "text": "{hablante}Nohemon{hablante}Tienes el\nGuante Óxido y\nel Puño Kaiser.{pagina}Bien, dámelos.\nNo te preocupes,\nno me los quedaré.{pagina}Bien, aquí vamos.{pagina}Mira eso... Ahí\ntienes el Zodíaco.{pagina}Bueno, te lo\ndevolveré.\nÚsalo bien.{fin}"
+  },
+  {
+   "index": 161,
+   "note": "G-026",
+   "text": "{hablante}Shadramon{hablante}¡Sha sha sha!\nNo me lo agradezcas.{pagina}Hice lo que un\nchico malo haría.{fin}"
+  },
+  {
+   "index": 163,
+   "note": "G-026 L6",
+   "text": "{hablante}Shadramon{hablante}Oh, tienes una\nGarra Antigua.{pagina}¿Por qué la guardas?\nSe van a reír de\nti.{pagina}Trae Colmillo Sable.\nLos convertiré en un\narma de verdad.{fin}"
+  },
+  {
+   "index": 164,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Shadramon{hablante}Tienes el Colmillo\nSable y la Garra Antigua.\nDámelos.{pagina}Oooh, me hace sentir\ngenial...{pagina}Bien, fusionémoslos.{pagina}¡Ahí está!\n¿No es genial?\nEsta es Vencer.{pagina}Tengo muchas, así\nque te daré una.{pagina}No dejes que los\nchicos malos se\nrían de ti.{fin}"
+  },
+  {
+   "index": 165,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}No mucha gente\ntiene un Brillo.{pagina}¡Presúmelo con\ntus amigos, amigo!{fin}"
+  },
+  {
+   "index": 166,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}¡Hola, amigo!\n¿Cómo te va?{fin}"
+  },
+  {
+   "index": 167,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}¡Oye, oye! ¡No\npuedes usar una\nVarita Vieja!{pagina}¿Quieres que te haga\nun arma de lo más\nvanguardista?{pagina}¡Trae la Khakkhara\ny la haré cuando\nquieras!{fin}"
+  },
+  {
+   "index": 168,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}¡Amigo, tienes la Varita\nVieja y la Khakkhara!{pagina}¡Entonces dámelas!{pagina}Cha, cha, cha.\n¡Cha, cha, cha!\n¡Ooooo mambo!{pagina}¡Aquí tienes!\n¡Es un Brillo\nvanguardista!{pagina}¡Puedes presumirlo!\n¡Buena suerte, amigo!{fin}"
+  },
+  {
+   "index": 169,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Solo los fuertes\nde verdad pueden\nempuñar Masamune...{pagina}No olvides seguir\nmejorando...{fin}"
+  },
+  {
+   "index": 171,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Los fuertes deberían\nempuñar un arma\nadecuada...{pagina}Si tienes a\nKotetsu, consigue\nTenjinmaru...{pagina}Entonces te haré\nun arma mucho\nmejor...{fin}"
+  },
+  {
+   "index": 172,
+   "note": "G-026 L6",
+   "text": "{hablante}Yashamon{hablante}Tienes tanto a\nKotetsu como\nTenjinmaru.{pagina}Si tienes ambas,\nte crearé un\narma más poderosa.{pagina}Mi alma poderosa,\n¡habita en estas\ndos espadas!{pagina}Empúñala,\nse creó\nMasamune.{pagina}Adiós. Hazte\nfuerte para ser\ndigno de esta espada.{fin}"
+  },
+  {
+   "index": 173,
+   "note": "G-020 G-026",
+   "text": "{hablante}Sagitarimon{hablante}Conseguiste Juicio\nal encontrarme...{pagina}¡Seguro eres el tamer\ncon más suerte de\neste servidor!{fin}"
+  },
+  {
+   "index": 174,
+   "note": "G-026",
+   "text": "{hablante}Sagitarimon{hablante}Soy el legendario\nDigimon...\n¡Sagitarimon!{pagina}¡Tienes mucha suerte\nde siquiera poder\nverme!{fin}"
+  },
+  {
+   "index": 175,
+   "note": "G-026",
+   "text": "{hablante}Sagitarimon{hablante}¿Mmm?\n¡Tienes a Justicia!{pagina}Entonces consigue\ntambién el Cañón\nLáser y tráelos.{pagina}Estás a punto\nde ver la suerte\nque tienes.{fin}"
+  },
+  {
+   "index": 176,
+   "note": "G-026 G-022",
+   "text": "{hablante}Sagitarimon{hablante}¡Wow, tienes el Cañón\nLáser y Justicia!{pagina}Muy bien, dámelos\nun momento...{pagina}Mmm... ¡Ahhh!\n¡Síííí!{pagina}¡Ahora mira esto!\n¡Esto es\nJuicio!{pagina}¡Qué suerte tienes\nde tenerlo!\n¡Ja ja ja!{fin}"
+  },
+  {
+   "index": 177,
+   "note": "G-031",
+   "text": "{hablante}Seehomon{hablante}¿Qué? No \ntienes que darme\nlas gracias.{pagina}Los hombres son\ntan sentimentales.\nJe je.{fin}"
+  },
+  {
+   "index": 178,
+   "note": "G-026 G-031",
+   "text": "{hablante}Seehomon{hablante}Ja ja...\n¡Seehomon me\nllamo!{pagina}¡Has llegado muy\nlejos, compadre!{fin}"
+  },
+  {
+   "index": 179,
+   "note": "G-012 G-026 G-035",
+   "text": "{hablante}Seehomon{hablante}¡Oye, compadre!\nTienes el Zodíaco,\n¡un artículo genial!{pagina}Consigue el Brazo\nCiclón y\ntráemelos.{pagina}¡Te haré la más\ngenial de todas\nlas armas!{fin}"
+  },
+  {
+   "index": 180,
+   "note": "G-026 G-018 G-031 G-035",
+   "text": "{hablante}Seehomon{hablante}¡Oye, compadre!\n¡Tienes el Brazo\nCiclón y el Zodíaco!{pagina}Dámelos un\nsegundo.{pagina}Ja ja... ¡Con buenos\nmateriales se hace\nun buen trabajo!{pagina}Y aquí está...\n¡te presento a\nProminencia!{pagina}No es un arma\nordinaria. ¡No\nlo olvides!{fin}"
+  },
+  {
+   "index": 182,
+   "note": "G-026",
+   "text": "{hablante}Depthmon{hablante}Aaaahhh...\n¿No es precioso\nel fondo del mar?{fin}"
+  },
+  {
+   "index": 183,
+   "note": "G-026",
+   "text": "{hablante}Depthmon{hablante}¡Vaya, vaya!\n¡Tienes a\nVencer!{pagina}Deberías conseguir\ntambién el Colmillo\nVeneno.{pagina}¡Haré algo\nespecial solo\npara ti!{fin}"
+  },
+  {
+   "index": 184,
+   "note": "G-009 G-026",
+   "text": "{hablante}Depthmon{hablante}¡Tienes a Vencer\ny a Colmillo\nVeneno!{pagina}Dámelos y\ndéjame trabajar\nun momento...{pagina}Mmmm...\nUn poco de presión\nde agua por aquí...{pagina}¿Qué tal esto?\nAhí tienes a\nDestrucción.{pagina}Toma, es tuya.\n¡Asegúrate de\nusarla bien!{fin}"
+  },
+  {
+   "index": 186,
+   "note": "G-026",
+   "text": "{hablante}Kongoumon{hablante}¡Shaka, shaka,\nshaka! ¡Soy\nKongoumon!{fin}"
+  },
+  {
+   "index": 187,
+   "note": "G-026",
+   "text": "{hablante}Kongoumon{hablante}¿Qué? ¿No tienes\nla Vara Cristal?{pagina}¡Qué lástima, porque\nya tienes el Brillo!{pagina}Si consigues\nlas dos cosas...{pagina}¡te haré algo\ngrandioso!{pagina}Tráemelas cuando\nlas tengas.{fin}"
+  },
+  {
+   "index": 188,
+   "note": "G-026",
+   "text": "{hablante}Kongoumon{hablante}¿Oh? ¡Tienes la\nVara Cristal y el\nBrillo!{pagina}¡Genial! Entonces\nte haré algo\ngrandioso.{pagina}Espera un momento.\n¡Shaka shaka shaka!\n¡Shaka shaka shaka!{pagina}Mira esto, ¡es\nInmaculado!{pagina}¡Qué suerte tienes,\nte envidio!{fin}"
+  },
+  {
+   "index": 189,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Muramasa es sin\nduda la katana más\npoderosa del mundo...{pagina}Ni yo puedo crear\nun arma que supere\na Muramasa...{pagina}Esfuérzate en criar\nguerreros poderosos,\ndignos de esta katana.{fin}"
+  },
+  {
+   "index": 190,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Nos encontramos otra\nvez, poderoso tamer.{pagina}Me alegro de que\nestés vivo y\nsigas ganando...{fin}"
+  },
+  {
+   "index": 191,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Tu fuerza ya supera\nla de Masamune.{pagina}Consigue la\nHoja Fujin y\nvuelve conmigo.{pagina}Entonces te haré un\narma más poderosa.{fin}"
+  },
+  {
+   "index": 192,
+   "note": "G-026",
+   "text": "{hablante}Yashamon{hablante}Esa hoja que llevas\nes la Hoja Fujin,\n¿no es así?{pagina}Ahora, entrégame\nla Masamune...{pagina}Mi alma poderosa,\n¡habita en estas\ndos espadas!{pagina}Empúñala. Esta es\nMuramasa, la katana\nmás poderosa{pagina}del mundo. ¡Ni yo\npuedo crear una\nkatana mejor!{pagina}Esfuérzate en criar\nguerreros poderosos,\ndignos de esta katana.{fin}"
+  },
+  {
+   "index": 193,
+   "note": "G-020 G-026",
+   "text": "{hablante}Sagitarimon{hablante}Nos volvemos a ver,\ny veo que traes\nCastigo.{pagina}Castigo es la\npistola más\npoderosa del mundo.{pagina}Puede que seas\nel tamer con más\nsuerte que existe.{fin}"
+  },
+  {
+   "index": 194,
+   "note": "G-026",
+   "text": "{hablante}Sagitarimon{hablante}¡Hola! ¡Soy Sagitarimon!\n¡Ya nos habíamos\nvisto antes!{pagina}¡Tienes mucha suerte\nde verme dos veces!{fin}"
+  },
+  {
+   "index": 195,
+   "note": "G-026",
+   "text": "{hablante}Sagitarimon{hablante}Como volvemos a vernos\nte daré un consejo\nque puede interesarte.{pagina}La próxima vez ven\ncon el Cañón Suijin.{pagina}Si ahora te crees con\nsuerte, ¡imagina\ncuánta tendrás luego!{fin}"
+  },
+  {
+   "index": 196,
+   "note": "G-006 G-026",
+   "text": "{hablante}Sagitarimon{hablante}¡Ey! Tienes el\nCañón Suijin.{pagina}Préstamelo junto\ncon Juicio.{pagina}Mmm... ¡aaaaah!\n¡Sííííí! ¡¡Ya!!{pagina}Ahora, observa bien.\n¡Este es\nCastigo!{pagina}Es sin duda lo\nmejor del mundo.\n¡Ni yo puedo crear{pagina}nada mejor! Tienes\nsuerte de tenerlo.\n¡Muchísima suerte!{pagina}¡Sigue así!\n¡Ja ja ja!{fin}"
+  },
+  {
+   "index": 197,
+   "note": "G-026",
+   "text": "{hablante}Nohemon{hablante}¿Qué tal? ¿No es\ngenial la Super Nova?{pagina}Para Kumamon no\nhay arma más\nfuerte.{pagina}Así que cuídala\nbien, ¿de acuerdo?{fin}"
+  },
+  {
+   "index": 199,
+   "note": "G-026 G-022",
+   "text": "{hablante}Nohemon{hablante}¡Wow! ¿Qué es esto?\n¿Todavía usas\nProminencia?{pagina}¿Por qué no vuelves\ncon el Puño\nRaijin?{pagina}Haré un arma\nestupenda de la\nque estarás orgulloso.{fin}"
+  },
+  {
+   "index": 200,
+   "note": "G-026",
+   "text": "{hablante}Nohemon{hablante}¡Oye, tienes\nProminencia y\nPuño Raijin!{pagina}Pásamelos. No\nte preocupes,\nno te los robaré.{pagina}¡Allá voy!\nEsto va ahí,\nesto otro aquí...{pagina}¿Es un milagro?\nMíralo tú mismo:\n¡la Super Nova!{pagina}Para Kumamon\nno hay un arma\nmás fuerte que esta.{pagina}Así que cuídala\nbien, ¿de acuerdo?{fin}"
+  },
+  {
+   "index": 201,
+   "note": "G-026",
+   "text": "{hablante}Shadramon{hablante}Ni yo puedo crear\nun arma mejor que\nInvencible.{pagina}Es sin duda la\nmejor del\nmundo.{pagina}Pareces un\ngangster solo con\nllevarla. ¡Je je je!{fin}"
+  },
+  {
+   "index": 202,
+   "note": "G-019 G-026",
+   "text": "{hablante}Shadramon{hablante}¡Oye! Te recuerdo...\n¡Eres para quien\nhice Vencer!{pagina}Me alegra saber\nque sigues vivo\ny en forma.{fin}"
+  },
+  {
+   "index": 203,
+   "note": "G-026 G-022",
+   "text": "{hablante}Shadramon{hablante}¡Wow, no me digas\nque todavía usas\nDestrucción!{pagina}Eso no está bien.\n¡Ya no te sirve\nde nada!{pagina}Tráeme Colmillo\nBelial y crearé una\ngran arma para ti.{fin}"
+  },
+  {
+   "index": 204,
+   "note": "G-026 G-012 L6",
+   "text": "{hablante}Shadramon{hablante}¡Trajiste a\nDestrucción y\nColmillo Belial!{pagina}Déjame ver...\nUnamos las\ndos...{pagina}¡Mira esto! Se ve\ngenial, ¿eh? Esta\nes Invencible.{pagina}Esta es la mejor\narma del mundo. No\nte miento.{pagina}¡Ni yo puedo crear\nun arma mejor que\nInvencible!{pagina}¡Eres el peor de\nlos chicos malos!\n¡Je je je!{fin}"
+  },
+  {
+   "index": 206,
+   "note": "G-026",
+   "text": "{hablante}Kongoumon{hablante}¡Shaka shaka!\nSoy Kongoumon.\n¡Nos volvemos a ver!{fin}"
+  },
+  {
+   "index": 207,
+   "note": "G-026",
+   "text": "{hablante}Kongoumon{hablante}¿Sabes qué? Ahora\npuedo hacer algo\nmuy bueno.{pagina}Pero esta vez necesito\nla Vara Milenio. Si\npuedes, tráemela{pagina}y te sorprenderé\ncon algo\ngrandioso.{fin}"
+  },
+  {
+   "index": 208,
+   "note": "G-010 G-017 G-026",
+   "text": "{hablante}Kongoumon{hablante}T-tienes la Vara\nMilenio.{pagina}Dámela junto con\nInmaculado.\nDéjame ver...{pagina}Espera un minuto.\n¡Shaka shaka!\n¡Shaka shaka!{pagina}Ahí va, Eternamente.\nEsta es el arma más\nfuerte para los{pagina}Patamon y\nRenamon.{pagina}¡Vaya, te envidio!\n¡De verdad que\nte envidio!{fin}"
+  },
+  {
+   "index": 209,
+   "note": "G-026 G-043",
+   "text": "{hablante}MetalGreymon{hablante}Deberías visitar al\nDoctor Osomatsu o\na Piccolomon.{pagina}Encontrarás a Agumon\nen la sala de\nIntercambio Digimon.{fin}"
+  },
+  {
+   "index": 210,
+   "note": "G-026 L6",
+   "text": "{hablante}MetalGreymon{hablante}¿Eres el\n{0208}{0102}1 {0138}ue\nderrotó a la A.o.A.?{pagina}En efecto, sí\npareces poderoso.{fin}"
+  },
+  {
+   "index": 212,
+   "note": "G-026 G-043",
+   "text": "{hablante}MetalGreymon{hablante}Mmm, tus poderes\nestán más allá de\nmis expectativas.{pagina}Toma este artículo\ncomo prueba de que\nme derrotaste.{pagina}Esto es DADN Agumon\nextraído de mi\nDADN.{pagina}Si se lo llevas al\nDoctor Osomatsu o\na Piccolomon...{pagina}Encontrarás a Agumon\nen la sala de\nIntercambio Digimon.{pagina}¡Conviértelo en un\nDigimon poderoso!{fin}"
+  },
+  {
+   "index": 213,
+   "note": "G-026 G-043",
+   "text": "{hablante}MegaroGrowlmon{hablante}Deberías visitar al\nDoctor Osomatsu o\na Piccolomon.{pagina}¡Encontrarás a Girumon\nen la sala de\nIntercambio Digimon!{fin}"
+  },
+  {
+   "index": 216,
+   "note": "G-006 G-026 G-043",
+   "text": "{hablante}MegaroGrowlmon{hablante}¡Auuu!\n¡Lo siento, me equivoqué!\nPor favor, perdóname.{pagina}Como muestra de\ndisculpa, puedes tomar\neste DADN Girumon,{pagina}extraído de mí mismo.\nLlévaselo al\nDoctor Osomatsu{pagina}o a Piccolomon...\nEncontrarás a Girumon\nen la sala de{pagina}Intercambio Digimon.\n¡Perdón por haberme\nenojado contigo! Je je.{fin}"
+  },
+  {
+   "index": 217,
+   "note": "G-026 G-043",
+   "text": "{hablante}Piledrimon{hablante}Visita al Doctor Osomatsu\no a Piccolomon.\nEncontrarás a Veemon{pagina}en la sala de\nIntercambio\nDigimon.{fin}"
+  },
+  {
+   "index": 218,
+   "note": "G-026",
+   "text": "{hablante}Piledrimon{hablante}Ahhh, qué aburrido...\n¿Hay algo de interés\npor los alrededores?{fin}"
+  },
+  {
+   "index": 219,
+   "note": "G-026",
+   "text": "{hablante}Piledrimon{hablante}Como estamos\naquí, hagamos\nuna batalla.{pagina}Si ganas, te\ndaré un artículo\nvalioso.{fin}"
+  },
+  {
+   "index": 220,
+   "note": "G-026 G-033 G-043",
+   "text": "{hablante}Piledrimon{hablante}Uf, ¡eso fue\nmuy divertido!\nBuena batalla, ¿no?{pagina}Como prometí,\nte daré un\nartículo. Esto{pagina}es DADN Veemon,\nextraído de mi propio\nDADN.{pagina}Si se lo llevas al\nDoctor Osomatsu o\na Piccolomon...{pagina}Encontrarás a Veemon en\nla sala de Intercambio\nDigimon.{pagina}¡Entrénalo duro\ny conviértelo en un\nVeemon muy fuerte!{fin}"
+  },
+  {
+   "index": 221,
+   "note": "G-026 G-043",
+   "text": "{hablante}Taomon{hablante}Busca al Doctor Osomatsu\no a Piccolomon\ninmediatamente, y{pagina}encontrarás a Renamon\nen la sala de\nIntercambio Digimon.{fin}"
+  },
+  {
+   "index": 222,
+   "note": "G-026",
+   "text": "{hablante}Taomon{hablante}Kirikirisowaka,\nKirikirisowaka.{pagina}No me molestes,\nestoy inmerso en\nmis meditaciones.{fin}"
+  },
+  {
+   "index": 223,
+   "note": "G-026",
+   "text": "{hablante}Taomon{hablante}Te dije que\nestaba inmerso en\nmis meditaciones.{pagina}A lo mejor necesitas\nuna paliza para\nentenderlo...{fin}"
+  },
+  {
+   "index": 224,
+   "note": "G-026 G-043",
+   "text": "{hablante}Taomon{hablante}A veces este tipo de\nmeditación es buena\ntambién para el alma.{pagina}Perdona mi\nmala conducta.\nToma esto.{pagina}Es DADN Renamon,\nextraído de mi propio\nDADN.{pagina}Llévaselo a Piccolomon\no al Doctor Osomatsu.\nEncontrarás a Renamon{pagina}en la sala de\nIntercambio\nDigimon.{pagina}Esfuérzate y haz\nde él un gran Renamon.\nTe deseo lo mejor.{fin}"
+  },
+  {
+   "index": 225,
+   "note": "G-026 G-043",
+   "text": "{hablante}HolyAngemon{hablante}Ahora, visita al\nDoctor Osomatsu o\na Piccolomon.{pagina}Encontrarás a Patamon\nen la sala de\nIntercambio Digimon.{fin}"
+  },
+  {
+   "index": 226,
+   "note": "G-026",
+   "text": "{hablante}HolyAngemon{hablante}¿Oh? Debes ser\n{0208}{0102}1{01e7} He oído\ntodas las historias.{pagina}Quiero ver lo fuerte\nque eres.\n¿Luchamos?{fin}"
+  },
+  {
+   "index": 227,
+   "note": "G-008 G-026",
+   "text": "{hablante}HolyAngemon{hablante}Bien, empecemos\nla batalla.\n¿Estás listo?{fin}"
+  },
+  {
+   "index": 228,
+   "note": "G-026 G-043",
+   "text": "{hablante}HolyAngemon{hablante}Uf, los rumores\neran ciertos.\n¡Eres muy duro!{pagina}Como muestra de\nmi aprecio por\nluchar conmigo, toma{pagina}este DADN Patamon,\nextraído de mi propio\nDADN. Llévalo{pagina}al Doctor Osomatsu o\na Piccolomon, y\nencontrarás a Patamon{pagina}en la sala de\nIntercambio Digimon.\nBuena suerte, ¡estoy{pagina}de tu lado! Que logres\ngrandes cosas de\naquí en adelante.{fin}"
+  },
+  {
+   "index": 229,
+   "note": "G-026 G-043",
+   "text": "{hablante}Kyukimon{hablante}Ve al Doctor Osomatsu\no a Piccolomon. ¡Podrás\nusar a Kotemon{pagina}en Intercambio\nDigimon!{fin}"
+  },
+  {
+   "index": 230,
+   "note": "G-020 G-026",
+   "text": "{hablante}Kyukimon{hablante}¡Oh, qué tragedia! Los\ntamers de hoy en\ndía son unos debiluchos.{pagina}No encuentro un\noponente digno.{fin}"
+  },
+  {
+   "index": 231,
+   "note": "G-026",
+   "text": "{hablante}Kyukimon{hablante}Te propongo algo. Si\nluchas bien\ncontra mí, te{pagina}recompensaré con\nun regalo que te\ngustará.{fin}"
+  },
+  {
+   "index": 232,
+   "note": "G-026 G-018 G-043",
+   "text": "{hablante}Kyukimon{hablante}¡Ja ja ja, excelente!\nNo he tenido una\nbuena batalla como{pagina}esta en años. Toma\neste regalo como\nprometí.{pagina}Esto es DADN\nKotemon\nextraído de mi DADN.{pagina}Llévaselo al\nDoctor Osomatsu o\na Piccolomon.{pagina}Encontrarás a Kotemon\nen la sala de\nIntercambio Digimon.{pagina}Seguro que lo harás\nun Kotemon excelente.\n¡Te deseo lo mejor!{fin}"
+  },
+  {
+   "index": 233,
+   "note": "G-026 G-043",
+   "text": "{hablante}Armormon{hablante}Debes visitar\nal Doctor Osomatsu\no a Piccolomon.{pagina}En Intercambio Digimon\npodrás hacer a Monmon\ntu compañero.{fin}"
+  },
+  {
+   "index": 234,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}Armormon{hablante}Eres {0208}{0102}1 0\n¡el que derrotó\na la A.o.A.!{pagina}Tengo curiosidad\npor ver qué tal\ntamer eres.{fin}"
+  },
+  {
+   "index": 236,
+   "note": "G-026 G-018 G-043",
+   "text": "{hablante}Armormon{hablante}Parece que los rumores\nsobre tu poder eran\nciertos.{pagina}Como muestra de\ngratitud, acepta esto,\npor favor. Es DADN{pagina}Monmon, extraído\nde mi propio\nDADN.{pagina}Llévaselo al\nDoctor Osomatsu o a\nPiccolomon. Podrás{pagina}hacer a Monmon tu\ncompañero en Intercambio\nDigimon.{pagina}Adiós por ahora.\n¡Consigue a Monmon\ny hazte más fuerte!{fin}"
+  },
+  {
+   "index": 237,
+   "note": "G-043",
+   "text": "{hablante}GrapLeomon{hablante}Visita ahora al\nDoctor Osomatsu\no a Piccolomon.{pagina}Podrás usar \nKumamon en\nIntercambio Digimon.{fin}"
+  },
+  {
+   "index": 238,
+   "note": "G-020 G-026",
+   "text": "{hablante}GrapLeomon{hablante}¡Jajajaja!\n¡Hay que ser un gran\ntamer para llegar{pagina}hasta aquí! Me\nencantaría luchar con\nun tamer como tú.{fin}"
+  },
+  {
+   "index": 240,
+   "note": "G-006 G-020 G-026 G-018 G-043",
+   "text": "{hablante}GrapLeomon{hablante}¡Ja ja ja ja!{pagina}Eres incluso mejor\ntamer de lo que\nimaginaba. Puedo\nconfiarte{pagina}esto. Es DADN Kumamon\ntomado de mí mismo.\nTómalo. Si se lo llevas{pagina}a Piximon o al\nDoctor Osomatsu, podrás\nhacer a Kumamon tu{pagina}compañero en Intercambio\nDigimon. Si alguien\npuede criar un{pagina}Kumamon como se debe,\nese eres tú. ¡Cuento\ncontigo!{fin}"
+  },
+  {
+   "index": 241,
+   "note": "G-026",
+   "text": "{hablante}B-Saint Gargoylemon{hablante}¡Boing! ¡Boing!\nSoy B-Saint\nGargoylemon.{pagina}Soy fuerte. No\neres nadie\ncomparado conmigo.{fin}"
+  },
+  {
+   "index": 242,
+   "note": "G-017 G-026",
+   "text": "{hablante}B-Saint Gargoylemon{hablante}¿Qué? ¿Quieres pelear\nconmigo? ¿Estás loco?\nMuy bien.{pagina}Voy a hacerte\npuré de papas.{fin}"
+  },
+  {
+   "index": 244,
+   "note": "G-026",
+   "text": "{hablante}B-IP Doramon{hablante}¡Tonto! ¡Te di\nuna oportunidad de\nhuir y sigues{pagina}aquí! ¡Vas a pagar\nmuy caro por esa\ndecisión!{fin}"
+  },
+  {
+   "index": 245,
+   "note": "G-026",
+   "text": "{hablante}B Seraphimon{hablante}Mi nombre es\nB Seraphimon. Solo\nlos elegidos pueden{pagina}entrar en esta área.\nAquellos que no\ntengan confianza{pagina}deben marcharse\nen paz.{fin}"
+  },
+  {
+   "index": 246,
+   "note": "G-026",
+   "text": "{hablante}B Seraphimon{hablante}Para pasar de este\npunto debes vencerme.\nPero has de saber que{pagina}no seré yo quien\npierda esta batalla.{fin}"
+  },
+  {
+   "index": 249,
+   "note": "G-026",
+   "text": "{hablante}B WarGreymon{hablante}¡Mi nombre es B\nWarGreymon!\nLlegaste hasta aquí,{pagina}eso te lo reconozco.\nPero tu búsqueda\ntermina{pagina}aquí.{fin}"
+  },
+  {
+   "index": 250,
+   "note": "G-026",
+   "text": "{hablante}B WarGreymon{hablante}Estás muy equivocado\nsi piensas que\npuedes retarme{pagina}con tu nivel. Pero\nsi insistes, te\ndestruiré.{pagina}¡Agradece mi\ngenerosidad!{fin}"
+  },
+  {
+   "index": 251,
+   "note": "G-026",
+   "text": "{hablante}B King Numemon{hablante}¡NuNuNu! Hiciste bien\nen llegar tan lejos,\n¡NuNuNu! Pero yo, el{pagina}B Rey Numemon, ¡soy\nel rey de los B Digimon!\nLos que me retan{pagina}jamás viven para\nver otro día.\n¡NumeNume!{fin}"
+  },
+  {
+   "index": 252,
+   "note": "G-026",
+   "text": "{hablante}B King Numemon{hablante}¡NuNu! ¿Aún insistes\nen luchar? ¡Estúpido\nimbécil!{pagina}Muy bien. Vas a\nver los fuegos\ndel Hades. ¡Oiré{pagina}tus lamentos de\nabsoluta\nagonía!{fin}"
+  },
+  {
+   "index": 253,
+   "note": "G-018",
+   "text": "{hablante}BlackAgumon{hablante}¡Je je je! ¡Soy el\njugador número 1 de la\nPlaca de Circuitos!{fin}"
+  },
+  {
+   "index": 254,
+   "note": "G-020 G-026",
+   "text": "{hablante}BlackAgumon{hablante}¡Ay, no! ¡Otro\ntamer\ndebilucho!{fin}"
+  },
+  {
+   "index": 255,
+   "note": "G-019 G-026",
+   "text": "{hablante}BlackAgumon{hablante}¿Te gustan\nlas cartas?\nEstoy enganchado.{fin}"
+  },
+  {
+   "index": 256,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}¡Je je je! He\nestado esperando a\nalguien como tú.{fin}"
+  },
+  {
+   "index": 259,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}¡NumeNume! ¡Hiciste\nbien en llegar\ntan lejos!{pagina}Lástima que te\ntoparas con\neste Numemon.{fin}"
+  },
+  {
+   "index": 260,
+   "note": "G-018",
+   "text": "{hablante}Numemon{hablante}Los Numemon no lo\nparecemos, pero somos\njugadores fuertes.{pagina}No nos tomes a\nla ligera. ¡Nume!{fin}"
+  },
+  {
+   "index": 261,
+   "note": "L6",
+   "text": "{hablante}Numemon{hablante}Dicen que ganaste\na la A.o.A. ¡Pero\nNume no{pagina}cree que seas \ntan duro!{fin}"
+  },
+  {
+   "index": 263,
+   "note": "G-022",
+   "text": "{hablante}MetalEtemon{hablante}¡Wooow!\n¡Soy el más grande!\n¡Soy genial!{fin}"
+  },
+  {
+   "index": 264,
+   "note": "G-026",
+   "text": "{hablante}MetalEtemon{hablante}¡Sí! Siento un\ncalorcito por dentro.\n¡Esto es genial!{fin}"
+  },
+  {
+   "index": 265,
+   "note": "G-022",
+   "text": "{hablante}MetalEtemon{hablante}¡Wooow! ¡Eres\nun incauto! Vas\na lamentar haber{pagina}llegado hasta\naquí.{fin}"
+  },
+  {
+   "index": 266,
+   "note": "G-026",
+   "text": "{hablante}MetalEtemon{hablante}¡Mi hermoso cuerpo\nbrilla plateado!\n¡Je je je!{pagina}Puedo con\ncualquiera que se\ncruce en mi camino.{fin}"
+  },
+  {
+   "index": 267,
+   "note": "G-026",
+   "text": "{hablante}MetalEtemon{hablante}¡No puedo perder!\n¿Por qué, preguntas?\n¡Los MetalEtemon somos{pagina}invencibles!{fin}"
+  },
+  {
+   "index": 268,
+   "note": "G-008 G-026",
+   "text": "{hablante}BlackAgumon{hablante}Bien, compañero,\njuguemos. No\npienso perder.{fin}"
+  },
+  {
+   "index": 269,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}¡Numeee! Bien,\njuguemos a las\ncartas estilo Nume:{pagina}¡sin límites!{fin}"
+  },
+  {
+   "index": 270,
+   "note": "G-026",
+   "text": "{hablante}MetalEtemon{hablante}¿Listo para una\nbatalla de cartas?\n¡Adelante!{fin}"
+  },
+  {
+   "index": 271,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}Je je. ¿Viste\nmis\nhabilidades?{pagina}¡No eres más\nque un novato!{fin}"
+  },
+  {
+   "index": 272,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}¡Numeee! ¡Numemon!\n¡Soy el mejor Nume!\nRétame cuanto{pagina}quieras, ¡Nume\nvencerá!{fin}"
+  },
+  {
+   "index": 273,
+   "note": "G-022",
+   "text": "{hablante}MetalEtemon{hablante}¡Wooow!\n¡SOY CAMPEÓN!{pagina}Nadie tiene lo\nnecesario para\nderrotarme.{fin}"
+  },
+  {
+   "index": 274,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}¡Ooooh!\n¡Perdí! ¡Ya verás!{pagina}¡La próxima vez usaré\nla Carpeta más\nfuerte de todas!{fin}"
+  },
+  {
+   "index": 275,
+   "note": "G-026 G-008",
+   "text": "{hablante}Numemon{hablante}¿Numee...?\n¡Uy! ¡Perdí!\n¡Numeeeeee!{pagina}Nume bien. Nume\nmejorará. ¡La próxima\nvez Nume ganará!{fin}"
+  },
+  {
+   "index": 276,
+   "note": "G-026",
+   "text": "{hablante}MetalEtemon{hablante}¡Ohhh!\n¿Qué pasó?\n¡P-Perdí!{pagina}¡Oye! ¡La próxima\nvez que nos veamos\nte haré pagar!{fin}"
+  },
+  {
+   "index": 277,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}Ooooh.\n¿Qué fue eso?\n¿Perdí?{pagina}¡Está bien, toma!\nLa carta ultrafuerte:\n¡Borrar Matriz!{fin}"
+  },
+  {
+   "index": 278,
+   "note": "G-026 G-018",
+   "text": "{hablante}BlackAgumon{hablante}Ooooh.\n¿Qué pasó?\n¿Perdí?{pagina}¡Está bien, toma!\nLa carta ultrafuerte:\n¡Puerta de Fortuna!{fin}"
+  },
+  {
+   "index": 279,
+   "note": "G-026 G-018",
+   "text": "{hablante}BlackAgumon{hablante}Ooooh.\n¿Qué pasó?\n¿Perdí?{pagina}¡Está bien, toma!\nLa carta ultrafuerte:\n¡Puerta de Miseria!{fin}"
+  },
+  {
+   "index": 280,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}Ooooh.\n¿Qué pasó?\n¿Perdí?{pagina}¡Está bien, toma!\nLa carta ultrafuerte:\n¡Acceso a Deseo!{fin}"
+  },
+  {
+   "index": 281,
+   "note": "G-026",
+   "text": "{hablante}BlackAgumon{hablante}Ooooh.\n¿Qué pasó?\n¿Perdí?{pagina}¡Está bien, toma!\nLa carta ultrafuerte:\n¡Antipoder!{fin}"
+  },
+  {
+   "index": 282,
+   "note": "G-006 G-026",
+   "text": "{hablante}Numemon{hablante}¿Numeee?\n¡Oh, no, perdí!\n¡Numeee!{pagina}¡Bien! Toma mi\nRosemon II.\n¡Numeee!{fin}"
+  },
+  {
+   "index": 283,
+   "note": "G-006 G-026",
+   "text": "{hablante}Numemon{hablante}¿Numeee?\n¡Oh, no, perdí!\n¡Numeee!{pagina}¡Bien! Toma mi\ncarta MarineAngemon.\n¡Numeee!{fin}"
+  },
+  {
+   "index": 284,
+   "note": "G-006 G-026",
+   "text": "{hablante}Numemon{hablante}¿Numeee?\n¡Oh, no, perdí!\n¡Numeee!{pagina}¡Bien! Toma mi\ncarta SaberLeomon.\n¡Numeee!{fin}"
+  },
+  {
+   "index": 285,
+   "note": "G-006 G-026",
+   "text": "{hablante}Numemon{hablante}¿Numeee?\n¡Oh, no, perdí!\n¡Numeee!{pagina}¡Bien! Toma mi\ncarta Gryphonmon.\n¡Numeee!{fin}"
+  },
+  {
+   "index": 286,
+   "note": "G-006 G-026",
+   "text": "{hablante}Numemon{hablante}¿Numeee?\n¡Oh, no, perdí!\n¡Numeee!{pagina}¡Bien! Toma mi\ncarta Creepymon.\n¡Numeee!{fin}"
+  },
+  {
+   "index": 287,
+   "note": "G-006 G-026 G-036",
+   "text": "{hablante}MetalEtemon{hablante}¡Oh!\nIncreíble.\n¡Perdí!{pagina}Muy bien. Toma esta\nLanza Sagrada\n¡y lárgate!{fin}"
+  },
+  {
+   "index": 288,
+   "note": "G-006 G-026 L6",
+   "text": "{hablante}MetalEtemon{hablante}¡Oh!\nIncreíble.\n¡Perdí!{pagina}Muy bien. Toma este\nMaremoto\n¡y lárgate!{fin}"
+  },
+  {
+   "index": 289,
+   "note": "G-006 G-026 G-018",
+   "text": "{hablante}MetalEtemon{hablante}¡Oh!\nIncreíble.\n¡Perdí!{pagina}Muy bien. Toma esta\nAura Salvaje\n¡y lárgate!{fin}"
+  },
+  {
+   "index": 290,
+   "note": "G-006 G-026",
+   "text": "{hablante}MetalEtemon{hablante}¡Oh!\nIncreíble.\n¡Perdí!{pagina}Muy bien. Toma este\nCañón Volcánico\n¡y lárgate!{fin}"
+  },
+  {
+   "index": 291,
+   "note": "G-006 G-026 L6",
+   "text": "{hablante}MetalEtemon{hablante}¡Oh!\nIncreíble.\n¡Perdí!{pagina}Muy bien. Toma esta\nTormenta Oscura\n¡y lárgate!{fin}"
+  }
+ ]
+}

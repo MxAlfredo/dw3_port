@@ -1,0 +1,808 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port stages/<number>.json (a stage patch, stage-patch-v1)",
+  "description": "Changes the characters of one field stage (pc/shim/stage_mods.c, docs/stages.md section 7): patch the ones the stage has, add new ones, remove some, and change their talks. The patch is merged into what the stage's own setup produced when it starts, so a character is named by its place in that list (\"index\", 0-based, as the reference file data/stages/<number>.json shows it) or by the key of one a patch added (\"<mod>:<key>\"). Later mods win; a field two mods set is logged. S8/S10 add \"slots\" (exits), \"events\" (scripted events) and \"battles\" (area battles) to the same file (docs/stages.md section 10).",
+  "type": "object",
+  "required": [
+    "format"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "stage-patch-v1"
+    },
+    "about": {
+      "type": "string",
+      "description": "Free text for people; the game does not read it."
+    },
+    "notes": {
+      "description": "Free notes for people; the game does not read them."
+    },
+    "actors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patch": {
+          "type": "array",
+          "description": "Changes of characters that already exist. Applied first, in order.",
+          "items": {
+            "$ref": "#/$defs/patch"
+          }
+        },
+        "add": {
+          "type": "array",
+          "description": "New characters, appended after the stage's own. Applied after \"patch\" (so a patch cannot name them: another file's patch can, as \"<mod>:<key>\").",
+          "items": {
+            "$ref": "#/$defs/add"
+          }
+        },
+        "remove": {
+          "type": "array",
+          "description": "Characters to take out: an index of the stage's list or a key. Applied last.",
+          "items": {
+            "$ref": "#/$defs/target"
+          }
+        }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Exits and triggers (StageSlot). Each patch file applies patch, add, remove in that order.",
+      "properties": {
+        "patch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slotPatch"
+          }
+        },
+        "add": {
+          "type": "array",
+          "description": "New slots; each needs an area (no map cell points at a new slot).",
+          "items": {
+            "$ref": "#/$defs/slotAdd"
+          }
+        },
+        "remove": {
+          "type": "array",
+          "description": "Slots to disable: an index of the stage's table or a key. The slot stays in its place and does nothing.",
+          "items": {
+            "$ref": "#/$defs/target"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Scripted events. A mod's event has no C start or end function; the game's own keep theirs.",
+      "properties": {
+        "patch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/eventPatch"
+          }
+        },
+        "add": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/eventAdd"
+          }
+        }
+      }
+    },
+    "battles": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Area battles of the place the stage's setup chose (data/stages/<number>.json, \"battles\").",
+      "properties": {
+        "patch": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/battlePatch"
+          }
+        },
+        "add": {
+          "type": "array",
+          "description": "The next area after the stage's last one.",
+          "items": {
+            "$ref": "#/$defs/battleAdd"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023,
+          "description": "A place in the stage's list (0-based). An index that is not there at this story progress is skipped with a log line."
+        },
+        {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9._-]+:)?[a-z0-9_-]{1,48}$",
+          "description": "The key of a character a patch added: \"<mod>:<key>\", or just \"<key>\" for one of this mod's own."
+        }
+      ]
+    },
+    "code": {
+      "type": "array",
+      "description": "One condition or action: [\"flag\", \"1A:1F\", 1], [\"item\", \"dw3:item/18\", 1], [\"special\", \"<mod>:<name>\", 1] (a row a mod added to special_conditions), [\"mod-flag\", \"<mod>:<name>\", 1], [\"mod-var\", \"<mod>:<name>\", \">=\", 3], [\"set-var\", \"<mod>:<name>\", 3], and the port actions [\"give-money\", 500], [\"take-money\", 500], [\"set-progress\", 12], [\"warp\", 380, 1186, 874, 3], [\"sound\", \"teleport\"] (docs/stages.md sections 4, 7 and 8).",
+      "minItems": 2,
+      "items": {
+        "type": [
+          "string",
+          "integer"
+        ]
+      }
+    },
+    "codes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/code"
+      }
+    },
+    "talk": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entry": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "The line, an entry (a number) of the stage's own text file. Give this or \"text\", not both."
+        },
+        "conditions": {
+          "$ref": "#/$defs/codes",
+          "description": "All must hold for this talk to be the one said. Left out: the talk always holds, so it must be the last."
+        },
+        "actions": {
+          "$ref": "#/$defs/codes",
+          "description": "Applied when the talk ends."
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+:[a-z0-9_/-]+$",
+          "description": "The line by name, \"<mod>:<name>\": a string of mods/<mod>/text/<lang>/stages.json (stage-text-v1; English is required, another language falls back to it). The port appends it to the stage's text file and fits it to the talk box. Give this or \"entry\", not both."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "entry"
+          ],
+          "not": {
+            "required": [
+              "text"
+            ]
+          }
+        },
+        {
+          "required": [
+            "text"
+          ],
+          "not": {
+            "required": [
+              "entry"
+            ]
+          }
+        }
+      ]
+    },
+    "lastTalkHasNoConditions": {
+      "description": "The game says the first talk whose conditions hold: the last one of a list the patch gives must have none.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/talk"
+      }
+    },
+    "patch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9._-]+:)?[a-z0-9_-]{1,48}$"
+        },
+        "character": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383,
+          "description": "Which character it is (Actor.key1): any id the game has a sprite file for (0-16383). Without \"image\" it gets a VRAM slot of its own (docs/stages.md section 11). Not together with \"sprite\"."
+        },
+        "sprite": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9._-]+:)?[a-z0-9_-]{1,48}$",
+          "description": "A sprite this mod (or \"<mod>:<name>\", another) brings in mods/<mod>/sprites/<name>/ (sprite.json sprite-v1 + one PNG per frame), as the character. It always gets a VRAM slot of its own. Not together with \"character\"."
+        },
+        "image": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 32767,
+          "description": "Its actor image, counted from 2. Only the images the stage's own characters use are there to pick: another one is skipped with a log line. Leave it out to get a VRAM slot of its own (S9)."
+        },
+        "x": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "conditions": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/codes"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Replaces the conditions for it to be there (null: always there; []: also always there)."
+        },
+        "talks": {
+          "$ref": "#/$defs/lastTalkHasNoConditions",
+          "description": "Replaces all its talks. The last has no conditions."
+        },
+        "prependTalks": {
+          "type": "array",
+          "description": "Talks put before the ones it has now (the original's last talk, with no conditions, still closes the list). A later mod's come before an earlier one's.",
+          "items": {
+            "$ref": "#/$defs/talk"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "index"
+          ],
+          "not": {
+            "required": [
+              "key"
+            ]
+          }
+        },
+        {
+          "required": [
+            "key"
+          ],
+          "not": {
+            "required": [
+              "index"
+            ]
+          }
+        }
+      ]
+    },
+    "add": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "x",
+        "y"
+      ],
+      "anyOf": [
+        {"required": ["character"]},
+        {"required": ["sprite"]}
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,48}$",
+          "description": "The name other patches use for it: \"<this mod>:<key>\"."
+        },
+        "character": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383,
+          "description": "A character of the game (not together with \"sprite\")."
+        },
+        "sprite": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9._-]+:)?[a-z0-9_-]{1,48}$",
+          "description": "A sprite a mod brings (mods/<mod>/sprites/<name>/), instead of \"character\"."
+        },
+        "image": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 32767,
+          "description": "An actor image the stage has; left out, the character gets a VRAM slot of its own (S9)."
+        },
+        "x": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7,
+          "default": 0
+        },
+        "conditions": {
+          "$ref": "#/$defs/codes"
+        },
+        "talks": {
+          "$ref": "#/$defs/lastTalkHasNoConditions"
+        }
+      }
+    },
+    "slotPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Exactly one of index and key, and at least one field.",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "key": {
+          "type": "string"
+        },
+        "type": {
+          "description": "A slot type name (exit, climb-up, climb-down, drop, depth, map, gauge, event, warp-1, warp-0, slide, stop-slide, launch, launch-out) or a number 1-14.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 14
+            }
+          ]
+        },
+        "arg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "By type: a game mode, an event id, a height... Not together with stage or event."
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "The exit leads to this stage (arg becomes its game mode). Not together with arg or event."
+        },
+        "event": {
+          "description": "The event a slot of type event starts: a name \"<mod>:<name>\" or an id. Not together with arg or stage.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Where an exit puts the player, in map pixels."
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "The direction the player faces after the exit (0-7)."
+        },
+        "hideAnim": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "place": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "placeArg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "conditions": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "At most two conditions (docs/stages.md section 4).",
+          "items": {
+            "type": "array"
+          }
+        },
+        "area": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "description": "A rectangle of the map in pixels where the slot fires.",
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "facing": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7,
+              "description": "The direction the player must face; without it, any."
+            }
+          }
+        }
+      }
+    },
+    "slotAdd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "area"
+      ],
+      "description": "type, or stage (exit), or event (event), is required.",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "type": {
+          "description": "A slot type name (exit, climb-up, climb-down, drop, depth, map, gauge, event, warp-1, warp-0, slide, stop-slide, launch, launch-out) or a number 1-14.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 14
+            }
+          ]
+        },
+        "arg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "By type: a game mode, an event id, a height... Not together with stage or event."
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "The exit leads to this stage (arg becomes its game mode). Not together with arg or event."
+        },
+        "event": {
+          "description": "The event a slot of type event starts: a name \"<mod>:<name>\" or an id. Not together with arg or stage.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Where an exit puts the player, in map pixels."
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "The direction the player faces after the exit (0-7)."
+        },
+        "hideAnim": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "place": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "placeArg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "conditions": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "At most two conditions (docs/stages.md section 4).",
+          "items": {
+            "type": "array"
+          }
+        },
+        "area": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "description": "A rectangle of the map in pixels where the slot fires.",
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "facing": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7,
+              "description": "The direction the player must face; without it, any."
+            }
+          }
+        }
+      }
+    },
+    "eventPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Exactly one of id and key, and a script or a text.",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65534
+        },
+        "key": {
+          "type": "string"
+        },
+        "script": {
+          "type": "array",
+          "description": "The commands of docs/stages.md section 4, ending with [\"end\"]. A talk's entry may be a name \"<mod>:<name>\" of the mod's stage texts (an entry of the stage's text file).",
+          "items": {
+            "type": "array"
+          }
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entry"
+          ],
+          "description": "The game's own block of lines (advanced); a mod's event reads the stage's text file without it.",
+          "properties": {
+            "file": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            },
+            "entry": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65534
+            }
+          }
+        }
+      }
+    },
+    "eventAdd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "script"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "\"<mod>:<name>\"; the port gives the event an id from 30000."
+        },
+        "script": {
+          "type": "array",
+          "description": "The commands of docs/stages.md section 4, ending with [\"end\"]. A talk's entry may be a name \"<mod>:<name>\" of the mod's stage texts (an entry of the stage's text file).",
+          "items": {
+            "type": "array"
+          }
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entry"
+          ],
+          "description": "The game's own block of lines (advanced); a mod's event reads the stage's text file without it.",
+          "properties": {
+            "file": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            },
+            "entry": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65534
+            }
+          }
+        }
+      }
+    },
+    "battlePatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "area"
+      ],
+      "properties": {
+        "area": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          }
+        },
+        "rate": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "An index of battle_rates."
+        },
+        "encounter": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4095,
+          "description": "A row of field_encounters."
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "description": "The fight stage (BATTLE_SETUP.stage)."
+        },
+        "music": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "description": "BATTLE_SETUP.music, a SOUND value as the exported file shows it."
+        }
+      }
+    },
+    "battleAdd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "area",
+        "rate",
+        "slots"
+      ],
+      "properties": {
+        "area": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "rate": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "slots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "required": [
+              "encounter",
+              "stage",
+              "music"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "encounter": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4095,
+                "description": "A row of field_encounters."
+              },
+              "stage": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647,
+                "description": "The fight stage (BATTLE_SETUP.stage)."
+              },
+              "music": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647,
+                "description": "BATTLE_SETUP.music, a SOUND value as the exported file shows it."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port content/techs.json (techs-v1)",
+  "description": "New techniques. Derived from pc/shim/tech_ext.c (kFields) and content.c.",
+  "type": "object",
+  "required": [
+    "format",
+    "new"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "techs-v1"
+    },
+    "new": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_-]{1,48}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "base",
+          "name"
+        ],
+        "properties": {
+          "base": {
+            "type": "string",
+            "pattern": "^(dw3:tech/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$",
+            "description": "The technique the entry starts from: dw3:tech/<id> or another content mod's <mod>:<key>."
+          },
+          "name": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "mp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "power": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "accuracy": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "elementPower": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "effectChance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "effectPower": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "script": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index of a battle script slot (0 to the slot count minus one)."
+          },
+          "hitCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "icon": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "kind": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "element": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "family": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "effect": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "scriptStage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "scriptEffect": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "scriptSound": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "description": "A value some original technique uses (it indexes a game table)."
+          },
+          "learnedBy": {
+            "type": "object",
+            "description": "Digimon id (a number or dw3:digimon/<id>) -> where it learns the technique.",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "slot",
+                "level"
+              ],
+              "properties": {
+                "slot": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 99
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

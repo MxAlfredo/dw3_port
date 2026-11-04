@@ -1,0 +1,68 @@
+{
+ "file": "SSHTLNAM.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 2,
+   "note": "G-018",
+   "text": "Posada del Bosque"
+  },
+  {
+   "index": 4,
+   "note": "G-018",
+   "text": "Posada del Pantano"
+  },
+  {
+   "index": 5,
+   "note": "G-018",
+   "text": "Posada de Suzaku"
+  },
+  {
+   "index": 6,
+   "note": "G-018",
+   "text": "Posada del Desierto"
+  },
+  {
+   "index": 8,
+   "note": "G-018 L6",
+   "text": "Posada de la Montaña"
+  },
+  {
+   "index": 10,
+   "note": "G-051",
+   "text": "Sala de Cámara"
+  },
+  {
+   "index": 11,
+   "note": "G-018",
+   "text": "Posada Amaterasu"
+  },
+  {
+   "index": 12,
+   "note": "G-018",
+   "text": "Posada Qing Long"
+  },
+  {
+   "index": 18,
+   "note": "G-018",
+   "text": "Quedarse en Posada"
+  },
+  {
+   "index": 19,
+   "note": "G-018",
+   "text": "No quedarse"
+  },
+  {
+   "index": 20,
+   "note": "L6",
+   "text": "¡BIT insuficiente!"
+  },
+  {
+   "index": 21,
+   "note": "G-051",
+   "text": "Oasis de Pelche"
+  }
+ ]
+}

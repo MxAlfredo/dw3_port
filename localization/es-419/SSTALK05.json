@@ -1,0 +1,1173 @@
+{
+ "file": "SSTALK05.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Mm...¿Cómo debo\ncriar mi Digimon?{pagina}Los parámetros cambian\ndependiendo de la\ncrianza.{fin}"
+  },
+  {
+   "index": 2,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}Puedes aprender de\nla digievolución\naquí.{pagina}Te daremos alguna\ninformación sobre\ndigievolución.{pagina}Sin embargo, no se \npuede aprender todo \nsobre digievolución.{fin}"
+  },
+  {
+   "index": 3,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}Enseñaremos técnicas\nde Digimon.{pagina}Se dan pistas sobre\ncrianza y batallas \nde Digimon.{fin}"
+  },
+  {
+   "index": 4,
+   "note": "G-043 L6",
+   "text": "{hablante}Doctor Kadomatsu{hablante}Soy el Doctor Kadomatsu,\nlíder en investigación\nde Digimon.{pagina}¡Puedes digievolucionar\ny cambiar Digimon en\neste Laboratorio Digimon!{fin}"
+  },
+  {
+   "index": 6,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Ey!\n¡Escondieron\ndinero aquí!{pagina}¡Sí! ¡Conseguí\n300 BIT!{fin}"
+  },
+  {
+   "index": 11,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}Eh\n¡{0208}{0102}1{01e7}\n¡Lo tengo!{pagina}La Cámara de Emergencia está\nal final del calabozo, en el Sector Norte de este Servidor Asuka.{pagina}¡Pero necesitas las\ncuatro insignias de\nLíder para usarla!{fin}"
+  },
+  {
+   "index": 26,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Es Ciudad Asuka,\nCentro del\nServidor Asuka.{fin}"
+  },
+  {
+   "index": 27,
+   "note": "G-020 L6",
+   "text": "{hablante}Guardia DO{hablante}Los tamers\nempiezan y acaban\nsus viajes aquí.{pagina}¡Para eso sirve\nCiudad Asuka!{fin}"
+  },
+  {
+   "index": 29,
+   "note": "G-043 L6",
+   "text": "{hablante}Empleado de Medio Tiempo Jake{hablante}Todo lo subastado \naquí es una serie de \narmaduras.{pagina}Y creo que más barato \nque en otros lados.{pagina}Y aunque no lo parezca, el Señor Smith juega\nduro.{fin}"
+  },
+  {
+   "index": 30,
+   "note": "G-026 L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}Limpiar y quitar\npolvo y...{pagina}Tengo que limpiar\ntodo lo sucio.{fin}"
+  },
+  {
+   "index": 33,
+   "note": "G-018",
+   "text": "{hablante}Gabumon{hablante}Zzzzz.\nZzzzzzz{fin}"
+  },
+  {
+   "index": 36,
+   "note": "G-043 L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}Parece que hay\nobjetos que no se venden en tiendas.{pagina}¡El Señor Smith dijo\nno saber nada!{fin}"
+  },
+  {
+   "index": 37,
+   "note": "G-045",
+   "text": "{hablante}Gargomon{hablante}¡Kaboom! Esta\nes la \nArmería.{fin}"
+  },
+  {
+   "index": 38,
+   "note": "G-045 L6",
+   "text": "{hablante}Wizardmon{hablante}¡Bienvenido! ¡Esta es la Tienda!{fin}"
+  },
+  {
+   "index": 40,
+   "note": "G-045",
+   "text": "{hablante}Wizardmon{hablante}Bienvenido,\neste es el\nMercado Negro.{fin}"
+  },
+  {
+   "index": 41,
+   "note": "G-045",
+   "text": "{hablante}Gargomon{hablante}Bienvenido. Esta \nes la Armería\nPesada.{fin}"
+  },
+  {
+   "index": 42,
+   "note": "G-020 G-043 G-045",
+   "text": "{hablante}Señorita Asami{hablante}Vaya, ¡debes ser\nun gran tamer!{pagina}Solo los escogidos\nvienen aquí.{fin}"
+  },
+  {
+   "index": 45,
+   "note": "G-043 L6",
+   "text": "{hablante}Mesera Debbie{hablante}El Señor Alexei está decaído otra vez.{pagina}Supongo que \nalgo no va bien\nen el Mundo Real.{fin}"
+  },
+  {
+   "index": 46,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Alexei{hablante}¡Olvidar el trabajo!\n¡Olvidar al jefe!{fin}"
+  },
+  {
+   "index": 69,
+   "note": "G-018 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}Soy el Señor Smith, el encargado de esta tienda.{fin}"
+  },
+  {
+   "index": 70,
+   "note": "G-018 G-043 L6",
+   "text": "{hablante}Señor Smith{hablante}¡Bienvenido a\nla Tienda de Smith!{pagina}Todos nuestros objetos son buenos,\necha un vistazo.{fin}"
+  },
+  {
+   "index": 71,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Smith{hablante}¡Bienvenido a\nla Tienda de \nSmith!{fin}"
+  },
+  {
+   "index": 72,
+   "note": "G-005 L6",
+   "text": "{hablante}Smith Junior{hablante}Papá no está\naquí así que estoy\nal mando.{pagina}¿No están orgullosos de mí?\n¡Je je je!{fin}"
+  },
+  {
+   "index": 74,
+   "note": "L6",
+   "text": "{hablante}Wizardmon{hablante}Bienvenido al \nMercado Negro.{pagina}¡No encontrarás la mayoría de estos objetos en ninguna otra tienda!{fin}"
+  },
+  {
+   "index": 75,
+   "note": "G-045 L6",
+   "text": "{hablante}Gargomon{hablante}Bienvenido. Esta \nes la Armería\nPesada.{pagina}¡Aquí solo se venden\nlas armas más fuertes!{fin}"
+  },
+  {
+   "index": 76,
+   "note": "G-030 G-045 L6",
+   "text": "{hablante}Maestro John{hablante}Solo se admite al\npersonal y a los Digimon perdidos en el Centro.{pagina}Así que no puedes ir, ¡pero tu Digimon sí!\n¡Ja ja ja!{fin}"
+  },
+  {
+   "index": 80,
+   "note": "L6",
+   "text": "{hablante}Sepikmon{hablante}¡O-Oh! Mira.\n¡Encontré mi máscara!{pagina}¿...una forma de\nderrotar a Zanbamon?\n¡Ni idea!{pagina}Yo soy el que encontró\nla máscara. ¡Y no te\ndiré nada!{fin}"
+  },
+  {
+   "index": 84,
+   "note": "G-011 L6",
+   "text": "{hablante}Travieso Mat{hablante}¿Etemon? Ah...\nNo sé.{pagina}No había nadie cuando llegué.\nJe je je.{pagina}¡Anda, lárgate\ny no molestes!{fin}"
+  },
+  {
+   "index": 86,
+   "note": "G-008 G-019 G-026",
+   "text": "{hablante}Etemon{hablante}Eres muy testarudo\ny no cedes.{pagina}Oh, bueno, lo\ndevolveré,\n¡DE ACUERDO!{pagina}Aquí, ¡te entrego\nla Máscara\nSepik!{fin}"
+  },
+  {
+   "index": 89,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}\"MONSTER\" \nes un código\nde algún tipo.{pagina}Pero ¿qué significará...?{fin}"
+  },
+  {
+   "index": 90,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"M\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 91,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"O\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 92,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"N\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 93,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"S\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 94,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"T\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 95,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"E\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 96,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}...¿es un dibujo\nde un Digimon?{pagina}El título es...\n\"R\" ¿La letra\nes un sensor?{pagina}Mmm...¿Debo\ntocarla?\n¿Qué debo hacer?{fin}"
+  },
+  {
+   "index": 97,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}¡Eh! ¡Aquí hay un\ninterruptor!\n¡Presionémoslo!{fin}"
+  },
+  {
+   "index": 140,
+   "note": "G-013 L6",
+   "text": "{hablante}Keith{hablante}Eh ¡Muchacho!\n¡No te preocupes\npor cometer errores!{pagina}¡Todos pararemos\nsus planes!{fin}"
+  },
+  {
+   "index": 142,
+   "note": "L6",
+   "text": "{hablante}Nick{hablante}¡No te preocupes!\n¡No está \nacabado!{pagina}¡No te rindas y luchemos!{fin}"
+  },
+  {
+   "index": 166,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¿...?\nCreo que los Digimon pueden pasar.{fin}"
+  },
+  {
+   "index": 167,
+   "note": "G-045 L6",
+   "text": "{hablante}Guardia DO{hablante}Solo aquellos\ncon permiso\npueden pasar.{fin}"
+  },
+  {
+   "index": 168,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¿Digimon?\n¿Por qué hay\nDigimon aquí?{fin}"
+  },
+  {
+   "index": 169,
+   "note": "G-026 L6",
+   "text": "{hablante}Soldado{hablante}¡Ríndete!{pagina}¡Nunca ganarás\ncontra A.o.A.!{fin}"
+  },
+  {
+   "index": 170,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Vigilaremos este lugar con nuestras\nvidas.{fin}"
+  },
+  {
+   "index": 171,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Todo está\nbajo control!\n¡No se preocupen!{fin}"
+  },
+  {
+   "index": 172,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Rápido, ve\na ver a Lisa!{pagina}¡Todos te \nesperan!{fin}"
+  },
+  {
+   "index": 173,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oinkoink!\n¡Oinnk,ooink!\n¡Oiiiiinkoiiiiiiiink!{fin}"
+  },
+  {
+   "index": 174,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oioioioioioioi!\n¡Ooink, ooink!\n¡Oioioioi, oink!{fin}"
+  },
+  {
+   "index": 175,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oioioioioioioi!\n¡Oioioioioioioi!\n¡Oioioioioioioi!{fin}"
+  },
+  {
+   "index": 176,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Supongo que es\ndifícil entrar en\nCiudad Amaterasu.{pagina}Necesitamos que \nalguien nos ayude.{fin}"
+  },
+  {
+   "index": 177,
+   "note": "L6",
+   "text": "{hablante}Lisa{hablante}Eh, ¡{0208}{0102}1{01e7}{pagina}¿Encontraste a\nalguien?{fin}"
+  },
+  {
+   "index": 178,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡{0208}{0102}1{01e7}\n¡Lo estás\nhaciendo bien!{fin}"
+  },
+  {
+   "index": 180,
+   "note": "G-018 L6",
+   "text": "{hablante}Datamon{hablante}Necesitas un Pase\nPersonal para pasar.{pagina}Los empleados de\nDigimon Online tienen uno.{fin}"
+  },
+  {
+   "index": 181,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Oh! ¡La Carta\nGabumon! ¡Aquí \nestaba!{fin}"
+  },
+  {
+   "index": 183,
+   "note": "L6",
+   "text": "{hablante}Mesera Debbie{hablante}¡Escucha!\n¡Vi a Veemon\nel otro día!{pagina}Buscaba algo\nen Llanura Viento.{fin}"
+  },
+  {
+   "index": 184,
+   "note": "L6",
+   "text": "{hablante}Mesera Debbie{hablante}¿Estará todavía\nVeemon en\nLlanura Viento?{pagina}¿Querrá jugar \nconmigo la próxima\nvez que lo vea?{fin}"
+  },
+  {
+   "index": 185,
+   "note": "G-027 L6",
+   "text": "{hablante}Guilmon{hablante}¿Eh? ¿Tarjeta Azul?\nAh, lo de la góndola.{pagina}Lo siento, no la tengo\npero mi primo sí.{pagina}Dijo que iría a\nCiudad Seiryu.{pagina}Pero tiene hambre, así\nque parará a comer en\nalgún sitio.{fin}"
+  },
+  {
+   "index": 187,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Smith{hablante}También tenemos\nobjetos buenos.\nEcha un vistazo.{fin}"
+  },
+  {
+   "index": 188,
+   "note": "G-045 L6",
+   "text": "{hablante}Smith Junior{hablante}...¡debes ser impresionante!{pagina}¡Solo los escogidos\nvienen a nuestro\nMercado Negro!{fin}"
+  },
+  {
+   "index": 189,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}Bien, toqué los\nsensores.\n¿Y ahora qué?{fin}"
+  },
+  {
+   "index": 194,
+   "note": "L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¡Oin, oioink,\noooin, ooiink!{fin}"
+  },
+  {
+   "index": 195,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}¡¿Ooink?!\n¡Oi, oi,\nooink!{fin}"
+  },
+  {
+   "index": 196,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Michiru{hablante}¡Ooink,\nooioink,\nooink, ooink!{fin}"
+  },
+  {
+   "index": 197,
+   "note": "G-018",
+   "text": "{hablante}Escritora Rikako{hablante}¡Oioink,\noink,\noooink, oink!{fin}"
+  },
+  {
+   "index": 241,
+   "note": "G-043 L6",
+   "text": "{hablante}Doctor Kadomatsu{hablante}¡Bienvenido a mi Laboratorio!\n¿Qué quieres hacer\ncon tu Digimon?{fin}"
+  },
+  {
+   "index": 337,
+   "note": "L6",
+   "text": "{hablante}Recepción Estadio{hablante}Este es el registro\npara el Torneo del\nCampeón del Servidor.{pagina}Para entrar en el\ntorneo necesitas\nlas cuatro insignias.{pagina}Derrota a cada Líder de\nciudad para conseguir \nsus insignias.{fin}"
+  },
+  {
+   "index": 339,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"R\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 394,
+   "note": "L6",
+   "text": "{hablante}Guardromon{hablante}ACCEDIENDO A UNIDAD MATRIZ.{fin}"
+  },
+  {
+   "index": 395,
+   "note": "L6",
+   "text": "{hablante}Guardromon{hablante}SOY OFICIAL DE GUARDADO\nGUARDROMON.{pagina}SI QUIERES \nGUARDAR HABLA\nCON NOSOTROS.{fin}"
+  },
+  {
+   "index": 396,
+   "note": "L6",
+   "text": "{hablante}Gatomon{hablante}Los Gatomon\ndirigimos las\nPosadas.{pagina}Si quieres quedarte en una Posada,\ndínoslo.{fin}"
+  },
+  {
+   "index": 399,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}¿Por qué no \npodemos volver\nal Mundo Real?{pagina}Necesitan actualizarnos\ny decirnos qué hacer.{fin}"
+  },
+  {
+   "index": 400,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Mmm, ¿Cómo entrar\nen el Centro de\nAdministración?{pagina}Nunca había pensado\nen ello, así que\nno lo sé...{fin}"
+  },
+  {
+   "index": 401,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Dicen que todo\nes culpa de \nRatón Suerte.{pagina}Pero no sé si\nserá verdad.{fin}"
+  },
+  {
+   "index": 402,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Mm, ¿Cómo debería\ndigievolucionar mi\nDigimon?{pagina}El Digimon que elijas\ndeterminará las técnicas de digievolución posteriores.{fin}"
+  },
+  {
+   "index": 403,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Mm, ¿Cómo debería\ndigievolucionar mi\nDigimon?{pagina}El Digimon que elijas\ndeterminará las técnicas de digievolución posteriores.{fin}"
+  },
+  {
+   "index": 404,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Mmm, me pregunto qué\npasará con Digimon\nOnline ahora...{pagina}El juego en sí es\nmuy bueno.{fin}"
+  },
+  {
+   "index": 405,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Me pregunto qué nos pasará ahora...{pagina}Dicen que A.o.A.\nno está acabada \ntodavía...{fin}"
+  },
+  {
+   "index": 406,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}Me pregunto si \nA.o.A. se ha ido \nde verdad.{pagina}Simplemente parece\ndemasiado fácil...{fin}"
+  },
+  {
+   "index": 407,
+   "note": "L6",
+   "text": "{hablante}Vaga Yuka{hablante}¿Oin, oink?{pagina}Oink, oinoink...{fin}"
+  },
+  {
+   "index": 410,
+   "note": "G-026 L6",
+   "text": "{hablante}Encargado de Acceso{hablante}Esta es la sala de\nidentificación.{pagina}¡Disfruta de Digimon Online!{fin}"
+  },
+  {
+   "index": 411,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}El Servidor está \ncaído por mantenimiento.{pagina}Esperamos que los\njugadores disculpen\nlas molestias.{fin}"
+  },
+  {
+   "index": 412,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}El mantenimiento\nnecesita\nmás tiempo.{pagina}Por favor sé\npaciente.{fin}"
+  },
+  {
+   "index": 413,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}¡Eres un Digimon\nperdido!{pagina}¡Ve al Centro de\nAdministración\npara que te ayuden!{fin}"
+  },
+  {
+   "index": 414,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}El mantenimiento\nnecesita\nmás tiempo.{pagina}Por favor sé\npaciente.{fin}"
+  },
+  {
+   "index": 415,
+   "note": "G-050 L6",
+   "text": "{hablante}Encargado de Acceso{hablante}Lo siento, todavía\nno se ha acabado.{pagina}Me estoy cansando\nde disculparme...\nAy...{fin}"
+  },
+  {
+   "index": 416,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}¡Me asustaste!\nCreía que eras\nA.o.A.{pagina}Me preocupa. Así no podemos hacer el\nmantenimiento.{fin}"
+  },
+  {
+   "index": 417,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}La primera vez que\nvino A.o.A. \nno supe qué hacer.{pagina}¡No quiero volver a\nasustarme así\njamás!{fin}"
+  },
+  {
+   "index": 418,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}Lo siento. Todavía no\npuedes volver al\nMundo Real.{pagina}¡Es todo culpa de\nlos A.o.A.!{fin}"
+  },
+  {
+   "index": 419,
+   "note": "L6",
+   "text": "{hablante}Encargado de Acceso{hablante}¿Te enteraste?\n¡Los A.o.A.\nfueron\nderrotados!{pagina}¡Gracias a Dios!\n¡Podemos volver a casa!{fin}"
+  },
+  {
+   "index": 432,
+   "note": "G-044 L6",
+   "text": "{hablante}Encargado de Acceso{hablante}¡O, oink!\n¡Oi, oinkkk!{fin}"
+  },
+  {
+   "index": 434,
+   "note": "L6",
+   "text": "{hablante}Recepción Estadio{hablante}Este es el registro\npara el Torneo del\nCampeón del Servidor.{pagina}Para entrar en el\ntorneo necesitas\nlas cuatro insignias.{pagina}Derrota a cada Líder de\nciudad para conseguir \nsus insignias.{fin}"
+  },
+  {
+   "index": 435,
+   "note": "G-020 L6",
+   "text": "{hablante}Recepción Estadio{hablante}¿Cómo entrar en \nel Centro de \nAdministración?{pagina}Lo siento, ¡pero los tamers comunes no pueden entrar!{fin}"
+  },
+  {
+   "index": 436,
+   "note": "G-019",
+   "text": "{hablante}Recepción Estadio{hablante}¿Son Digimon \nperdidos?{pagina}¡Entonces vayan al\nCentro de \nAdministración!{fin}"
+  },
+  {
+   "index": 438,
+   "note": "G-020",
+   "text": "{hablante}Recepción Estadio{hablante}El mantenimiento\nestá siendo más\nlargo de lo normal.{pagina}Los tamers no\nparan de llegar\ny reclamar.{fin}"
+  },
+  {
+   "index": 439,
+   "note": "L6",
+   "text": "{hablante}Recepción Estadio{hablante}A.o.A. se llevaron los datos de los Digimon\nmás potentes{pagina}Espero que no les\nden mal uso.{fin}"
+  },
+  {
+   "index": 440,
+   "note": "L6",
+   "text": "{hablante}Recepción Estadio{hablante}Me alegra que hayan capturado a todos los de A.o.A.{pagina}Me sorprendió\noír lo mismo de la Maestra de Juego...{fin}"
+  },
+  {
+   "index": 455,
+   "note": "G-018",
+   "text": "{hablante}Recepción Estadio{hablante}¡Oink, oink,\noink, oi!{fin}"
+  },
+  {
+   "index": 457,
+   "note": "L6",
+   "text": "{hablante}Recepción Estadio{hablante}Este es el registro\npara el Torneo del\nCampeón del Servidor.{pagina}¿Oh? No tienes tu\ncompañero Digimon\naún.{pagina}Ve al Vestíbulo a\nrecuperar datos\nDigimon del satélite.{fin}"
+  },
+  {
+   "index": 458,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}La Batalla Digimon\nes lo mejor.{pagina}¡Omnimon fue \nimpresionante!{fin}"
+  },
+  {
+   "index": 459,
+   "note": "G-026 G-045 L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¿No podemos\nvolver al Mundo\nReal? ¡Bien!{pagina}¡Ahora puedo seguir viendo Batallas\nDigimon!{fin}"
+  },
+  {
+   "index": 460,
+   "note": "G-019 G-026 L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}He estado una\nvez en el Centro\nde Administración.{pagina}¡Pero me atraparon\ny me echaron!{fin}"
+  },
+  {
+   "index": 461,
+   "note": "G-045 L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}...Oh, es solo\nun\nAgumon.{pagina}Lo siento, solo\nme interesan los\nmás fuertes.{fin}"
+  },
+  {
+   "index": 462,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡Sakuyamon es\nel más grande!{pagina}¡Es el Digimon\nmás bonito!{fin}"
+  },
+  {
+   "index": 463,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡El carisma es\nimportante para\nun Digimon!{pagina}¡No basta con ser\nfuerte, hay que\ntener estilo!{fin}"
+  },
+  {
+   "index": 464,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡Alguien debería\nderrotar a la A.o.A.!{pagina}¡Eso sí que me\nimpresionaría!{fin}"
+  },
+  {
+   "index": 475,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡No! ¡Cancelaron\nel torneo!{pagina}¡Y ahora qué se\nsupone que voy\na hacer!{fin}"
+  },
+  {
+   "index": 486,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}No se puede pasar...\nUn Digimon no lo\nentenderá, creo.{fin}"
+  },
+  {
+   "index": 494,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}Estoy tan aburrida\nque voy a crear\nuna clasificación.{pagina}¡Gallantmon, creo,\nserá el número\nuno!{fin}"
+  },
+  {
+   "index": 495,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡Eres grande!\n¡Derrotaste a\nla A.o.A.!{pagina}¡Tu Digimon tiene que\nser el más fuerte!{fin}"
+  },
+  {
+   "index": 496,
+   "note": "L6",
+   "text": "{hablante}Fan de Lucha Midori{hablante}¡Oiiiiiink!\n¡Oink, oink!{fin}"
+  },
+  {
+   "index": 498,
+   "note": "G-036 L6",
+   "text": "{hablante}Tío Carlos{hablante}Entrar en el torneo\ndel Campeón del \nServidor es...{pagina}¡el sueño de todos los jugadores de Digimon Online!{fin}"
+  },
+  {
+   "index": 499,
+   "note": "L6",
+   "text": "{hablante}Tío Carlos{hablante}¡Serás una estrella\nsi eres el campeón\ndel Servidor!{pagina}Qué envidia.{fin}"
+  },
+  {
+   "index": 500,
+   "note": "L6",
+   "text": "{hablante}Tío Carlos{hablante}¡¿Qué, una forma\nde entrar en el\nCentro?!{pagina}¿Vas a intentar echar un vistazo adentro?{pagina}Yo también quiero.{fin}"
+  },
+  {
+   "index": 505,
+   "note": "G-033 L6",
+   "text": "{hablante}Tío Carlos{hablante}Me enteré de que derrotaste a la Maestra de Juego.{pagina}No te equivoques.\n¡Vas a tener éxito\ncon las chicas!{fin}"
+  },
+  {
+   "index": 510,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}Qué lástima no poder volver\nal Mundo Real.{pagina}¡Supongo que \nlimpiaré aquí!{fin}"
+  },
+  {
+   "index": 511,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}Nunca he oído\nuna forma de\nentrar en el Centro.{pagina}Si te haces conserje, a lo mejor te dejan\nentrar.{fin}"
+  },
+  {
+   "index": 512,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}Aquí,\ny allí...{pagina}Hasta el Mundo\nDigital se ensucia{fin}"
+  },
+  {
+   "index": 513,
+   "note": "G-008 L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¡Aaah!{pagina}¿Viste eso?\n¡Una cucaracha!{pagina}¡BIEN, hay que\nponerse serios\ny limpiar!{fin}"
+  },
+  {
+   "index": 514,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¡¿Qué quieres?!{pagina}¡Estoy limpiando, \nasí que quítate de en medio!{fin}"
+  },
+  {
+   "index": 515,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¡A.o.A. estuvo\naquí!{pagina}Estaba limpiando\ny no me di cuenta.{fin}"
+  },
+  {
+   "index": 516,
+   "note": "G-017 L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¿Cómo?\n¿No está \nlimpio?{pagina}¿Qué dices?\n¿No ha cambiado?{pagina}¡Qué grosero! ¡Más te vale mirar bien, amigo!{fin}"
+  },
+  {
+   "index": 517,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¡Oí que derrotaste\na la A.o.A.!{pagina}Mira ¿No sienta\nbien limpiar?{fin}"
+  },
+  {
+   "index": 518,
+   "note": "L6",
+   "text": "{hablante}Quisquillosa Freda{hablante}¡Oink!\n¡Oi, oi,\noinnk!{fin}"
+  },
+  {
+   "index": 520,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}Los objetos con los que\nequipar a cada Digimon\nvarían, ¡estúdialo!{fin}"
+  },
+  {
+   "index": 521,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}¿Buscas una forma\nde entrar en el\nCentro?{pagina}No sé de ninguna.{fin}"
+  },
+  {
+   "index": 522,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}A veces el dueño\nsale...{pagina}¿Dónde irá?...es\nsospechoso...{fin}"
+  },
+  {
+   "index": 523,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}Tienes que derrotar\na los jefes Digimon\nde cada zona.{pagina}Siempre tienen\nbuenos objetos.{fin}"
+  },
+  {
+   "index": 524,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}¡Me alegra que no me atrapara A.o.A.!{pagina}¡Habría llorado si me quitaran mis\nobjetos!{fin}"
+  },
+  {
+   "index": 525,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}¿Conoces el \nDigihuevo de\nSabiduría?{pagina}¡Puedes llamar a\nun Digmon con él\ny meterte bajo tierra!{fin}"
+  },
+  {
+   "index": 526,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}Hay armaduras con\nel mismo nombre.{pagina}Si las consigues\ntodas tu Digimon\nserá más fuerte.{fin}"
+  },
+  {
+   "index": 527,
+   "note": "G-020 L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}¿Qué tamer\nderrotó a la\nA.o.A.?{pagina}Seguro que tiene\nmontones de\nobjetos.{fin}"
+  },
+  {
+   "index": 528,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Sandy{hablante}¡Oink,\noi, oioioink!{fin}"
+  },
+  {
+   "index": 538,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"E\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 540,
+   "note": "G-026",
+   "text": "{hablante}Smith Junior{hablante}Bajo cuerda, papá\ntambién subasta.{pagina}Así que cuando\nse va...{fin}"
+  },
+  {
+   "index": 542,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"M\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 544,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"O\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 546,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"N\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 548,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"S\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 550,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}Vamos a tocarla\notra vez...{pagina}Mmm...nada...parece que repetir \"T\" no sirve de nada.{fin}"
+  },
+  {
+   "index": 552,
+   "note": "G-018 G-043 G-050",
+   "text": "{hablante}Señor Alexei{hablante}...glup, glup\nhaaaa!{pagina}¡Qué sed tenía!{fin}"
+  },
+  {
+   "index": 553,
+   "note": "G-043 L6",
+   "text": "{hablante}Mesera Debbie{hablante}Mantenimiento en \nestos tiempos...{pagina}El Señor Alexei volverá\na lamentarse.{fin}"
+  },
+  {
+   "index": 554,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Mesera Debbie{hablante}El Señor Alexei no está\nmuy decaído ahora.{pagina}¡Sigue coqueteando\nconmigo! ¡De verdad!{fin}"
+  },
+  {
+   "index": 555,
+   "note": "G-026 L6",
+   "text": "{hablante}Mesera Debbie{hablante}¡De verdad! ¡Qué verá\nJohn en ella!{fin}"
+  },
+  {
+   "index": 556,
+   "note": "G-026 L6",
+   "text": "{hablante}Mesera Debbie{hablante}¡De verdad! ¡Qué verá\nJohn en ella!{fin}"
+  },
+  {
+   "index": 557,
+   "note": "G-026 G-043 L6",
+   "text": "{hablante}Mesera Debbie{hablante}Todos aquí se\nescondieron en el\nalmacén.{pagina}¡Lo difícil fue\nllevar al Señor Alexei!{fin}"
+  },
+  {
+   "index": 558,
+   "note": "G-018 L6",
+   "text": "{hablante}Mesera Debbie{hablante}Así que la Maestra de Juego era la mala.{pagina}¡Ya me olía que no\nera trigo limpio!{fin}"
+  },
+  {
+   "index": 559,
+   "note": "L6",
+   "text": "{hablante}Mesera Debbie{hablante}¡John debería olvidarse\nde ella!{pagina}¡Debería mirarme\na mí!{fin}"
+  },
+  {
+   "index": 560,
+   "note": "L6",
+   "text": "{hablante}Mesera Debbie{hablante}¡John se me\ndeclaró!{pagina}¡Y le dije que sí!\n¡Soy tan feliz!{fin}"
+  },
+  {
+   "index": 561,
+   "note": "L6",
+   "text": "{hablante}Mesera Debbie{hablante}Oink, oink,\nooooi...{fin}"
+  },
+  {
+   "index": 563,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Alexei{hablante}¡Eh, chico!\n¡¿Te diviertes?!{pagina}¡Porque me \nsiento fatal!{fin}"
+  },
+  {
+   "index": 566,
+   "note": "G-018 G-043 L6",
+   "text": "{hablante}Señor Alexei{hablante}¿Qué, A.o.A.?{pagina}¡Déjalos venir!\nNo tengo nada\nque perder.{fin}"
+  },
+  {
+   "index": 567,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Alexei{hablante}Ooh, ¡mi úlcera!{pagina}Un antiácido\n¡por favor!{fin}"
+  },
+  {
+   "index": 568,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Alexei{hablante}Me lo tendría que\nhaber imaginado.{pagina}Prometo no\nquejarme más.{fin}"
+  },
+  {
+   "index": 569,
+   "note": "G-017 G-018 G-043",
+   "text": "{hablante}Señor Alexei{hablante}Oh, ¡mi vida da pena!\nMi trabajo, mi auto,\nmi casa...{pagina}¡Ooh! Ah,..Hola\n¿Qué tal te va?{fin}"
+  },
+  {
+   "index": 572,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestro John{hablante}Es normal el\nmantenimiento.{pagina}¿Te gustaría beber\nalgo? Leche, por\nsupuesto.{fin}"
+  },
+  {
+   "index": 573,
+   "note": "G-045",
+   "text": "{hablante}Maestro John{hablante}En el Centro solo \nentra el personal {pagina}También los Digimon\nsin compañero\npueden hacerlo.{fin}"
+  },
+  {
+   "index": 574,
+   "note": "L6",
+   "text": "{hablante}Maestro John{hablante}¿No es guapa la Maestra de Juego?{pagina}Es justo mi\ntipo.{fin}"
+  },
+  {
+   "index": 575,
+   "note": "L6",
+   "text": "{hablante}Maestro John{hablante}¿No es guapa la Maestra de Juego?{pagina}Es justo mi\ntipo.{fin}"
+  },
+  {
+   "index": 577,
+   "note": "G-018 L6",
+   "text": "{hablante}Maestro John{hablante}¿La Maestra de Juego está con\nA.o.A.?{pagina}Estoy conmocionado.{fin}"
+  },
+  {
+   "index": 578,
+   "note": "L6",
+   "text": "{hablante}Maestro John{hablante}Lisa, de S.A.P. \nes linda.{pagina}Y tiene estilo.\n¡Soy un gran fan\nsuyo!{fin}"
+  },
+  {
+   "index": 580,
+   "note": "L6",
+   "text": "{hablante}Maestro John{hablante}Oin, oink,\noiiiii...{fin}"
+  },
+  {
+   "index": 694,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí la Carga Energía!{fin}"
+  },
+  {
+   "index": 731,
+   "note": "G-042 G-045 L6",
+   "text": "{hablante}Guardia DO{hablante}Esta es Ciudad Asuka. El Centro de Administración de MAGAMI está aquí.{fin}"
+  },
+  {
+   "index": 732,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Disculpa los\ninconvenientes.{pagina}Te avisaremos cuando\nacabe el\nmantenimiento.{fin}"
+  },
+  {
+   "index": 733,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Disculpa los\ninconvenientes.{pagina}Te avisaremos cuando\nacabe el\nmantenimiento.{fin}"
+  },
+  {
+   "index": 734,
+   "text": "{hablante}Guardia DO{hablante}Eh, lo siento,\nel mantenimiento\naún no terminó.{pagina}Espera un poco\nmás.{fin}",
+   "note": "L6"
+  },
+  {
+   "index": 735,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡No soy de A.o.A.!{pagina}¡Estoy aquí para\nproteger!{fin}"
+  },
+  {
+   "index": 736,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Tantos problemas\ncausados por A.o.A...{pagina}¡Ahora protegeremos\nla ciudad con\nesperanzas renovadas!{fin}"
+  },
+  {
+   "index": 737,
+   "note": "G-043 L6",
+   "text": "{hablante}Guardia DO{hablante}¡Nada anormal en\nCiudad Asuka!{pagina}¡Señor {0208}{0102}1 0 por\nfavor, derrótelos!{fin}"
+  },
+  {
+   "index": 738,
+   "note": "G-043 L6",
+   "text": "{hablante}Guardia DO{hablante}¡Bien hecho, Señor {0208}{0102}1{01e7}{pagina}¡Salvó Digimon\nOnline!{fin}"
+  },
+  {
+   "index": 739,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oink!\n¡Oii, oiiink!{fin}"
+  },
+  {
+   "index": 741,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Encuentros, \nadioses; batallas\ny amistades.{pagina}¡Todo pasa en\nCiudad Asuka!{fin}"
+  },
+  {
+   "index": 742,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}No te preocupes\npor no poder\nvolver.{pagina}¡Simplemente\ndisfruta del presente!{fin}"
+  },
+  {
+   "index": 743,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¿Una forma de entrar\nen el Centro de\nAdministración?{pagina}No hay nada \ninteresante allí.{fin}"
+  },
+  {
+   "index": 744,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}No te preocupes\npor no poder\nvolver.{pagina}¡Simplemente\ndisfruta del presente!{fin}"
+  },
+  {
+   "index": 745,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Nunca nos\nrendiremos a la\nA.o.A.!{pagina}¡Porque tenemos\ncorazón!{fin}"
+  },
+  {
+   "index": 746,
+   "note": "G-045 L6",
+   "text": "{hablante}Guardia DO{hablante}La Maestra de Juego\nestaba con A.o.A.{pagina}Supongo que al\nfinal solo puedes\nfiarte de ti mismo.{fin}"
+  },
+  {
+   "index": 747,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}Prometo proteger\nesta ciudad.{pagina}¡Porque es todo\nlo que puedo hacer!{fin}"
+  },
+  {
+   "index": 748,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Mira! ¡Se acabó\nA.o.A.!{pagina}Si no te rindes, el bien acaba triunfando.{fin}"
+  },
+  {
+   "index": 749,
+   "note": "L6",
+   "text": "{hablante}Guardia DO{hablante}¡Oink, oink\noiooioioink!{fin}"
+  },
+  {
+   "index": 1037,
+   "note": "L6",
+   "text": "{hablante}Escritora Rikako{hablante}Los que pueden\ncomprar artículos\ncaros tienen suerte{pagina}¡Me casaré con\nalguien rico!{fin}"
+  },
+  {
+   "index": 1040,
+   "note": "G-018 G-045",
+   "text": "{hablante}Datamon{hablante}Solo el personal \nde Digimon Online\npuede pasar.{pagina}Muestra un Pase\nPersonal para\nir al otro lado.{fin}"
+  },
+  {
+   "index": 1042,
+   "note": "L6",
+   "text": "{hablante}Datamon{hablante}¡Datamon odia \na la A.o.A.!{pagina}No los dejaré pasar{fin}"
+  },
+  {
+   "index": 1043,
+   "note": "G-018",
+   "text": "{hablante}Datamon{hablante}Confirma Pase\nPersonal.{pagina}¡Pasa cuando \nquieras!{fin}"
+  },
+  {
+   "index": 1044,
+   "note": "G-026 L6",
+   "text": "{hablante}Datamon{hablante}¡Derrotaste a la\nA.o.A.!{pagina}¡Estoy conmovido!{fin}"
+  },
+  {
+   "index": 1055,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}Es el Centro\nde Navegación\nde Digievolución.{pagina}¿Qué información\nde digievolución\nquieres saber?{fin}"
+  },
+  {
+   "index": 1056,
+   "note": "G-018 L6",
+   "text": "{hablante}Navi Digievolución{hablante}Es el Centro\nde Navegación Digimon.{pagina}¿Quieres saber\ncosas de tu \nDigimon?{fin}"
+  },
+  {
+   "index": 1057,
+   "note": "G-018",
+   "text": "{hablante}Digimon Navi{hablante}¡Oioioioioi\noioioink!{fin}"
+  },
+  {
+   "index": 1058,
+   "note": "G-018",
+   "text": "{hablante}Digimon Navi{hablante}¿Oioioioioi?{pagina}¡¿Oink?!{fin}"
+  },
+  {
+   "index": 1059,
+   "note": "G-018 G-043 L6",
+   "text": "{hablante}Doctor Kadomatsu{hablante}¡Oink! ¡Oink! ¡Oink! ¡Oink! ¡Oink!{fin}"
+  },
+  {
+   "index": 1060,
+   "note": "G-018 G-026",
+   "text": "{hablante}Digivolve Navi{hablante}¡Uf! No sabía qué\nestaba pasando.{pagina}En fin,\n¡bienvenido al\nLaboratorio Digimon!{fin}"
+  },
+  {
+   "index": 1061,
+   "note": "G-005 G-018 G-026 L6",
+   "text": "{hablante}Digimon Navi{hablante}Qué alivio.\n¡Todos están bien!{pagina}Entonces...\n¡Bienvenido al\nMostrador de Navegación!{fin}"
+  },
+  {
+   "index": 1072,
+   "note": "G-026",
+   "text": "{hablante}Chicago Green{hablante}¡Mira mis\nDigimon!{pagina}¡Durmiendo con\ntodo este ruido!{pagina}Estoy un poco\navergonzado.{fin}"
+  },
+  {
+   "index": 1073,
+   "note": "G-002 G-008 G-015",
+   "text": "{hablante}Chicago Green{hablante}Eh, ustedes,\n¡Despierten!{pagina}BIEN, ahora voy\na dormir yo.{fin}"
+  },
+  {
+   "index": 1074,
+   "note": "G-045",
+   "text": "{hablante}Chicago Green{hablante}Me pregunto\nsi los Digimon\nnecesitan dormir...{pagina}Me da sueño solo\npensarlo.{fin}"
+  },
+  {
+   "index": 1075,
+   "note": "G-019 L6",
+   "text": "{hablante}Chicago Green{hablante}¿Qué? ¿Todos\nlos A.o.A.\natrapados?{pagina}¡Bien! ¡No \ndebería estar durmiendo!{fin}"
+  },
+  {
+   "index": 1079,
+   "note": "G-043 L6",
+   "text": "{hablante}Señorita Asami{hablante}Solo los elegidos\nvienen aquí.{fin}"
+  },
+  {
+   "index": 1080,
+   "note": "G-043",
+   "text": "{hablante}Señorita Asami{hablante}Todos los objetos\nque se venden aquí\nson inusuales.{fin}"
+  },
+  {
+   "index": 1081,
+   "note": "G-043",
+   "text": "{hablante}Señorita Asami{hablante}Todos los objetos\nque se venden aquí\nson inusuales.{fin}"
+  },
+  {
+   "index": 1082,
+   "note": "G-043",
+   "text": "{hablante}Señorita Asami{hablante}Todos los objetos\nque se venden aquí\nson inusuales.{fin}"
+  },
+  {
+   "index": 1083,
+   "note": "G-043 L6",
+   "text": "{hablante}Señorita Asami{hablante}¿Vas a la\nsubasta?{pagina}Si eres exigente con los objetos, deberías\nir a menudo.{fin}"
+  },
+  {
+   "index": 1084,
+   "note": "G-043 L6",
+   "text": "{hablante}Señorita Asami{hablante}¿Vas a la\nsubasta?{pagina}Si eres exigente con los objetos, deberías\nir a menudo.{fin}"
+  },
+  {
+   "index": 1085,
+   "note": "G-043",
+   "text": "{hablante}Señorita Asami{hablante}Parece que tienes\nbuenos objetos.{pagina}Pero hay tantos\nobjetos que no tienes\nen el mundo.{fin}"
+  },
+  {
+   "index": 1086,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señorita Asami{hablante}¡Buenas noticias!\n¡A.o.A. derrotada!{pagina}Y si consigo\ntodos los objetos,\n¡seré feliz!{fin}"
+  },
+  {
+   "index": 1087,
+   "note": "G-043",
+   "text": "{hablante}Señorita Asami{hablante}¡Oioink,\noioinkk oink!{fin}"
+  },
+  {
+   "index": 1092,
+   "note": "G-033",
+   "text": "{hablante}Riggs de LA{hablante}¿Qué? \n¿Tampoco aquí el\nColmillo Peligroso?{pagina}Es increíble...\n¡Me dijeron que estaba\nen Ciudad Asuka!{fin}"
+  },
+  {
+   "index": 1093,
+   "note": "G-033",
+   "text": "{hablante}Riggs de LA{hablante}¿Qué? \n¿Tampoco aquí el\nCañón Tirador?{pagina}Es increíble...\n¡Me dijeron que estaba\nen Ciudad Asuka!{fin}"
+  },
+  {
+   "index": 1095,
+   "note": "G-038 G-053",
+   "text": "{hablante}Riggs de LA{hablante}¿Qué? \n¿Tampoco aquí\nla Armadura Ronin?{pagina}Es increíble...\n¡Me dijeron que estaba\nen Ciudad Asuka!{fin}"
+  },
+  {
+   "index": 1097,
+   "note": "G-018",
+   "text": "{hablante}Riggs de LA{hablante}¡Oioioio, oink,\noioionk, oiink!{fin}"
+  },
+  {
+   "index": 1100,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí el Guante Hierro!{fin}"
+  },
+  {
+   "index": 1101,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí\nel Acero\nCarmesí!{fin}"
+  },
+  {
+   "index": 1104,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí\nel Disco de\nEmergencia!{fin}"
+  },
+  {
+   "index": 1106,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí el Cuerno Metal!{fin}"
+  },
+  {
+   "index": 1107,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí\n300 BIT!{fin}"
+  },
+  {
+   "index": 1110,
+   "note": "G-026 L6",
+   "text": "{hablante}Travieso Mat{hablante}¡No puedes ir a\nCiudad Asuka\ndesde aquí!{pagina}¡A mí tampoco\nme admitieron!{fin}"
+  },
+  {
+   "index": 1112,
+   "note": "L6",
+   "text": "{hablante}Travieso Mat{hablante}¡Quién iba a saber que A.o.A. estaría aquí!{pagina}No hay tiempo\npara trucos.{fin}"
+  },
+  {
+   "index": 1113,
+   "note": "G-026 G-018 L6",
+   "text": "{hablante}Travieso Mat{hablante}¡La Maestra de Juego era A.o.A.!{pagina}Nunca se sabe.\n¡Je, je, je!{fin}"
+  },
+  {
+   "index": 1114,
+   "note": "L6",
+   "text": "{hablante}Travieso Mat{hablante}No sé dónde \nestará A.o.A.{pagina}Me quedaré aquí\ntranquilo un\ntiempo.{fin}"
+  },
+  {
+   "index": 1115,
+   "note": "G-019 L6",
+   "text": "{hablante}Travieso Mat{hablante}Je je je\n¡Qué bueno que hayan atrapado a la A.o.A.!{pagina}¡Ahora puedo hacer travesuras otra\nvez!{fin}"
+  },
+  {
+   "index": 1153,
+   "note": "L6",
+   "text": "{hablante}Director Roy{hablante}¡Mira esto!\n¡Conseguí otro\nobjeto estupendo!{pagina}¡Por eso las subastas\nson tan adictivas!{fin}"
+  },
+  {
+   "index": 1154,
+   "note": "G-006 L6",
+   "text": "{hablante}Fan de RPG Masao{hablante}¿Por qué todos\nson taan ricos?{pagina}¡Yo solo voy a derrotar\nenemigos y tomar\nsu dinero!{fin}"
+  },
+  {
+   "index": 1155,
+   "note": "L6",
+   "text": "{hablante}Tendero Abel{hablante}Esa subasta\nfue divertida.{pagina}Espero que\npronto empiece\nla siguiente.{fin}"
+  },
+  {
+   "index": 1156,
+   "note": "L6",
+   "text": "{hablante}Fan de los Objetos Michiru{hablante}Pude comprar\nuno esta vez...{pagina}...¡pero no \ntengo dinero!{fin}"
+  },
+  {
+   "index": 1165,
+   "note": "G-007",
+   "text": "{hablante}Teddy{hablante}¡Ahora estoy \ninvestigando\nesta computadora!{pagina}El Mundo Real\naún está seguro,\n¡No te preocupes!{fin}"
+  },
+  {
+   "index": 1166,
+   "note": "L6",
+   "text": "{hablante}Lisa{hablante}Kurt no está aquí,\n{0208}{0102}1 0 \ncontamos contigo.{pagina}¡Trabajemos juntos para salvar el mundo!{fin}"
+  },
+  {
+   "index": 1170,
+   "note": "G-019",
+   "text": "{hablante}Nick{hablante}Nada extraño\naquí.{pagina}¡Están quietos\ndesde que los\natrapamos!{fin}"
+  },
+  {
+   "index": 1172,
+   "note": "L6",
+   "text": "{hablante}Teddy{hablante}¡Buscaré un programa para detener al Juggernaut!{pagina}¡Buena suerte, {0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 1176,
+   "note": "G-026 L6",
+   "text": "{hablante}Datamon{hablante}Mm, ¿qué quieres?\n¿Quieres entrar en\nCiudad Asuka?{pagina}...Si abro la puerta\nde los cimientos,\npodrás entrar.{pagina}¿...tienes un Pase Personal de DO?{pagina}¿...no? No puedo\naceptar órdenes en\nese caso.{fin}"
+  },
+  {
+   "index": 1177,
+   "note": "G-018",
+   "text": "{hablante}Datamon{hablante}¡Necesitas un Pase\nPersonal para \nabrir la puerta!{fin}"
+  },
+  {
+   "index": 1178,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Mmm, todavía no\nlo consigo.\nEl arte es difícil...{fin}"
+  },
+  {
+   "index": 1179,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}Tengo acceso a\nla Red Óptica.{pagina}Pero es inestable\ny se pierde fácil\nla conexión...{fin}"
+  },
+  {
+   "index": 1193,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestro John{hablante}Sepikmon causa\ntodo tipo de\nproblemas.{pagina}Puso \"Posada\"\nen nuestro cartel.{fin}"
+  }
+ ]
+}

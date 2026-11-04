@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../../docs/modding/schema/items.schema.json",
+  "format": "items-v1",
+  "new": {
+    "my-potion": {
+      "base": "dw3:item/43",
+      "price": 40,
+      "sellPrice": 20,
+      "effect": { "amount": 300 },
+      "name": { "eng": "My Potion" },
+      "description": { "eng": "Heals a little HP." }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+ "file": "SSCRDSHP.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 4,
+   "note": "G-026",
+   "text": "Botón {0134}: Atrás"
+  },
+  {
+   "index": 5,
+   "note": "G-018",
+   "text": "Comprar Carta"
+  },
+  {
+   "index": 13,
+   "note": "G-042",
+   "text": "Comprar"
+  },
+  {
+   "index": 19,
+   "note": "G-018",
+   "text": "BIT insuficiente"
+  },
+  {
+   "index": 20,
+   "note": "G-018",
+   "text": "Demasiadas Cartas"
+  },
+  {
+   "index": 22,
+   "note": "G-018",
+   "text": "Carpeta 1"
+  },
+  {
+   "index": 23,
+   "note": "G-018",
+   "text": "Carpeta 2"
+  },
+  {
+   "index": 24,
+   "note": "G-018",
+   "text": "Carpeta 3"
+  },
+  {
+   "index": 25,
+   "note": "G-018",
+   "text": "Elige una Carpeta."
+  },
+  {
+   "index": 27,
+   "note": "G-018",
+   "text": "Cambiar nombre"
+  },
+  {
+   "index": 30,
+   "note": "G-045 L6",
+   "text": "Solo 4 de la misma \nCarta por Carpeta."
+  },
+  {
+   "index": 31,
+   "note": "G-026",
+   "text": "Botón {012f}: Orden"
+  }
+ ]
+}

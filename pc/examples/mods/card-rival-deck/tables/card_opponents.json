@@ -1,0 +1,18 @@
+{
+  "format": "card_opponents-v1",
+  "rows": {
+    "*": {
+      "card1": 120,
+      "card2": 120,
+      "card3": 120,
+      "card4": 120,
+      "card5": 120,
+      "card6": 120,
+      "card7": 120,
+      "card8": 120,
+      "card9": 120,
+      "card10": 120,
+      "level": 99
+    }
+  }
+}

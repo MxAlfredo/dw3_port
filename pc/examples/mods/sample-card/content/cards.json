@@ -1,0 +1,14 @@
+{
+  "format": "cards-v1",
+  "new": {
+    "test-card": {
+      "base": "dw3:card/120",
+      "ap": 45,
+      "hp": 40,
+      "rank": 100,
+      "price": 120,
+      "name": { "eng": "Test Card", "spa": "Carta de prueba", "es-419": "Carta de ejemplo" },
+      "description": { "eng": "A new card from a mod." }
+    }
+  }
+}

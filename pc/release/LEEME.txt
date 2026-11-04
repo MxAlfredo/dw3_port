@@ -1,0 +1,241 @@
+DW3 Port 1.0.0
+==============
+
+Descargas, versiones nuevas y código fuente: https://github.com/MxAlfredo/dw3_port/releases
+
+Un port para PC de Digimon World 3, hecho a partir de la decompilación del
+juego que hizo la comunidad. Funciona en Windows, Linux y Android, y agrega el español
+latinoamericano como idioma extra.
+
+Esta descarga NO incluye el juego. Necesitas tu propia imagen del disco de
+Digimon World 3 (Europa), la que trae inglés, francés, alemán, español e
+italiano (suele llamarse "Digimon World 2003 (Europe) (En,Fr,De,Es,It)"), como
+par .cue + .bin o como un solo .bin.
+
+
+Para empezar
+------------
+
+Las descargas de la versión 1.0.0 se llaman:
+  DW3Port-1.0.0-Setup.exe               instalador de Windows
+  DW3Port-1.0.0-windows-portable.zip    Windows, portátil
+  DW3Port-1.0.0-x86_64.AppImage         Linux
+  DW3Port-1.0.0-android.apk             Android
+
+Windows, instalador (DW3Port-...-Setup.exe)
+  Ejecútalo. En la página "Tu juego", elige la imagen de tu disco y, si quieres
+  continuar tus partidas de un emulador, tu tarjeta de memoria (.mcd o .mcr,
+  por ejemplo de DuckStation o ePSXe). Las dos son opcionales: si no eliges el
+  disco, el juego lo pide la primera vez que se abre.
+
+Windows, portátil (DW3Port-...-windows-portable.zip)
+  Descomprímelo donde quieras (sirve una memoria USB), pon la imagen de tu
+  disco en la carpeta game y abre DW3.exe. Los ajustes, las partidas y los
+  registros se guardan en esa misma carpeta.
+
+Linux (DW3Port-...-x86_64.AppImage)
+  Dale permiso de ejecución (clic derecho > Propiedades > "Permitir ejecutar",
+  o chmod +x DW3Port-*.AppImage) y ábrelo. La primera vez pide el disco.
+  Funciona en cualquier distribución x86_64 de 2022 en adelante (glibc 2.34 o
+  más nueva).
+
+Android (DW3Port-...-android.apk)
+  Android 10 o más nuevo, teléfono o tableta de 64 bits (arm64). Copia el .apk
+  al aparato y ábrelo; Android pedirá permiso para instalar apps de orígenes
+  desconocidos (de la app con la que lo abriste, por ejemplo Archivos). Si
+  actualizas desde una versión anterior de este mismo port, se instala encima
+  y conserva tus partidas. Ver "Android" más abajo.
+
+
+Cómo se juega
+-------------
+
+Teclado (por defecto):  flechas = cruceta   C = Cruz    V = Círculo
+                        Z = Triángulo       X = Cuadrado   Enter = Start
+                        Shift izquierdo = L1   Shift derecho = R1
+También funcionan los mandos (Xbox, PlayStation y la mayoría de los demás).
+
+F1 (o Select en el mando) abre las opciones: controles, video (con la
+velocidad de batalla), pantalla, audio e idioma. En la lista de idiomas está
+"Espanol Latam".
+
+
+Novedades de 1.0.0
+------------------
+
+La primera versión estable. Las partidas y ajustes de las betas cargan tal cual.
+
+  - Android: el juego funciona en teléfonos y tabletas (64 bits), con controles
+    táctiles.
+  - Options > System > "Import memory card": trae tus partidas de una tarjeta
+    de memoria de PS1 o de un emulador cuando quieras.
+  - El español latinoamericano como idioma extra, terminado y revisado.
+  - Una plataforma de mods completa: tablas del juego, objetos, técnicas,
+    cartas, Digimon y enemigos nuevos, imágenes, sonidos, películas, personajes
+    y charlas de escenario, y modelos 3D nuevos. Empieza por la guía de mods
+    (docs/modding/README.md en el repositorio del proyecto), que trae un primer
+    mod en cinco minutos y 24 ejemplos listos.
+  - Muchos arreglos encontrados al jugar el juego completo en cada plataforma.
+
+
+Novedades de 0.5.0-beta
+-----------------------
+
+Tus partidas y ajustes de la 0.4.0 deberían cargar tal cual. El primer arranque
+tras actualizar vuelve a exportar data\images una sola vez (PNG comprimidos,
+más chicos), así que puede tardar un poco más esa vez.
+
+  - Carga más rápida entre zonas.
+  - Nueva pestaña Opciones > Mods: activa o desactiva mods, cambia su orden y
+    reinicia para aplicar.
+  - Opciones > System > "Prepare modding files" reemplaza las cuatro
+    filas de exportación anteriores y exporta todo de una vez.
+  - Todo lo que hay en el disco ya se puede exportar a data\ para modificarlo:
+    videos, música y sonidos, arte de cartas, arte de escenarios, tablas del
+    juego y los archivos crudos. Los mods pueden reemplazarlos.
+  - Los mods pueden agregar cartas nuevas (también se pueden vender, salir en
+    sobres y usar los rivales).
+  - Los sonidos reemplazados ya no tienen límite de duración.
+  - Las imágenes exportadas pesan menos.
+  - Para modders: --new-mod, --validate-mod y --validate-mods (con el .bin, el
+    .cue o el disco recordado), --list-mods y --export-all; una plantilla de
+    mod y esquemas JSON; y una guía de modding en el repositorio del proyecto.
+
+
+Novedades de 0.4.0-beta
+-----------------------
+
+IMPORTANTE, si jugaste la 0.3.0-beta: la 0.4.0 NO lee la estructura de
+carpetas de la 0.3.0. Desinstala la 0.3.0 y borra su carpeta de usuario
+(Windows: %APPDATA%\dw3port\dw3, Linux: ~/.local/share/dw3port/dw3), o
+conserva solo tus partidas. Para traer una tarjeta de memoria de PS1 (.mcd)
+vieja, ponla en la nueva carpeta import\: el juego la importa la primera vez
+que arranca.
+
+  - Nueva estructura de la carpeta de usuario: saves\, import\,
+    mods\<mod>\content\ y data\ en minúsculas (ver "Dónde quedan tus
+    archivos").
+  - Las partidas son archivos propios del port (no hace falta tarjeta de
+    memoria); las tarjetas se importan una vez desde import\.
+  - Los mods ahora pueden agregar o cambiar objetos, técnicas y Digimon:
+    enemigos nuevos y dónde aparecen (encuentros), y formas de compañero
+    nuevas que se consiguen evolucionando. Sin los límites de la PS1 en la
+    cantidad.
+  - data\content\ lista todo lo que los mods pueden nombrar, con los nombres
+    originales (dw3:item/..., dw3:tech/...) y las ranuras de animación de cada
+    luchador (scriptSlots). El juego lo crea a partir de tu disco.
+  - Registros más livianos: el nivel de registro puede ser off, mods o trace
+    (y se pueden elegir canales), en settings.ini ([debug] log = ...) o con DW3_LOG.
+  - Corregido: el botín de una batalla ahora sale del enemigo que realmente
+    salió sorteado.
+  - Herramienta para modders: tools/techcompat.py (qué luchador puede
+    reproducir qué animación de técnica), en el repositorio del proyecto.
+
+
+Dónde quedan tus archivos
+-------------------------
+
+  Windows, instalado:   %APPDATA%\dw3port\dw3\  (menú Inicio: "DW3 Port - Partidas y registros")
+  Windows, portátil:    la carpeta de DW3.exe
+  Linux:                ~/.local/share/dw3port/dw3/
+  Android:              Android/data/io.github.dw3port/files/  (ver "Android")
+
+Ahí están:
+
+  settings.ini     tus preferencias (idioma, video, controles, mods...)
+  saves\default\   tus partidas (slot0.dw3save a slot2.dw3save, el formato propio
+                   del port; view\ guarda una copia legible de cada una, que el
+                   juego nunca lee)
+  import\          tarjetas de memoria de PS1 para importar (ver abajo)
+  mods\            tus mods, una carpeta cada uno
+  data\            archivos de referencia que el juego genera de tu disco (se
+                   pueden borrar: se vuelven a crear)
+  logs\            los registros más recientes
+
+Desinstalar nunca los borra.
+
+Android
+-------
+
+Primer arranque: el juego te pide tu disco con el selector de archivos del
+sistema. Elige el .bin de tu disco (la carpeta Descargas se abre por defecto).
+Elegir el .cue no basta: hace falta el .bin. El juego lo lee en su lugar, sin
+copiarlo, y lo recuerda; la próxima vez arranca directo. Si borras o mueves el
+.bin, vuelve a pedirlo.
+
+Controles: si hay un mando conectado (Bluetooth o USB) se usa como en
+cualquier otra plataforma. Sin mando aparece un control táctil: un stick
+flotante a la izquierda (el dedo define su centro) y los botones a la derecha.
+En Opciones > Display, "Touch controls" puede ser Auto (se oculta si hay un
+mando), On u Off, y también se ajustan su opacidad y su tamaño. Las opciones
+se abren con Select y también se manejan tocando: toca una pestaña o una fila
+para elegirla, toca el valor para cambiarlo, desliza para mover el cursor y
+toca fuera del panel para cerrarlo. En los diálogos, tocar la imagen mientras
+se escribe una página la termina de escribir; el siguiente toque pasa a la
+página siguiente. Si aparece una pregunta o un menú, se contesta con los
+botones. Mientras el juego espera una tecla en Opciones > Controles, un toque
+cancela la captura.
+
+Pantalla: Opciones > Video > Scaling tiene Fit, Integer y Aspect; en Android
+viene en Aspect (la imagen más grande que conserva la proporción 4:3, con
+bandas). Si mandas el juego al fondo (Inicio, cambiar de app) se congela y no
+gasta batería ni CPU; al volver continúa donde estaba. Opciones > System >
+"Restart game" reinicia el juego (por ejemplo para aplicar los mods).
+
+Dónde quedan tus archivos:
+
+  Android/data/io.github.dw3port/files/
+
+En esa carpeta están los mismos archivos que en las otras plataformas (ver
+"Dónde quedan tus archivos"): saves, logs, mods y settings.ini. Se llega desde
+una PC conectando el aparato por USB (modo "Transferir archivos") y abriendo
+esa ruta; en algunos aparatos solo se ve con un explorador de archivos que
+muestre Android/data. Los ajustes y las partidas son los mismos archivos que
+en la PC, así que puedes copiar saves\default de la PC a la del aparato.
+
+Mods: se crean y se instalan en una PC (ver la guía de modding del
+repositorio; los ejemplos se instalan en la PC con pc/examples/install_examples.sh
+del repositorio, que genera las imágenes a partir de tu disco).
+Después copia la carpeta mods\ de la PC (sin `_template`) a la carpeta mods de
+arriba, abre Opciones > Mods para activarlos y reinicia el juego. El juego solo lee los mods al
+arrancar.
+
+
+Escalado de pantalla (Opciones > Video > Scaling, "scaling" en settings.ini): Fit
+estira la imagen a toda la ventana, Integer usa el mayor múltiplo entero de
+320x240 y Aspect usa la imagen más grande que conserva la proporción 4:3, con
+bandas negras a los lados o arriba. En teléfonos y tabletas Aspect es el valor
+por defecto.
+
+Si tienes una tarjeta de memoria de PS1 (un archivo .mcd, por ejemplo de un
+emulador), ponla en la carpeta import (o elígela en el instalador, que la copia
+ahí). La primera vez que abres el juego sus partidas se importan a saves\default
+(una sola vez; la tarjeta no se modifica; si hay varias tarjetas, se usa la
+primera, por nombre, que tenga una partida de Digimon World 3). Las partidas
+nuevas ya no se guardan en la tarjeta: no abren en un emulador. Para volver a
+importar, borra import\imported.txt y la carpeta saves\default (haz antes una
+copia si tienes partidas nuevas).
+
+Después, desde el juego: Opciones > Sistema > "Import memory card" (pulsa dos
+veces) reemplaza tus partidas con la tarjeta más reciente que encuentre en la
+carpeta import o en la carpeta propia de un emulador (DuckStation, PCSX, ePSXe,
+Mednafen, RetroArch). Lee tarjetas .mcr/.mcd/.mc/.srm (128 KB) y .gme/.vmp. Tus
+partidas anteriores se copian antes a saves\default\backup\<fecha-hora>\.
+
+
+Si algo falla
+-------------
+
+Avísanos en la página de GitHub del proyecto
+(https://github.com/MxAlfredo/dw3_port/issues) y adjunta el archivo más reciente
+de la carpeta logs, diciendo qué versión usas (1.0.0) y en qué sistema. En Windows, DW3-debug.exe es el mismo juego con una
+ventana de consola que muestra el registro mientras juegas.
+
+
+Aviso legal
+-----------
+
+Es un proyecto de fans, sin relación con Bandai Namco ni Sony ni respaldo de
+ellas. Digimon es una marca de sus dueños. El port no contiene datos del
+juego: la imagen del disco debe ser tu propia copia. Los créditos y las
+licencias de las partes que usa están en THIRD-PARTY.txt.

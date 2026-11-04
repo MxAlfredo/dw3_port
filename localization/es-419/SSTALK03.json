@@ -1,0 +1,1608 @@
+{
+ "file": "SSTALK03.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 5,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Oink!\n¡Ooink! ¡Oi!{fin}"
+  },
+  {
+   "index": 7,
+   "note": "G-020 G-026 G-018",
+   "text": "{hablante}Tamer Bill{hablante}¡Soy Bill, el número 1\ndel mundo!{pagina}...¿Y en qué soy el\nnúmero 1? ¡Eso\nlo decides tú!{fin}"
+  },
+  {
+   "index": 9,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Bill{hablante}¿Estará bien\nSteve en Asuka?{pagina}No puede hacer\nnada sin mí.{fin}"
+  },
+  {
+   "index": 10,
+   "note": "G-020 G-026 G-018",
+   "text": "{hablante}Tamer Bill{hablante}¡Soy el número 1,\nasí que también soy\nbueno en las cartas!{pagina}¡Claro que puedo\nvencerte fácilmente!{fin}"
+  },
+  {
+   "index": 11,
+   "note": "G-020 G-026 G-018",
+   "text": "{hablante}Tamer Bill{hablante}Así que tú eres el\ntamer que derrotó\na la A.o.A.{pagina}Pero soy el número 1\ndel mundo, no perderé.\n¿Quieres pelear?{fin}"
+  },
+  {
+   "index": 12,
+   "note": "G-020 G-026 G-018",
+   "text": "{hablante}Tamer Bill{hablante}¡Ja ja ja!\n¿Sentiste mi\npoder?{pagina}¡Claro que soy el\nnúmero 1 del mundo!{fin}"
+  },
+  {
+   "index": 13,
+   "note": "G-020 G-026 G-018",
+   "text": "{hablante}Tamer Bill{hablante}Ja ja ja,\nperdí muy\nfácilmente.{pagina}¡Pero no importa,\nsoy el número 1\ndel mundo!{fin}"
+  },
+  {
+   "index": 14,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}¡Bill siempre está\njugando!{pagina}¡Tiene que trabajar\nalguna vez, o yo\ntendré problemas!{fin}"
+  },
+  {
+   "index": 16,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}Oye, ¿tú también\npuedes decírselo?{pagina}¡Si sigue así, se\nvolverá a convertir\nen Oinkmon!{fin}"
+  },
+  {
+   "index": 17,
+   "note": "G-020",
+   "text": "{hablante}Tamer Hillary{hablante}¿Son tan\ndivertidas las\nbatallas?{pagina}Ven y lucha\nconmigo.{fin}"
+  },
+  {
+   "index": 18,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}¡Ay, me estoy\nenojando mucho!{pagina}¡Peleemos para\nolvidarme de\nesto!{fin}"
+  },
+  {
+   "index": 19,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}¡Sí, gané!{pagina}¡Ya entiendo por qué\na Bill le gusta\ntanto esto!{fin}"
+  },
+  {
+   "index": 20,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}¡De verdad!\n¿Qué tiene de\ndivertido este juego?{fin}"
+  },
+  {
+   "index": 21,
+   "note": "G-020",
+   "text": "{hablante}Tamer Marina{hablante}¡Creí que era\nel fin cuando me\nconvertí en Oinkmon!{fin}"
+  },
+  {
+   "index": 23,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Marina{hablante}Ya volví a ser\nnormal.\n¡Voy a jugar!{fin}"
+  },
+  {
+   "index": 24,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Marina{hablante}¡Qué feliz estoy de\nque podamos jugar\notra vez!{pagina}¡Luchemos! ¡Fue el\ndestino que nos\nconociéramos!{fin}"
+  },
+  {
+   "index": 25,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Marina{hablante}¡Qué feliz estoy de\nque podamos jugar\notra vez!{pagina}¡Vamos,\nempecemos\nya!{fin}"
+  },
+  {
+   "index": 26,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Marina{hablante}¡Síííí,\ngané!{pagina}¡Por esto amo\nlas batallas!{fin}"
+  },
+  {
+   "index": 27,
+   "note": "G-020",
+   "text": "{hablante}Tamer Marina{hablante}Está bien si\npierdo.{pagina}Me alegra poder\njugar.{fin}"
+  },
+  {
+   "index": 28,
+   "note": "G-020 G-018",
+   "text": "{hablante}Tamer Albert{hablante}¡No sabía qué hacer\ncuando me convertí\nen Oinkmon!{fin}"
+  },
+  {
+   "index": 30,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}¡Eres el tamer\nque venció a la\nA.o.A.!{pagina}¡Gracias! ¡Te lo\nagradezco\nmucho!{fin}"
+  },
+  {
+   "index": 31,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}Ahora que volvimos a\nser humanos, ¡hay\nque pelear!{pagina}¡Hagamos la primera\nronda ahora mismo!{fin}"
+  },
+  {
+   "index": 32,
+   "note": "G-011 G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}Gracias a ti, no\ntengo tiempo para\njugar.{pagina}Oye, tú, anda,\n¡pelea conmigo\nahora mismo!{fin}"
+  },
+  {
+   "index": 33,
+   "note": "G-020",
+   "text": "{hablante}Tamer Albert{hablante}¡Bien, ser\nOinkmon no\nme afectó!{pagina}¡Recuperaré el\ntiempo \nperdido!{fin}"
+  },
+  {
+   "index": 34,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}Perdí. Mmm, ¿me\nhabrá afectado ser\nOinkmon?{fin}"
+  },
+  {
+   "index": 35,
+   "note": "G-018 G-026 G-045",
+   "text": "{hablante}Fan de Cartas Chako{hablante}¡Un verdadero jugador\nno se detiene ahí!{pagina}¡Solo los verdaderos\njugadores\ncontinúan!{fin}"
+  },
+  {
+   "index": 39,
+   "note": "G-018 G-026",
+   "text": "{hablante}Fan de Cartas Chako{hablante}¡Oi, oioink!\n¡Ooin, ooioink!{fin}"
+  },
+  {
+   "index": 40,
+   "note": "G-018",
+   "text": "{hablante}Coleccionista Leia{hablante}¡Oi, oioink!\n¡Oioin, ooi ooin!{fin}"
+  },
+  {
+   "index": 41,
+   "note": "G-020",
+   "text": "{hablante}Tamer Bill{hablante}¡Oin, oio 1!\n¡Oin 1, oioink!{fin}"
+  },
+  {
+   "index": 42,
+   "note": "G-020",
+   "text": "{hablante}Tamer Hillary{hablante}¡Oin, oioink!\n¡Oink, oionk!{fin}"
+  },
+  {
+   "index": 43,
+   "note": "G-020",
+   "text": "{hablante}Tamer Marina{hablante}¡Oiooion, oink!\n¡Oioin, oiooinnk!{fin}"
+  },
+  {
+   "index": 44,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}¿...oin?\n¡¿Oioink?!\n¡Oooin, oink!{fin}"
+  },
+  {
+   "index": 45,
+   "note": "G-026",
+   "text": "{hablante}Fan de Cartas Chako{hablante}¡Oi, oioink!\n¡Ooin, ooioink!{fin}"
+  },
+  {
+   "index": 46,
+   "note": "G-026",
+   "text": "{hablante}Coleccionista Leia{hablante}¡Oi, oioink!\n¡Oioin, ooi ooin!{fin}"
+  },
+  {
+   "index": 47,
+   "note": "G-020",
+   "text": "{hablante}Tamer Bill{hablante}¡Oin, oio 1!\n¡Oin 1, oioink!{fin}"
+  },
+  {
+   "index": 48,
+   "note": "G-020",
+   "text": "{hablante}Tamer Hillary{hablante}¡Oin, oionk!\n¡Oink, oioink!{fin}"
+  },
+  {
+   "index": 49,
+   "note": "G-020",
+   "text": "{hablante}Tamer Marina{hablante}¡Oioion, oink!\n¡Oioin, oiooinnk!{fin}"
+  },
+  {
+   "index": 50,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}¿...oin?\n¡¿Oioink?!\n¡Oooin, oink!{fin}"
+  },
+  {
+   "index": 51,
+   "note": "G-026",
+   "text": "{hablante}Información{hablante}Ooink, oink,\n¡oooink!{pagina}¡Ups! ¡Todavía tengo\nla costumbre de\ncuando era Oinkmon!{fin}"
+  },
+  {
+   "index": 52,
+   "note": "G-026",
+   "text": "{hablante}Información{hablante}Ooink, oink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 53,
+   "note": "G-026",
+   "text": "{hablante}Información{hablante}Ooink, oink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 55,
+   "note": "G-026 G-045",
+   "text": "{hablante}Guía{hablante}¡Me alegra que todos\nhayan vuelto!{pagina}¡Ahora solo quiero\nvolver al Mundo\nReal!{fin}"
+  },
+  {
+   "index": 59,
+   "note": "G-026",
+   "text": "{hablante}Panadera Mary{hablante}¡Me salvé\ngracias a ti!\n¡Gracias!{pagina}¡La próxima vez\nte horneo unas\ntartas!{fin}"
+  },
+  {
+   "index": 63,
+   "note": "G-018 G-026",
+   "text": "{hablante}Kazuo{hablante}¡No importa si nos\nconvierten en ramen!{pagina}¡Para un amante del\nramen, eso sería\nla gloria!{fin}"
+  },
+  {
+   "index": 64,
+   "note": "G-026",
+   "text": "{hablante}Kazuo{hablante}Ooin, oink, oink,\nooink, oink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 65,
+   "note": "G-026",
+   "text": "{hablante}Kazuo{hablante}Ooin, oink, oink,\nooink, oink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 67,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Perseguimos a\nlos A.o.A. que\nhuyeron!{pagina}¡Si ves a alguno,\navísanos!{fin}"
+  },
+  {
+   "index": 68,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Ooink, oink,\n¡ooooink!{fin}"
+  },
+  {
+   "index": 69,
+   "note": "G-020 G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Eres el tamer\nque venció al\nOficial Jefe!{pagina}¡Vuelve a jugar\nmás tarde!{fin}"
+  },
+  {
+   "index": 70,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Oooink,\n¡oink, oink!{fin}"
+  },
+  {
+   "index": 71,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}No sabía lo que\npodía\npasar...{pagina}Pero ahora las\ncosas están bien.{fin}"
+  },
+  {
+   "index": 72,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Oooink, oink,\n¡ooinoinoink, oink!{fin}"
+  },
+  {
+   "index": 73,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Aunque la A.o.A.\ncayó, el daño\nes enorme...{pagina}¡No pararemos hasta\nque todo vuelva a\nla normalidad!{fin}"
+  },
+  {
+   "index": 74,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¿Ooink?\n¡Ooink, oink!{fin}"
+  },
+  {
+   "index": 77,
+   "note": "G-018 L6",
+   "text": "{hablante}Digimon Navi{hablante}¡Oooiooioi, oink!\n¡Oioioin,\noooooooo!{fin}"
+  },
+  {
+   "index": 78,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}¡Oin, oioink!\n¡Oioioin, oink!{fin}"
+  },
+  {
+   "index": 79,
+   "note": "G-026 G-018 G-043",
+   "text": "{hablante}Doctor Osomatsu{hablante}¡Soy el Doctor Osomatsu,\npresidente de este\nlaboratorio!{pagina}Estaba en el baño,\n¡y mira esto!{fin}"
+  },
+  {
+   "index": 80,
+   "note": "G-026 G-018 G-043",
+   "text": "{hablante}Doctor Osomatsu{hablante}¡Soy el Doctor Osomatsu,\npresidente de este\nlaboratorio!{pagina}¡Me alegra que todos\nhayan vuelto a la\nnormalidad!{fin}"
+  },
+  {
+   "index": 81,
+   "note": "G-018 G-026",
+   "text": "{hablante}Digimon Navi{hablante}Los investigadores\nestán felices de\nhaber sido Oinkmon.{pagina}Son realmente\nestúpidos...{fin}"
+  },
+  {
+   "index": 82,
+   "note": "G-018 G-026",
+   "text": "{hablante}Navi Digievolución{hablante}¡Ahora entiendo cómo\nse sienten los\nDigimon!{pagina}¡Voy a pasar más\ntiempo\ninvestigando!{fin}"
+  },
+  {
+   "index": 83,
+   "note": "G-018 L6",
+   "text": "{hablante}Digimon Navi{hablante}¡Oooiooioi, oink!\n¡Oioioin,\noooooooo!{fin}"
+  },
+  {
+   "index": 84,
+   "note": "G-018",
+   "text": "{hablante}Navi Digievolución{hablante}¡Oin, oioink!\n¡Oioioin, oink!{fin}"
+  },
+  {
+   "index": 85,
+   "note": "G-043",
+   "text": "{hablante}Doctor Osomatsu{hablante}¡Oi, oiooink!\n¡Oin, oioioin!{fin}"
+  },
+  {
+   "index": 91,
+   "note": "G-026 G-045",
+   "text": "{hablante}Cuenta Login{hablante}¡Estamos salvados!{pagina}Ahora solo falta\nque funcione la\nCámara Matriz.{fin}"
+  },
+  {
+   "index": 92,
+   "note": "G-026",
+   "text": "{hablante}Cuenta Login{hablante}Oink,\n¡oink, oinik!{fin}"
+  },
+  {
+   "index": 95,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Mickey{hablante}No creí que me\nconvertiría en\nOinkmon.{pagina}¿Estará bien el\nAbuelo Donald?{fin}"
+  },
+  {
+   "index": 99,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Donald{hablante}¡No creí que me\nconvertiría en\nOinkmon a mi edad!{pagina}¿Qué seguirá?\n¿Un pato?\n¡Ja ja ja!{fin}"
+  },
+  {
+   "index": 104,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Wedge{hablante}¡¿Ooink?!\n¡Ooin, oinoink!{fin}"
+  },
+  {
+   "index": 105,
+   "note": "G-018 G-026 G-043",
+   "text": "{hablante}Señor Wedge{hablante}¡Así se siente\nvolver a la vida!{pagina}¿Habrán hecho mis\nempleados su\ntrabajo?{fin}"
+  },
+  {
+   "index": 106,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Wedge{hablante}¡¿Ooink?!\n¡Ooin, oinoink!{fin}"
+  },
+  {
+   "index": 108,
+   "note": "G-026",
+   "text": "{hablante}Moda Barbie{hablante}Oink,\n¡oioink, oink, oink!{fin}"
+  },
+  {
+   "index": 109,
+   "note": "G-026",
+   "text": "{hablante}Moda Barbie{hablante}¡Ya sé! Lanzaré\nuna moda que será\ntendencia...{pagina}¡El Modo Oink!\n¡Será un éxito!{fin}"
+  },
+  {
+   "index": 110,
+   "note": "G-018 G-026",
+   "text": "{hablante}Moda Barbie{hablante}Oink,\n¡oioink, oink, oink!{fin}"
+  },
+  {
+   "index": 112,
+   "note": "G-026 L6",
+   "text": "{hablante}Compradora Asami{hablante}Ooink,\n¡oink, oink!{fin}"
+  },
+  {
+   "index": 113,
+   "note": "G-026 L6",
+   "text": "{hablante}Compradora Asami{hablante}¡Estoy muy\nestresada!{pagina}¡Voy a comprar\nhasta cansarme!{fin}"
+  },
+  {
+   "index": 114,
+   "note": "G-026 L6",
+   "text": "{hablante}Compradora Asami{hablante}Ooink,\n¡oink, oink!{fin}"
+  },
+  {
+   "index": 115,
+   "note": "G-026 G-012 L6",
+   "text": "{hablante}Fan de Armas Wayne{hablante}¡Esto es genial!\nTiene las mejores\narmas.{fin}"
+  },
+  {
+   "index": 116,
+   "note": "G-026",
+   "text": "{hablante}Abuela Catherine{hablante}De verdad...{pagina}¡No quiero volver\na convertirme\nen Oinkmon!{fin}"
+  },
+  {
+   "index": 119,
+   "note": "G-026 L6",
+   "text": "{hablante}Maestro Paul{hablante}¡Ooink, oin,\nooooink!{fin}"
+  },
+  {
+   "index": 121,
+   "note": "L6",
+   "text": "{hablante}Maestro Paul{hablante}¡Ooink, oin,\nooooink!{fin}"
+  },
+  {
+   "index": 127,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señorita Bridget{hablante}¡Oiink,\nooooinnnk,\nooinkkk!{fin}"
+  },
+  {
+   "index": 128,
+   "note": "G-018 G-026 G-043",
+   "text": "{hablante}Señorita Bridget{hablante}¡Creo que hoy puedo\nflojear un poco!{pagina}¡Voy a ir a\ndivertirme!{fin}"
+  },
+  {
+   "index": 129,
+   "note": "G-026 G-043",
+   "text": "{hablante}Señorita Bridget{hablante}¡Oiink,\nooooinnnk,\nooinkkk!{fin}"
+  },
+  {
+   "index": 131,
+   "note": "G-018",
+   "text": "{hablante}Bebedor Bacchus{hablante}Ooooooink,\nOoooooink...{fin}"
+  },
+  {
+   "index": 132,
+   "note": "G-026",
+   "text": "{hablante}Bebedor Bacchus{hablante}¡Vaya que tenía\nsed!{fin}"
+  },
+  {
+   "index": 133,
+   "note": "G-018",
+   "text": "{hablante}Bebedor Bacchus{hablante}Ooooooink,\nOoooooink...{fin}"
+  },
+  {
+   "index": 134,
+   "note": "G-043",
+   "text": "{hablante}Señora Bacchus{hablante}Ooink, oink, \n¡ooinnk!{fin}"
+  },
+  {
+   "index": 135,
+   "note": "G-043 G-045",
+   "text": "{hablante}Señora Bacchus{hablante}No es normal,\nsolo míralo.{pagina}No sé si podrán\nconvertirlo\nen Oinkmon...{fin}"
+  },
+  {
+   "index": 140,
+   "note": "G-026",
+   "text": "{hablante}Maníaco Masaki{hablante}Eso estuvo muy\nmal.{pagina}¡Y encima no van\na hacer la subasta!{fin}"
+  },
+  {
+   "index": 142,
+   "note": "G-026",
+   "text": "{hablante}Honesta María{hablante}¡Oik, oioink!\nOoooin,\n¡oioink!{fin}"
+  },
+  {
+   "index": 143,
+   "note": "G-026 G-006",
+   "text": "{hablante}Honesta María{hablante}¿Conseguiste armas\ndel Armero Digimon?{pagina}Como era Oinkmon,\n¡no pude!{fin}"
+  },
+  {
+   "index": 144,
+   "note": "G-026",
+   "text": "{hablante}Honesta María{hablante}¡Oik, oioink!\nOoooin,\n¡oioink!{fin}"
+  },
+  {
+   "index": 146,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Takeshi{hablante}¡Oooin, oink!\nOion,\n¡ooin, ooink!{fin}"
+  },
+  {
+   "index": 147,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Takeshi{hablante}¿Ya venciste a todos\nlos Digimon jefe de\nAmaterasu?{pagina}¡Tienen muchas cosas\ngeniales, así que\nbúscalos!{fin}"
+  },
+  {
+   "index": 148,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Takeshi{hablante}¡Oooin, oink!\nOion,\n¡ooin, ooink!{fin}"
+  },
+  {
+   "index": 151,
+   "note": "G-026",
+   "text": "{hablante}Anillófila Diana{hablante}¡No quiero volver\na ser Oinkmon!{pagina}¡Con esa forma no\npuedo usar anillos\nbonitos!{fin}"
+  },
+  {
+   "index": 153,
+   "note": "G-026",
+   "text": "{hablante}Abuela Daisy{hablante}Oioink,\noooin,\n¡oin, oinkk!{fin}"
+  },
+  {
+   "index": 154,
+   "note": "G-026",
+   "text": "{hablante}Abuela Daisy{hablante}Convertir humanos\nen Digimon...{pagina}Mira lo que se le\nocurre a la\nA.o.A...{fin}"
+  },
+  {
+   "index": 155,
+   "note": "G-026",
+   "text": "{hablante}Abuela Daisy{hablante}Oioink,\noooin,\n¡oin, oinkk!{fin}"
+  },
+  {
+   "index": 156,
+   "note": "G-026",
+   "text": "{hablante}Comprotodo Sam{hablante}¡Ooi, oioink!\n¡Ooin, oink!{fin}"
+  },
+  {
+   "index": 157,
+   "note": "G-026 L6",
+   "text": "{hablante}Comprotodo Sam{hablante}¿Ya fuiste a esa Chatarrería?{pagina}¡Está pasando algo\nincreíble!{fin}"
+  },
+  {
+   "index": 158,
+   "note": "G-026",
+   "text": "{hablante}Comprotodo Sam{hablante}¡Ooi, oioink!\n¡Ooin, oink!{fin}"
+  },
+  {
+   "index": 162,
+   "note": "G-026 G-018",
+   "text": "{hablante}Keith{hablante}¡No hay problema\npor ahora!{pagina}¡Al recuperar el Centro\nde Administración,\ntodo será perfecto!{fin}"
+  },
+  {
+   "index": 163,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Eres el chico\nque venció a la\nA.o.A.!{pagina}Quiero nombrarte\nGuardia\nhonorario.{fin}"
+  },
+  {
+   "index": 164,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Ooink, oink,\n¡oooink, oooinik!{fin}"
+  },
+  {
+   "index": 165,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Fortaleceremos\nla seguridad!{pagina}¡Esto no \nocurrirá más!{fin}"
+  },
+  {
+   "index": 166,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Ooioionk!\n¡Ooioink, oink!{fin}"
+  },
+  {
+   "index": 167,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Gracias a ti, este\nservidor está a salvo!{fin}"
+  },
+  {
+   "index": 168,
+   "note": "G-006 G-018",
+   "text": "{hablante}Guardia DO{hablante}No sabía qué\npasaría cuando \nnos atraparon...{pagina}¡Me alegra estar a\nsalvo!{fin}"
+  },
+  {
+   "index": 169,
+   "note": "G-020 G-018",
+   "text": "{hablante}Guardia DO{hablante}Un niño tamer\nme rescató.{pagina}Es un poco\nembarazoso...{fin}"
+  },
+  {
+   "index": 170,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Oioioionk,\n¡oink, oioink!{fin}"
+  },
+  {
+   "index": 171,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Oooink, oink!\n¡Oink, ooink!{fin}"
+  },
+  {
+   "index": 172,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Ooonink, oink,\n¡oi, oinkkk!{fin}"
+  },
+  {
+   "index": 173,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Dejamos que tomaran\nel Centro de\nAdministración.{pagina}¡Ahora tendremos que\nreforzar la\nseguridad!{fin}"
+  },
+  {
+   "index": 174,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}S.A.P. ayuda\ncon la seguridad.{pagina}¡Lisa es genial! ¡Es\nmuy confiable!{fin}"
+  },
+  {
+   "index": 175,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Oioioink!\n¡Oink, oink!{fin}"
+  },
+  {
+   "index": 176,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Oooink, oioionik,\n¡oink!{fin}"
+  },
+  {
+   "index": 177,
+   "note": "G-015 G-020 G-026 L6",
+   "text": "{hablante}BK WarGreymon{hablante}¡Un gran tamer\nafronta el peligro\ncon calma!{pagina}Ahora ve...\n¡Y vence a la A.o.A.!{fin}"
+  },
+  {
+   "index": 178,
+   "note": "G-005 G-020 G-026 L6",
+   "text": "{hablante}BK WarGreymon{hablante}¡No bajes la guardia\npor haber derrotado\na la A.o.A.!{pagina}¡Entrénate para\nser un gran\ntamer!{fin}"
+  },
+  {
+   "index": 179,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}BK WarGreymon{hablante}¡Un gran tamer no\nse rinde!{pagina}Ahora ve...\n¡Y salva este mundo!{fin}"
+  },
+  {
+   "index": 181,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Toda la A.o.A.\nentró en el Centro de\nAdministración!{fin}"
+  },
+  {
+   "index": 182,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Lo logramos!\n¡Ganamos!{pagina}Ahora todo puede\nvolver a la\nnormalidad.{fin}"
+  },
+  {
+   "index": 183,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}...oink, oink,\n¡ooink, oooink!{fin}"
+  },
+  {
+   "index": 184,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Seguro se\nasustaron de\nnosotros y huyeron!{fin}"
+  },
+  {
+   "index": 185,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Capturamos a toda\nla A.o.A.!{pagina}¡Es su fin!{fin}"
+  },
+  {
+   "index": 186,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Ooooooiink!\n¡Oioioink, ooink!{fin}"
+  },
+  {
+   "index": 187,
+   "note": "G-018 G-026 G-045",
+   "text": "{hablante}Guardia DO{hablante}¡Nada malo\nen la ciudad!{pagina}¡Solo queda el\nCentro de\nAdministración!{fin}"
+  },
+  {
+   "index": 188,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Vencimos al Oficial\nJefe, pero hay que\ntener cuidado.{pagina}¡No sabemos\ncuántos quedan\naún!{fin}"
+  },
+  {
+   "index": 189,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Ooin, oi, oink.\n¡Ooink, ooink!{fin}"
+  },
+  {
+   "index": 190,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Aunque todos son\nOinkmon, parecen\nestar bien!{pagina}¡Tenemos que\nhacer que vuelvan\na la normalidad!{fin}"
+  },
+  {
+   "index": 191,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}Estoy impresionado.\nVenciste al Oficial\nJefe.{pagina}¡Déjanos todo\na nosotros\ny descansa!{fin}"
+  },
+  {
+   "index": 192,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Ooink, oioink.\n¡Oioink, oink!{fin}"
+  },
+  {
+   "index": 193,
+   "note": "G-026 L6",
+   "text": "{hablante}Mentiroso Jim{hablante}¡Ooink!\n¡Ooink, ooooink!{fin}"
+  },
+  {
+   "index": 194,
+   "note": "G-026 L6",
+   "text": "{hablante}Mentiroso Jim{hablante}¡La A.o.A. está\naquí!{pagina}¡Ja ja, es\nbroma!{fin}"
+  },
+  {
+   "index": 195,
+   "note": "L6",
+   "text": "{hablante}Mentiroso Jim{hablante}¡Ooink!\n¡Ooink, ooooink!{fin}"
+  },
+  {
+   "index": 198,
+   "note": "G-026",
+   "text": "{hablante}Escritora Saki{hablante}¡Listo!\n¡Estoy muy ocupada!{pagina}¡Tengo que contárselo\na todos por\ncorreo!{fin}"
+  },
+  {
+   "index": 201,
+   "note": "G-026",
+   "text": "{hablante}Rosa de España{hablante}Ooioioink,\n¡ooink, oin, oink!{fin}"
+  },
+  {
+   "index": 202,
+   "note": "G-026",
+   "text": "{hablante}Rosa de España{hablante}¡No quiero volver\na ser Oinkmon!{pagina}¡No puedo bailar\nflamenco siendo\nOinkmon!{fin}"
+  },
+  {
+   "index": 203,
+   "note": "G-026",
+   "text": "{hablante}Rosa de España{hablante}Ooioioink,\n¡ooink, oin, oink!{fin}"
+  },
+  {
+   "index": 205,
+   "note": "L6",
+   "text": "{hablante}Abuelo Sid{hablante}¡Estaremos juntos\naunque sea el fin del\nmundo!{pagina}¡Ni la A.o.A. puede\ndestruir eso!{fin}"
+  },
+  {
+   "index": 208,
+   "note": "G-026",
+   "text": "{hablante}Abuela Nancy{hablante}Me alegra que el\nAbuelo Sid me quiera\ntanto...{pagina}¡Mientras esté\npor aquí, no\nhay que temer!{fin}"
+  },
+  {
+   "index": 216,
+   "note": "G-026",
+   "text": "{hablante}Tragón{hablante}Eso fue\nhorrible.{pagina}No creo que vuelva\na comer cerdo\nnunca más...{fin}"
+  },
+  {
+   "index": 219,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Kenta{hablante}Oinoink,\n¡ooink!{fin}"
+  },
+  {
+   "index": 220,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Kenta{hablante}¡Estoy salvado!\n¡No quiero volver\na ser Oinkmon!{fin}"
+  },
+  {
+   "index": 221,
+   "note": "G-026",
+   "text": "{hablante}Estudiante Kenta{hablante}Oinoink,\n¡ooink!{fin}"
+  },
+  {
+   "index": 222,
+   "note": "G-026",
+   "text": "{hablante}Banquero Tsuyoshi{hablante}¡¿Ooink?!\n¡Oink, ooink!{fin}"
+  },
+  {
+   "index": 223,
+   "note": "G-026",
+   "text": "{hablante}Banquero Tsuyoshi{hablante}¡No quiero volver a\nser Oinkmon nunca\nmás!{pagina}¡Pagaré lo que\nquieras!{fin}"
+  },
+  {
+   "index": 224,
+   "note": "G-026",
+   "text": "{hablante}Banquero Tsuyoshi{hablante}¡¿Ooink?!\n¡Oink, ooink!{fin}"
+  },
+  {
+   "index": 231,
+   "note": "G-026",
+   "text": "{hablante}Knightmon{hablante}¡Esta es Ciudad\nAmaterasu, centro del\nServidor Amaterasu!{fin}"
+  },
+  {
+   "index": 232,
+   "note": "G-026",
+   "text": "{hablante}Knightmon{hablante}¡No puedo creer que\nvencieras al Oficial\nJefe!{pagina}¿De dónde\nviene tu\nfuerza?{fin}"
+  },
+  {
+   "index": 235,
+   "note": "G-026 L6",
+   "text": "{hablante}Knightmon{hablante}¡La A.o.A. fue\nderrotada!{pagina}¡Eso es bueno!\nSomos libres\notra vez.{fin}"
+  },
+  {
+   "index": 236,
+   "note": "G-026",
+   "text": "{hablante}Knightmon{hablante}La A.o.A. todavía\nno ha sido\nvencida...{pagina}¿Nos volverán\na capturar?{fin}"
+  },
+  {
+   "index": 240,
+   "note": "G-026 L6",
+   "text": "{hablante}Miguel Holandés{hablante}¡Eso fue\naterrador!{pagina}¡Qué bueno que no\nnos hayan comido!{fin}"
+  },
+  {
+   "index": 243,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia Curt{hablante}Vencimos a la\nA.o.A., pero algo\nno se siente bien.{pagina}Espero que no\npase nada más...{fin}"
+  },
+  {
+   "index": 244,
+   "note": "G-018",
+   "text": "{hablante}Guardia Curt{hablante}Oioooink, oink,\n¡ooiooink, oink!{fin}"
+  },
+  {
+   "index": 245,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia Russell{hablante}¡Curt siempre se\npreocupa por todo!{pagina}¡Seguro\nque todo saldrá\nbien!{fin}"
+  },
+  {
+   "index": 246,
+   "note": "G-026",
+   "text": "{hablante}Operadora Akiko{hablante}Ooinkoink,\n¡oink, oooionk!{fin}"
+  },
+  {
+   "index": 247,
+   "note": "G-026 L6",
+   "text": "{hablante}Operadora Akiko{hablante}No puedo creer\nque me haya convertido\nen Oinkmon...{pagina}¡Ahora nunca\nme casaré!{fin}"
+  },
+  {
+   "index": 248,
+   "note": "G-026",
+   "text": "{hablante}Operadora Akiko{hablante}Ooinkoink,\n¡oink, oooionk!{fin}"
+  },
+  {
+   "index": 249,
+   "note": "G-018",
+   "text": "{hablante}Guardia Russell{hablante}¿Oink?\nOioioioooink,\n¡oooininnnk!{fin}"
+  },
+  {
+   "index": 250,
+   "note": "G-010 G-017 G-026",
+   "text": "{hablante}Keith{hablante}Encontré la máquina\npara devolverlos\na la normalidad.{pagina}¡Pero hay muy poca\nenergía y no está\nfuncionando bien!{pagina}¡Ay, RAYOS! ¿Qué\nvamos a hacer?{fin}"
+  },
+  {
+   "index": 251,
+   "note": "G-026",
+   "text": "{hablante}Karateka Remo{hablante}¡Venceré a la A.o.A.!\n¡Aiyeeeee ya!{pagina}...¡ay!\n¡Otra vez mi\nespalda!{fin}"
+  },
+  {
+   "index": 252,
+   "note": "G-026",
+   "text": "{hablante}Karateka Remo{hablante}Oink,\n¡ooink!\n¡Oioioionk!{fin}"
+  },
+  {
+   "index": 253,
+   "note": "G-026",
+   "text": "{hablante}Operadora Anne{hablante}Aquí generamos\nenergía con molinos\nde viento.{pagina}Si hay viento\nfuerte, creo que\nfuncionará...{fin}"
+  },
+  {
+   "index": 254,
+   "note": "G-026",
+   "text": "{hablante}Operadora Anne{hablante}¡Oooooink!\n¡Oioionk, ooink!{fin}"
+  },
+  {
+   "index": 258,
+   "note": "G-026",
+   "text": "{hablante}Airdramon{hablante}Zzzzzzzzz\nZzzzzzzzz{fin}"
+  },
+  {
+   "index": 259,
+   "note": "G-026",
+   "text": "{hablante}Jefe Qing Long{hablante}Eres uno de los\nnuestros. Buen\ntrabajo...{fin}"
+  },
+  {
+   "index": 261,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Shige{hablante}¡Lo vi!\n¡Airdramon vino y\ncreó el viento!{pagina}¡Nunca olvidaré esa\nmagnífica visión!{fin}"
+  },
+  {
+   "index": 263,
+   "note": "G-026",
+   "text": "{hablante}Rapero Will{hablante}Oooink,\nooi, ooioionk.{pagina}Oioioink, ooink,\noioioinkoink.{fin}"
+  },
+  {
+   "index": 264,
+   "note": "G-026",
+   "text": "{hablante}Rapero Will{hablante}Yo, yo, todos\nvolvieron a la\nnormalidad.{pagina}Airdramon los\nregresó a todos.\n¡BUAAH!{fin}"
+  },
+  {
+   "index": 265,
+   "note": "G-026",
+   "text": "{hablante}Rapero Will{hablante}Oooink,\nooi, ooioionk.{pagina}Oioioink, ooink,\noioioinkoink.{fin}"
+  },
+  {
+   "index": 266,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Perdida Mayumi{hablante}¡Oooink, oink!\n¡Ooink, ooooink!{fin}"
+  },
+  {
+   "index": 267,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Perdida Mayumi{hablante}Oye, ¿dónde estoy?\n¿No es Ciudad\nXuan Wu?{pagina}¡¿Qué?! ¡Vine hasta\naquí siendo\nOinkmon!{fin}"
+  },
+  {
+   "index": 268,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Perdida Mayumi{hablante}¡Oooink, oink!\n¡Ooink, ooooink!{fin}"
+  },
+  {
+   "index": 269,
+   "note": "G-020 G-018",
+   "text": "{hablante}Guardia DO{hablante}¡Eres el tamer\nque venció al\nOficial Jefe!{pagina}¡Entra\ny descansa!{fin}"
+  },
+  {
+   "index": 270,
+   "note": "G-018",
+   "text": "{hablante}Guardia DO{hablante}Oink, oioioink,\n¡oooink, oooink!{fin}"
+  },
+  {
+   "index": 271,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Al ver esta\nescena tan\npacífica...{pagina}lo de la A.o.A.\nparece un mal\nsueño.{fin}"
+  },
+  {
+   "index": 272,
+   "note": "G-018 G-026",
+   "text": "{hablante}Guardia DO{hablante}Oooink, oink.\nOooin, ooink...{fin}"
+  },
+  {
+   "index": 278,
+   "note": "G-026 G-045",
+   "text": "{hablante}Keith{hablante}¡Fue increíble!\n¡Airdramon vino\naquí!{pagina}Hizo girar el\nmolino... ¡y listo!{pagina}¡Si tan solo\npodemos volver,\nserá un final feliz!{fin}"
+  },
+  {
+   "index": 279,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Suzuki{hablante}Oooin, oiiink,\noioioink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 280,
+   "note": "G-018 G-026 G-043",
+   "text": "{hablante}Señor Suzuki{hablante}¿No está aquí la\nSeñorita Olivia?{pagina}Primero no la\nencuentro y luego me\nvuelvo Oinkmon...{pagina}¡Odio mi trabajo!{fin}"
+  },
+  {
+   "index": 281,
+   "note": "G-018 G-043",
+   "text": "{hablante}Señor Suzuki{hablante}Oooin, oiiink,\noioioink,\n¡oooink!{fin}"
+  },
+  {
+   "index": 282,
+   "note": "G-018 G-026",
+   "text": "{hablante}Fan de Juguetes Ami{hablante}Ooooi, oink.\nOiiooink, oooink.{fin}"
+  },
+  {
+   "index": 283,
+   "note": "G-026",
+   "text": "{hablante}Fan de Juguetes Ami{hablante}¿Venderán\njuguetes Oinkmon?{pagina}Compraré uno como\nrecuerdo de hoy.{fin}"
+  },
+  {
+   "index": 284,
+   "note": "G-026",
+   "text": "{hablante}Fan de Juguetes Ami{hablante}Ooooi, oink.\nOiiooink, oooink.{fin}"
+  },
+  {
+   "index": 285,
+   "note": "G-026",
+   "text": "{hablante}Jefe Zhu Que{hablante}...¡¿eh?!\n¿Quién eres?{fin}"
+  },
+  {
+   "index": 286,
+   "note": "G-026",
+   "text": "{hablante}Amable Claudia{hablante}Oioionk.\nOink, oiooink.\nOooin...{fin}"
+  },
+  {
+   "index": 287,
+   "note": "G-026 G-045",
+   "text": "{hablante}Amable Claudia{hablante}¡El Abuelo Lear solo\nse queda ahí parado!{pagina}Me aburrí y\nvine aquí a\njugar.{fin}"
+  },
+  {
+   "index": 288,
+   "note": "G-026",
+   "text": "{hablante}Amable Claudia{hablante}Oioionk.\nOink, oiooink.\nOooin...{fin}"
+  },
+  {
+   "index": 290,
+   "note": "G-026 L6",
+   "text": "{hablante}Abuelo Lear{hablante}Esto es bueno.\n¡Muy bueno!{pagina}¡Me gusta la chica de la izquierda!{pagina}¿Cuál te gusta\na ti?\n¡Ja ja ja ja!{fin}"
+  },
+  {
+   "index": 299,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Oye, tú!\n¡¿Quién\neres?!{fin}"
+  },
+  {
+   "index": 300,
+   "note": "G-026 G-045",
+   "text": "{hablante}Soldado{hablante}Ah, solo es\nun niño.\n¡Vete!{fin}"
+  },
+  {
+   "index": 301,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Eres\nsospechoso.{pagina}¡Una Batalla de\nCartas para ver\nquién eres!{fin}"
+  },
+  {
+   "index": 302,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Eres\nsospechoso.{pagina}¡Una Batalla\nDigimon para ver\nquién eres!{fin}"
+  },
+  {
+   "index": 304,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Ja ja ja!\n¡Gané!\n¡Toma eso!{fin}"
+  },
+  {
+   "index": 305,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Perdí...\nTe dejaré ir, ¡así\nque vete!{fin}"
+  },
+  {
+   "index": 306,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Sal de mi\ncamino! ¡No tengo\ntiempo para ti!{fin}"
+  },
+  {
+   "index": 307,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡¿A dónde\nvas?!{fin}"
+  },
+  {
+   "index": 308,
+   "note": "G-020 G-026",
+   "text": "{hablante}Soldado{hablante}¡Eres ese tamer!\n¡Prepárate!{fin}"
+  },
+  {
+   "index": 309,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}...Creo que\nme equivoqué.\n¡Vete!{fin}"
+  },
+  {
+   "index": 310,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Eres ese duelista!\n¡Prepárate!{fin}"
+  },
+  {
+   "index": 334,
+   "note": "G-026",
+   "text": "{hablante}Marco{hablante}¡No sabía si me\niban a comer!{pagina}¡Hubiera preferido\nser Garurumon!{fin}"
+  },
+  {
+   "index": 337,
+   "note": "G-018",
+   "text": "{hablante}Profesor Sullivan{hablante}¡Oooin, oink!\nOoooink, \n¡ooooink!{fin}"
+  },
+  {
+   "index": 338,
+   "note": "G-018",
+   "text": "{hablante}Profesor Sullivan{hablante}¡Oooin, oink!\nOoooink, \n¡ooooink!{fin}"
+  },
+  {
+   "index": 339,
+   "note": "G-018 G-026",
+   "text": "{hablante}Profesor Sullivan{hablante}Me alegra haber\nvuelto a la\nnormalidad.{pagina}Pero, ¿y los\ndemás?\n¿Están bien?{fin}"
+  },
+  {
+   "index": 340,
+   "note": "G-026",
+   "text": "{hablante}Alumna Helena{hablante}Ooink, oink,\n¡ooink, oooink!{pagina}¡Aprendí el idioma\nde los Oinkmon!{pagina}Ahora podré hablar\ncon Porky, el\ncerdito de al lado.{fin}"
+  },
+  {
+   "index": 341,
+   "note": "G-026",
+   "text": "{hablante}Jefe Bai Hu{hablante}...¡¿Mmm?!\n¿Quién eres...?{pagina}¡Estoy ocupado con\nlas operaciones!{fin}"
+  },
+  {
+   "index": 347,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Hiko{hablante}La A.o.A. llegó\nde repente a\nesta ciudad.{pagina}Fue entonces cuando\nnos capturaron.{fin}"
+  },
+  {
+   "index": 348,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Hiko{hablante}¡¿Qué?!\n¡¿La Resistencia\nal fin se levantó?!{pagina}Entonces nosotros\ntambién lucharemos.\n¡Gracias!{fin}"
+  },
+  {
+   "index": 349,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Hiko{hablante}¡Derrotaste a la\nA.o.A.!{pagina}¡Genial! No hay\npalabras para decir\ncómo me siento.{fin}"
+  },
+  {
+   "index": 352,
+   "note": "G-018 G-026",
+   "text": "{hablante}Abuela Oly{hablante}Este lugar no es\nbueno. El fondo está\nderrumbado...{pagina}Y tampoco hay salida.\n¿Qué hacemos?{fin}"
+  },
+  {
+   "index": 353,
+   "note": "G-004 G-005 G-018 G-026",
+   "text": "{hablante}Abuela Oly{hablante}¡Tú también, ve\na luchar!{pagina}No te preocupes por\nnosotros. ¡Estaremos\nbien!{fin}"
+  },
+  {
+   "index": 354,
+   "note": "G-018 G-026",
+   "text": "{hablante}Abuela Oly{hablante}Saldremos de aquí\ndentro de un rato.{pagina}Pero esa escalera es\nmuy empinada para\nviejos como nosotros.{pagina}Luego les pediremos\na los jóvenes que\nnos ayuden a subir.{fin}"
+  },
+  {
+   "index": 357,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡El Guardia ha vuelto!{pagina}Los héroes pueden\nperder, ¡pero nunca\nse rinden!{fin}"
+  },
+  {
+   "index": 358,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Asusta ver que\nconvierten humanos\nen Oinkmon!{pagina}¡Me alegra que no\ndominaran el\nmundo!{fin}"
+  },
+  {
+   "index": 359,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Voy a renunciar\na ser guardia!{pagina}¡No me avisaron que\niban a pasar cosas\ntan malas!{fin}"
+  },
+  {
+   "index": 360,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Oooin, onk!\n¡Ooioionk, oink!{fin}"
+  },
+  {
+   "index": 361,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}Oooikoink, oink.\n¡Oioik, oinoinionk!{fin}"
+  },
+  {
+   "index": 362,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Oooink, oink!\n¡Oioink, onkk!{fin}"
+  },
+  {
+   "index": 366,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Conseguí\nuna Ultra Carga!{fin}"
+  },
+  {
+   "index": 372,
+   "note": "G-026",
+   "text": "{hablante}Abuelo Butter{hablante}¡Eres el héroe que\nvenció a la A.o.A.!{pagina}Por favor, protege\ntambién la paz de\neste servidor.{fin}"
+  },
+  {
+   "index": 373,
+   "note": "G-018 G-026",
+   "text": "{hablante}Abuelo Butter{hablante}Ooink...,\nooink.\n¡Oooin, oink!{fin}"
+  },
+  {
+   "index": 374,
+   "note": "G-026",
+   "text": "{hablante}Shizuka{hablante}¡Iiih! ¡Siento todo\nel cuerpo sucio!{pagina}¡Quiero irme a casa\ny darme un baño!{fin}"
+  },
+  {
+   "index": 377,
+   "note": "G-026 L6",
+   "text": "{hablante}Guardia DO{hablante}¡Bienvenido a\nCiudad Xuan Wu!{pagina}¡Vaya, hacía mucho\nque no lo decía!{fin}"
+  },
+  {
+   "index": 378,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Ooink, oink!\n¡Oionoink, oinkkk!{fin}"
+  },
+  {
+   "index": 379,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Fue frustrante\nno poder hacer\nnada!{pagina}¡Gracias por rescatar\na todo el mundo!{fin}"
+  },
+  {
+   "index": 380,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Oioiooink!\n¡Oioin, oininok!{fin}"
+  },
+  {
+   "index": 382,
+   "note": "G-026 G-045",
+   "text": "{hablante}Soldado{hablante}...ah, solo\nes un niño.\n¡Qué fastidio!{fin}"
+  },
+  {
+   "index": 383,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Oye, ¿quieres\nuna Batalla de\nCartas?{fin}"
+  },
+  {
+   "index": 384,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Oye, ¿quieres una\nBatalla Digimon\nconmigo?{fin}"
+  },
+  {
+   "index": 385,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}...ah, tú\notra vez.\n¡Qué fastidio!{fin}"
+  },
+  {
+   "index": 386,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Je je je!\n¡Gané!\n¡Qué divertido!{fin}"
+  },
+  {
+   "index": 387,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Perdí...\n¡Las cosas no\nme salen bien!{fin}"
+  },
+  {
+   "index": 388,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Oye, ¡quítate!\n¡No tengo tiempo\npara ti!{fin}"
+  },
+  {
+   "index": 389,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Me regañaron\npor jugar!{fin}"
+  },
+  {
+   "index": 390,
+   "note": "G-020",
+   "text": "{hablante}Soldado{hablante}Oh, ¡eres ese\ntamer!\n¡Compitamos!{fin}"
+  },
+  {
+   "index": 391,
+   "note": "G-026 G-045",
+   "text": "{hablante}Soldado{hablante}...oh, solo un niño.\n¡No me asustes así!{fin}"
+  },
+  {
+   "index": 414,
+   "note": "G-020",
+   "text": "{hablante}Tamer Bill{hablante}¿Estará Steve bien\nen Asuka?{pagina}No puede hacer\nnada sin mí.{fin}"
+  },
+  {
+   "index": 415,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Hillary{hablante}Oye, ¿tú también\npuedes decírselo?{pagina}¡Si sigue así, se\nvolverá a convertir\nen Oinkmon!{fin}"
+  },
+  {
+   "index": 416,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Marina{hablante}Ya volví a ser\nnormal.\n¡Voy a jugar!{fin}"
+  },
+  {
+   "index": 417,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Albert{hablante}¡Eres el tamer\nque derrotó a la\nA.o.A.!{pagina}¡Gracias!\n¡Estoy muy\nagradecido!{fin}"
+  },
+  {
+   "index": 418,
+   "note": "G-026",
+   "text": "{hablante}Guardromon{hablante}ACCEDIENDO A\nUNIDAD MATRIZ.{fin}"
+  },
+  {
+   "index": 419,
+   "note": "G-015 G-016 G-026",
+   "text": "{hablante}Gatomon{hablante}¡Bienvenido a\nmi posada!{pagina}Relájate y\ndescansa un poco.{fin}"
+  },
+  {
+   "index": 420,
+   "note": "G-050",
+   "text": "{hablante}Gargomon{hablante}¡Ka-bum!{pagina}¡Esta es la\nArmería!{fin}"
+  },
+  {
+   "index": 421,
+   "note": "G-005 G-026",
+   "text": "{hablante}Piximon{hablante}¡Soy el oficial\nDigimon pi!\n¿Qué quieres pi?{fin}"
+  },
+  {
+   "index": 422,
+   "note": "G-026 G-045",
+   "text": "{hablante}Gomamon{hablante}¡Esta es la casa\nde empeños!\n¿Puedo ayudarte?{fin}"
+  },
+  {
+   "index": 423,
+   "note": "G-008 G-026",
+   "text": "{hablante}Divermon{hablante}...¿qué? ¿Quieres\nabrir una\nExpansión?{pagina}Bien. Espera un\nsegundo.{fin}"
+  },
+  {
+   "index": 424,
+   "note": "G-026 G-045",
+   "text": "{hablante}Wizardmon{hablante}Bienvenido,\n¡esta es la Tienda!{fin}"
+  },
+  {
+   "index": 425,
+   "note": "G-026",
+   "text": "{hablante}Wizardmon{hablante}¡Bienvenido al\nmercado negro!{fin}"
+  },
+  {
+   "index": 426,
+   "note": "G-045",
+   "text": "{hablante}Gargomon{hablante}¡Kaboom! Esta\nes la Armería.{fin}"
+  },
+  {
+   "index": 427,
+   "note": "G-020 G-026 L6",
+   "text": "{hablante}BK WarGreymon{hablante}¡Soy WarGreymon BK!{pagina}¡Bienvenido,\nvaliente tamer!\n¡Lucha conmigo!{fin}"
+  },
+  {
+   "index": 428,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Recepción Estadio{hablante}¡Qué feliz estoy de\nque hayamos vuelto a\nla normalidad!{pagina}¡Gracias! ¡Todo\nse lo debemos\na ti!{fin}"
+  },
+  {
+   "index": 429,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¿Qué quería la\nA.o.A. de nosotros?{pagina}No entendía sus\nmotivos, y eso me\nasustaba mucho.{fin}"
+  },
+  {
+   "index": 430,
+   "note": "G-018",
+   "text": "{hablante}Recepción Estadio{hablante}...Oink,\n¡ooink!{fin}"
+  },
+  {
+   "index": 431,
+   "note": "G-026",
+   "text": "{hablante}Guardia DO{hablante}¡Oooink, oinink,\nooink, oink!{fin}"
+  },
+  {
+   "index": 436,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}¿Por qué fue tan\nfácil recuperar\nla ciudad?{pagina}La A.o.A. esconde\nmás de lo que\nparece.{fin}"
+  },
+  {
+   "index": 437,
+   "note": "G-002 G-015 G-026",
+   "text": "{hablante}Nick{hablante}...¡A.o.A.!\n¡Salgan!{pagina}¡Yo también quiero\nenfrentarlos!{fin}"
+  },
+  {
+   "index": 438,
+   "note": "G-026 G-018",
+   "text": "{hablante}Lisa{hablante}Me alegra que todo\nhaya salido bien,\npor ahora...{pagina}Aún queda el Centro\nde Administración.\n¡Buena suerte, {0208}{0102}1{01e7}{fin}"
+  },
+  {
+   "index": 439,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Parece que\nsubestimamos\na la Resistencia!{pagina}Pero eso no\ncambiará nada.{fin}"
+  },
+  {
+   "index": 440,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Ja ja ja!\n¡Ven si puedes!{pagina}¡No eres rival\npara la A.o.A.!{fin}"
+  },
+  {
+   "index": 441,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡El mundo nos\npertenece a\nnosotros, la A.o.A.!{pagina}¡Nadie podrá\ninterponerse!{fin}"
+  },
+  {
+   "index": 442,
+   "note": "G-015 G-026 G-043",
+   "text": "{hablante}Señor Wedge{hablante}¡Uf! ¡Me siento\ncomo un hombre nuevo!{pagina}Bien, ¡al trabajo!{pagina}¡Al fondo también\nhay buenos artículos,\nmira con calma!{fin}"
+  },
+  {
+   "index": 445,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Te felicito por\nllegar hasta aquí!{pagina}Pero, ¿de verdad\ncrees que puedes\nvencernos?{fin}"
+  },
+  {
+   "index": 446,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Protegeré este\nlugar con mi\nvida!{fin}"
+  },
+  {
+   "index": 447,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}Se-se van a enojar\nsi pierdo...{pagina}¡Así que no tengo\nmás opción que\nganar!{fin}"
+  },
+  {
+   "index": 448,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Estás loco\nal retarnos!{pagina}Haré que\nlamentes haber\nvenido aquí.{fin}"
+  },
+  {
+   "index": 449,
+   "note": "G-020 G-026",
+   "text": "{hablante}Soldado{hablante}¿Qué puede hacer\nun tamer?{pagina}¡Deja de\nentrometerte\nahora!{fin}"
+  },
+  {
+   "index": 450,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Te voy a\nvencer!{pagina}¡Y luego me harán\nSoldado!{fin}"
+  },
+  {
+   "index": 451,
+   "note": "G-026 G-045",
+   "text": "{hablante}Soldado{hablante}Oh, ¡solo es un niño!{pagina}¡Verás lo que pasa\ncuando te metes\ncon adultos!{fin}"
+  },
+  {
+   "index": 452,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡La A.o.A. no\nperderá ante ti!{pagina}¡Te lo voy a\ndemostrar!{fin}"
+  },
+  {
+   "index": 453,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Ríndete de una vez\ny quizá te perdone\nla vida!{fin}"
+  },
+  {
+   "index": 455,
+   "note": "G-026 G-045",
+   "text": "{hablante}Atacante{hablante}¡¿Por qué no te\nrindes?! ¡Este\nes tu fin!{fin}"
+  },
+  {
+   "index": 456,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Oh, sí, esto se va\na poner bueno!{fin}"
+  },
+  {
+   "index": 457,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Vamos!\n¡Yo me encargo\nde ti!{fin}"
+  },
+  {
+   "index": 458,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Los que fueron a\nAsuka son simples\nsecuaces!{pagina}¡No somos como\nellos!{fin}"
+  },
+  {
+   "index": 459,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Tu Digimon no\nes rival para\nel mío!{pagina}¡Ven, mi querido\nDigimon!{fin}"
+  },
+  {
+   "index": 460,
+   "note": "G-019",
+   "text": "{hablante}Soldado{hablante}¡Somos lo mejor\nde lo mejor!{pagina}¡Destruiremos a\nun niño como tú!{fin}"
+  },
+  {
+   "index": 461,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¡Eres tonto si\nme desafías!{pagina}Vamos. ¡Te\ndespacharé en\nun segundo!{fin}"
+  },
+  {
+   "index": 462,
+   "note": "G-013 G-026",
+   "text": "{hablante}Atacante{hablante}¡Mejor prepárate,\nmuchacho!{fin}"
+  },
+  {
+   "index": 463,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Tienes la ID\nCrony, así que eres\nuno de los nuestros!{pagina}¡Adelante, relájate\nen esta ciudad!{fin}"
+  },
+  {
+   "index": 464,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Si los convertimos\nen Oinkmon, será\nfácil!{pagina}¡La A.o.A. tiene\nestilo!{fin}"
+  },
+  {
+   "index": 465,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¿Dónde está\nnuestro Jefe?{pagina}¡Nos pone a\npatrullar mientras\nél descansa!{fin}"
+  },
+  {
+   "index": 466,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Todo el que se\nnos oponga se\nconvierte en Oinkmon!{pagina}Pero, ¿qué hará el\njefe con ellos?{fin}"
+  },
+  {
+   "index": 467,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Parece una granja\ncon tantos Oinkmon!{pagina}Se nota la\ngrandeza de la\nA.o.A.{fin}"
+  },
+  {
+   "index": 471,
+   "note": "G-026 G-045",
+   "text": "{hablante}Renamon{hablante}Lo siento, pero\nno me aliaré\ncon nadie...{pagina}Solo observaré en\nsilencio la pelea\nentre humanos.{fin}"
+  },
+  {
+   "index": 472,
+   "note": "G-026",
+   "text": "{hablante}Renamon{hablante}La A.o.A. fue\nderrotada, es\ncierto...{pagina}Pero la guerra nunca\ntermina. La historia\nse repite.{fin}"
+  },
+  {
+   "index": 473,
+   "note": "G-026",
+   "text": "{hablante}Renamon{hablante}La batalla todavía\nno ha terminado...{pagina}¡Pero debes ganar!\n¡Para salvar a todos!{fin}"
+  },
+  {
+   "index": 477,
+   "note": "G-026",
+   "text": "{hablante}Agumon{hablante}¡La gente de\nla ciudad se convierte\notra vez en Oinkmon!{pagina}¡Odio a la A.o.A.!\n¡Son tan molestos!{fin}"
+  },
+  {
+   "index": 479,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}Si no hubieran\natrapado al\nverdadero Líder...{pagina}Digievolucionaría\nen Veedramon y los\nderrotaría a todos.{fin}"
+  },
+  {
+   "index": 480,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}Eres asombroso.\n¡Derrotaste al\nLíder falso!{pagina}¡El verdadero Líder\nes fuerte, pero lo\nconvirtieron en Oinkmon!{fin}"
+  },
+  {
+   "index": 481,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}La A.o.A. ya no\nestá, ¿verdad?{pagina}¡Entonces el\nverdadero Líder\nvolverá pronto!{fin}"
+  },
+  {
+   "index": 482,
+   "note": "G-026",
+   "text": "{hablante}Veemon{hablante}El Líder aún no\nha vuelto.{pagina}Eres el único que\npuede salvar a todos.\n¡Ayúdanos!{fin}"
+  },
+  {
+   "index": 484,
+   "note": "G-045",
+   "text": "{hablante}Soldado{hablante}¡Solo puede pasar\nel personal\nautorizado!{pagina}¡Ni siquiera pueden\npasar Líderes\nde otra ciudad!{fin}"
+  },
+  {
+   "index": 485,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡El Líder es alguien\na quien admiramos!{pagina}Debe haber algún\nplan detrás del\ncierre de la ciudad.{fin}"
+  },
+  {
+   "index": 486,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡A-A-Achís!{pagina}¡Hace frío aquí!\nQuiero ir a un\nlugar más cálido.{fin}"
+  },
+  {
+   "index": 487,
+   "note": "G-026 L6",
+   "text": "{hablante}Jefe Xuan Wu{hablante}...Te he\nestado\nesperando...{fin}"
+  },
+  {
+   "index": 489,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Eres el que\ninterfiere con\nla A.o.A.{pagina}Ve a ver al Jefe\nahora.{pagina}Quiere combatir\ncontigo uno\ncontra uno.{fin}"
+  },
+  {
+   "index": 495,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Hace mucho que no\nveo a nuestro Líder...{pagina}¿Qué habrá pasado?\n¿Estará ocupado?{fin}"
+  },
+  {
+   "index": 496,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡Yo también quería\nir a aplastar a la\nResistencia!{pagina}¡Pero mi trabajo es\nvigilar aquí!{fin}"
+  },
+  {
+   "index": 497,
+   "note": "G-026 G-051",
+   "text": "{hablante}Soldado{hablante}Parece que el Líder\nfue a la\nTorre de Delirios.{pagina}¡Mucho hablar, pero\nno pueden con una\nsimple Resistencia!{fin}"
+  },
+  {
+   "index": 498,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡No pensé que tomar\nel servidor iba a\nsalir tan bien!{pagina}El Mundo Real será\nnuestro muy pronto.{fin}"
+  },
+  {
+   "index": 499,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Es algo solitario\nser los únicos\nde guardia.{pagina}¡Pero tenemos a\nnuestro Líder, así\nque todo va bien!{fin}"
+  },
+  {
+   "index": 500,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}¡La A.o.A. ganará!{pagina}¡Y el mundo será\nnuestro!{fin}"
+  },
+  {
+   "index": 502,
+   "note": "G-026",
+   "text": "{hablante}Ponchomon{hablante}¡Hola, amigo!{pagina}¡Estás en el paraíso\nde los coleccionistas,\nEl Dorado!{fin}"
+  },
+  {
+   "index": 506,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}Derrotamos a la\nA.o.A...{pagina}¿Pero por qué Kurt\nno vuelve a la\nnormalidad?{fin}"
+  },
+  {
+   "index": 508,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}...el Sistema Matriz\nno funciona...\n¿Por qué será...?{pagina}¿No se habrá borrado\nel Programa de\nInterferencia de Kurt?{fin}"
+  },
+  {
+   "index": 509,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Si logramos que Kurt\nvuelva, podremos\narreglar el programa...{pagina}Keith está buscando\nuna forma de revertir\nel estado Oinkmon.{fin}"
+  },
+  {
+   "index": 510,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}No podemos acceder\nal Mundo Real.\n¿Por qué será?{pagina}La Cámara Matriz\ntampoco funciona.\n¿Qué está pasando?{fin}"
+  },
+  {
+   "index": 511,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}Todavía no sabemos\ncómo revertir el\nestado Oinkmon.{pagina}Keith está\nexperimentando en\nCiudad Qing Long...{fin}"
+  },
+  {
+   "index": 513,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}Gracias por todo,\n{0208}{0102}1 1{pagina}Estoy revisando la\nCámara Matriz\nahora mismo...{pagina}Pero hay algo que\nafecta al sistema\ndesde el exterior.{fin}"
+  },
+  {
+   "index": 514,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}Algo se está metiendo\nen el sistema que\ndiseñé...{pagina}También debe estar en el\nSistema de Administración\nde la Red Óptica.{pagina}...quizá el plan de\nla A.o.A. todavía no\nha sido frustrado.{fin}"
+  },
+  {
+   "index": 515,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Oye! ¡Aquí hay\nun interruptor!\nVamos a presionarlo.{fin}"
+  },
+  {
+   "index": 516,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Bien, bajemos\nlas escaleras.{fin}"
+  },
+  {
+   "index": 517,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}Una carpeta más\nfuerte... Mmm...\n¿qué combo?{fin}"
+  },
+  {
+   "index": 518,
+   "note": "G-026",
+   "text": "{hablante}Soldado{hablante}...En realidad\ndebería estar\npatrullando...{pagina}Pero no tengo ganas...\nCreo que revisaré\nmi lista de cartas...{fin}"
+  },
+  {
+   "index": 520,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}Kail{hablante}{0208}{0102}1 0 ¡lo lograste!\n¡Kurt volvió a la\nnormalidad!{pagina}...y ahora arreglará\nel programa, así\nque...{pagina}¡Pronto volveremos\nal Mundo Real!{fin}"
+  },
+  {
+   "index": 521,
+   "note": "G-026",
+   "text": "{hablante}Teddy{hablante}La Onda Digital\nque convirtió a\ntodos en Oinkmon...{pagina}Me pregunto cómo\nfunciona. ¡Tengo\nganas de saberlo!{fin}"
+  },
+  {
+   "index": 522,
+   "note": "G-026 G-045",
+   "text": "{hablante}Lisa{hablante}Me alegra que todos\nhayan vuelto a la\nnormalidad.{pagina}Ahora solo hay que\nesperar a que reparen\nla Cámara Matriz.{fin}"
+  },
+  {
+   "index": 523,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}...ahora podemos\ndescansar.{pagina}Algún día quiero\njugar aquí.{fin}"
+  },
+  {
+   "index": 524,
+   "note": "G-026 G-017",
+   "text": "{hablante}{0209}{hablante}Mmm, todavía no lo\nentiendo. El arte es\nmuy difícil.{fin}"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "file": "SSFGTRPT.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 3,
+   "note": "L6",
+   "text": "NV"
+  },
+  {
+   "index": 6,
+   "note": "G-026",
+   "text": "Técnica disponible:\n{0205}{0102}{0202}"
+  },
+  {
+   "index": 9,
+   "note": "G-018",
+   "text": "Digievolución llena.\nVa al Laboratorio Digimon.{fin}"
+  },
+  {
+   "index": 11,
+   "note": "L6",
+   "text": "Artículo ganado:\n{0205}{0102}{0202}"
+  }
+ ]
+}

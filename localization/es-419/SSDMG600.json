@@ -1,0 +1,868 @@
+{
+ "file": "SSDMG600.BIN",
+ "base": "SPN",
+ "format": "overlay-v1",
+ "description": "es-419 strings that differ from the official Spanish text (ADR-001). Strings not listed are taken unchanged from the user's disc.",
+ "strings": [
+  {
+   "index": 1,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}Bienvenido, retador.\nLuchemos.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 0,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Ah, espera\nun momento.{pagina}Primero\ntengo una\npregunta.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 0,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien, no voy \na perder de\nninguna manera!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 1,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}¡Ja ja ja!\nEres fuerte.\nMe agradas.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 1,
+   "note": "G-006",
+   "text": "{hablante}Líder Byakko{hablante}Un momento.\nEl Pin Byakko está\nen esa habitación.{pagina}Te escucharé \ncuando lo tengas.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 1,
+   "note": "G-008 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien, ahora\nvuelvo!\n¡Espera aquí!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Pero qué...?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 2,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Q-qué\nestá pasando?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 3,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Eh... ¿Dónde\nestoy?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 4,
+   "text": "{hablante}{0209}{hablante}Mmm. ¿Qué bloquea\nel camino? ¿Una roca?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 4,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Q-q...\n¿Qué?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 4,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}Eso es.\nTe ayudaré.\n¡Vamos!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 5,
+   "note": "G-022 G-026",
+   "text": "{hablante}Lisa{hablante}¡Wow! {0208}{0102}1 1\n¡Eres muy bueno!{pagina}¡Estoy impresionada!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 5,
+   "note": "G-050",
+   "text": "{hablante}{0209}{hablante}¿Eh? Oh,\neste, sí...\nGracias...{fin}"
+  },
+  {
+   "index": 5,
+   "part": 5,
+   "text": "{hablante}{0209}{hablante}¿Yo?\nEh, yo...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 5,
+   "note": "G-005",
+   "text": "Los dos están\naquí para hablar\nconmigo, ¿no?{fin}"
+  },
+  {
+   "index": 7,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Aahhh!\n¡Nu-nu-\nNumemon!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Numemon{hablante}Tranquila,\nLisa, soy yo.{fin}"
+  },
+  {
+   "index": 11,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Él es\nRatón Suerte?{pagina}E-entonces, ¿ese\nNumemon era...?{fin}"
+  },
+  {
+   "index": 12,
+   "part": 5,
+   "note": "G-026",
+   "text": "{hablante}Ratón Suerte{hablante}Lo de Lisa lo entiendo,\npero a ti te dije que\nno vinieras.{pagina}Bueno, es peligroso\nestar aquí. ¡Vamos \na mi escondite!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 8,
+   "text": "{hablante}{0209}{hablante}Eh, no puedo\nquedarme mucho.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}BK WarGrowlmon{hablante}Lo sé.\nSolo un poco.\n¡Una batalla!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 8,
+   "note": "G-026",
+   "text": "{hablante}BK WarGrowlmon{hablante}¡Eso digo yo!{pagina}¡Vaya! Hace mucho\nque no lucho.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 9,
+   "note": "L6",
+   "text": "{hablante}BK WarGrowlmon{hablante}Perdí, pero\nfue divertido.\n¡Gracias!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Igualmente.\nBueno, ¡me tengo\nque ir!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 9,
+   "note": "G-026",
+   "text": "{hablante}BK WarGrowlmon{hablante}¡Espera un \nsegundo!{pagina}¡Te daré esto\nen agradecimiento!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 9,
+   "note": "G-026 G-053",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo la\nArmadura Peligrosa!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 9,
+   "note": "G-012 G-026",
+   "text": "{hablante}BK WarGrowlmon{hablante}Je je je, ¿no es\ngenial?{pagina}¡Es mi tesoro, así \nque cuídala!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 10,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Pero qué...?\n¡Eres un Numemon\nmuy colorido!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 11,
+   "note": "G-026 L6",
+   "text": "{hablante}BK KingNumemon{hablante}Oh, no... ¡Yo, el Rey,\nperdí...!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 11,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Pero luchaste\nmuy bien.{pagina}¡Sin duda eres\nel rey!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 11,
+   "note": "G-026",
+   "text": "{hablante}BK KingNumemon{hablante}¡Nunca te olvides\nde KingNumemon!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 12,
+   "note": "G-026",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¡Oh, tú debes ser\nel nuevo retador!{pagina}Entra, por favor.\nEl Líder Byakko\nte espera.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 13,
+   "note": "G-018",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¡Je je je!\n¡Te hemos estado\nesperando!{pagina}¡Ven a luchar con\nnuestro líder!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 14,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Eh, son...!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 14,
+   "note": "G-018 G-023 L6",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¿Eh? Creo\nque se movió\nalgo.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 14,
+   "note": "G-018 L6",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}Eh, ¿puedes \nver algo desde \nahí?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 14,
+   "note": "G-018 G-026",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¡Sin problemas\nen el oeste!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 14,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¡Nada en el\nsur!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 14,
+   "note": "G-018 L6",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}¡Todo bien aquí\ntambién!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 14,
+   "note": "G-018 L6",
+   "text": "{hablante}¿Ciudadano Byakko?{hablante}Me lo habré\nimaginado...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 15,
+   "note": "G-018",
+   "text": "{hablante}{0209}{hablante}Así que este es el\nescondite de Ratón\nSuerte...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Ratón Suerte{hablante}¿Teddy? ¡Ah, el chico\nque halló el código de\nmi cuenta y me contactó!{pagina}¡Yo no lo capturé!\n¡Fue la A.o.A!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 15,
+   "note": "G-018 L6",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Qué quieres\ndecir con eso?{pagina}La Maestra de Juego de\nAsuka me dijo que lo \ntenías tú...{fin}"
+  },
+  {
+   "index": 5,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Ratón Suerte{hablante}Ella es una de las\nprincipales agentes\nde la A.o.A.{pagina}Y no es la única.\n¡La propia MAGAMI\nes la A.o.A!{pagina}¡Hay muchos miembros\nen este Servidor Asuka!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 15,
+   "note": "G-026 L6",
+   "text": "{hablante}{0209}{hablante}Entonces, ¿la Maestra\nde Juego me mintió?{pagina}¡Tengo que \nrescatar a Teddy!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Oye, ¿qué planea\nla A.o.A?{fin}"
+  },
+  {
+   "index": 9,
+   "part": 15,
+   "note": "G-007 G-026",
+   "text": "{hablante}Lisa{hablante}¡Eh! ¡Esas no son\nbuenas noticias!{pagina}¡Controlarán todas\nlas computadoras del\nmundo!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 15,
+   "note": "G-026 L6",
+   "text": "{hablante}Ratón Suerte{hablante}Para evitarlo,\nprovoqué una avería\nen el sistema.{pagina}Así nadie podrá\nentrar a este servidor\npor un tiempo.{fin}"
+  },
+  {
+   "index": 12,
+   "part": 15,
+   "note": "G-005",
+   "text": "¡Ja ja ja ja!\n¡Me han causado\nmuchos problemas!{pagina}¡Pero gracias al chico\nlos planes siguen\nadelante!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 15,
+   "note": "G-018",
+   "text": "{hablante}Ratón Suerte{hablante}¿Kail?{fin}"
+  },
+  {
+   "index": 17,
+   "part": 15,
+   "note": "G-018 G-026 G-044",
+   "text": "{hablante}Ratón Suerte{hablante}Sí, mi nombre real\nes Kurt. Soy el\nhermano mayor de Kail.{pagina}Pero ¿cómo encontró\nla A.o.A. este\nlugar?{pagina}¿Y por qué está\nKail...?{fin}"
+  },
+  {
+   "index": 18,
+   "part": 15,
+   "note": "G-013 L6",
+   "text": "{hablante}General{hablante}¡Seguimos al\nchico desde Ciudad Asuka!{pagina}Ella también seguía\nal chico, ¡hasta que la \ncapturamos!{fin}"
+  },
+  {
+   "index": 19,
+   "part": 15,
+   "note": "G-015",
+   "text": "{hablante}Ratón Suerte{hablante}¡Suelten a Kail!{fin}"
+  },
+  {
+   "index": 20,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}General{hablante}¡Ja ja ja! ¡No tan\nrápido! No va a ser \ntan fácil.{pagina}Si devuelves lo que\nrobaste, la soltaré.{fin}"
+  },
+  {
+   "index": 22,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}General{hablante}Aquí está.\n¡Ja ja ja!{pagina}¡Me llevo esto\nde vuelta!{fin}"
+  },
+  {
+   "index": 25,
+   "part": 15,
+   "note": "G-003 G-005 G-026",
+   "text": "{hablante}Atacante{hablante}¡Ja ja! ¡Disfruten\nsu breve momento!{pagina}¡Pero ya están\ntodos acabados!{fin}"
+  },
+  {
+   "index": 26,
+   "part": 15,
+   "note": "G-018",
+   "text": "{hablante}Ratón Suerte{hablante}¡Cuidado \ntodos!{fin}"
+  },
+  {
+   "index": 29,
+   "part": 15,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}¿Cómo? ¡Se\nconvirtió en\nun Digimon!{fin}"
+  },
+  {
+   "index": 30,
+   "part": 15,
+   "note": "G-004 G-005 G-026",
+   "text": "{hablante}Atacante{hablante}¡Todos se volverán\nOinkmon y los\nencerrarán!{pagina}¿Quién sigue?{fin}"
+  },
+  {
+   "index": 31,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}¿?¿?¿?\n¡Me quedé sin\nenergía!{pagina}Bueno, ¡ven, mi\nDigimon!{fin}"
+  },
+  {
+   "index": 32,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Si quieres luchar,\ntendrás que pasar\npor encima de mí!{fin}"
+  },
+  {
+   "index": 33,
+   "part": 15,
+   "note": "G-026",
+   "text": "{hablante}Ratón Suerte{hablante}Yo también era del\npersonal de Digimon\nOnline.{pagina}Pero cuando me di\ncuenta, ya era\ndemasiado tarde...{fin}"
+  },
+  {
+   "index": 1,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Atacante{hablante}No, noooo...\nmi Digimon...{pagina}¡Lo pagarás!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 16,
+   "note": "G-026 L6",
+   "text": "{hablante}Lisa{hablante}Gracias, {0208}{0102}1 1\n¡Me salvaste\nde nuevo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¡Pero Kurt es...!\nCreí que por fin lo\nhabía encontrado y...{fin}"
+  },
+  {
+   "index": 4,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Oink, oink!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 16,
+   "note": "L6",
+   "text": "{hablante}{0209}{hablante}De acuerdo. ¡Está\ndecidido! ¡Me voy\na Ciudad Asuka!{pagina}¡Voy a rescatar a\nTeddy y derrotar a la\nMaestra de Juego!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 16,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¡Sí! ¡Vamos a darle\nuna paliza a la A.o.A!{pagina}¡Y devolver a Kurt\na la normalidad!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 16,
+   "note": "G-005",
+   "text": "{hablante}Lisa{hablante}¡Yo también te \nlo pido!{pagina}Pero no deseo que \ncunda el pánico.{pagina}¿Pueden ser \ndiscretos sobre la\nA.o.A?{fin}"
+  },
+  {
+   "index": 9,
+   "part": 16,
+   "note": "G-011 G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien, Kail!\n¡Ya me voy!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Líder Byakko,\ntengo algo que \npreguntarte...{fin}"
+  },
+  {
+   "index": 2,
+   "part": 17,
+   "note": "G-005 G-026 L6",
+   "text": "{hablante}Líder Byakko{hablante}...¡Ya me\nencontraron!{pagina}¡Bien, entonces\ntendré que\nluchar contigo!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¡Espera\nun segundo! \n¿Pero qué...?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}¡Silencio! ¡No voy\na perder contra la\nA.o.A!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Q-qué?\n¿...A.o.A?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}¡No juegues\nconmigo! ¡Ven\naquí, mi Digimon!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 17,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡No puedo creerlo!\nOh, bueno...{pagina}De acuerdo,\n¡terminemos con\nesto!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 18,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}No pasa nada...{pagina}Un momento, ¿eso\nsignifica que la gente\nde Ciudad Byakko es...?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 18,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Byakko{hablante}Sí. ¡Son todos \nde la A.o.A!{pagina}¡Llegaron y se\napoderaron de Ciudad Byakko!{pagina}Nos metieron en la\nprisión del sótano.{pagina}Pero Numemon vino y \nnos rescató.{fin}"
+  },
+  {
+   "index": 4,
+   "part": 18,
+   "note": "G-026 G-044",
+   "text": "{hablante}{0209}{hablante}Ya veo...\nPero la A.o.A. y \nRatón Suerte...{pagina}¿Y qué pasa con\nDigimon Online?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 18,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}Yo tampoco lo sé.{pagina}Si quieres saber más,\nbusca a ese Numemon.{pagina}Si vas a la Fábrica\nDum Dum, lo encontrarás.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 18,
+   "note": "G-008",
+   "text": "{hablante}{0209}{hablante}¡Bien!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 18,
+   "note": "G-018 G-026",
+   "text": "{hablante}Líder Byakko{hablante}Espera un segundo.\n¡Aún no te he \ndado esto!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 18,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! ¡Tengo\nel Pin Byakko!{pagina}¡Gracias, Líder\nByakko!{fin}"
+  },
+  {
+   "index": 9,
+   "part": 18,
+   "note": "G-026 L6",
+   "text": "{hablante}Líder Byakko{hablante}¡Después de todo,\nme ganaste!{pagina}¡Y puede servirte\nen el futuro!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 18,
+   "note": "G-026",
+   "text": "{hablante}Líder Byakko{hablante}Vendrán más de la\nA.o.A. ¡Ten cuidado!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 19,
+   "note": "G-011",
+   "text": "{hablante}{0209}{hablante}Hay algo que tengo\nque preguntarle.\n¡Anda, dímelo!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 19,
+   "note": "G-026 G-045",
+   "text": "{hablante}HiAndromon{hablante}Yo sé dónde está,\npero no te lo diré\nasí nada más.{pagina}Más allá de ese\npunto, solo pasan\nlos más fuertes.{pagina}Si aún quieres\nverlo, vénceme\nprimero.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 20,
+   "note": "G-018 G-026 L6",
+   "text": "{hablante}HiAndromon{hablante}Respeto tu gran\nfuerza.\n¡Puedes pasar!{pagina}Numemon está en las\nAlcantarillas, tras la\nEscalera Secreta.{pagina}Abrí la\npuerta de la\nEscalera Secreta.{pagina}Sigue adelante, \npero antes... Toma\neste Rifle Oxidado.{fin}"
+  },
+  {
+   "index": 2,
+   "part": 20,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Bien! ¡Tengo\nel Rifle Oxidado!{pagina}Bueno, HiAndromon,\n¡gracias! ¡Nos vamos!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Qué\nfue eso?{fin}"
+  },
+  {
+   "index": 4,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}WaruMonzaemon{hablante}¡Eres muuuy linda!\n¡Cásate conmigo!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡No! ¡No me gustan\nlos monstruos!{fin}"
+  },
+  {
+   "index": 6,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Oh, oh...\nEsa es... mmm...\n¡Lisa!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Oh, bueno.\n¡Cuenta conmigo!{fin}"
+  },
+  {
+   "index": 10,
+   "part": 21,
+   "note": "G-026",
+   "text": "{hablante}WaruMonzaemon{hablante}¿Quién eres?{pagina}¡Fuera de mi\ncamino!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 22,
+   "note": "G-026 G-018",
+   "text": "{hablante}{0209}{hablante}No puedo entrar en\nCiudad Asuka.{pagina}Si tuviera un Pase\nPersonal, a lo\nmejor podría...{fin}"
+  },
+  {
+   "index": 3,
+   "part": 22,
+   "note": "G-026 G-018",
+   "text": "{hablante}Kail{hablante}¿Un Pase\nPersonal?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¿Qué intentas\ndecir, Kurt?{fin}"
+  },
+  {
+   "index": 6,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Puede que Kurt\ntenga uno.{fin}"
+  },
+  {
+   "index": 10,
+   "part": 22,
+   "note": "G-018",
+   "text": "{hablante}Kail{hablante}Eh, Lisa. ¿Había\nalgún Pase \nPersonal por ahí?{fin}"
+  },
+  {
+   "index": 11,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}Lo siento, aún no\nlo he visto.{pagina}¡Todo es culpa de\nKurt por ser tan\ndesordenado!{fin}"
+  },
+  {
+   "index": 12,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Kurt{hablante}¡Oink,\noink!{fin}"
+  },
+  {
+   "index": 14,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Ya sé! ¿Puedes ir a\nbuscar a mis\namigos?{pagina}Si nos ayudan,\nterminaremos\nenseguida.{fin}"
+  },
+  {
+   "index": 18,
+   "part": 22,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¿Los conoces,\n{0208}{0102}1{01e6}{pagina}¡Entonces no\ntardarás tanto!{pagina}Ah, y lo último que\nsupe es que estaban\nen el Sector Sur.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 23,
+   "note": "G-007 G-011",
+   "text": "{hablante}Lisa{hablante}¡Rápido! ¡Nick,\nbusca un pase en\nla computadora!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 23,
+   "note": "G-011 G-026",
+   "text": "{hablante}Lisa{hablante}¡Keith, tú ordena\nlos documentos!\n¡Vamos, rápido!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Sí, señora!{fin}"
+  },
+  {
+   "index": 5,
+   "part": 23,
+   "note": "G-005",
+   "text": "{hablante}Lisa{hablante}¿Ven? No\ntardaremos \ntanto.{fin}"
+  },
+  {
+   "index": 7,
+   "part": 23,
+   "note": "G-045",
+   "text": "{hablante}Lisa{hablante}Oh, solo son\nmis amigos.{fin}"
+  },
+  {
+   "index": 8,
+   "part": 23,
+   "note": "G-008",
+   "text": "{hablante}Kail{hablante}Ah, bien.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 23,
+   "note": "G-026",
+   "text": "{hablante}Kail{hablante}¿De verdad son\nsolo amigos?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Keith{hablante}¡Eh, ya\nterminamos!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Nick{hablante}¡Lisa, ya\nterminamos!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}Lisa{hablante}¡Buen trabajo,\nustedes dos!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 24,
+   "note": "L6",
+   "text": "{hablante}Keith{hablante}¿Un Pase Personal?{fin}"
+  },
+  {
+   "index": 5,
+   "part": 24,
+   "note": "G-019",
+   "text": "{hablante}Lisa{hablante}¡Chicos, son\ninútiles!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 24,
+   "note": "G-005",
+   "text": "{hablante}Lisa{hablante}Perdón, \n¿esperan\nun rato?{fin}"
+  },
+  {
+   "index": 12,
+   "part": 24,
+   "note": "G-018 G-033",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo un\nPase Personal!{fin}"
+  },
+  {
+   "index": 13,
+   "part": 24,
+   "note": "G-005 G-026",
+   "text": "{hablante}Lisa{hablante}Oh, ¿lo encontraron?\n¡Bien hecho, Nick!{fin}"
+  },
+  {
+   "index": 15,
+   "part": 24,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Kail, Lisa,\nme voy.{fin}"
+  },
+  {
+   "index": 17,
+   "part": 24,
+   "note": "G-008",
+   "text": "{hablante}Kail{hablante}Cuidado,\n¿sí?{fin}"
+  },
+  {
+   "index": 18,
+   "part": 24,
+   "note": "G-018 G-033",
+   "text": "{hablante}Nick{hablante}¿Pase Personal?{fin}"
+  },
+  {
+   "index": 19,
+   "part": 24,
+   "note": "G-005 G-018 G-033",
+   "text": "{hablante}Lisa{hablante}¿Encontraron un\nPase Personal?{fin}"
+  },
+  {
+   "index": 20,
+   "part": 24,
+   "note": "G-005 G-026",
+   "text": "{hablante}Lisa{hablante}¿Qué hacen,\nchicos?{fin}"
+  },
+  {
+   "index": 1,
+   "part": 25,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¿Eres el Jefe\nBai Hu?{fin}"
+  },
+  {
+   "index": 3,
+   "part": 25,
+   "note": "G-026 G-035",
+   "text": "{hablante}{0209}{hablante}¡Dame el Pase\nBlanco que tienes!{fin}"
+  },
+  {
+   "index": 4,
+   "part": 25,
+   "note": "G-005 G-026 L6",
+   "text": "{hablante}Jefe Bai Hu{hablante}Ya veo. ¡Je, je, je!{pagina}No importa lo que \nhagas, la victoria\nserá nuestra.{pagina}¡Es hora de que\naprendas la lección!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 26,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡¿Ya viste?!\n¡No te metas\nconmigo!{pagina}¿Eh?\n¿Es esto...?{fin}"
+  },
+  {
+   "index": 2,
+   "part": 26,
+   "note": "G-026 G-035",
+   "text": "{hablante}{0209}{hablante}¡Sí! ¡Tengo el\nPase Blanco!{pagina}Solo falta uno.\n¡Hay que apurarse!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}¡Claro que no!{pagina}¡Vine a preguntarte\ncómo llegaron a\neste servidor!{fin}"
+  },
+  {
+   "index": 3,
+   "part": 27,
+   "note": "G-026 L6",
+   "text": "{hablante}General{hablante}Je, je, je.\nSi quieres saberlo,\nte lo diré.{pagina}El Digimon de\ntransporte que creó\nla A.o.A...{pagina}¡Vinimos desde\nAmaterasu con\nBulbmon!{fin}"
+  },
+  {
+   "index": 7,
+   "part": 27,
+   "note": "G-026",
+   "text": "{hablante}General{hablante}¡Ratón Suerte levantó\nun campo protector!{pagina}¡Así que Bulbmon se\naverió y nos echó!{pagina}Por eso atacamos\nenseguida a\nCiudad Byakko.{fin}"
+  },
+  {
+   "index": 1,
+   "part": 28,
+   "note": "L6",
+   "text": "{hablante}Líder Chuck{hablante}Me enteré \npor Kenny.{pagina}¡Buena suerte \ncontra\nla A.o.A!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 28,
+   "note": "G-002",
+   "text": "{hablante}{0209}{hablante}Sí, buena \nsuerte también\na ustedes.{fin}"
+  },
+  {
+   "index": 3,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Líder Chuck{hablante}Quiero ayudarte\ny luchar juntos,\npero...{pagina}Lo único que podemos\nhacer es defender\nel fuerte.{fin}"
+  },
+  {
+   "index": 6,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}{0209}{hablante}Knightmon...\n¿Algún consejo\npara vencerlo?{fin}"
+  },
+  {
+   "index": 7,
+   "part": 28,
+   "note": "G-026 G-044 L6",
+   "text": "{hablante}Líder Chuck{hablante}Una vez en movimiento,\nel modo de parar a \nKnightmon es...{pagina}Necesitas los cuatro Pases de Código de los \nLíderes de Ciudad.{pagina}Pero han capturado\na todos los Líderes,\nasí que no hay manera.{pagina}Los Jefes de Ciudad de\nla A.o.A. deben\nhabérselos quitado.{fin}"
+  },
+  {
+   "index": 9,
+   "part": 28,
+   "note": "G-026",
+   "text": "{hablante}Líder Chuck{hablante}¡Claro, aún no nos\nhemos rendido!{pagina}Si hay oportunidad,\nnos levantaremos.\n¡Espera ese momento!{pagina}Bueno...\n¡Buena suerte!{fin}"
+  },
+  {
+   "index": 1,
+   "part": 29,
+   "note": "G-020 G-026",
+   "text": "{hablante}Tamer Heinrich{hablante}¡Espera! ¡Si no dices\nla contraseña, no te\ndejaré pasar!{fin}"
+  },
+  {
+   "index": 2,
+   "part": 29,
+   "text": "{hablante}{0209}{hablante}¿Qué? ¿Una \ncontraseña?\nMmm...{fin}"
+  },
+  {
+   "index": 6,
+   "part": 29,
+   "note": "G-026",
+   "text": "{hablante}Kenny{hablante}¡Sí! ¡Logré unirme\na la Resistencia!{pagina}¡Esto es ahora una\nbase de la Resistencia!{fin}"
+  },
+  {
+   "index": 8,
+   "part": 29,
+   "note": "L6",
+   "text": "{hablante}Kenny{hablante}¡Ya sé! ¡Ven y conoce\na nuestro líder!{pagina}Puede que sepa algo\npara ayudarte.{pagina}¡Por aquí!{fin}"
+  }
+ ]
+}

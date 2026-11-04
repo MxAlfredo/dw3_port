@@ -1,0 +1,64 @@
+// The app module. Package id "io.github.dw3port" is a placeholder (the owner picks the final one before a release;
+// it also names the app's storage folder, Android/data/<id>/files). SDL's Java glue (org.libsdl.app) is not in git:
+// build.sh unpacks it from the pinned SDL2 2.32.10 tarball into dw3.sdlJava (zlib license, headers kept in the files).
+apply plugin: 'com.android.application'
+
+android {
+    namespace "io.github.dw3port"
+    compileSdk 34
+    buildToolsVersion "34.0.0"
+    ndkVersion "27.2.12479018"
+
+    defaultConfig {
+        applicationId "io.github.dw3port"
+        // 29: see pc/android/build_deps.sh (Bionic's atoi collision below it)
+        minSdk 29
+        targetSdk 34
+        // build.sh passes the real ones (-Pdw3.versionName / -Pdw3.versionCode, formula in build.sh); these are the debug-build defaults
+        versionCode Integer.parseInt(project.property('dw3.versionCode'))
+        versionName project.property('dw3.versionName')
+        externalNativeBuild {
+            cmake {
+                version "3.22.1"
+                arguments "-DDW3_ANDROID_PREFIX=" + project.property('dw3.prefix'), "-DANDROID_STL=c++_static",
+                    // NDK r27 links 4 KB segments by default; this passes -Wl,-z,max-page-size=16384 (Android 15+ devices with 16 KB pages)
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                abiFilters 'arm64-v8a'
+            }
+        }
+    }
+    // The release key lives outside the repository (build.sh release mounts it and passes DW3_KEYSTORE + DW3_KEYSTORE_PASS)
+    def releaseKeystore = System.getenv('DW3_KEYSTORE')
+    if (releaseKeystore) {
+        signingConfigs {
+            release {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv('DW3_KEYSTORE_PASS')
+                keyAlias 'dw3port'
+                keyPassword System.getenv('DW3_KEYSTORE_PASS')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            // Not minified on purpose: the Java is ~100 KB of SDL glue that the native code calls by name through JNI
+            // (and DW3Activity's hooks), and shrinking cannot be tested without a device. Native code is stripped by AGP.
+            minifyEnabled false
+            if (releaseKeystore) signingConfig signingConfigs.release
+        }
+    }
+    sourceSets.main {
+        java.srcDir project.property('dw3.sdlJava')
+        // the es-419 overlay (localization/): build.sh stages it here with its index.txt, never committed twice
+        assets.srcDir project.property('dw3.l10nAssets')
+    }
+    externalNativeBuild {
+        cmake {
+            path 'jni/CMakeLists.txt'
+        }
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

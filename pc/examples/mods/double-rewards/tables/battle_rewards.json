@@ -1,0 +1,6 @@
+{
+  "format": "battle_rewards-v1",
+  "rows": {
+    "*": { "exp": "*2", "money": "*2" }
+  }
+}

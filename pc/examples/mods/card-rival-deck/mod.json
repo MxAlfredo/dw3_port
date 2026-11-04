@@ -1,0 +1,7 @@
+{
+  "format": "mod-v1",
+  "name": "Card rival deck",
+  "version": "1.0.0",
+  "author": "DW3 port",
+  "description": "Every card rival gets ten copies of one card in the first 10 of its 40 deck places (it draws in order, so it opens with them) and shows level 99 (table card_opponents)."
+}
