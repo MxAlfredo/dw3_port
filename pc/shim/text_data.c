@@ -47,6 +47,15 @@ const char *tdLangDir(int lang) { return (lang >= 0 && lang < TD_LANGS) ? LANG_D
 const char *tdDiscDir(int lang) { return (lang >= 0 && lang < TD_LANGS) ? DISC_DIRS[lang] : NULL; }
 const char *tdFileBase(int k) { return (k >= 0 && k < TD_FILES) ? BASES[k] : NULL; }
 
+int tdFileFromBase(const char *base)
+{
+    int k;
+    for (k = 0; base && k < TD_FILES; k++) {
+        if (!strcmp(base, BASES[k])) return k;
+    }
+    return -1;
+}
+
 int tdFileName(int lang, int k, char *buf, size_t cap)
 {
     int n;
@@ -1326,14 +1335,69 @@ done:
 }
 
 typedef struct StageTextCtx {
-    int k;
+    int k, lang;
     const char *langDir;
+    const uint8_t *cur; /* the file being extended, as built so far (its own speaker labels) */
+    size_t curLen;
 } StageTextCtx;
+
+/* The speaker label entry `entry` of file `k2` has in the language of `c` ("{speaker-of:...}", tcSpeakerRef): from the file as the game gets it (mods and
+   the es-419 overlay included), or from the one being built for the stage's own file; malloc'ed, NULL when there is none */
+static char *speakerLabelOf(const StageTextCtx *c, int k2, int entry)
+{
+    const uint8_t *bytes;
+    uint8_t *disc = NULL;
+    size_t len = 0, dl = 0;
+    TcDoc doc;
+    char err[100], *label = NULL;
+
+    if (k2 == c->k) {
+        bytes = c->cur;
+        len = c->curLen;
+    } else {
+        int index = tdIndexOf(c->lang == TD_ES419 ? TD_SPA : c->lang, k2);
+        bytes = index < 0 ? NULL : tdOverride(index, &len, 0);
+        if (!bytes) {
+            if (index < 0 || discLoad(index, &disc, &dl)) return NULL;
+            bytes = disc;
+            len = dl;
+        }
+    }
+    if (bytes && tcDocParse(bytes, len, &doc, err, sizeof err) == 0) {
+        if (!doc.isPack) label = tcSpeakerLabel(&doc.lang, entry);
+        tcDocFree(&doc);
+    }
+    free(disc);
+    return label;
+}
 
 static const char *stageTextAt(void *ud, int i)
 {
     const StageTextCtx *c = (const StageTextCtx *)ud;
-    return gStageTextText(c->k, i, c->langDir);
+    const char *t = gStageTextText(c->k, i, c->langDir);
+    static char *joined;
+    char base[16], *label;
+    const char *rest;
+    int entry, bad, k2;
+    size_t n;
+
+    if (!t || !tcSpeakerRef(t, base, sizeof base, &entry, &rest, &bad)) return t;
+    k2 = tdFileFromBase(base);
+    label = k2 < 0 ? NULL : speakerLabelOf(c, k2, entry);
+    if (!label) {
+        fprintf(stderr, "text: {speaker-of:%s:%d} (%s): the game's file has no speaker label there; the line has no header\n", base, entry, c->langDir);
+        return rest;
+    }
+    n = strlen(label) + strlen(rest) + 16;
+    free(joined);
+    joined = (char *)malloc(n);
+    if (!joined) {
+        free(label);
+        return rest;
+    }
+    snprintf(joined, n, "{0207}%s{0207}%s", label, rest);
+    free(label);
+    return joined;
 }
 
 /* The appended entries of a stage's talk file (the hook above); `s` holds the file built so far, or nothing (the disc's file). A language
@@ -1352,7 +1416,10 @@ static void extendStageText(Slot *s, int index, int lang, int k)
     if (first < 0) return;
     if (!s->bytes && discLoad(index, &disc, &dl)) return;
     ctx.k = k;
+    ctx.lang = lang;
     ctx.langDir = tdLangDir(lang);
+    ctx.cur = s->bytes ? s->bytes : disc;
+    ctx.curLen = s->bytes ? s->len : dl;
     if (tdAppendTexts(s->bytes ? s->bytes : disc, s->bytes ? s->len : dl, base, first, n, stageTextAt, &ctx, &out, &ol, err, sizeof err)) {
         fprintf(stderr, "text: %s (%s): the named stage texts are not added: %s\n", base, ctx.langDir, err);
         free(disc);

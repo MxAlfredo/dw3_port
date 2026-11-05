@@ -1,0 +1,33 @@
+{
+  "format": "stage-text-v1",
+  "about": "The lines of the Training Field's characters (named texts, docs/stages.md section 8). English is required.",
+  "texts": {
+    "banner-area": "Training Field",
+    "banner-lower": "Lower Floor",
+    "banner-upper": "Upper Floor",
+    "card-again": "Good game, Tamer! Do you want a rematch?",
+    "card-lost": "You beat me! Come back for a rematch whenever you like.",
+    "card-offer": "A card game, Tamer? I will not go easy on you!",
+    "card-rematch-go": "Here we go, then! Cards on the table!",
+    "card-rematch-no": "All right. I will be here whenever you feel like it.",
+    "card-won": "Ha! I won this time. Try again whenever you like.",
+    "duel-after": "You are the champion now. Fancy a rematch against my three Digimon?",
+    "duel-fled": "Running away from the ring? Come back when you are ready to fight.",
+    "duel-offer": "I am the champion of this ring. My three Digimon against yours, and no running away. Ready?",
+    "duel-rematch-fled": "Leaving in the middle of the fight? The ring will wait for you.",
+    "duel-rematch-go": "That is the spirit! Here we go!",
+    "duel-rematch-no": "No problem. Come back whenever you want to fight again.",
+    "duel-rematch-won": "You did it again! The ring is still yours, champion.",
+    "duel-reward": "You beat all three of my Digimon! What a fight! Here is the prize money. The ring is yours, champion.",
+    "locked": "Looking for a good place to train? Not yet, Tamer. Beat the Seiryu Leader first, then come back and I will take you there.",
+    "navi-hill": "{speaker-of:TALK04:19}This is the Hilltop. Mind the trees up here: one of them hides a Digimon. Kick them to find out!",
+    "navi-lake": "{speaker-of:TALK04:19}This is Lake Meadow. You can fish from the pier and from the shores. Bring a Fishing Pole!",
+    "navi-ring": "{speaker-of:TALK04:19}This is the Training Ring. Tamers who want a card game or a duel can ask the ones standing around.",
+    "offer": "So you beat the Seiryu Leader! Then you are ready for the Training Field. Hold on tight, here we go!",
+    "ranger-complete": "You read every sign and beat the card player! Here is your reward, Tamer. The field is yours to train in!",
+    "ranger-done": "Thanks again, Tamer. Keep training, and watch out for the tall grass!",
+    "ranger-offer": "Welcome, Tamer! I am the ranger here. Read the signs at the lake, on the hill and upstairs, and beat the card player up there. Then report back to me.",
+    "ranger-offer-tools": "Welcome, Tamer! I am the ranger here. Read the signs at the lake, on the hill and upstairs, and beat the card player up there. Report back to me. Take these tools, on the house!",
+    "ranger-progress": "How is the survey going? Read the signs at the lake, on the hill and upstairs, and beat the card player up there."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "format": "stage-text-v1",
+  "about": "Las líneas de los personajes del Campo de Entrenamiento (es-419, texto propio de este mod).",
+  "texts": {
+    "banner-area": "Campo de Entrenamiento",
+    "banner-lower": "Planta Baja",
+    "banner-upper": "Planta Alta",
+    "card-again": "¡Buena partida, Tamer! ¿Quieres la revancha?",
+    "card-lost": "¡Me venciste! Vuelve a buscar la revancha cuando quieras.",
+    "card-offer": "¿Un juego de cartas, Tamer? ¡No me voy a contener!",
+    "card-rematch-go": "¡Allá vamos, entonces! ¡Cartas sobre la mesa!",
+    "card-rematch-no": "Está bien. Aquí estaré cuando quieras.",
+    "card-won": "¡Ja! Esta vez gané yo. Inténtalo otra vez cuando quieras.",
+    "duel-after": "Ahora el campeón eres tú. ¿Quieres una revancha contra mis tres Digimon?",
+    "duel-fled": "¿Huyendo del anillo? Vuelve cuando estés listo para pelear.",
+    "duel-offer": "Soy el campeón de este anillo. Mis tres Digimon contra los tuyos, y nadie huye. ¿Listo?",
+    "duel-rematch-fled": "¿Te vas a media pelea? El anillo te esperará.",
+    "duel-rematch-go": "¡Ese es el espíritu! ¡Allá vamos!",
+    "duel-rematch-no": "Sin problema. Vuelve cuando quieras pelear otra vez.",
+    "duel-rematch-won": "¡Lo hiciste otra vez! El anillo sigue siendo tuyo, campeón.",
+    "duel-reward": "¡Venciste a mis tres Digimon! ¡Qué pelea! Aquí tienes el dinero del premio. El anillo es tuyo, campeón.",
+    "locked": "¿Buscas un buen lugar para entrenar? Todavía no, Tamer. Primero vence al Líder Seiryu y luego vuelve; yo te llevaré.",
+    "navi-hill": "{speaker-of:TALK04:19}Esta es la Cima de la Colina. Cuidado con los árboles de aquí: uno esconde un Digimon. ¡Patéalos para averiguarlo!",
+    "navi-lake": "{speaker-of:TALK04:19}Esta es la Pradera del Lago. Puedes pescar desde el muelle y desde las orillas. ¡Trae una Caña de pescar!",
+    "navi-ring": "{speaker-of:TALK04:19}Este es el Anillo de Entrenamiento. Los Tamers que quieran un juego de cartas o un duelo pueden pedírselo a los que están por aquí.",
+    "offer": "¡Venciste al Líder Seiryu! Entonces ya estás listo para el Campo de Entrenamiento. ¡Sujétate fuerte, allá vamos!",
+    "ranger-complete": "¡Leíste todos los letreros y venciste al jugador de cartas! Aquí tienes tu recompensa, Tamer. ¡El campo es tuyo para entrenar!",
+    "ranger-done": "Gracias otra vez, Tamer. Sigue entrenando y cuidado con el pasto alto.",
+    "ranger-offer": "¡Bienvenido, Tamer! Soy el guardabosques de aquí. Lee los letreros del lago, de la colina y del piso de arriba, y vence al jugador de cartas de allá. Luego vuelve conmigo.",
+    "ranger-offer-tools": "¡Bienvenido, Tamer! Soy el guardabosques de aquí. Lee los letreros del lago, de la colina y del piso de arriba, y vence al jugador de cartas de allá. Luego vuelve conmigo. ¡Toma estas herramientas, van por la casa!",
+    "ranger-progress": "¿Cómo va el recorrido? Lee los letreros del lago, de la colina y del piso de arriba, y vence al jugador de cartas de allá."
+  }
+}

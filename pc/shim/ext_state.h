@@ -235,6 +235,16 @@ void pcExtStateSetCardCount(int count);
 /* the original starter deck (40 ids): the card a removed mod's card becomes in a loaded deck; NULL: card 1 */
 void pcExtStateSetCardFallback(const int *deck);
 
+/*
+ * Field battle results (the `start-battle` action). The game keeps no record of how an event battle went: a won one goes through the battle report back to
+ * the field, a fled one straight back, a lost one to the title screen. The port stores, per encounter, once the player is back on the field:
+ *   dw3:battle-played/<key>   1 once the battle started by `start-battle` was fought (won or fled)
+ *   dw3:battle-won/<key>      1 once it was won (a later flight does not clear it)
+ * <key> is the mod's encounter name with ":" turned into "/" ("training-field/duel-trio") or the row of field_encounters in lower-case hex. Random area
+ * battles record nothing. pcFieldBattleBegin is called when the battle starts and pcFieldBattleEnd(won) when the field comes back from it.
+ */
+void pcFieldBattleBegin(const char *key);
+void pcFieldBattleEnd(int won);
 /* the chunk's size (0: nothing to record), written only when `cap` is enough; `game` is the saved GameState block */
 unsigned long pcExtStateEncodeCards(const unsigned char *game, unsigned long gameLen, unsigned char *out, unsigned long cap);
 /* replaces the store by the chunk's content (NULL/empty: none); cards whose mod is gone are dropped with a [saves] line. Returns the
@@ -266,6 +276,19 @@ int pcExtVarSet(const char *name, int value);
 int pcExtVarCount(void);
 const char *pcExtVarNameAt(int i);
 void pcExtVarsReset(void);
+
+/*
+ * Card battle results (new-stages fix 2026-11-04). The game's own record of a card battle is two TEMPORARY flags, 00:11 (one just ended) and 00:10 (the
+ * player won it), that it clears when the next field stage starts (events.c updateModeFlags, GameState.clearTempFlags), so a talk has to read them before
+ * the player leaves the stage. The port also keeps one named variable pair per opponent, set the moment the battle ends and kept in the save (EXTV):
+ *   dw3:card-played/<opponent>   1 once the player has fought that opponent
+ *   dw3:card-won/<opponent>      1 once the player has won it (a later loss does not clear it)
+ * <opponent> is the opponent of the `card-battle` action in lower-case hex without leading zeros ("13" for "13:0"). A mod reads them with `mod-flag`.
+ * pcCardBattleBegin is called when a field action starts the battle (the opponent is not known afterwards: the mode has changed) and pcCardBattleEnd when
+ * the field comes back from the card game, with whether the player won. An end without a begin (a harness that opens the card mode directly) records nothing.
+ */
+void pcCardBattleBegin(int opponent);
+void pcCardBattleEnd(int won);
 /* the chunk's size (0: nothing to record), written only when `cap` is enough */
 unsigned long pcExtStateEncodeVars(unsigned char *out, unsigned long cap);
 /* replaces the store by the chunk's content (NULL/empty: none), unknown names included. Returns the number of entries kept, or -1 for

@@ -10,21 +10,21 @@ stages, models). *[Leer en español](LEEME.md)*
 > En/Fr/De/Es/It one, as `.cue` + `.bin` or a single `.bin`; the port reads everything from it on
 > your machine. It is a fan project, not affiliated with or endorsed by Bandai Namco or Sony.
 
-**Players:** [download version 1.0.0](https://github.com/MxAlfredo/dw3_port/releases/latest), install it, and point it at your own disc.
+**Players:** [download version 1.1.0](https://github.com/MxAlfredo/dw3_port/releases/latest), install it, and point it at your own disc.
 **Modders:** start with the [modding guide](docs/modding/README.en.md): a first mod in 5 minutes, where mods go on
 each system (including Android), the tools and the file formats. Bugs and ideas: [issues](https://github.com/MxAlfredo/dw3_port/issues).
 
 ## Download
 
-Get version **1.0.0** from **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (each file is listed in
+Get version **1.1.0** from **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (each file is listed in
 `SHA256SUMS`; older versions are on the same page):
 
 | System | File |
 |---|---|
-| Windows (recommended) | `DW3Port-1.0.0-Setup.exe`: installer; it asks for your disc and, optionally, an emulator memory card |
-| Windows, portable | `DW3Port-1.0.0-windows-portable.zip`: unzip anywhere, put your disc in `game/`, run `DW3.exe` |
-| Linux (x86_64, glibc 2.34+, i.e. 2022 or newer) | `DW3Port-1.0.0-x86_64.AppImage`: make it executable and open it |
-| Android 10+ (arm64) | `DW3Port-1.0.0-android.apk`: copy it to the device, open it and allow installing from this source; the app asks for your disc through the system file picker |
+| Windows (recommended) | `DW3Port-1.1.0-Setup.exe`: installer; it asks for your disc and, optionally, an emulator memory card |
+| Windows, portable | `DW3Port-1.1.0-windows-portable.zip`: unzip anywhere, put your disc in `game/`, run `DW3.exe` |
+| Linux (x86_64, glibc 2.34+, i.e. 2022 or newer) | `DW3Port-1.1.0-x86_64.AppImage`: make it executable and open it |
+| Android 10+ (arm64) | `DW3Port-1.1.0-android.apk`: copy it to the device, open it and allow installing from this source; the app asks for your disc through the system file picker |
 
 Each download has a `README.txt` / `LEEME.txt` with the controls, where your saves are and what to
 do if something goes wrong.
@@ -39,7 +39,7 @@ do if something goes wrong.
 
 ## Status
 
-Version 1.0.0 is the first stable release. Bugs are welcome as issues: see [CONTRIBUTING.md](CONTRIBUTING.md) for what to include.
+Version 1.1.0 adds new stages from mods (see the release notes). Bugs are welcome as issues: see [CONTRIBUTING.md](CONTRIBUTING.md) for what to include.
 
 ## Modding
 
@@ -109,7 +109,7 @@ Releases are built on a Linux machine with MinGW-w64, NSIS (`makensis`), Docker 
 above, from a clean checkout after `scripts/fetch_deps.sh`:
 
 ```sh
-pc/make_release.sh <version>      # e.g. 1.0.0
+pc/make_release.sh <version>      # e.g. 1.1.0
 ```
 
 It writes `pc/build-release/<version>/`: the Windows installer and portable zip, the Linux AppImage

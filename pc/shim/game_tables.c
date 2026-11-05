@@ -623,6 +623,15 @@ static long long enemyByName(const char *name) {
     return enemyIdOk(id) ? id : -1;
 }
 
+/* the same two for the new encounters of the mods (shim/field_ext.c): a name or a number an encounter may field; negative / 0: not an enemy */
+int gameEnemyByName(const char *name) {
+    return (int)enemyByName(name);
+}
+
+int gameEnemyIdOk(int id) {
+    return enemyIdOk(id);
+}
+
 static void fighterLabel(int id, char *buf, size_t cap) {
     const char *n = id > 0 && sFighterName != NULL ? sFighterName(id) : NULL;
 
@@ -765,6 +774,11 @@ static void fieldEncounterLabel(int row, char *buf, size_t cap) {
     }
 }
 
+/* a key with a colon is a new encounter of the mods' ("<mod>:<name>", shim/field_ext.c), which that module reads from the same file */
+static int fieldEncounterOwnKey(const char *key) {
+    return strchr(key, ':') != NULL;
+}
+
 static TmTable sFieldEncounterTable = {
     "field_encounters", NULL, sizeof(FieldEncRow), GT_FIELD_ENCOUNTERS, 0,
     "The index of FIELDSTG_encounters (0-334; 0 is the empty encounter and cannot change): the \"encounter\" of the battles in a stage's battle lists "
@@ -772,7 +786,7 @@ static TmTable sFieldEncounterTable = {
     "Set on every entry to the field (after the field's data is restored); a change shows in the next battle that uses the encounter. "
     "The \"encounters\" placements of digimon.json go on after this table, over the patched slots.",
     kFieldEncounterFields, (int)(sizeof(kFieldEncounterFields) / sizeof(kFieldEncounterFields[0])), 0, 0, TM_S32, NULL, NULL, NULL, NULL,
-    fieldEncounterCheck, fieldEncounterLabel};
+    fieldEncounterCheck, fieldEncounterLabel, fieldEncounterOwnKey};
 
 const TmTable *gameTableFieldEncounters(void) {
     int i, k;

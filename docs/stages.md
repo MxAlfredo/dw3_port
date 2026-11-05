@@ -245,6 +245,7 @@ Una charla de un parche dice su línea por nombre en vez de por número: `{"text
   con el progreso de esa visita, así que las entradas no cambian de una visita a otra. La capa de texto (`pc/shim/text_data.c`, `tdSetStageTextHook`) agrega esas entradas a la copia de cada idioma del archivo (con o sin el texto de un mod),
   rellena con entradas vacías un idioma que tenga menos entradas que el inglés y deja intacto uno que tenga más (con una línea en el log), y las ajusta a la caja de charla con el mismo reacomodo que el texto de un mod
   (`localization/layout.json`, regla `TALK*`: la entrada nueva cuenta como escrita por un mod y usa el ancho de la caja de charla).
+- **Cabecera de hablante del juego.** La etiqueta del hablante (`{hablante}...{hablante}`) es parte de cada línea del juego, no una tabla por personaje (`createTalkBox`, `src/engine/text/talk_box.c`; los letreros dicen `SIGN`/`LETRERO`/`SEÑAL` dentro de su propia entrada de `TALK04`, entrada 19, `wstag331.c:583`). Un texto de mod puede empezar con `{speaker-of:<ARCHIVO>:<entrada>}` (`ARCHIVO` es un nombre de `tdFileBase`, p. ej. `TALK04`): el puerto pone en su lugar la etiqueta que esa entrada tiene en el disco del jugador, en el idioma que se juega (`tcSpeakerRef`/`tcSpeakerLabel`, `stageTextAt` en `text_data.c`), así que el mod no copia ningún texto del juego. Un archivo desconocido o una forma mala rechaza el `stages.json` de ese idioma; si la entrada no tiene etiqueta, la línea sale sin cabecera (aviso en stderr). Los letreros de `training-field` usan `{speaker-of:TALK04:19}`.
 - Un escenario cuyo archivo de texto el puerto no puede extender (sin archivo de texto, o un paquete) deja la charla en la entrada 0 con una línea en el log. Dos escenarios que comparten un archivo de texto comparten sus entradas
   agregadas: el segundo en empezar puede agregar entradas nuevas (la copia servida se vuelve a armar; si el juego ya tenía el archivo en memoria, se ve en la siguiente carga).
 - El texto de un evento con guion: los eventos del juego leen un bloque de líneas propio (`text` = archivo y entrada, y el guion numera líneas dentro de ese bloque); un evento que agrega un mod nombra sus textos en los `talk` de su guion (§10) y esos nombres son entradas del archivo de texto del propio escenario.
@@ -282,7 +283,7 @@ Con S8 y S10 hay dos más (§10): `["start-battle", encuentro, escenario_de_luch
 `FIELDSTG_closeField` fallaba en `field.c:283` (causa vista con gdb).
 
 Prueba: `make -C pc stagemodtest` (compilar y descompilar cada acción, rechazos con motivo, la tabla de operaciones y su tope, el ejecutor que recibe los números). En el disco real, con `DW3_LOG=trace` y la prueba de arnés
-`DW3_STAGE_APPLY="<personaje>[:<rondas>]"` (aplica las acciones de la charla que el intérprete elige para ese personaje de la lista final, `rondas` veces, y registra dinero y progreso).
+`DW3_STAGE_APPLY="<personaje>[:<rondas>]"` (aplica las acciones de la charla que el intérprete elige para ese personaje de la lista final, `rondas` veces, y registra dinero y progreso). `DW3_SEED_ITEMS="id=cantidad,..."` también se aplica al arranque de un escenario con parche de personajes (T6), para que una charla que pide un objeto (la Medalla de Seiryu, `9=1`) lo encuentre.
 
 ## 10. Salidas, eventos con guion y batallas de área (S8, S10)
 
@@ -314,8 +315,8 @@ válido se rechaza entero. Los datos se escriben a buffers del puerto después d
   Más de dos condiciones se rechazan.
 - **`add`** (con `key`): un slot nuevo, después de los del escenario. Ninguna celda del mapa apunta a él, así que **lleva `area`**: un rectángulo del mapa en píxeles `{x, y, w, h}` (los mismos píxeles que los personajes) y,
   si quiere, `facing` (0-7, hacia dónde hay que mirar; sin él se dispara estando dentro, mirando a donde sea). `type` es obligatorio, salvo que se dé `stage` (implica `exit`) o `event` (implica `event`).
-  El campo busca antes en las áreas (la última que se agregó gana) y después en las celdas del mapa (`FIELDSTG_findTrigger`, `#ifdef DW3_PC`). Sin tope de 32 ni de celdas. Un `climb`, `drop` o `gauge` agregado necesita
-  que el archivo de su animación se haya pedido: solo lo pide el campo al cargar si algún slot original lo es.
+  El campo busca antes en las áreas (la última que se agregó gana) y después en las celdas del mapa (`FIELDSTG_findTrigger`, `#ifdef DW3_PC`). Sin tope de 32 ni de celdas. Un `climb`, `drop` o `gauge` agregado también
+  pide el archivo de su animación: el campo (`FIELDSTG_requestSlotFiles`, `pc/field/file_loader.c`, la copia que compila el port) lee `FieldState.slots` después del gancho de parches, así que ve los slots agregados (probado con la pesca de §14). Un `gauge` agregado sin `conditions` lleva la Caña de pescar (`dw3:item/5`).
 - **`remove`**: un índice o una clave. El slot se queda en su lugar con el tipo del puerto `SLOT_OFF` (15) y sin condiciones: el mapa nombra los slots por índice y quitarlo de la tabla correría a los demás. El campo lo
   salta.
 - **Lo que el modelo agrega**: `SdSlot.hasArea/ax/ay/aw/ah/facing` (solo del puerto; el exportador de lo del juego no los escribe, así que la referencia no cambia).
@@ -368,7 +369,7 @@ con un espacio de VRAM propio del puerto para cada personaje nuevo.
   escenario 380). El tamaño del espacio sale del mayor cuadro que usa en su archivo (`sprMaxFrame`); si no se puede medir, 64x64 y una línea de log. Un id sin sprite se rechaza con motivo al cargar el parche.
 - **`sprite: "<nombre>"`.** Un personaje que el mod trae: la carpeta `mods/<mod>/sprites/<nombre>/` con un `sprite.json` (`sprite-v1`, el mismo de `images/field/sprt/<nombre>/` que escribe el exportador: cuadros,
   animaciones y conjuntos) y un PNG por cuadro (indexado de hasta 16 colores, el índice 0 transparente por `tRNS`, hasta 256x224 px). `"<mod>:<nombre>"` nombra el de otro mod. El miembro opcional `actor_width`
-  (8 a 256 px) es el ancho para las colisiones del campo (por defecto, el cuadro más ancho). `character` y `sprite` juntos se rechazan; un `character` de 16384 o más también (esos son los sprites de mods).
+  (8 a 256 px) es el ancho para las colisiones del campo y para la caja donde se le habla (por defecto, el cuadro más ancho; la caja es la mitad de ancha y un cuarto de alta, `FIELDSTG_findActorAt`; los letreros del juego son actores de 32 px, `FIELDSTG_actorWidths[63]`, y con menos de 32 solo se leen bien de los lados). `character` y `sprite` juntos se rechazan; un `character` de 16384 o más también (esos son los sprites de mods).
   Los sprites se arman al cargar (`spritesLoad`) en un **banco** que es un solo archivo virtual del puerto (un espacio del caché de 64 archivos, sin importar cuántos sprites), con el mismo formato de los
   archivos de sprites del juego, así que `FIELDSTG_animateActor` los reproduce sin cambios. Cada uno recibe el id `16384 + k` (carpetas en orden de nombre por mod); `FIELDSTG_state.getFileEntry` y
   `getActorWidth` se envuelven para que esos ids apunten al banco. Se puede generar uno de partida con `pc/examples/tools/gen_art.py` (el ejemplo `stage-npc`: `rival`, una copia verde del sprite del jugador
@@ -387,3 +388,266 @@ con un espacio de VRAM propio del puerto para cada personaje nuevo.
 
 Prueba: `make -C pc imagetest` (la banda: capacidad, estantes sin cruce, paletas, tamaños límite; el banco de sprites y sus rechazos) y `make -C pc stagemodtest` (`character` sin `image`, `sprite`, rechazos con motivo,
 numeración de espacios). Ejemplo: `pc/examples/mods/stage-npc` (`visitor`, character 75, y `rival`, `sprite`).
+
+## 12. Escenarios nuevos desde mods: el registro (T4, ADR-012)
+
+`pc/shim/mod_stages.[ch]` guarda los escenarios que agregan los mods. Se nombran `<mod>:<nombre>` (llave), y esa llave es lo único que se guarda o se escribe.
+
+- **Modo de sesión.** `msSeal` da modos desde `0x300` en el orden alfabético de la llave (no importa el orden de carga); hasta 256 (`0x300-0x3FF`). El juego ya trata `0x3xx` como campo: `MODE_ENTRY_POINTS[3]` es
+  `FIELDSTG_start` (`overlay.c:5`) y `startField` agrupa `0x2xx`/`0x3xx` (`field.c:528`). El número de escenario de un mod para ranuras y `warp` es `0xF000 + índice`.
+- **Orden de uso.** `msRegister` (todos los mods) → `msSeal` → `msSetFiles` por escenario en orden de modo → el anfitrión responde por `msByMode`. El cargador JSON (T5) llena `MsStage` (los campos de `FieldState` que fija un
+  `setupStage`, más los números de archivo virtual).
+- **`FIELDSTG_pickStage`.** `#ifdef DW3_PC` llama a `pcModStagePick` (`pc/boot.c`): un modo registrado usa `stageFile = 0` y el inicio genérico `pcModStageStart` (hace lo de `start_stage.inc.c` con los datos del registro);
+  un modo de ese rango sin escenario corre el escenario de respaldo (Parque Central, `0x21D`) con una línea de log, en vez del `while (1)`.
+- **Bandera de visita.** `pcFieldMarkVisited`: un modo de mod fija la variable `<mod>:visited.<nombre>` (EXTV); nunca un bit de `flags20`.
+- **Archivos.** El TMPK (entrada 0 la hoja de objetos, 1 piso, 2 disparadores, 3 áreas) y el PACK son archivos virtuales (`pfsAddVirtualFile`). Verificado en el código: el `MapStreamer` y los streams leen con
+  `CD_READER.read` y `FILE_CACHE` con el mismo lector, `cdRead` (`host_cd.c:113`), que sirve los virtuales por sectores.
+- **Nombres en salidas.** `"stage": "<mod>:<nombre>"` en las ranuras y `["warp", "<mod>:<nombre>", x, y, dir]`; el registro tiene que estar sellado antes de `smLoad`.
+- **Guardado (`EXTS`).** Nunca se guarda un modo de sesión. `msEncodeSaved` reemplaza `fieldMode`, `fieldPos` y `fieldDir` del bloque por el respaldo (y arregla el checksum) y escribe la llave con la posición real;
+  `msRestoreSaved` lo repone si el escenario existe, y si no deja el respaldo con una línea `[saves]`. `host_memcard.c` lo cablea: `commitSlot` llama a `msEncodeSaved` antes de `writeSlotFile` (sección `EXTS`
+  del archivo `.dw3save`) y la primera lectura de cada ranura (`stageDone`) llama a `msRestoreSaved`. Prueba: `make -C pc memcardtest` (guardar, recargar con el mod, recargar sin el mod).
+- **Qué mira `mode >> 8 == 2`.** `PC_IS_FIELD_MODE` (`field_mode.h`) acepta `2` y `3`; `stage_timing.c` ya lo usa. `host_pad.c` no puede incluir `field_mode.h` (redefine `Encounter`, ver su espejo) y usa
+  `MS_IS_FIELD_MODE` (`mod_stages.h`), igual; los 7 sitios de `host_pad.c` (`host_pad.c:381`, `1793`, `1975`, `2022`, `2111`, `2154`, `2323`) y `optLangLive` (`options_language.c:153`) significan "es un modo de campo"
+  (lo dicen sus comentarios y lo que hacen: el actor del jugador, el diálogo, el cambio de idioma en vivo del campo).
+- **Lo que indexa por modo.** `pcModeAsOriginal(mode)` (`pc/boot.c`, declarada en `game_state.h` tras `#ifdef DW3_PC`) da el modo del escenario de respaldo para un modo `0x3xx` (el del registro o `0x21D`) y deja igual
+  los demás. La usan `getFieldZone` (`field_menu.c:124`; su único lector, `field_menu.c:159`, solo mira el signo: sin esto un `0x3xx >= 0x2D7` daba -1 y la opción 2 salía gris) y
+  `FIELDSTG_createActorIcon` (`actor_icon.c:94`: el icono del jugador se crea solo antes de `MODE_NEW_GAME`). `STSTATUS_areaFuncs` (`helpers.c:410`, leído en `menu.c:109` y `map_screen.c:290-328`) se envuelve desde
+  `pcInstallModStageStatus` (`pc/boot.c`): `getGameHalf`, `getArea` y `getVisitedAreas` ven el modo de respaldo durante la llamada y restauran `GAME.fieldMode` (sin editar `helpers.c`).
+- **El cuelgue de `mode:3FF` (resuelto).** El port no compila `src/field/field_mode/state.c`: `pc/Makefile` lo reemplaza por `pc/field/state.c` (copia con el borrado de `FieldState` por nombre), y esa copia no tenía el
+  gancho de `pcModStagePick`; un `0x3FF` caía en el `while (1) {}` de `FIELDSTG_pickStage` (sin `SIGTERM`: bucle ocupado). Ahora la copia lleva el mismo gancho.
+- **Arnés.** `mode:3xx` fija `GAME.progress = 4` y siembra el grupo (como `mode:1000`), para que START abra el menú del campo. El token nuevo `reach:<hex>` termina la corrida la primera vez que el juego está en ese modo
+  (y, en un campo, con el actor del jugador): `mode:3FF,reach:21D` entra por el respaldo y termina por estado; `mode:3FF,reach:1000,battle@300:start,90,cross` abre el menú del campo y la pantalla `STSTATUS` desde un modo de mod.
+  Un escenario registrado de verdad se entra desde T5 (§13): `mode:300` (y siguientes, en el orden alfabético de las llaves) pone al jugador en el `start` del escenario.
+
+Prueba: `make -C pc modstagetest memcardtest` (sin disco).
+
+## 13. Escenarios nuevos desde mods: el cargador (T5, ADR-012)
+
+`pc/shim/stage_new.[ch]` arma un escenario desde `mods/<mod>/new-stages/<nombre>/` al iniciar (los mods se leen una vez). El escenario es `<mod>:<nombre>` (la carpeta; llave de 1 a 48 caracteres `a-z 0-9 - _`).
+Esquema: `docs/modding/schema/stage-new.schema.json`. Guía corta: `docs/modding/README.md` §6.11b. Prueba: `make -C pc newstagetest`.
+
+### Archivos
+
+| Archivo | Obligatorio | Qué es |
+| --- | --- | --- |
+| `stage.json` | sí | `stage-new-v1`: cabecera y secciones |
+| `background.png` | sí | PNG indexado (color tipo 3, hasta 256 colores, sin entrelazado; el lector es `png_read.c`), ancho y alto múltiplos de 128, a lo más 255 mosaicos y 255 por lado |
+| `floor.png` | sí | colisión; del mismo tamaño que el fondo |
+| `triggers.png`, `areas.png` | no | del mismo tamaño; sin ellos, todo 0 |
+
+**Las capas son de un píxel por píxel del mapa**, no por celda de 8 px (corrige la frase de ADR-012 §5.2): `FIELDSTG_getMapCell` baja hasta `pixels[i * 64 + (y & 7) * 8 + (x & 7)]` (`map.c:93-96`) y se consulta con `actor->tile`,
+que es `pos >> 8` en píxeles (`actor.c:63-64`, `177-178`; `trigger.c:21`; `battle.c:26`, `45`). El valor de la capa es el **índice** del píxel del PNG (la paleta no cuenta). Una capa de `W x H` px lleva `W * H` bytes
+que `mlEncode` deduplica (sin tope práctico para un mapa de pocos mosaicos; si el arte tiene más de 256 bloques distintos de 128 o 64 px, el escenario se rechaza con el motivo del códec).
+
+- **Piso:** 0 cerrado, 1 plano, 2-7 pendientes, 16-23 pendientes espejadas (`formats.md` §4.3). Cualquier otro valor se rechaza (no se sabe qué hace el juego con él). Que el `start` caiga en 0 se avisa en el log (el jugador quedaría dentro de un muro), no se rechaza: *hipótesis* de que 0 bloquea al que camina, solo leída en `checkFlightProbe`.
+- **Disparadores:** `dirección << 5 | ranura` (`trigger.c:22-23`); la ranura es el lugar de la salida en `slots.add`, empezando en 0 (con dirección 1 a 7: el valor 0 es "nada"); un valor con una ranura que `slots.add` no tiene se rechaza.
+- **Áreas:** `n` es el `n`-ésimo `battles.add` (de 1); un `n` mayor que las áreas que el escenario define se rechaza, porque `battle.c:48` lee `battles[n - 1]->count` sin comprobar.
+
+### Fondo (PACK)
+
+`background.png` se corta en mosaicos de 128 x 128 (en orden de fila, `frame = columna + fila * ancho`). Cada uno es una imagen de 8 bits con un solo sprite que la muestra entera en el origen del mosaico (`mpTileSimple`, el caso más común del
+disco), empaquetado con RLEN, y `mpPackBuild` arma el PACK; cada mosaico mide 17 KB sin comprimir, dentro del tope de 63 488 bytes (`map_pack.h`). La CLUT son los 256 colores de la paleta en 1555 de la PS1 (5 bits por canal) **con el bit 15
+puesto** (opaco, así el negro `0,0,0` no es el transparente `0x0000`) y la entrada con `tRNS` en 0 pasa a `0x0000`. *Hipótesis:* el bit 15 es la convención de la PS1, y los mosaicos del disco no se miraron entrada por entrada; en la prueba sin ventana los
+colores salen como en el PNG.
+
+### Cabecera (`stage.json`)
+
+`format`; `start` `{x, y, dir}` (obligatorio, píxeles dentro del mapa); `fallback` `{stage, x, y, dir}` (escenario del juego y dónde aparece el jugador si el mod falta; por defecto Parque Central, `mod_stages.h`); `textFile` (el número que un
+`setupStage` suma a `LANGUAGE`, p. ej. 211 el del 330 en EU; sin él los textos con nombre no se pueden usar); `soundBank` (0-255, `SOUND.loadBank`); `music` `{bank, track}` (= `MUSIC(bank, track)`, `sound.h:70`); `spriteColor` `[r, g, b, cd]`; `banner` `{area, place}` (opcional: los nombres `<mod>:<texto>` de las dos líneas del letrero del lugar, §13b); y las
+secciones `actors`, `slots`, `events`, `battles` **solo con `add`**, leídas por el mismo analizador del parche de escenario (`parsePatch` en `stage_mods.c`, con `SmFile.isNew`); `patch` o `remove` se rechazan (`unknown key`). Dos diferencias con un parche: una salida de
+`slots.add` **no necesita `area`** (puede apuntarla `triggers.png`) y `battles.add` empieza en el área 1 (el escenario no trae batallas del juego). No se rechaza `bank`/`soundBank` que el juego no tenga: no hay tabla que lo diga (*sin verificar*; un banco que no existe no suena).
+
+### Orden y rechazos
+
+1. `nsScan` (antes de `msSeal`): lee `stage.json` (cabecera) y los PNG, arma el TMPK (`mlEncode` x 3 + `mlArchiveBuild`, entrada 0 vacía) y el PACK en memoria, y registra el escenario. Un rechazo es una línea `[stages] <archivo> rejected: <motivo>` con la ruta del archivo
+   culpable (formato inválido, PNG ilegible, tamaño que no es múltiplo de 128 o que no coincide con el fondo, más de 255 mosaicos, valor de piso sin sentido, `start` fuera del mapa, `fallback` que no es un escenario del juego, `music` fuera de rango...).
+2. `msSeal` da los modos (`0x300+`, alfabético).
+3. `smLoad` lee las secciones y llama `nsCheck` con lo que definen (`SmNewInfo`: ranuras y áreas de batalla); un fallo se rechaza **entero** y `nsRefuse` marca el escenario (`msRefuse`): su modo queda tomado (los demás no cambian), deja de resolverse por nombre, modo o número, y
+   los archivos que lo nombraban se vuelven a leer (hasta que no cambie nada), así que una salida a un escenario rechazado rechaza al que la tiene.
+4. `nsInstall`: archivos virtuales (TMPK primero, luego PACK) de los escenarios que quedaron, y los datos que `pcModStageSetup` copia al `FieldState`.
+
+`--validate-mod` corre los mismos cargadores y muestra esas líneas (`new-stages` está en las capas cubiertas de `pcValidateMods`).
+
+### Lo que el juego necesita de un escenario sin `setupStage` (leído)
+
+- **Hoja de objetos (entrada 0 del TMPK):** vacía. Solo se pide si hay `imageEntry`/`imageFile` (`file_loader.c:85-96`) y solo se lee al dibujar un objeto (`map_objects.c:19-29`); el escenario no trae objetos (una tabla con el fin `y == 0`, `map_objects.c:47`,
+  `commands.c:32`). Objetos del mapa de un mod: fuera de v1.
+- **Imágenes:** `FieldState.images` es una unión: las dos primeras `ActorImage` son la imagen del campo (sombra, cubierta) y las cuatro siguientes las del jugador y los tres compañeros (`actor.c:140`, `field.c:410-422`, `field_map.h:456-462`).
+  Los cuatro escenarios que se compararon empiezan su tabla con las mismas seis (`wstag200.c:216-221`, `wstag330.c:107-112`, `wstag345.c:254-259`, `wstag420.c:196-201`; son las seis primeras de `FIELDSTG_images`, `fieldstg.c:2118-2123`; no se revisaron los 294), y el genérico las copia (`pcModStageSetup`) en una tabla de 22 entradas que
+  `pcImagesInstall` extiende con los espacios de los personajes nuevos. Sin esto el jugador existía pero no se dibujaba.
+- **Posición:** el jugador entra en `FIELDSTG_state.start` si `modeArg != -1`, o en `defaultStart` (lo que dice la salida o `GAME.fieldPos`) en los demás casos (`actor.c:166-176`, `field.c:531-536`). Una corrida de arnés que entra con `mode:300` desde el selector de país
+  cae en `GAME.fieldPos` (cero): el arnés (`host_pad.c`) ahora pone el `start` del escenario ahí.
+- **Batallas:** `FieldState.battles` es NULL si no hay `battles.add` (`battle.c:41` no cuenta pasos); `pcStagePatchHook` pone el modelo de batallas "presente" para un escenario de mod y deja que `add` agregue las áreas 1, 2, ...
+- **Ganchos:** `pcStagePatchHook` (`pc/boot.c`) reconoce el inicio genérico (`pcModStageStart`) y aplica la sección del escenario como el parche de su número `0xF000 + i` sobre un escenario vacío (`s.nimages = 0`: un `image` explícito se rechaza, los personajes toman un espacio propio).
+
+### Prueba
+
+`make -C pc newstagetest` (sin disco): un escenario de 2 x 2 mosaicos hecho con PNG generados en la prueba; las tres capas del TMPK leídas como archivo virtual iguales a los PNG, los cuatro mosaicos del PACK decodificados iguales al fondo y su CLUT; las secciones aplicadas a un escenario
+vacío; catorce rechazos con su motivo; los rechazos de `nsCheck` (ranura y área que no existen), el modo que queda tomado, y el rechazo en cascada. Sin ventana, con el disco: `warp:330,4,fieldexit,reach:300` (de Parque Central al escenario por una salida
+agregada en `stages/330.json`) y `mode:300,fieldexit,reach:21D` (de vuelta por la salida del escenario).
+
+### T5b: encuentros propios (hecho)
+
+El ejemplo (T6) necesita filas de encuentro **nuevas** para no cambiar las zonas originales. Dónde se indexa una fila (leído): `AreaBattle.encounter` (`field_map.h:411`, `s32`) -> `FIELDSTG_encounters[encounter]` en `FIELDSTG_startEncounter` (`field.c:1003-1010`: enemigos, bloques,
+emboscada, tipo) y `BATTLE_SETUP.battle = encounter` (`field.c:1003`, `s32`); de ahí `BATTLE_RESULT.battle` (`normal_battle/menu.c:483`, `s16`) indexa `STFGTREP_rewards[...]` (dinero, EXP, EXP de Digimon: `report.c:120-122`, `328-334`, `partner.c:206`) y hay comparaciones por número
+(`menu.c:15-21`: `0x143`, `0xB`, `0x1E`, `0x144`; `enemy_turn.c:397`: condición 12 contra `arg`). El botín no depende del encuentro (`battle_loot` es del enemigo: `boot.c`, `pcLootLive`).
+
+**Cómo se resolvió.** Los dos arreglos son datos de overlay del tamaño del disco (335 filas), así que las filas nuevas viven en un almacén del puerto (`pc/boot.c`: `sExtEncounter`, `sExtEnemy`, `sExtReward`, armado una vez tras la carga de Digimon y antes de los parches de escenario) y el juego las lee por
+accesores `#ifdef DW3_PC`: `FIELDSTG_ENCOUNTER(n)` (`field_mode.h`, `field.c`) y `STFGTREP_REWARD(n)` (`report.h`, `report.c`, `partner.c`); en la PS1 son los arreglos (`make compare`: 316 OK). Las filas salen de `tables/field_encounters.json`, llave `"<mod>:<nombre>"`
+(`pc/shim/field_ext.[ch]`, formato en `docs/data-tables.md` §3.5 y `docs/modding/README.md` §6.5b); la tabla saltaba esas llaves con "no row with that key" y ahora las deja a ese módulo (`TmTable.ownKey`). Números: 335 en adelante, orden de mods y de archivo, hasta 1024.
+
+**Nombres.** `battles` (`patch` y `add`) y la acción `start-battle` aceptan `"encounter": "<mod>:<nombre>"` (`SmHost.encounterByName`, `StageCodeEnv.encounterByName`; `scListToJson` la imprime por nombre) o el número; un nombre desconocido rechaza el archivo con
+`there is no field encounter named "<nombre>"`. `pcEncounterOk` acepta hasta `335 + filas nuevas`. Que el juego no lea nada fuera de esos puntos: `rg "FIELDSTG_encounters|STFGTREP_rewards"` en `src/` solo da las definiciones y los accesores; `host_pad.c` (`battleenc:`) sigue usando solo la tabla del disco.
+
+**Prueba.** `make -C pc fieldexttest` (filas, números, recompensas, 19 rechazos, orden de mods), `stagemodtest` (`testEncounterNames`: nombres en `battles` patch/add y en `start-battle`, rechazos, impresión por nombre), `tabletest` (las llaves con nombre no se registran como filas del juego).
+Sin ventana: `mode:300,fieldbattles:1,battlepilot,until:1400` con un mod `t5b` cuyo escenario `yard` tiene un área con `"encounter": "t5b:meadow"` (nivel 10): `pad: fieldbattles: encounter 335 stage 1 fighters 206/0/0 levels 10/0/0 hp 60`, la batalla y el reporte leen
+`[tables] report enter: encounter 335 digimonExp 55 exp 123 money 777, wallet 0` y `report exit: ... wallet 777`.
+
+## 14. Pesca y árboles para patear (T9)
+
+Dos mecánicas del juego que los mods pueden ahora poblar con sus propios Digimon. Sin estas secciones el juego es idéntico (`compare`: 316 OK; los ganchos son `#ifdef DW3_PC`).
+
+### Lo que hace el juego (leído)
+
+- **Pesca = slot `gauge` (tipo 7).** Todos los slots `gauge` del disco llevan la condición `ITEM(0, 5)` (la Caña de pescar, `dw3:item/5`; 46 archivos de escenario con `SLOT_GAUGE`, p. ej. `wstag716.c:231-233`). `FIELDSTG_setOffTrigger` (`trigger.c:203`) arranca `playGauge` con el desplazamiento `{arg, x}` del slot (dónde se dibuja el medidor junto al jugador; los valores `0xFFDC` son `u16` de un número negativo). `FIELDSTG_runGauge` (`gauge.c`): un cursor va y viene por una de las 8 filas al azar de `FIELDSTG_gaugeRows` (`fieldstg.c:2014`, 2 bits por celda; en EU, mientras dura `GAME.randomGauges` = 16 al entrar a un modo nuevo, `start.c:18`, y después la fila 8, toda en ceros). Al parar, la celda da **0 = nada**, **1 = `startEventBattle(4)`** (con un sonido propio al empezar el resultado, `gauge.c`) o **2 = `startEventBattle(7)`**: la batalla 4 u 7 de la cuarta área del lugar (`battle.c:61`: `battles[3]->battles[index]`). Las filas del disco solo traen celdas 0, 1 y 2 (ningún byte tiene el valor 3). En el 330 esas batallas son `area3Battle4 = {328, 8, ...}` y `area3Battle7 = {54, 8, ...}` (`wstag330.c:94,97`). Cuál celda es el verde y cuál el amarillo **es arte** (los sprites de `FIELD_SPRITES_FILE` entrada 1, `GAUGE_ROW_FRAMES + fila`): no se leyó del código y queda como hipótesis: la celda 2 ocupa casi toda la fila (`0xAA` = 4 celdas 2), la 1 es el tramo corto con sonido, la 0 el azul. Los archivos de la animación (`FIELD_GAUGE_FILE`) se piden si algún slot es `gauge`.
+- **Árboles = puntos ocultos (`hidden_spots.c`).** Un punto oculto es un **objeto del mapa** (`StageTile`, `field_map.h:208`) con `anim == 0xFF` en la tabla `FieldState.objects` del escenario (51 archivos con objetos `0xFF`, p. ej. `wstag330.c:841-870`: `{1, 0xFF, 0x64, 4, 0x38, 0, 0, 0, 0, 0, x, y, sortY, 0}`); su sprite sale de las hojas de efectos del campo (`map_objects.c:18-24`, no de la hoja de objetos del escenario). `FIELDSTG_updateMapObjects` (`map_objects.c:47`) cuenta los objetos `0xFF` y crea `FIELDSTG_createHiddenSpots(count)`, que elige **uno** al azar con el premio (`GAME.prizeSpot`, `hidden_spots.c:67-73`; se vuelve a elegir tras cada premio; el índice se conserva dentro del mismo modo). Con el objeto 4 (`FIELD_SEARCH_ITEM = ITEM(0, 4)`, `field_mode.h:657`) y cruz frente a un punto a 10 px o menos (`FIELDSTG_findHiddenSpot`, `actor_control.c:402`), el jugador busca (`ACTOR_SEARCH`) y al terminar el efecto (`hidden_spots.c:100-117`): si el punto tiene el premio, con `RANDOM & 0x7F < 0x66` (80 %) `startEventBattle(3)` y si no (20 %) `startEventBattle(6)` (la batalla 3 u 6 de la cuarta área: en el 330 `area3Battle3 = {327,...}` = Cardmon y `area3Battle6 = {49,...}`); si no, un indicador (`FIELDSTG_showSpotHint`, `hidden_spots.c:7`) cuyo color y parpadeo dicen qué tan lejos está el premio (menos de 128 px, menos de 256, más). **El premio siempre es una batalla; el juego no da objetos aquí.** Un punto fuera del mapa (`x >= 1000`) es el de un evento (`FIELDSTG_searchEventSpot`). Un punto oculto también bloquea la celda (`map.c:144`).
+
+### `fishing` (en `stage-patch-v1` y `stage-new-v1`)
+
+```json
+"slots":   {"add": [{"key": "laguna", "type": "gauge", "area": {"x": 400, "y": 600, "w": 200, "h": 120}}]},
+"fishing": {
+  "default": {"1": [{"encounter": "mimod:anguila", "stage": 1, "music": 1611137024}]},
+  "slots": [{"key": "laguna",
+             "1": [{"encounter": "mimod:anguila", "stage": 1, "music": 1611137024, "weight": 3}, {"item": "dw3:item/18"}, {"nothing": true}],
+             "2": {"encounter": "mimod:lubina", "stage": 1, "music": 1611137024}}]
+}
+```
+
+- Un slot `gauge` **agregado** sin `conditions` lleva `[["item", "dw3:item/5", 1]]` (la caña); `"conditions": []` lo deja sin condición. Los slots del juego conservan los suyos. Los del juego se parchean por `index` como cualquier slot.
+- `fishing.slots[]`: `index` (el lugar del slot en la tabla del escenario) o `key` (un slot agregado), y las listas de las celdas `"1"` y `"2"` (la 0 siempre es nada). `fishing.default`: las listas de las celdas de todo slot `gauge` del escenario que no tenga entrada propia. Una celda sin lista usa la batalla 4 / 7 del juego. Ref que no existe o que no es `gauge`: se salta con una línea del log (`fishing: ...`); el último mod gana, un conflicto va al log.
+- **Resultado**: un objeto o una lista de hasta 16 (uno se elige por peso, con `RANDOM`): `{"encounter": <número o "<mod>:<nombre>">, "stage", "music"}` (una batalla; `stage` y `music` son obligatorios, como en `battles`), `{"item": ...}` (un ejemplar, por la misma acción `item` de las charlas), `{"nothing": true}`; `weight` 1 a 1000 (1 por defecto). Una lista vacía es "nada".
+- Ejecución: `pcFishingBegin` (`trigger.c`, al disparar el slot) fija el slot y `pcFishingCatch(celda)` (`gauge.c`) elige y ejecuta; la batalla es la misma `FIELDSTG_startBattle` de las batallas de área (el medidor termina en `TASK_DONE`; con objeto o nada, en `TASK_KILL`, como un fallo). Un objeto no muestra mensaje propio (el globo del resultado es el del juego).
+
+### `hiddenSpots`
+
+```json
+"hiddenSpots": {
+  "add":   [{"x": 700, "y": 400}, {"x": 812, "y": 520}],
+  "prize": {"common": [{"encounter": "mimod:cardmon", "stage": 1, "music": 1611137024}, {"encounter": "mimod:otro", "stage": 1, "music": 1611137024, "weight": 2}],
+            "rare":   {"encounter": "mimod:raro", "stage": 1, "music": 1611137024}}
+}
+```
+
+- `add`: árboles nuevos (hasta 64 por parche; `x` 0 a 32767, `y` 1 a 32767, píxeles del mapa: el punto donde el jugador busca). El puerto copia la tabla de objetos del escenario (`pcSpotsInstall`, `pc/boot.c`) y agrega por cada árbol un objeto `0xFF` igual a los del 330 (`visible 1, margin 0x64, depth 4, frame 0x38`, `sortY = y`). El premio se reparte entre todos los árboles del escenario, los del juego y los agregados. No se comprueba que el punto esté dentro del mapa ni que su celda sea caminable.
+- `prize.common` / `prize.rare`: qué da el árbol con el premio. `common` reemplaza la batalla 3 (80 %), `rare` la 6 (20 %); misma forma de resultado que la pesca (una batalla, un objeto o nada; con varias entradas y pesos, el árbol esconde uno de varios Digimon). Sin la llave: la batalla 3 / 6 de la cuarta área del lugar (que también se pueden cambiar con `battles`).
+- Hace falta el objeto 4 (`dw3:item/4`) en la bolsa para patear, como en el juego.
+
+### Prueba
+
+`make -C pc stagemodtest` (`testCatches`: analizador, rechazos con motivo, caña por defecto y `conditions: []`, listas por slot y por defecto, claves, árboles, premios, peso del sorteo `sdCatchPick`). RED: la prueba contra el código anterior no compila (`SdStage` sin `nfishing`...); GREEN: `stagemodtest: ok`. Sin ventana (SDL offscreen, OpenAL null, `DW3_USER_DIR`/`DW3_SETTINGS` nuevos, mod generado `t9proof` con `new-stages/pond` y dos filas de encuentro nuevas): pesca `mode:300,fieldexit,battlepilot` con `DW3_SEED_ITEMS=5=1` y árbol `mode:300,fieldsearch,battlepilot` con `4=1` (fichas del arnés nuevas, `host_pad.c`: `fieldexit` también para el cursor del medidor y `fieldsearch` patea el árbol de enfrente).
+
+## 15. El ejemplo completo: alturas, árboles, pesca y personajes (T10, T11)
+
+`pc/examples/mods/training-field` usa todo lo anterior. Lo genera `tools/make_art.py` (dibujo, capas, `stage.json`, `tables/field_encounters.json` y `text/*/stages.json`: una sola fuente, salida igual byte a byte).
+
+### Alturas y rampas (T10)
+
+Qué hace el juego (leído, `docs/formats.md` §4.3): una pendiente es un valor de piso 2-7 (y +16 espejado) que solo cambia el paso de la caminata (`FIELDSTG_getWalkStep`, `map.c:149-160`, fila `n - 1` de `FIELDSTG_dirVectors`, `fieldstg.c:3601`);
+no hay `z` al caminar, y la altura es el dibujo. `SLOT_DEPTH` solo fija la profundidad de dibujo del jugador (`trigger.c:79-82`, sin objetos de primer plano no hace falta), `SLOT_MAP` elige el piso 0 o 1 (`map.c:57-60`; un escenario nuevo
+solo trae el 0, `pcModStageSetup`) y `SLOT_CLIMB_UP/DOWN`/`SLOT_DROP` son subir un muro con el pad y caer (`actor_control.c:626-680`); el ejemplo no los usa.
+
+Diseño más simple y fiel: **una meseta con una rampa a cada lado**. Fila 2 (valor 3): el este es `(3939, -819)`, 0,2079 px hacia arriba por px hacia el este. Una meseta de 32 px (el acantilado es 32 px de dibujo) se sube con una banda de 154 px
+(32 / 0,2079) y 32 px de alto cuyas celdas valen 3 (rampa oeste: caminar al este sube) o 19 = 16 + 3 (rampa este, espejada: caminar al este baja). El dibujo trae exactamente esa banda (escalones, bordes), el acantilado y el triángulo de muro bajo cada rampa (valor 0). El borde norte,
+oeste y este de la cima son muros de 8 px. Sin cruces ni dos pisos de capa: el jugador sube por la rampa oeste, cruza la cima y baja por la este.
+
+Prueba sin ventana (`mode:300` + `fieldwalk`, abajo): rampa oeste `fieldwalk 363: at (297, 264), floor cell 3` -> `fieldwalk 383: at (372, 245), floor cell 3` -> `fieldwalk 403: at (449, 229), floor cell 1` (la cima); cima y bajada por la este `fieldwalk 476: at (726, 238), floor cell 19` -> `fieldwalk 495: reached #6 (800, 252) at (800, 254), floor cell 19`;
+subida por la este (`(761, 246)` -> `(684, 230)` -> `reached #7 (640, 224) at (641, 226), floor cell 1`) y bajada por la oeste hasta `fieldwalk 617: route done`. Capturas: el jugador a medio camino de la rampa y arriba (cuadros 383 y 405 de esa corrida).
+
+### Contenido (T11)
+
+| Qué | Dónde | Cómo |
+|---|---|---|
+| Árboles para patear | abajo 5 (dos en la cima), arriba 4 | `hiddenSpots.add` + `prize.common`/`rare` con listas con peso: Cardmon (filas `kind` 5 con los bloqueos de las filas del disco 327 y 328) y otros Digimon de la banda, nivel 8-11 abajo y 13-16 arriba |
+| Pesca | laguna abajo: muelle (spot `fish-pier`, mira al norte) y dos orillas (este y sur) | tres slots `gauge` con `area` + `facing`; el muelle trae sus listas (Dolphmon, Octomon, Tortomon, Cardmon acuático); las orillas, las de `fishing.default` (Betamon, Gizamon, Cardmon acuático, un objeto, nada / Shellmon, Tortomon, Coelamon). La distancia del cebo al jugador va en `arg`/`x` del slot (u16 con signo, `trigger.c:203-207`, como los slots `gauge` del disco) |
+| Duelo | arriba, el campeón del anillo (personaje 57) | `["start-battle", "training-field:duel-trio", ...]` con la bandera `training-field:duel-started` (una vez por partida: la segunda charla paga 500 BIT y pone `duel-paid`; la tercera solo habla). La fila `duel-trio` es de tipo 2 con `runAway` 1 (como el trío del Líder Seiryu, encuentro 3) y niveles 15, 16, 15 |
+| Cartas | arriba, una Tamer (personaje 51) | `["card-battle", "13:0", 1]` (oponente 0x13 = fila 38 de `card_opponents`, nivel 15, la banda de arriba). Tras la partida, el juego deja `flag 00:11` (acabó una partida) y `flag 00:10` (ganó el jugador) (`events.c:739-748`, `battle.c:2530`): las dos primeras charlas leen esas banderas solo para comentar el resultado. El resultado que cuenta para la misión es la variable del puerto `dw3:card-won/13` (§16) |
+| Minimisión | la guardabosques (personaje 69) abajo y tres letreros (el sprite propio `sign`, `sprites/sign/`, de `make_art.py`; el personaje 36 es una operadora y el 63 no tiene archivo de sprites) | `training-field:quest` (0, 1, 2) y las banderas `seen-lake`, `seen-hill`, `seen-ring` (y la del puerto `dw3:card-won/13`). Al aceptar da las botas para árboles (`dw3:item/4`) y la Caña (`dw3:item/5`) si faltan; al leer los tres letreros y vencer en cartas (`["mod-flag", "dw3:card-won/13", 1]`), paga 300 BIT y el Chip PS (`dw3:item/47`) y pone `quest` = 2 |
+
+### Fichas de arnés nuevas (`pc/shim/host_pad.c`)
+
+- `fieldwalk:<x>:<y>[:press]`: lleva al jugador a un punto del mapa por estado (lee la posición cada cuadro; no hay tiempos): sostiene la dirección hacia el punto y solo pone el segundo eje si el punto está a más de 2:1, así sobre una pendiente el jugador sigue la pendiente del juego. Varias fichas son una ruta; `:press` pulsa cruz al llegar (habla con lo que mira, patea el árbol, ...). Implica `fieldauto`. Imprime `fieldwalk <cuadro>: at (x, y), floor cell <valor>`, `reached #n` y `stuck` (si la distancia no baja 3 px en 150 cuadros, salta el punto).
+- `walkend`: termina la corrida cuando la ruta acabó y el campo estuvo quieto 90 cuadros (el diálogo que empezó la pulsación acabó) e imprime `harness state (route done): money N, Tree Boots ..., HP Chip ...`.
+- `fieldsearch` patea una sola vez por lugar (no vuelve a patear hasta que el jugador se mueve 12 px) y `flag:<hex>` puede repetirse (hasta 5); también se aplican con `mode:3xx`. El juego borra las banderas temporales (`flag 00:xx`) al empezar el escenario: sirven para que `DW3_LOG=trace` muestre qué charla elige el intérprete al crear al personaje, no para probar la pulsación (la pulsación tras una partida de cartas se prueba con `cardplay`, §16).
+- Las acciones `mod-flag` y `set-var` se registran en el log (`action mod-flag <nombre> = n`), y la pesca y los árboles dicen el nombre del encuentro (`fishing cell 2: encounter 364 training-field:lake-octomon`).
+
+## 16. Resultado de las partidas de cartas y letrero del lugar (arreglos de la prueba de juego, 2026-11-04)
+
+### Cartas: por qué la misión no avanzaba y qué hace ahora el puerto
+
+Lo leído: `startCardBattle` (`events.c:543`) deja el campo con `FIELDSTG_leaveField(MODE_CARD_GAME, ...)`; al terminar, `CARDGAME_updateBattle` pone `FLAGS_00.pendingFlag10` si ganó el jugador (`battle.c:2526-2532`) y
+`CARDGAME_updateScene` pide `GAME.fieldMode` (`scene.c:38`). El campo vuelve a arrancar: `FIELDSTG_updateRoot` fija `GAME.clearTempFlags = 1` solo si `GAME.lastFieldMode` cambió (`start.c:14-21`; en un retorno del mismo
+escenario es 0), `startField` llama a `updateModeFlags` (`field.c:522`) **después** de `stageInit` y esa función pone `00:11` y `00:10` (`events.c:739-748`). Los escenarios del juego y los de un mod siguen exactamente este camino
+(`pcModStagePick` solo reemplaza el `stageInit`, y el modo de retorno `0x3xx` es el mismo `GAME.fieldMode`); lo medido sin ventana con la ficha `cardplay` (abajo) lo confirma: al volver, `flag 00:10 = 1, flag 00:11 = 1,
+clearTempFlags 0` tras ganar y `00:10 = 0, 00:11 = 1` tras perder (la partida real que juega el piloto perdió), y la primera pulsación sobre la Tamer corre la charla "ganaste" (`action mod-flag ... = 1`).
+
+Entonces no hay un defecto del retorno (no se pudo reproducir uno); lo más probable es que fallara de qué dependía la misión: `00:10`/`00:11` son banderas **temporales**. `updateModeFlags` las borra al empezar el escenario siguiente (`events.c:733-738`, `clearTempFlags`), y solo
+hay una charla que las lea: si el jugador gana y se va (escaleras, otro piso) sin volver a hablarle a la Tamer, la victoria se pierde; y si le habla otra vez, la charla de "ganaste" borra las banderas y la tercera
+empieza otra partida. El registro del dueño (`dw3-20261104-173204.log`) muestra justo eso: dos veces `0x700` seguidas de `0x301` y de nuevo `0x700`, sin que nada guarde el resultado.
+
+Arreglo (puerto, detrás de `#ifdef DW3_PC`, el build de PS1 queda igual): `pcCardBattleBegin(opponent)` (en `startCardBattle`) y `pcCardBattleEnd(won)` (en `updateModeFlags`, al volver de `MODE_CARD_GAME`)
+guardan el resultado **al terminar la partida** en variables con nombre, que se guardan con la partida (`EXTV`, `pc/shim/ext_state.[ch]`):
+
+| Variable | Valor |
+|---|---|
+| `dw3:card-played/<oponente>` | 1 una vez que el jugador peleó con ese oponente |
+| `dw3:card-won/<oponente>` | 1 una vez que le ganó (una derrota posterior no la borra) |
+
+`<oponente>` es el de la acción `card-battle` en hex sin ceros a la izquierda (`"13:0"` -> `13`). Un mod las lee con `mod-flag` (`["mod-flag", "dw3:card-won/13", 1]`). Una partida abierta sin acción del campo
+(el piloto `cardauto`) no guarda nada. El ejemplo `training-field` usa `dw3:card-won/13` en la condición de la guardabosques y deja las charlas de `00:10`/`00:11` de la Tamer solo para comentar el resultado. Prueba:
+`make -C pc extstatetest` (`testCardResults`).
+
+### Letrero del lugar en escenarios de mod (`banner`)
+
+`FIELDSTG_updateBanner` abre dos ventanas (`FIELDSTG_showAreaName`, `banner.c:9-25`): la grande lee `FIELDSTG_areaNames[i].area` de `TEXT_AREA_NAMES` (STAREA) y la chica `.place` de `TEXT_STAGE_NAMES` (STNAME), y busca por
+modo en una tabla en la que un escenario de mod no está (por eso T4 apagaba el letrero). `stage.json` ahora acepta `"banner": {"area": "<mod>:<texto>", "place": "<mod>:<texto>"}`: dos textos con nombre (§8) de
+`text/<idioma>/stages.json` (eng obligatorio, otro idioma cae al inglés; es-419 prueba el español primero). Al cargar los mods, `bannerAssign` (`stage_mods.c`) agrega esas líneas al final de STAREA y de STNAME
+(mismo mecanismo que las charlas: `smTextCount`/`smTextOf`, `textFirst`, `textChanged`) y deja los números de entrada en `MsStage.bannerAreaEntry/bannerPlaceEntry`; `pcFieldBannerEntries` (`pc/boot.c`) los da y
+`FIELDSTG_showAreaName` (`#ifdef DW3_PC`) crea las mismas dos ventanas (mismas posiciones y retardo) con esas entradas, así que el aspecto y los tiempos son los del juego y valen las opciones Rápido/Clásico
+(`stage_timing.c`, `stage_banner.c`). `pcFieldBannerShow` devuelve 1 solo si el escenario tiene los dos números; sin `banner`, o si un texto no existe (línea `[stages] stage <llave>: the banner's ... text ... no banner`),
+no hay letrero. El objeto con otra clave o sin `place`/`area` rechaza el escenario. Prueba: `make -C pc newstagetest` (`testBanner`).
+
+### Fichas de arnés
+
+- `cardplay[:win|lose]`: una partida que empieza el campo (una acción `card-battle`) y el regreso. Sin argumento la juega el piloto de `cardauto`; con `win`/`lose` la termina a los 60 cuadros por el camino del propio juego
+  (`pendingFlag10` y `requestMode(GAME.fieldMode)`), de modo que el regreso corre el cambio de modo, `startField` y `updateModeFlags` reales. Imprime `cardplay N: back in mode ...: flag 00:10 = .., flag 00:11 = .., clearTempFlags ..`.
+- `walkend` imprime además `card 0x13 played N won N, quest N`.
+
+## 17. Resultado de una batalla de evento y preguntas de sí o no (prueba de juego, 2026-11-04)
+
+### Lo que da el juego (leído)
+
+- **Resultado de una batalla.** El juego no guarda el resultado de las batallas de campo. `WFIGHTMN_endBattle` (`src/battle/normal_battle/menu.c:540-566`) mira `FIGHTSTG_events.funcs.result`: `BATTLE_FLED` (0) vuelve al campo con `requestMode(GAME.fieldMode)`, `BATTLE_WON` (1)
+  va a `MODE_BATTLE_REPORT` (que vuelve al campo, `report.c:357`) y `BATTLE_LOST` (2) va a `MODE_TITLE`. Las batallas de evento solo ponen `FIELD_FLAG_ENCOUNTERED` al empezar (`field.c:1032`). Lo único que distingue un caso al volver es `GAME.prevMode`.
+- **Sí o no en el campo.** Solo existe `FIELDSTG_runChoice` (`choice.c`): una pregunta de la historia, uno de 16 tipos fijos de `FIELDSTG_choices` (`fieldstg.c:1290`), con su texto en el archivo de la historia y dos *eventos* (`events[2]`) del `FIELDSTG_events` global que se empiezan según la respuesta; la empieza un evento
+  con `start = FIELDSTG_askChoiceN`. No hay nada para charlas de personajes (las posadas y tiendas abren su propio modo). Los sí/no están en el texto del juego: `SSSTATUS` 0x32 y 0x33 (los usa el menú del campo, `item_screen.c:150`).
+
+### `dw3:battle-won/<clave>` y `dw3:battle-played/<clave>`
+
+`pcFieldBattleBegin(clave)` (en `pcStageWarpPoll`, cuando la acción `start-battle` empieza la batalla) y `pcFieldBattleEnd(ganó)` (`updateModeFlags`, `events.c`, `#ifdef DW3_PC`: venir de `MODE_BATTLE_REPORT` es ganar, de `MODE_BATTLE` es haber huido) guardan el resultado
+en variables con nombre (se guardan con la partida, `EXTV`): `dw3:battle-played/<clave>` (peleó: ganó o huyó) y `dw3:battle-won/<clave>` (ganó; huir después no la borra). `<clave>` es el nombre del encuentro del mod con `/` en lugar de `:` (`training-field/duel-trio`) o el número en hex. Una batalla de área al azar no deja nada.
+**Perder** lleva al título (`menu.c:559`): no se puede comentar. Un mod que quiere saber si ESTA pelea se ganó borra antes la variable (`["mod-flag", "dw3:battle-won/<clave>", 0]`, como hace la revancha del ejemplo). Se reinicia con una partida nueva o cargada.
+
+### La acción `ask`
+
+`["ask", "<mod>:<nombre>"]` en las `actions` de una charla. En `runTalk` (`actor_control.c`, `#ifdef DW3_PC`): si las acciones de la charla traen un `ask` (`pcActionsAsk`), el personaje no suelta el control al terminar la línea: corre las acciones (que dejan la pregunta), crea el panel
+(`FIELDSTG_askChoicePort`, `choice.c`: la misma `FIELDSTG_runChoice` con el tipo 16, sin fila de `FIELDSTG_choices`; muestra el Sí/No del menú del campo, `SSSTATUS` 0x32/0x33, y la pregunta es la línea que se acaba de decir) y espera la respuesta como hijo de la tarea del personaje (las tareas solo corren
+como hijas de otra, `registry.c:70-99`). La respuesta (1 sí, 2 no) va a la variable y las charlas del personaje se eligen otra vez (`actor->step = 0`): la siguiente lee la variable como cualquier condición. Las acciones del `ask` no se aplican dos veces. Los eventos del juego no lo usan.
+
+Ejemplo (el campeón y la Tamer de `training-field`): primero gana, después `duel-after` (`mod-flag duel-paid`) con `["ask", "training-field:rematch"]`; `rematch == 1` -> "¡Allá vamos!" + `start-battle`, `rematch == 2` -> "Sin problema". Para el duelo la revancha pone `rematch = 3` y borra la variable de victoria, así que al volver
+`rematch == 3` y `dw3:battle-won/...` dicen si ganó esa pelea.
+
+### Fichas de arnés y pruebas
+
+`askpick:yes|no` (responde la pregunta cuando el panel está listo; `fieldauto` aparte), `battleplay:win` (la batalla que empezó una acción termina como victoria a los 120 cuadros por el camino del juego: `BATTLE_RESULT` y `MODE_BATTLE_REPORT`; un grupo de nivel 1 no vence al duelo). Pruebas: `make -C pc stagemodtest` (`ask`: compilar, descompilar, `pcActionsAsk`, respuesta) y
+`make -C pc extstatetest` (`testFieldBattleResults`). El validador (`--validate-mod`) ya no avisa de la carpeta `sprites/`.

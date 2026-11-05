@@ -1,6 +1,6 @@
 # Mods de ejemplo
 
-24 mods pequeños, al menos uno por tipo de mod, para activarlos de a uno (pestaña *Mods* del menú de opciones) y ver cada
+25 mods pequeños, al menos uno por tipo de mod, para activarlos de a uno (pestaña *Mods* del menú de opciones) y ver cada
 cambio en tu propia partida. No traen datos del juego (ADR-001): lo que necesita el disco (imágenes, textos, escenarios) se
 genera en tu equipo a partir de tu `data/` exportado, y el audio y el video son sintéticos.
 
@@ -14,7 +14,7 @@ pc/examples/install_examples.sh [--only tablas|contenido|media|nombre,nombre] [C
 - Copia los ejemplos a `mods/`, corre los generadores (`pc/examples/tools/`, necesitan `python3`; el video necesita Pillow) y agrega
   cada ejemplo instalado a `[mods] disabled` de `settings.ini`: **nada cambia hasta que actives uno**. Antes guarda
   `settings.ini.bak`. Nunca toca `saves/`.
-- Los grupos (`--only`): `tables` (10), `content` (6) y `media` (9). La pestaña *Mods* se desplaza por todos los
+- Los grupos (`--only`): `tables` (10), `content` (6) y `media` (10). La pestaña *Mods* se desplaza por todos los
   mods instalados. Con `--list` solo imprime los nombres.
 - Un ejemplo cuyos datos aún no existen se salta con un aviso: `stage-tiles` necesita el escenario exportado (`[data]`
   `export_stages = S330`, o *Options > System > Prepare modding files*), los de imagen y texto necesitan haber abierto el juego
@@ -46,6 +46,7 @@ revisa. Para quitarlos, borra la carpeta o su nombre de `[mods] disabled`.
 | `stage-tiles` | baldosas de escenario (E6b) | el mapa del Parque Central en violeta (se genera de tu export `S330`) | caminar por el Parque Central |
 | `stage-objects` | objetos de escenario (E6a) | los objetos del escenario 233 en violeta (se genera) | escenario 233: la pantalla grande sobre la plataforma |
 | `stage-npc` | escenario: personajes, salida y evento (S4-S8) | un personaje se mueve junto al inicio y otro nuevo saluda con texto propio (en inglés y es-419), da 100 BIT una vez, recuerda la visita con una bandera del mod y empieza un evento con un mensaje; además una salida nueva (un rectángulo al este del inicio) lleva al escenario 380 | escenario 330 (`warp:330`): los dos personajes cerca de donde apareces; hablar con el nuevo; caminar al este hasta el portón y pulsar cruz |
+| `training-field` | escenarios nuevos (T6) | dos pisos nuevos (arte propio, generado por `tools/make_art.py`) y un guía junto a Leomon en el Parque Central; con la Medalla de Seiryu te lleva al piso de abajo (encuentros nuevos de nivel 8 a 11); una escalera sube al de arriba (13 a 16); una salida vuelve al parque | Parque Central (330), junto a Leomon: hablar con el guía (con y sin la Medalla de Seiryu); caminar en la hierba |
 | `sfx-beep` | audio: efecto (E3c) | la muestra 50 del banco COMMON se reemplaza por un pitido sintético | menú del campo (Start): el sonido del cursor |
 | `song-title-chime` | audio: canción (E3d) | la música del título se reemplaza por un carillón sintético en bucle | pantalla de título |
 | `video-bars` | video (E2b) | la película de apertura se reemplaza por barras de colores sintéticas | al iniciar el juego, antes del título |

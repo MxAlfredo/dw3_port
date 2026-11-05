@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 
 #include "ext_state.h"
+#include "mod_stages.h"
 #include "mods.h"
 #include "port_log.h"
 #include "text_codec.h"
@@ -45,7 +46,7 @@ int smOpCode(int kind, const char *name, int cmp, int n) {
     int i;
     char *copy;
 
-    if (kind < SC_MOD_FLAG || kind > SC_MOD_SET || !scModNameValid(name)) return -1;
+    if (kind < SC_MOD_FLAG || kind > SC_MOD_ASK || !scModNameValid(name)) return -1;
     if (kind != SC_MOD_VAR) cmp = n = 0; /* the other kinds have neither: the same op is the same code */
     for (i = 0; i < sOpCount; i++) {
         if (sOps[i].kind == kind && sOps[i].cmp == cmp && sOps[i].n == n && !strcmp(sOps[i].name, name)) return (int)opCodeOf(i);
@@ -199,6 +200,26 @@ static int envStageExists(void *ud, int stage) {
     return sHost.stageExists ? sHost.stageExists(stage) : 1;
 }
 
+static int envStageByName(void *ud, const char *name) {
+    (void)ud;
+    return sHost.stageByName ? sHost.stageByName(name) : -1;
+}
+
+static const char *envStageName(void *ud, int number) {
+    (void)ud;
+    return sHost.stageName ? sHost.stageName(number) : NULL;
+}
+
+static int envEncounterByName(void *ud, const char *name) {
+    (void)ud;
+    return sHost.encounterByName ? sHost.encounterByName(name) : -1;
+}
+
+static const char *envEncounterName(void *ud, int number) {
+    (void)ud;
+    return sHost.encounterName ? sHost.encounterName(number) : NULL;
+}
+
 void smCodeEnv(StageCodeEnv *out, const StageCodeEnv *base) {
     if (base) *out = *base;
     else memset(out, 0, sizeof *out);
@@ -209,6 +230,10 @@ void smCodeEnv(StageCodeEnv *out, const StageCodeEnv *base) {
     out->eventId = envEventId;
     out->eventName = envEventName;
     if (!out->stageExists) out->stageExists = envStageExists;
+    out->stageByName = envStageByName;
+    out->stageName = envStageName;
+    out->encounterByName = envEncounterByName;
+    out->encounterName = envEncounterName;
 }
 
 static int compare(int cmp, int a, int b) {
@@ -219,6 +244,43 @@ static int compare(int cmp, int a, int b) {
     case SC_CMP_GT: return a > b;
     case SC_CMP_LE: return a <= b;
     case SC_CMP_LT: return a < b;
+    }
+    return 0;
+}
+
+/* The `ask` action: the talk that holds it posts the question when the line has been said (pcModApply), the field's talk code takes it (pcAskTake), shows the
+   game's Yes/No panel and gives the answer back (pcAskAnswered), and the talk is chosen again. */
+static char sAskName[160];
+static int sAskPending, sAskDone;
+
+int pcAskTake(void) {
+    int had = sAskPending;
+
+    sAskPending = 0;
+    sAskDone = 0;
+    return had;
+}
+
+void pcAskAnswered(int answer) {
+    if (sAskName[0]) {
+        pcExtVarSet(sAskName, answer);
+        PLOG("stages", PLOG_TRACE, "ask %s answered %s\n", sAskName, answer == 1 ? "yes" : "no");
+    }
+    sAskDone = 1;
+}
+
+int pcAskDone(void) {
+    return sAskDone;
+}
+
+/* 1 when the action list (pairs up to 0xFFFF) holds an `ask` */
+int pcActionsAsk(const unsigned short *list) {
+    int i;
+
+    for (; list && *list != 0xFFFF; list += 2) {
+        if ((((unsigned)*list >> 8) & 0xFE) > SC_MOD_GROUP_LAST) continue;
+        i = opIndexOf(*list);
+        if (i >= 0 && sOps[i].kind == SC_MOD_ASK) return 1;
     }
     return 0;
 }
@@ -247,8 +309,17 @@ void pcModApply(int code, int value) {
     }
     i = opIndexOf((unsigned)code & 0xFFFF);
     if (i < 0) return;
-    if (sOps[i].kind == SC_MOD_FLAG) pcExtVarSet(sOps[i].name, value != 0 ? 1 : 0);
-    else if (sOps[i].kind == SC_MOD_SET) pcExtVarSet(sOps[i].name, value);
+    if (sOps[i].kind == SC_MOD_FLAG) {
+        pcExtVarSet(sOps[i].name, value != 0 ? 1 : 0);
+        PLOG("stages", PLOG_TRACE, "action mod-flag %s = %d\n", sOps[i].name, value != 0 ? 1 : 0);
+    } else if (sOps[i].kind == SC_MOD_SET) {
+        pcExtVarSet(sOps[i].name, value);
+        PLOG("stages", PLOG_TRACE, "action set-var %s = %d\n", sOps[i].name, value);
+    } else if (sOps[i].kind == SC_MOD_ASK) {
+        PLOG("stages", PLOG_TRACE, "action ask %s\n", sOps[i].name);
+        snprintf(sAskName, sizeof sAskName, "%s", sOps[i].name);
+        sAskPending = 1;
+    }
 }
 
 /* ================= named texts (S6) ================= */
@@ -298,10 +369,30 @@ static int textFind(const char *name) {
 
 /* the text codec accepts it (the readable syntax of the text files) */
 static int textUsable(const char *text, char *why, size_t cap) {
-    char *raw = tcUglify(text);
+    char base[16];
+    const char *rest = text;
+    int entry, malformed;
+    char *raw;
     uint8_t *enc = NULL;
     size_t el = 0;
-    int bad = !raw || tcEncode(raw, &enc, &el, why, cap) != 0;
+    int bad;
+
+    /* "{speaker-of:<FILE>:<entry>}" in front: the game's speaker label (tcSpeakerRef), made at run time; the rest is the text */
+    if (tcSpeakerRef(text, base, sizeof base, &entry, &rest, &malformed)) {
+        if (tdFileFromBase(base) < 0) {
+            snprintf(why, cap, "{speaker-of:%s:%d}: %s is not one of the game's text files (TALK04, ...)", base, entry, base);
+            return 0;
+        }
+        if (!rest[0]) {
+            snprintf(why, cap, "{speaker-of:...} needs the line after it");
+            return 0;
+        }
+    } else if (malformed) {
+        snprintf(why, cap, "{speaker-of:<FILE>:<entry>} is not well formed (for example {speaker-of:TALK04:19})");
+        return 0;
+    }
+    raw = tcUglify(rest);
+    bad = !raw || tcEncode(raw, &enc, &el, why, cap) != 0;
 
     free(raw);
     free(enc);
@@ -631,10 +722,17 @@ typedef struct SmBattleEdit {
     SdAreaBattle b[8]; /* an added area's battles (the given ones repeat to fill eight) */
 } SmBattleEdit;
 
+/* The results of a gauge slot's cells 1 and 2 (T9); a cell not given has set 0 */
+typedef struct SmFishEdit {
+    SmRef ref;
+    SdCatchList cell[2];
+} SmFishEdit;
+
 typedef struct SmFile {
     char *mod;  /* the folder name */
     char *path; /* for the log */
     int stage;
+    int isNew; /* a stage-new-v1 file (new-stages T5): the stage's own sections, only "add" */
     SmEdit *edits;
     int nedits;
     SmAdd *adds;
@@ -649,6 +747,13 @@ typedef struct SmFile {
     int needits;
     SmBattleEdit *bedits;
     int nbedits;
+    /* T9: fishing results per gauge slot (a reference like the slots') and the file's default, hidden spots to add, the prize lists */
+    SmFishEdit *fishEdits;
+    int nfishEdits;
+    SdCatchList fishDef[2];
+    SdSpot *spots;
+    int nspots;
+    SdCatchList prize[2];
 } SmFile;
 
 static SmFile *sFiles;
@@ -751,6 +856,17 @@ static void fileFree(SmFile *f) {
     }
     free(f->eedits);
     free(f->bedits);
+    for (i = 0; i < f->nfishEdits; i++) {
+        free(f->fishEdits[i].ref.key);
+        sdCatchListFree(&f->fishEdits[i].cell[0]);
+        sdCatchListFree(&f->fishEdits[i].cell[1]);
+    }
+    free(f->fishEdits);
+    sdCatchListFree(&f->fishDef[0]);
+    sdCatchListFree(&f->fishDef[1]);
+    free(f->spots);
+    sdCatchListFree(&f->prize[0]);
+    sdCatchListFree(&f->prize[1]);
     free(f->mod);
     free(f->path);
     memset(f, 0, sizeof *f);
@@ -1215,11 +1331,19 @@ static int parseSlot(const SmHost *host, const StageCodeEnv *env, const ExtJson 
             fail(err, cap, "%s: give \"arg\" or \"stage\", not both", where);
             return 0;
         }
-        if (ar->t != 0 || !extWhole(ar->num, 1, 0xFFFF)) {
-            fail(err, cap, "%s: \"stage\" must be a stage number", where);
-            return 0;
+        if (ar->t == 1 && ar->str) { /* a stage a mod adds, by name (mod_stages.h): the number the registry gave it */
+            e->stage = host && host->stageByName ? host->stageByName(ar->str) : -1;
+            if (e->stage < 0) {
+                fail(err, cap, "%s: there is no stage \"%s\"", where, ar->str);
+                return 0;
+            }
+        } else {
+            if (ar->t != 0 || !extWhole(ar->num, 1, 0xFFFF)) {
+                fail(err, cap, "%s: \"stage\" must be a stage number or a name \"<mod>:<name>\"", where);
+                return 0;
+            }
+            e->stage = (int)ar->num;
         }
-        e->stage = (int)ar->num;
         if (host && host->stageExists && !host->stageExists(e->stage)) {
             fail(err, cap, "%s: there is no stage %d in this build", where, e->stage);
             return 0;
@@ -1285,7 +1409,7 @@ static int parseSlot(const SmHost *host, const StageCodeEnv *env, const ExtJson 
             fail(err, cap, "%s needs a \"type\" (or a \"stage\" or an \"event\", which imply exit and event)", where);
             return 0;
         }
-        if (!(e->mask & (1u << SL_AREA))) {
+        if (!(e->mask & (1u << SL_AREA)) && !f->isNew) { /* a stage a mod adds has the cells of its own trigger layer to point at the slot */
             fail(err, cap, "%s needs an \"area\": the map has no cell that points at a new slot, so it is set off inside this rectangle", where);
             return 0;
         }
@@ -1467,6 +1591,19 @@ static int parseBattleSlot(const SmHost *host, const ExtJson *o, int v[3], unsig
     static const long lo[3] = {1, 0, 0}, hi[3] = {4095, 0x7FFFFFFF, 0x7FFFFFFF};
 
     for (i = 0; i < 3; i++) {
+        const ExtJson *j = extJsonGet(o, BATTLE_FIELDS[i]);
+
+        if (i == 0 && j != NULL && j->t == 1) { /* a new encounter a mod added, by name (new-stages T5b) */
+            int number = host && host->encounterByName && j->str ? host->encounterByName(j->str) : -1;
+
+            if (number < 0) {
+                fail(err, cap, "%s: there is no field encounter named \"%s\" (a name \"<mod>:<name>\" of a row a mod adds in tables/field_encounters.json)", where, j->str ? j->str : "");
+                return 0;
+            }
+            v[0] = number;
+            *mask |= 1u;
+            continue;
+        }
         if (!getInt(o, BATTLE_FIELDS[i], lo[i], hi[i], &v[i], &has, err, cap, where)) return 0;
         if (has) *mask |= 1u << i;
     }
@@ -1560,24 +1697,291 @@ static int parseBattle(const SmHost *host, const ExtJson *o, SmFile *f, int isAd
     return 1;
 }
 
+
+/* ---- fishing and hidden spots (T9) ---- */
+
+/* an item: a number (1 to 511), "dw3:item/<id>" or a name the host resolves ("<mod>:<key>"); -1 when it is none */
+static int catchItemRef(const StageCodeEnv *env, const ExtJson *j) {
+    if (j->t == 0) return extWhole(j->num, 1, 0x1FF) ? (int)j->num : -1;
+    if (j->t != 1 || !j->str) return -1;
+    if (!strncmp(j->str, "dw3:item/", 9)) {
+        char *end;
+        long v = strtol(j->str + 9, &end, 10);
+
+        return (j->str[9] && !*end && v >= 1 && v <= 0x1FF) ? (int)v : -1;
+    }
+    if (env && env->resolve) {
+        int id = env->resolve(env->ud, "item", j->str);
+
+        return (id >= 1 && id <= 0x1FF) ? id : -1;
+    }
+    return -1;
+}
+
+/* One result: {"encounter", "stage", "music"} (a battle), {"item"} or {"nothing": true}, each with an optional "weight" */
+static int parseCatchOne(const SmHost *host, const StageCodeEnv *env, const ExtJson *o, SdCatch *c, char *err, size_t cap, const char *where) {
+    static const char *const known[] = {"encounter", "stage", "music", "item", "nothing", "weight"};
+    const ExtJson *j;
+    int has, kinds = 0;
+
+    if (o->t != 2) {
+        fail(err, cap, "%s must be an object ({\"encounter\", \"stage\", \"music\"}, {\"item\"} or {\"nothing\": true})", where);
+        return 0;
+    }
+    if (hasUnknownKey(o, known, (int)(sizeof known / sizeof known[0]), err, cap, where)) return 0;
+    c->weight = 1;
+    if (!getInt(o, "weight", 1, SD_CATCH_WEIGHT_MAX, &c->weight, &has, err, cap, where)) return 0;
+    kinds = (extJsonGet(o, "encounter") != NULL) + (extJsonGet(o, "item") != NULL) + (extJsonGet(o, "nothing") != NULL);
+    if (kinds != 1) {
+        fail(err, cap, "%s needs exactly one of \"encounter\", \"item\" and \"nothing\"", where);
+        return 0;
+    }
+    if ((j = extJsonGet(o, "encounter")) != NULL) {
+        int v[3] = {0, 0, 0}, hs, hm;
+
+        c->kind = SD_CATCH_BATTLE;
+        if (!getInt(o, "stage", 0, 0x7FFFFFFF, &v[1], &hs, err, cap, where) || !getInt(o, "music", 0, 0x7FFFFFFF, &v[2], &hm, err, cap, where)) return 0;
+        if (!hs || !hm) {
+            fail(err, cap, "%s: a battle result needs \"stage\" (the fight stage) and \"music\" too", where);
+            return 0;
+        }
+        if (j->t == 1) {
+            int number = host && host->encounterByName && j->str ? host->encounterByName(j->str) : -1;
+
+            if (number < 0) {
+                fail(err, cap, "%s: there is no field encounter named \"%s\" (a name \"<mod>:<name>\" of a row a mod adds in tables/field_encounters.json)", where, j->str ? j->str : "");
+                return 0;
+            }
+            v[0] = number;
+        } else if (j->t != 0 || !extWhole(j->num, 1, 4095)) {
+            fail(err, cap, "%s: \"encounter\" must be a field encounter number or a name \"<mod>:<name>\"", where);
+            return 0;
+        } else {
+            v[0] = (int)j->num;
+        }
+        if (host && host->encounterOk && !host->encounterOk(v[0])) {
+            fail(err, cap, "%s: there is no field encounter %d (a row of field_encounters)", where, v[0]);
+            return 0;
+        }
+        c->encounter = v[0];
+        c->stage = v[1];
+        c->music = v[2];
+    } else if ((j = extJsonGet(o, "item")) != NULL) {
+        c->kind = SD_CATCH_ITEM;
+        c->item = catchItemRef(env, j);
+        if (c->item < 0) {
+            fail(err, cap, "%s: \"item\" must be an item (a number from 1 to 511, \"dw3:item/<id>\" or a mod's \"<mod>:<key>\")", where);
+            return 0;
+        }
+    } else {
+        j = extJsonGet(o, "nothing");
+        if (j->t != 3 || !j->num) {
+            fail(err, cap, "%s: \"nothing\" must be true", where);
+            return 0;
+        }
+        c->kind = SD_CATCH_NOTHING;
+    }
+    return 1;
+}
+
+/* A cell or a prize: one result object or a list of up to SD_CATCH_MAX (an empty list gives nothing). Sets the list. */
+static int parseCatchList(const SmHost *host, const StageCodeEnv *env, const ExtJson *j, SdCatchList *l, char *err, size_t cap, const char *where) {
+    int i;
+
+    if (j->t != 4 && j->t != 2) {
+        fail(err, cap, "%s must be a result or a list of results", where);
+        return 0;
+    }
+    l->set = 1;
+    if (j->t == 2) {
+        l->v = (SdCatch *)calloc(1, sizeof *l->v);
+        if (!l->v) {
+            fail(err, cap, "out of memory");
+            return 0;
+        }
+        l->n = 1;
+        return parseCatchOne(host, env, j, &l->v[0], err, cap, where);
+    }
+    if (j->n > SD_CATCH_MAX) {
+        fail(err, cap, "%s holds at most %d results", where, SD_CATCH_MAX);
+        return 0;
+    }
+    if (j->n > 0) {
+        l->v = (SdCatch *)calloc((size_t)j->n, sizeof *l->v);
+        if (!l->v) {
+            fail(err, cap, "out of memory");
+            return 0;
+        }
+    }
+    for (i = 0; i < j->n; i++) {
+        char w[100];
+
+        l->n = i + 1;
+        snprintf(w, sizeof w, "%s result %d", where, i);
+        if (!parseCatchOne(host, env, &j->v[i], &l->v[i], err, cap, w)) return 0;
+    }
+    return 1;
+}
+
+static int parseCells(const SmHost *host, const StageCodeEnv *env, const ExtJson *o, SdCatchList cell[2], char *err, size_t cap, const char *where) {
+    static const char *const names[2] = {"1", "2"};
+    int c;
+
+    for (c = 0; c < 2; c++) {
+        const ExtJson *j = extJsonGet(o, names[c]);
+        char w[100];
+
+        if (!j) continue;
+        snprintf(w, sizeof w, "%s cell %s", where, names[c]);
+        if (!parseCatchList(host, env, j, &cell[c], err, cap, w)) return 0;
+    }
+    return 1;
+}
+
+static int parseFishing(const SmHost *host, const StageCodeEnv *env, const ExtJson *j, SmFile *f, char *err, size_t cap) {
+    static const char *const top[] = {"default", "slots"};
+    static const char *const cellKeys[] = {"1", "2"};
+    static const char *const entryKeys[] = {"index", "key", "1", "2"};
+    const ExtJson *d, *list;
+    int i;
+
+    if (j->t != 2 || hasUnknownKey(j, top, 2, err, cap, "\"fishing\"")) {
+        if (j->t != 2) fail(err, cap, "\"fishing\" must be an object with \"default\" and \"slots\"");
+        return 0;
+    }
+    if ((d = extJsonGet(j, "default")) != NULL) {
+        if (d->t != 2 || hasUnknownKey(d, cellKeys, 2, err, cap, "fishing default")) {
+            if (d->t != 2) fail(err, cap, "fishing default must be an object with the cells \"1\" and \"2\"");
+            return 0;
+        }
+        if (!parseCells(host, env, d, f->fishDef, err, cap, "fishing default")) return 0;
+    }
+    if ((list = extJsonGet(j, "slots")) != NULL) {
+        if (list->t != 4) {
+            fail(err, cap, "\"fishing\".\"slots\" must be a list");
+            return 0;
+        }
+        for (i = 0; i < list->n; i++) {
+            const ExtJson *o = &list->v[i], *k, *ix;
+            SmFishEdit *e;
+            char w[60];
+
+            snprintf(w, sizeof w, "fishing slot %d", i);
+            if (o->t != 2 || hasUnknownKey(o, entryKeys, 4, err, cap, w)) {
+                if (o->t != 2) fail(err, cap, "%s must be an object", w);
+                return 0;
+            }
+            k = extJsonGet(o, "key");
+            ix = extJsonGet(o, "index");
+            if ((k != NULL) == (ix != NULL)) {
+                fail(err, cap, "%s needs exactly one of \"index\" (the gauge slot's place in the stage's table) and \"key\" (a slot a patch added)", w);
+                return 0;
+            }
+            GROW(f->fishEdits, f->nfishEdits);
+            e = &f->fishEdits[f->nfishEdits++];
+            e->ref.index = -1;
+            if (ix) {
+                if (ix->t != 0 || !extWhole(ix->num, 0, 1023)) {
+                    fail(err, cap, "%s: \"index\" must be a whole number from 0 to 1023", w);
+                    return 0;
+                }
+                e->ref.index = (int)ix->num;
+            } else {
+                if (k->t != 1 || !k->str || !readKey(k->str, f->mod, &e->ref.key, err, cap, w)) {
+                    if (k->t != 1) fail(err, cap, "%s: \"key\" must be a string", w);
+                    return 0;
+                }
+            }
+            if (!parseCells(host, env, o, e->cell, err, cap, w)) return 0;
+            if (!e->cell[0].set && !e->cell[1].set) {
+                fail(err, cap, "%s gives no result (cells \"1\" and \"2\")", w);
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+#define SM_SPOTS_MAX 64
+static int parseHiddenSpots(const SmHost *host, const StageCodeEnv *env, const ExtJson *j, SmFile *f, char *err, size_t cap) {
+    static const char *const top[] = {"add", "prize"};
+    static const char *const pk[] = {"common", "rare"};
+    static const char *const sk[] = {"x", "y"};
+    const ExtJson *list, *p;
+    int i;
+
+    if (j->t != 2 || hasUnknownKey(j, top, 2, err, cap, "\"hiddenSpots\"")) {
+        if (j->t != 2) fail(err, cap, "\"hiddenSpots\" must be an object with \"add\" and \"prize\"");
+        return 0;
+    }
+    if ((list = extJsonGet(j, "add")) != NULL) {
+        if (list->t != 4 || list->n > SM_SPOTS_MAX) {
+            fail(err, cap, "\"hiddenSpots\".\"add\" must be a list of at most %d spots {\"x\", \"y\"}", SM_SPOTS_MAX);
+            return 0;
+        }
+        for (i = 0; i < list->n; i++) {
+            SdSpot sp;
+            int hx, hy;
+            char w[60];
+
+            snprintf(w, sizeof w, "hidden spot add %d", i);
+            if (list->v[i].t != 2 || hasUnknownKey(&list->v[i], sk, 2, err, cap, w)) {
+                if (list->v[i].t != 2) fail(err, cap, "%s must be an object {\"x\", \"y\"}", w);
+                return 0;
+            }
+            if (!getInt(&list->v[i], "x", 0, 32767, &sp.x, &hx, err, cap, w) || !getInt(&list->v[i], "y", 1, 32767, &sp.y, &hy, err, cap, w)) return 0;
+            if (!hx || !hy) {
+                fail(err, cap, "%s needs \"x\" and \"y\" (map pixels; y 1 or more: the object table ends at y 0)", w);
+                return 0;
+            }
+            GROW(f->spots, f->nspots);
+            f->spots[f->nspots++] = sp;
+        }
+    }
+    if ((p = extJsonGet(j, "prize")) != NULL) {
+        int c;
+
+        if (p->t != 2 || hasUnknownKey(p, pk, 2, err, cap, "hidden spots prize")) {
+            if (p->t != 2) fail(err, cap, "\"prize\" must be an object with \"common\" and \"rare\"");
+            return 0;
+        }
+        for (c = 0; c < 2; c++) {
+            const ExtJson *r = extJsonGet(p, pk[c]);
+            char w[60];
+
+            if (!r) continue;
+            snprintf(w, sizeof w, "hidden spots prize %s", pk[c]);
+            if (!parseCatchList(host, env, r, &f->prize[c], err, cap, w)) return 0;
+        }
+    }
+    return 1;
+}
+
 static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *text, size_t len, int stage, SmFile *f, char *err, size_t cap) {
+    const int isNew = f->isNew;
     ExtJson root;
     const ExtJson *j, *list;
     int i, pass, ok = 0;
-    static const char *const top[] = {"$schema", "format", "about", "notes", "actors", "slots", "events", "battles"};
+    static const char *const top[] = {"$schema", "format", "about", "notes", "actors", "slots", "events", "battles", "fishing", "hiddenSpots"};
     static const char *const kinds[] = {"patch", "add", "remove"};
+    /* a stage a mod adds (new-stages T5) has the header members of its own and nothing to patch or remove: only "add" */
+    static const char *const topNew[] = {"$schema", "format", "about", "notes", "fallback", "start", "textFile", "soundBank", "music", "spriteColor", "banner", "actors", "slots", "events", "battles", "fishing", "hiddenSpots"};
+    static const char *const addOnly[] = {"add"};
+    const char *const *kindsOf = isNew ? addOnly : kinds;
+    const int nKinds = isNew ? 1 : 3;
 
     if (extJsonParse((const uint8_t *)text, len, &root)) {
         fail(err, cap, "not a JSON object");
         return 0;
     }
     j = extJsonGet(&root, "format");
-    if (!j || j->t != 1 || !j->str || strcmp(j->str, SM_FORMAT)) {
-        fail(err, cap, "\"format\" must be \"%s\"", SM_FORMAT);
+    if (!j || j->t != 1 || !j->str || strcmp(j->str, isNew ? SM_NEW_FORMAT : SM_FORMAT)) {
+        fail(err, cap, "\"format\" must be \"%s\"", isNew ? SM_NEW_FORMAT : SM_FORMAT);
         goto done;
     }
-    if (hasUnknownKey(&root, top, (int)(sizeof top / sizeof top[0]), err, cap, "the file")) goto done;
-    if (host && host->stageExists && !host->stageExists(stage)) {
+    if (isNew ? hasUnknownKey(&root, topNew, (int)(sizeof topNew / sizeof topNew[0]), err, cap, "the file")
+              : hasUnknownKey(&root, top, (int)(sizeof top / sizeof top[0]), err, cap, "the file")) goto done;
+    if (!isNew && host && host->stageExists && !host->stageExists(stage)) {
         fail(err, cap, "there is no stage %d in this build", stage);
         goto done;
     }
@@ -1587,7 +1991,7 @@ static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *t
             fail(err, cap, "\"actors\" must be an object with \"patch\", \"add\" and \"remove\"");
             goto done;
         }
-        if (hasUnknownKey(j, kinds, 3, err, cap, "\"actors\"")) goto done;
+        if (hasUnknownKey(j, kindsOf, nKinds, err, cap, "\"actors\"")) goto done;
         if ((list = extJsonGet(j, "patch")) != NULL) {
             if (list->t != 4) {
                 fail(err, cap, "\"actors\".\"patch\" must be a list");
@@ -1628,7 +2032,7 @@ static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *t
     if ((j = extJsonGet(&root, "slots")) != NULL) {
         static const char *const sk[] = {"patch", "add", "remove"};
 
-        if (j->t != 2 || hasUnknownKey(j, sk, 3, err, cap, "\"slots\"")) {
+        if (j->t != 2 || (isNew ? hasUnknownKey(j, addOnly, 1, err, cap, "\"slots\"") : hasUnknownKey(j, sk, 3, err, cap, "\"slots\""))) {
             if (j->t != 2) fail(err, cap, "\"slots\" must be an object with \"patch\", \"add\" and \"remove\"");
             goto done;
         }
@@ -1650,7 +2054,7 @@ static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *t
     if ((j = extJsonGet(&root, "events")) != NULL) {
         static const char *const ek[] = {"patch", "add"};
 
-        if (j->t != 2 || hasUnknownKey(j, ek, 2, err, cap, "\"events\"")) {
+        if (j->t != 2 || (isNew ? hasUnknownKey(j, addOnly, 1, err, cap, "\"events\"") : hasUnknownKey(j, ek, 2, err, cap, "\"events\""))) {
             if (j->t != 2) fail(err, cap, "\"events\" must be an object with \"patch\" and \"add\"");
             goto done;
         }
@@ -1672,7 +2076,7 @@ static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *t
     if ((j = extJsonGet(&root, "battles")) != NULL) {
         static const char *const bk[] = {"patch", "add"};
 
-        if (j->t != 2 || hasUnknownKey(j, bk, 2, err, cap, "\"battles\"")) {
+        if (j->t != 2 || (isNew ? hasUnknownKey(j, addOnly, 1, err, cap, "\"battles\"") : hasUnknownKey(j, bk, 2, err, cap, "\"battles\""))) {
             if (j->t != 2) fail(err, cap, "\"battles\" must be an object with \"patch\" and \"add\"");
             goto done;
         }
@@ -1691,6 +2095,8 @@ static int parsePatch(const SmHost *host, const StageCodeEnv *env, const char *t
             }
         }
     }
+    if ((j = extJsonGet(&root, "fishing")) != NULL && !parseFishing(host, env, j, f, err, cap)) goto done;
+    if ((j = extJsonGet(&root, "hiddenSpots")) != NULL && !parseHiddenSpots(host, env, j, f, err, cap)) goto done;
     ok = 1;
 done:
     extJsonFree(&root);
@@ -1708,6 +2114,149 @@ static int stageOfFile(const char *name) {
         v = v * 10 + (name[i] - '0');
     }
     return (int)v;
+}
+
+/* ---- stages a mod adds (new-stages T5) ---- */
+
+static void dropNewFiles(void) {
+    int i, k = 0;
+
+    for (i = 0; i < sFileCount; i++) {
+        if (sFiles[i].isNew) {
+            fileFree(&sFiles[i]);
+        } else {
+            sFiles[k++] = sFiles[i];
+        }
+    }
+    sFileCount = k;
+}
+
+/* One pass over every mods/<mod>/new-stages/<name>/stage.json whose stage the host knows. Returns how many stages it refused (the host was told: the names
+   they had stop resolving, so another pass reads the files that named them again). */
+static int newStagesPass(const SmHost *host, const StageCodeEnv *env) {
+    int m, refused = 0;
+
+    for (m = 0; m < modsCount(); m++) {
+        char dirPath[1400];
+        DIR *d;
+        struct dirent *e;
+
+        snprintf(dirPath, sizeof dirPath, "%s/new-stages", modsDirOf(m));
+        d = opendir(dirPath);
+        if (!d) continue;
+        while ((e = readdir(d)) != NULL) {
+            char path[1700], key[160], err[300];
+            uint8_t *data = NULL;
+            size_t len = 0;
+            int number;
+            SmFile *grown, file;
+            SmNewInfo info;
+            int i;
+
+            if (e->d_name[0] == '.' || !extValidKey(e->d_name)) continue;
+            snprintf(key, sizeof key, "%s:%s", modsNameOf(m), e->d_name);
+            number = host && host->stageByName ? host->stageByName(key) : -1;
+            if (number < 0) continue; /* not registered: the scan said why, or it is not a stage folder */
+            snprintf(path, sizeof path, "%s/%s/stage.json", dirPath, e->d_name);
+            memset(&file, 0, sizeof file);
+            err[0] = '\0';
+            if (tdReadFile(path, &data, &len)) {
+                plogLine("stages", "%s rejected: the file could not be read\n", path);
+                if (host->stageRefused) host->stageRefused(key);
+                refused++;
+                continue;
+            }
+            file.mod = smDup(modsNameOf(m));
+            file.path = smDup(path);
+            file.stage = number;
+            file.isNew = 1;
+            if (!file.mod || !file.path || !parsePatch(host, env, (const char *)data, len, number, &file, err, sizeof err)) {
+                plogLine("stages", "%s rejected: %s\n", path, err[0] ? err : "out of memory");
+                fileFree(&file);
+                free(data);
+                if (host->stageRefused) host->stageRefused(key);
+                refused++;
+                continue;
+            }
+            free(data);
+            memset(&info, 0, sizeof info);
+            for (i = 0; i < file.nsedits; i++) info.slots += file.sedits[i].isAdd;
+            for (i = 0; i < file.nbedits; i++) info.battleAreas += file.bedits[i].isAdd;
+            if (host->newCheck && host->newCheck(key, &info, err, sizeof err)) {
+                plogLine("stages", "%s rejected: %s\n", path, err[0] ? err : "the stage's map and its sections do not agree");
+                fileFree(&file);
+                if (host->stageRefused) host->stageRefused(key);
+                refused++;
+                continue;
+            }
+            grown = (SmFile *)realloc(sFiles, (size_t)(sFileCount + 1) * sizeof *sFiles);
+            if (!grown) {
+                fileFree(&file);
+                continue;
+            }
+            sFiles = grown;
+            sFiles[sFileCount++] = file;
+        }
+        closedir(d);
+    }
+    return refused;
+}
+
+/* ---- the banner texts of the new stages ---- */
+
+/* The text files the banner reads, counted without the language like a stage's textFile (file = LANGUAGE + n, include/engine/file.h: TEXT_FILE(file) is
+   LANGUAGE + file - 1): STAREA 0xAA, the big line, and STNAME 0xB8, the place. */
+#define SM_BANNER_AREA_FILE (0xAA - 1)
+#define SM_BANNER_PLACE_FILE (0xB8 - 1)
+
+/* the entry of text `name` appended to file k: first + slot, 0 when the name is not a text with an English line or the host cannot extend the file */
+static int bannerEntry(int k, const char *name, const char *stage, const char *what) {
+    int id = textFind(name), first, slot, added = 0;
+
+    if (id < 0 || !sTexts[id].text[0]) {
+        plogLine("stages", "stage %s: the banner's %s text \"%s\" is not a line of any mod's text/eng/stages.json: no banner\n", stage, what, name);
+        return 0;
+    }
+    first = k >= 0 && sHost.textFirst ? sHost.textFirst(k) : -1;
+    slot = first >= 0 ? fileSlotOf(k, id, &added) : -1;
+    if (slot < 0) {
+        plogLine("stages", "stage %s: the banner's %s text cannot be appended (the host has no text file the port can extend): no banner\n", stage, what);
+        return 0;
+    }
+    if (added && sHost.textChanged) sHost.textChanged(k);
+    return first + slot;
+}
+
+/* Gives each new stage with a "banner" the entries of its two lines in the area-name and place-name files, once, when the stages are loaded (before the
+   game reads those files, so no cached copy goes stale); the numbers do not change afterwards. A stage whose texts fail simply shows no banner. */
+static void bannerAssign(void) {
+    int i, ka = tdStageTextK(SM_BANNER_AREA_FILE), kp = tdStageTextK(SM_BANNER_PLACE_FILE);
+
+    for (i = 0; i < msCount(); i++) {
+        MsStage *ms = msAt(i);
+        int a, p;
+
+        if (!ms || ms->refused || !ms->bannerArea[0]) continue;
+        ms->bannerAreaEntry = ms->bannerPlaceEntry = 0;
+        a = bannerEntry(ka, ms->bannerArea, ms->key, "area");
+        p = a ? bannerEntry(kp, ms->bannerPlace, ms->key, "place") : 0;
+        if (a && p) {
+            ms->bannerAreaEntry = a;
+            ms->bannerPlaceEntry = p;
+            PLOG("stages", PLOG_TRACE, "stage %s: banner area \"%s\" is entry %d of file %d, place \"%s\" entry %d of file %d\n", ms->key, ms->bannerArea, a, ka, ms->bannerPlace, p, kp);
+        }
+    }
+}
+
+static void loadNewStages(const SmHost *host, const StageCodeEnv *env) {
+    int round;
+
+    if (!host || !host->stageByName) return;
+    /* A refused stage takes its name away, so a stage whose exit named it is refused too in the next pass; each pass refuses at least one or ends it. */
+    for (round = 0; round < 260; round++) {
+        dropNewFiles();
+        if (newStagesPass(host, env) == 0) break;
+    }
 }
 
 int smLoad(const SmHost *host) {
@@ -1766,6 +2315,8 @@ int smLoad(const SmHost *host) {
         }
         closedir(d);
     }
+    loadNewStages(host, &env);
+    bannerAssign();
     if (sFileCount > 0) PLOG("stages", PLOG_MODS, "%d stage patch file(s) kept\n", sFileCount);
     return sFileCount;
 }
@@ -2187,6 +2738,14 @@ static int slotSet(const SmFile *f, const SmSlotEdit *e, SlotWork *w, const char
     return changed;
 }
 
+/* the keys of the slots applySlots left, by final index (the pointers belong to the files' edits); read by applyCatches right after */
+typedef struct SlotKey {
+    const char *key;
+    int index;
+} SlotKey;
+static SlotKey *sSlotKeys;
+static int sSlotKeyCount;
+
 static int applySlots(int stage, SdStage *s, SmReport *rep) {
     SlotWork *w;
     SdSlot *out;
@@ -2265,7 +2824,25 @@ static int applySlots(int stage, SdStage *s, SmReport *rep) {
             }
         }
     }
+    free(sSlotKeys);
+    sSlotKeys = (SlotKey *)calloc((size_t)(n > 0 ? n : 1), sizeof *sSlotKeys);
+    sSlotKeyCount = 0;
     for (k = 0, i = 0; i < n; i++) {
+        /* a gauge slot a patch adds is the fishing spot of the Fishing Pole (dw3:item/5) unless it gives its own conditions: every gauge slot of the game
+           is conditioned ITEM(0, 5) */
+        if (w[i].orig < 0 && w[i].a.type == 7 && !w[i].a.cond.set && !w[i].removed) {
+            w[i].a.cond.w = (uint16_t *)malloc(2 * sizeof *w[i].a.cond.w);
+            if (w[i].a.cond.w) {
+                w[i].a.cond.w[0] = 0x8005; /* ITEM(0, 5) */
+                w[i].a.cond.w[1] = 1;
+                w[i].a.cond.n = 2;
+                w[i].a.cond.set = 1;
+            }
+        }
+        if (w[i].key && sSlotKeys) {
+            sSlotKeys[sSlotKeyCount].key = w[i].key;
+            sSlotKeys[sSlotKeyCount++].index = k;
+        }
         out[k++] = w[i].a;
     }
     free(s->slots);
@@ -2452,6 +3029,115 @@ static int applyBattles(int stage, SdStage *s, SmReport *rep) {
     return any;
 }
 
+
+/* ---- fishing and hidden spots: apply (T9) ---- */
+
+static int catchClone(SdCatchList *dst, const SdCatchList *src) {
+    SdCatchList fresh;
+
+    memset(&fresh, 0, sizeof fresh);
+    fresh.set = 1;
+    fresh.n = src->n;
+    if (src->n > 0) {
+        fresh.v = (SdCatch *)malloc((size_t)src->n * sizeof *fresh.v);
+        if (!fresh.v) return -1;
+        memcpy(fresh.v, src->v, (size_t)src->n * sizeof *fresh.v);
+    }
+    sdCatchListFree(dst);
+    *dst = fresh;
+    return 0;
+}
+
+static int applyCatches(int stage, SdStage *s, SmReport *rep) {
+    int fi, i, c, any = 0;
+    const char *defBy[2] = {NULL, NULL}, *prizeBy[2] = {NULL, NULL};
+
+    for (fi = 0; fi < sFileCount; fi++) {
+        const SmFile *f = &sFiles[fi];
+
+        if (f->stage != stage) continue;
+        for (c = 0; c < 2; c++) {
+            if (f->fishDef[c].set) {
+                if (defBy[c] && strcmp(defBy[c], f->mod)) {
+                    rep->conflicts++;
+                    plogLine("stages", "%s: stage %d fishing default cell %d: overrides the list %s set\n", f->mod, stage, c + 1, defBy[c]);
+                }
+                if (catchClone(&s->fishDefault[c], &f->fishDef[c])) return any;
+                defBy[c] = f->mod;
+                rep->fishingSet++;
+                any = 1;
+            }
+            if (f->prize[c].set) {
+                if (prizeBy[c] && strcmp(prizeBy[c], f->mod)) {
+                    rep->conflicts++;
+                    plogLine("stages", "%s: stage %d hidden spots prize %s: overrides the list %s set\n", f->mod, stage, c ? "rare" : "common", prizeBy[c]);
+                }
+                if (catchClone(&s->prize[c], &f->prize[c])) return any;
+                prizeBy[c] = f->mod;
+                rep->prizesSet++;
+                any = 1;
+            }
+        }
+        for (i = 0; i < f->nfishEdits; i++) {
+            const SmFishEdit *e = &f->fishEdits[i];
+            char who[100];
+            int slot = -1, k;
+            SdFishSlot *fs = NULL;
+
+            describeSlot(who, sizeof who, e->ref.index, e->ref.key);
+            if (e->ref.key) {
+                for (k = 0; k < sSlotKeyCount; k++) {
+                    if (!strcmp(sSlotKeys[k].key, e->ref.key)) slot = sSlotKeys[k].index;
+                }
+            } else {
+                slot = e->ref.index;
+            }
+            if (slot < 0 || slot >= s->nslots) {
+                skipLog(rep, f, who, e->ref.key ? "fishing: no slot has this key" : "fishing: the stage's table has no slot here at this story progress");
+                continue;
+            }
+            if (s->slots[slot].type != 7) { /* SLOT_GAUGE */
+                skipLog(rep, f, who, "fishing: it is not a gauge slot (type \"gauge\")");
+                continue;
+            }
+            for (k = 0; k < s->nfishing; k++) {
+                if (s->fishing[k].slot == slot) fs = &s->fishing[k];
+            }
+            if (!fs) {
+                void *g = realloc(s->fishing, (size_t)(s->nfishing + 1) * sizeof *s->fishing);
+
+                if (!g) return any;
+                s->fishing = (SdFishSlot *)g;
+                fs = &s->fishing[s->nfishing++];
+                memset(fs, 0, sizeof *fs);
+                fs->slot = slot;
+            }
+            for (c = 0; c < 2; c++) {
+                if (e->cell[c].set && catchClone(&fs->cell[c], &e->cell[c])) return any;
+            }
+            rep->fishingSet++;
+            any = 1;
+        }
+        if (f->nspots > 0) {
+            for (i = 0; i < f->nspots; i++) {
+                void *g;
+
+                if (s->nspots >= SM_SPOTS_MAX) {
+                    skipLog(rep, f, "hidden spot add", "the stage holds at most 64 spots added by patches");
+                    break;
+                }
+                g = realloc(s->spots, (size_t)(s->nspots + 1) * sizeof *s->spots);
+                if (!g) return any;
+                s->spots = (SdSpot *)g;
+                s->spots[s->nspots++] = f->spots[i];
+                rep->spotsAdded++;
+                any = 1;
+            }
+        }
+    }
+    return any;
+}
+
 int smApplyStage(int stage, SdStage *s, SmReport *rep) {
     SmReport local;
     int changed;
@@ -2460,10 +3146,12 @@ int smApplyStage(int stage, SdStage *s, SmReport *rep) {
     memset(rep, 0, sizeof *rep);
     if (!smHasPatches(stage)) return 0;
     sPendN = 0;
+    sSlotKeyCount = 0;
     changed = applyActors(stage, s, rep);
     changed |= applySlots(stage, s, rep);
     changed |= applyEvents(stage, s, rep);
     changed |= applyBattles(stage, s, rep);
+    changed |= applyCatches(stage, s, rep);
     if (changed && sTextCount > 0) resolveTexts(stage, s, rep);
     return changed;
 }

@@ -53,6 +53,11 @@ void FIELDSTG_pickStage(void) {
 #endif
     mode = GAME.funcs.getMode();
     HEAP.zero(&FIELDSTG_state, offsetof(FieldState, defaultStart)); /* host: was 100 */
+    /* host, same hook as src/field/field_mode/state.c (new-stages T4): a mode of the stages mods add (0x300-0x3FF) has no row below; the unit this file
+       replaces got the hook, this copy did not, so a mode of that range ran into the endless loop at the end (the "mode:3FF" harness hang) */
+    if (pcModStagePick(mode, &FIELDSTG_state) != 0) {
+        return;
+    }
     while (1) {
         if (entry->mode == mode) {
             FIELDSTG_state.stageFile = entry->file;

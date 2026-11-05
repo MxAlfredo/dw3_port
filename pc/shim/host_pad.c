@@ -83,6 +83,7 @@
 #include "battle/report.h"
 #undef OVL_NAME /* each overlay header defines its own prefix; the next one redefines it */
 #include "field/field_map.h"
+#include "mod_stages.h" /* MS_IS_FIELD_MODE: 0x2xx and the 0x3xx of the stages mods add (field_mode.h cannot be included: see the Encounter mirror below) */
 #include "menus/country_select.h"
 #include "menus/title.h"
 /* Each overlay header redefines OVL_NAME for its own symbols (title.h,
@@ -378,7 +379,7 @@ static void padPrintLines(int frame) {
          (int)state, (int)substate, (int)selection,
          (int)titleState, (int)titleSubstate, (int)titleSelection,
          (title != NULL) ? (int)title->choice : -1);
-    if ((GAME.funcs.getMode() >> 8) == 2 && plogOn("field", PLOG_TRACE)) {
+    if (MS_IS_FIELD_MODE(GAME.funcs.getMode()) && plogOn("field", PLOG_TRACE)) {
         Actor *player = TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0);
 
         if (player != NULL) {
@@ -519,6 +520,8 @@ static s32 padWarpProgress;
    sets to 1 before the stage starts (-1 = none), for a stage whose script
    branches on a flag an earlier scene set (WSTAG200's 0x400D) */
 static s32 padWarpFlag = -1;
+static s32 padExtraFlags[4]; /* more `flag:<hex>` tokens (new-stages T11: a card battle's 00:10 and 00:11 together); applied with the first */
+static int padExtraFlagCount;
 
 /* The armed battle token (battle-entry T3): 1 once the script names
    `battle`, consumed by padBattleFire's single fire; the arg the fire uses
@@ -747,10 +750,34 @@ static void padMovieSkipRun(void) {
     }
 }
 
+/* `reach:<hex>`: the run ends the first frame the game is in that mode (an XX00 value matches by its high byte, like `until:`); for a field mode
+   also once the player's actor exists, the `field` barrier's condition. A run that has to stop in a scene it cannot walk out of ends this way, from
+   the game's own state (new-stages T4: `mode:3FF,reach:21D` is the fallback of a stage that is not installed). */
+static s32 padReachMode; /* 0 = none */
+
+static void padReachRun(void) {
+    s32 mode;
+
+    if (padReachMode == 0 || padUntilStay != 0) {
+        return;
+    }
+    mode = GAME.funcs.getMode();
+    if ((padReachMode & 0xFF) == 0 ? (mode >> 8) != (padReachMode >> 8) : mode != padReachMode) {
+        return;
+    }
+    if (MS_IS_FIELD_MODE(mode) && TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0) == NULL) {
+        return;
+    }
+    printf("end: reached mode 0x%X -> end of run\n", (int)mode);
+    padReachMode = 0;
+    pcBootStopInMode(mode, 1);
+}
+
 static void padUntilRun(void) {
     s32 mode;
     int inside;
 
+    padReachRun();
     if (padUntilStay != 0 || padUntilMode == 0) {
         return;
     }
@@ -872,6 +899,17 @@ static int padWarpIsPreStarter(int stage) {
  * which commitMode applies before recreating the mode task) -- FIELDSTG then
  * picks the stage and the field starts there.
  */
+static void padApplyFlags(void) {
+    int i;
+
+    FLAGS_00.applyAction(padWarpFlag, 1);
+    for (i = 0; i < padExtraFlagCount; i++) {
+        FLAGS_00.applyAction(padExtraFlags[i], 1);
+    }
+    padWarpFlag = -1;
+    padExtraFlagCount = 0;
+}
+
 static void padWarpFire(int frame) {
     s32 mode = GAME.funcs.getMode();
     const PadWarpStage *warp = NULL;
@@ -896,8 +934,7 @@ static void padWarpFire(int frame) {
         GAME.progress = warp->progress; /* the EU extra chapter's table */
     }
     if (padWarpFlag >= 0) {
-        FLAGS_00.applyAction(padWarpFlag, 1);
-        padWarpFlag = -1;
+        padApplyFlags();
     }
     if ((GAME.progress >= 3 || !padWarpIsPreStarter(warp->stage)) && GAME.funcs.getPartyMember(0) < 0) {
         /* progress 3 is after the starter Digimon (WSTAG200's first battle
@@ -935,7 +972,8 @@ static void padModeFire(int frame) {
          padModeValue == MODE_DIGI_LAB || padModeValue == MODE_NAMING ||
          padModeValue == MODE_TRAINING || padModeValue == MODE_ITEM_SHOP ||
          padModeValue == MODE_CARD_SHOP || padModeValue == MODE_DECK_EDITOR ||
-         padModeValue == MODE_CARD_ALBUM || padModeValue == MODE_CARD_GAME) &&
+         padModeValue == MODE_CARD_ALBUM || padModeValue == MODE_CARD_GAME ||
+         (padModeValue >> 8) == 3 /* a stage mods add, or its fallback: the field menu reads the party */) &&
         GAME.funcs.getPartyMember(0) < 0) {
         /* A game in progress for the screens that read one: the field
            menu's party pages divide by the member count, the card screens
@@ -946,6 +984,23 @@ static void padModeFire(int frame) {
         GAME.fieldMode = padModeValue == MODE_DIGI_LAB ? 0x206 : 0x207; /* a real field mode: where both screens return,
                                    and what a save keeps for the load (0 is no
                                    mode: the screen would hang black) */
+    }
+    if (padWarpFlag >= 0 && (padModeValue >> 8) == 3) {
+        padApplyFlags(); /* new-stages T11: `mode:3xx,flag:0010,flag:0011` (the flags a card battle leaves) */
+    }
+    if ((padModeValue >> 8) == 3 && GAME.progress < 4) {
+        /* new-stages T4: a field entered by `mode:3xx` (a mod stage, or the fallback of one that is not installed) starts a game at the point where START
+           opens the field menu (src/field/field_mode/field.c openFieldMenu: GAME.progress < 4 blocks it), so a run can leave the field by state */
+        GAME.progress = 4;
+    }
+    if (msByMode(padModeValue) != NULL) {
+        /* a field entered from a boot mode comes back "where the field was left" (field.c startField: GAME.fieldPos, zero in a fresh run), so a registered mod stage
+           would put the player at (0, 0); the stage's own start is where its mod meant it (new-stages T5) */
+        const MsStage *ms = msByMode(padModeValue);
+
+        GAME.fieldPos.x = ms->startX << 8;
+        GAME.fieldPos.y = ms->startY << 8;
+        GAME.fieldDir = ms->startDir;
     }
     if (padModeValue == MODE_CARD_GAME && PC_CARD_TOTAL > PC_CARD_ORIG_COUNT) {
         /* a duel with a card a content mod added (U8b): the first new card, twenty-four copies, in the front of every deck, so the player's hand
@@ -1714,6 +1769,84 @@ static const char *padCardDecide(const char **keyName) {
     return k != NULL ? w : NULL;
 }
 
+/*
+ * `cardplay[:win|lose]` (new-stages T10 fix): a card battle the FIELD starts (a `card-battle` action of an NPC) and the way back. Plain
+ * `cardplay` lets the autopilot play it (the fire frame is the first frame in the card mode); `cardplay:win` / `cardplay:lose` end it from the game's
+ * own result path instead: what the scene sets when the duel is over (`pendingFlag10`, battle.c:2528-2532) and the request the scene makes to leave
+ * (`GAME.fieldMode`, scene.c:38), so the return runs the real mode change, the field start and `updateModeFlags` (events.c:729-748).
+ * Once back in a field mode the flags 00:10, 00:11 are logged.
+ */
+static int padCardPlay;      /* 0 off, 1 autopilot, 2 forced win, 3 forced loss */
+static int padCardPlayIn;    /* frames in the card mode */
+static int padCardPlayWent;  /* the card mode has been entered */
+
+static void padCardPlayRun(int frame) {
+    s32 mode;
+
+    if (padCardPlay == 0) {
+        return;
+    }
+    mode = GAME.funcs.getMode();
+    if ((mode >> 8) == (MODE_CARD_GAME >> 8)) {
+        padCardPlayWent = 1;
+        if (padBattleFireFrame < 0) {
+            padBattleFireFrame = frame;
+            padCardAuto = padCardPlay == 1;
+            printf("cardplay %d: the card battle (arg %d) started from the field\n", frame, (int)GAME.modeArg);
+        }
+        if (padCardPlay >= 2 && ++padCardPlayIn == 60) {
+            FLAGS_00.pendingFlag10 = padCardPlay == 2;
+            printf("cardplay %d: the duel ends (%s): pendingFlag10 %d, back to mode 0x%X\n", frame, padCardPlay == 2 ? "player won" : "player lost",
+                   (int)FLAGS_00.pendingFlag10, (int)GAME.fieldMode);
+            GAME.funcs.requestMode(GAME.fieldMode, 0);
+        }
+    } else if (padCardPlayWent != 0 && TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0) != NULL) {
+        padCardPlayWent = 0;
+        printf("cardplay %d: back in mode 0x%X (prev 0x%X): flag 00:10 = %d, flag 00:11 = %d, clearTempFlags %d\n", frame, (int)mode,
+               (int)GAME.funcs.getPrevMode(), FLAGS_00.checkCondition(0x0010, 1), FLAGS_00.checkCondition(0x0011, 1), (int)GAME.clearTempFlags);
+    }
+}
+
+/*
+ * `battleplay:win` (the duel proof): a battle that a field action started ends as a WIN by the game's own result path 120 frames in: what WFIGHTMN_endBattle
+ * leaves for the results scene (BATTLE_RESULT) and the request for it (`MODE_BATTLE_REPORT`), which then returns to the field by itself
+ * (`GAME.fieldMode`, report.c:357). The battle autopilot plays the results scene. The fight itself is not played: a level-1 party cannot beat the duel, and
+ * what is proven is the way back to the field (events.c updateModeFlags), exactly as `cardplay:win` does for the card game.
+ */
+static int padBattlePlay;
+static int padBattlePlayIn;
+
+static void padBattlePlayRun(int frame) {
+    s32 mode;
+    int i;
+
+    if (padBattlePlay == 0) {
+        return;
+    }
+    mode = GAME.funcs.getMode();
+    if ((mode >> 8) == (MODE_BATTLE >> 8)) {
+        if (++padBattlePlayIn == 120) {
+            BATTLE_RESULT.battle = BATTLE_SETUP.battle;
+            BATTLE_RESULT.item = 0;
+            BATTLE_RESULT.member = 0;
+            for (i = 0; i < 3; i++) {
+                BATTLE_RESULT.partners[i].fought = i == 0;
+                BATTLE_RESULT.partners[i].used[0] = i == 0;
+                BATTLE_RESULT.partners[i].used[1] = 0;
+                BATTLE_RESULT.partners[i].used[2] = 0;
+            }
+            padBattleAuto = 1;
+            padBattleFireFrame = frame;
+            printf("battleplay %d: the battle ends as a win, on to the results scene\n", frame);
+            GAME.funcs.requestMode(MODE_BATTLE_REPORT, 0);
+        }
+    } else if (MS_IS_FIELD_MODE(mode) && padBattlePlayIn != 0 && TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0) != NULL) {
+        padBattlePlayIn = 0;
+        padBattleAuto = 0;
+        printf("battleplay %d: back in mode 0x%X (prev 0x%X)\n", frame, (int)mode, (int)GAME.funcs.getPrevMode());
+    }
+}
+
 static void padBattleAutoRun(int frame) {
     const char *key;
     const char *why;
@@ -1790,7 +1923,7 @@ static int padBarrierReady(int kind) {
     case B_kindField:
         /* Any mode whose page is the field's: the player's actor also has to
            exist so the scripted walk keys land on someone. */
-        if ((GAME.funcs.getMode() >> 8) != 2) {
+        if (!MS_IS_FIELD_MODE(GAME.funcs.getMode())) {
             return 0;
         }
         return TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0) != NULL;
@@ -1953,6 +2086,42 @@ static int padCondReady(int cond) {
 static int padFieldAuto; /* armed by the `fieldauto` token */
 static int padFieldExit; /* `fieldexit`: also press cross while the player stands in the rectangle of a slot a stage patch added (port-close S8) */
 extern int pcSlotAreaHeld(void);
+extern int pcFishingWaiting(void); /* new-stages T9: a fishing spot's gauge game is waiting for cross */
+extern int pcSpotFaced(void);      /* and a hidden spot is in front of the player */
+extern int pcAskPanelReady;        /* the port's yes/no question (the `ask` action) waits for an answer */
+static int padAskPick;             /* `askpick:yes|no`: answers it (1 yes, 2 no); the pad is pressed only once the panel is ready, so nothing is timed */
+static int padAskDown;             /* the Down press of a "no" is done */
+static int padFieldSearch;         /* `fieldsearch`: also press cross while the player faces a hidden spot (a kick tree) */
+
+/*
+ * `fieldwalk:<x>:<y>[:press]` (new-stages T10/T11): walks the player to a point of the map, state-driven (the position is read
+ * every frame, nothing is timed). It holds the direction pad toward the point; the second axis is pressed only when the point
+ * is steeper than 2:1 from where the player is, so on a slope (floor values 2 to 7 and 18 to 23) the player follows the incline
+ * the game's own walk step gives (FIELDSTG_getWalkStep) instead of being pulled off it. A point can ask for cross at the end
+ * (`:press`: talks to what the player faces, kicks the tree in front, ...). Several tokens make a route, in order. It implies
+ * `fieldauto` (the dialogs it starts are drained) and waits for a quiet field and no dialog before each step.
+ */
+#define PAD_WALK_MAX 16
+#define PAD_WALK_STUCK 150
+#define padAbs(v) ((v) < 0 ? -(v) : (v))
+typedef struct PadWalkPoint {
+    int x;
+    int y;
+    int press;
+} PadWalkPoint;
+static PadWalkPoint padWalkPts[PAD_WALK_MAX];
+static int padWalkCount;
+static int padWalkIdx;
+static int padWalkEnd;      /* `walkend`: the run ends (after a short settle for the screenshot) once the route is done */
+static int padWalkWait;     /* frames to stay still after a press */
+static int padWalkStill;    /* frames without moving toward the current point */
+static int padWalkLastX = -1;
+static int padWalkLastY = -1;
+static int padWalkFrames;   /* frames spent on the current point (for the log) */
+extern int pcFieldPlayer(int *px, int *py, int *cell, int *dir);
+extern void pcHarnessState(const char *tag); /* boot.c: money and the counts of a few items, one log line */
+static int padWalkDone;     /* the route is done (`walkend` then waits for a quiet field) */
+static int padWalkQuiet;
 static s32 padFieldAutoMode = -1; /* the field mode it started on */
 
 /*
@@ -1972,7 +2141,7 @@ static void padFieldBattlesRun(int frame) {
         return;
     }
     mode = GAME.funcs.getMode();
-    if ((mode >> 8) != 2) {
+    if (!MS_IS_FIELD_MODE(mode)) {
         padFieldBattlesMode = -1;
         return;
     }
@@ -1989,9 +2158,27 @@ static void padFieldBattlesRun(int frame) {
     padFieldBattlesMode = -1;
     printf("pad: frame %d: fieldbattles starts an area battle (%d left)\n", frame, padFieldBattles);
     FIELDSTG_battleFuncs.startAreaBattle();
-    printf("pad: fieldbattles: encounter %d stage %d fighters %d/%d/%d\n", (int)BATTLE_SETUP.battle,
+    printf("pad: fieldbattles: encounter %d stage %d fighters %d/%d/%d levels %d/%d/%d hp %d\n", (int)BATTLE_SETUP.battle,
            (int)BATTLE_SETUP.stage, (int)BATTLE_SETUP.enemies[0].fighter,
-           (int)BATTLE_SETUP.enemies[1].fighter, (int)BATTLE_SETUP.enemies[2].fighter);
+           (int)BATTLE_SETUP.enemies[1].fighter, (int)BATTLE_SETUP.enemies[2].fighter, (int)BATTLE_SETUP.enemies[0].level,
+           (int)BATTLE_SETUP.enemies[1].level, (int)BATTLE_SETUP.enemies[2].level, (int)BATTLE_SETUP.enemies[0].hp);
+}
+
+/* `fieldsearch` kicks a tree once per place: it does not kick again until the player has moved 12 px (a route walks on to the next tree) */
+static int padSearchNew(void) {
+    static int lastX = -1000;
+    static int lastY = -1000;
+    int px, py, cell, dir;
+
+    if (!pcFieldPlayer(&px, &py, &cell, &dir)) {
+        return 1;
+    }
+    if (px - lastX < 12 && lastX - px < 12 && py - lastY < 12 && lastY - py < 12) {
+        return 0;
+    }
+    lastX = px;
+    lastY = py;
+    return 1;
 }
 
 static void padFieldAutoRun(int frame) {
@@ -2019,7 +2206,7 @@ static void padFieldAutoRun(int frame) {
         }
         padAutoPhase = 0;
     }
-    if ((GAME.funcs.getMode() >> 8) != 2) {
+    if (!MS_IS_FIELD_MODE(GAME.funcs.getMode())) {
         return;
     }
     if (padFieldAutoMode < 0) {
@@ -2030,9 +2217,36 @@ static void padFieldAutoRun(int frame) {
                (int)GAME.funcs.getMode());
         return;
     }
+    if (padAskPick != 0 && pcAskPanelReady != 0) {
+        if (padAskPick == 2 && padAskDown == 0) {
+            padAskDown = 1;
+            padFakeKey(padKeyBit("down"), 1);
+            printf("fieldauto %d: the question waits -> Down (answer no)\n", frame);
+        } else {
+            padFakeKey(padLogicalIndexToRaw(PAD_CROSS), 1);
+            printf("fieldauto %d: the question waits -> cross (answer %s)\n", frame, padAskPick == 2 ? "no" : "yes");
+        }
+        padAutoPhase = 1;
+        padAutoTimer = PAD_AUTO_HOLD;
+        return;
+    }
+    if (padAskPick != 0 && pcAskPanelReady == 0) {
+        padAskDown = 0;
+    }
     win = padPausedWindow(&paused, &seen, &kind);
     if (win == NULL) {
-        if (padFieldExit != 0 && pcSlotAreaHeld() >= 0 && FIELDSTG_state.busy == 0 && FIELDSTG_state.menuOpen == 0 && FIELDSTG_state.frozen == 0) {
+        if (padFieldExit != 0 && pcFishingWaiting() && FIELDSTG_state.menuOpen == 0 && FIELDSTG_state.frozen == 0) {
+            padFakeKey(padLogicalIndexToRaw(PAD_CROSS), 1); /* stops the cursor of the gauge game */
+            padAutoPhase = 1;
+            padAutoTimer = PAD_AUTO_HOLD;
+            printf("fieldauto %d: the gauge game of a fishing spot -> press #%d\n", frame, ++padAutoActions);
+        } else if (padFieldSearch != 0 && pcSpotFaced() && FIELDSTG_state.busy == 0 && FIELDSTG_state.acting == 0 && FIELDSTG_state.menuOpen == 0 &&
+                   FIELDSTG_state.frozen == 0 && padSearchNew()) {
+            padFakeKey(padLogicalIndexToRaw(PAD_CROSS), 1);
+            padAutoPhase = 1;
+            padAutoTimer = PAD_AUTO_HOLD;
+            printf("fieldauto %d: a hidden spot in front -> press #%d\n", frame, ++padAutoActions);
+        } else if (padFieldExit != 0 && pcSlotAreaHeld() >= 0 && FIELDSTG_state.busy == 0 && FIELDSTG_state.menuOpen == 0 && FIELDSTG_state.frozen == 0) {
             padFakeKey(padLogicalIndexToRaw(PAD_CROSS), 1);
             padAutoPhase = 1;
             padAutoTimer = PAD_AUTO_HOLD;
@@ -2047,6 +2261,109 @@ static void padFieldAutoRun(int frame) {
     padAutoTimer = PAD_AUTO_HOLD;
     printf("fieldauto %d: dialog %s waits -> press #%d\n", frame,
            kind == PAD_PAUSE_MARKER ? "marker" : "page", ++padAutoActions);
+}
+
+static void padFieldWalkRun(int frame) {
+    PadWalkPoint *p;
+    TextWindow *win;
+    int paused, seen, kind;
+    int px, py, cell, dir;
+    int dx, dy, ex, ey;
+    u16 bits = 0;
+
+    if (padWalkDone != 0 && padWalkEnd != 0) {
+        /* the route is done: stop once the field has been quiet for 90 frames (the dialog a press started has ended) */
+        if (padPausedWindow(&paused, &seen, &kind) != NULL || seen != 0 || padAutoPhase != 0 || FIELDSTG_state.busy != 0 || FIELDSTG_state.acting != 0 ||
+            FIELDSTG_state.battleStarting != 0 || !MS_IS_FIELD_MODE(GAME.funcs.getMode())) {
+            padWalkQuiet = 0;
+        } else if (++padWalkQuiet >= 90) {
+            pcHarnessState("route done");
+            padWalkEnd = 0;
+            pcBootStopInMode(GAME.funcs.getMode(), 30);
+        }
+        return;
+    }
+    if (padWalkIdx >= padWalkCount || padBattleFireFrame < 0 || padAutoPhase != 0) {
+        return;
+    }
+    if (!MS_IS_FIELD_MODE(GAME.funcs.getMode()) || !pcFieldPlayer(&px, &py, &cell, &dir)) {
+        return;
+    }
+    if (FIELDSTG_state.busy != 0 || FIELDSTG_state.acting != 0 || FIELDSTG_state.frozen != 0 || FIELDSTG_state.menuOpen != 0 ||
+        FIELDSTG_state.battleStarting != 0) {
+        padWalkWait = 20;
+        return;
+    }
+    win = padPausedWindow(&paused, &seen, &kind);
+    if (win != NULL || seen != 0) {
+        padWalkWait = 20;
+        return;
+    }
+    if (padWalkWait > 0) {
+        padWalkWait--;
+        return;
+    }
+    p = &padWalkPts[padWalkIdx];
+    dx = p->x - px;
+    dy = p->y - py;
+    ex = dx > 3 || dx < -3;
+    ey = ex ? (padAbs(dy) > padAbs(dx) / 2 + 6) : (dy > 3 || dy < -3);
+    if (padWalkIdx == 0 && padWalkFrames == 0) {
+        pcHarnessState("route start");
+    }
+    padWalkFrames++;
+    if (!ex && !ey) {
+        printf("fieldwalk %d: reached #%d (%d, %d) at (%d, %d), floor cell %d, facing %d\n", frame, padWalkIdx, p->x, p->y, px, py, cell, dir);
+        if (p->press) {
+            padFakeKey(padLogicalIndexToRaw(PAD_CROSS), 1);
+            padAutoPhase = 1;
+            padAutoTimer = PAD_AUTO_HOLD;
+            padWalkWait = 40;
+            printf("fieldwalk %d: press cross\n", frame);
+        } else {
+            padFakeKey(0, 0);
+        }
+        padWalkIdx++;
+        padWalkStill = 0;
+        padWalkFrames = 0;
+        padWalkLastX = padWalkLastY = -1;
+        if (padWalkIdx >= padWalkCount) {
+            printf("fieldwalk %d: route done\n", frame);
+            padWalkDone = 1;
+        }
+        return;
+    }
+    {
+        /* stuck = the distance to the point has not gone down by 3 px in PAD_WALK_STUCK frames (a wall in the way, or a jitter against it) */
+        int dist = padAbs(dx) + padAbs(dy);
+
+        if (padWalkLastX < 0 || dist <= padWalkLastY - 3) {
+            padWalkLastX = 0;
+            padWalkLastY = dist;
+            padWalkStill = 0;
+        } else if (++padWalkStill >= PAD_WALK_STUCK) {
+            printf("fieldwalk %d: stuck at (%d, %d), floor cell %d, toward #%d (%d, %d): skipped\n", frame, px, py, cell, padWalkIdx, p->x, p->y);
+            padFakeKey(0, 0);
+            padWalkIdx++;
+            padWalkStill = 0;
+            padWalkFrames = 0;
+            padWalkLastX = padWalkLastY = -1;
+            if (padWalkIdx >= padWalkCount) {
+                padWalkDone = 1;
+            }
+            return;
+        }
+    }
+    if (ex) {
+        bits |= padKeyBit(dx > 0 ? "right" : "left");
+    }
+    if (ey) {
+        bits |= padKeyBit(dy > 0 ? "down" : "up");
+    }
+    padHeldBit = bits;
+    if (padWalkFrames % 10 == 1) {
+        printf("fieldwalk %d: at (%d, %d), floor cell %d, toward #%d (%d, %d)\n", frame, px, py, cell, padWalkIdx, p->x, p->y);
+    }
 }
 
 /*
@@ -2108,7 +2425,7 @@ static int padWaitingPage(int *key, int *chars) {
     int cursor = 0;
     int waiting = 0;
 
-    if (csIsOpen() || (GAME.funcs.getMode() >> 8) != 2 || FIELDSTG_state.menuOpen != 0) {
+    if (csIsOpen() || !MS_IS_FIELD_MODE(GAME.funcs.getMode()) || FIELDSTG_state.menuOpen != 0) {
         return 0;
     }
     count = padDialogueWindows(owners, PAD_AUTO_TEXT_OWNERS, &cursor);
@@ -2151,7 +2468,7 @@ static int padTypingPage(int *key) {
     int cursor = 0;
     int typing = 0;
 
-    if (csIsOpen() || (GAME.funcs.getMode() >> 8) != 2 || FIELDSTG_state.menuOpen != 0) {
+    if (csIsOpen() || !MS_IS_FIELD_MODE(GAME.funcs.getMode()) || FIELDSTG_state.menuOpen != 0) {
         return 0;
     }
     count = padDialogueWindows(owners, PAD_AUTO_TEXT_OWNERS, &cursor);
@@ -2320,7 +2637,7 @@ static void padRunScript(void) {
             padTimer = PAD_KEY_GAP;
             return;
         }
-        if ((GAME.funcs.getMode() >> 8) != 2) {
+        if (!MS_IS_FIELD_MODE(GAME.funcs.getMode())) {
             /* The chain left the field: the drain is done. */
             printf("pad: dialog drain done after %d exact press(es) "
                    "(mode 0x%X); the script goes on\n",
@@ -2668,11 +2985,12 @@ void pcBootPadInit(const char *script) {
         return;
     }
     padWarpFlag = -1;
+    padExtraFlagCount = 0;
     padWarpProgress = -1; /* a warp token without `,progress` keeps the game's own */
 
     scan = script;
     while (*scan != '\0' && padStepCount < PAD_SCRIPT_MAX) {
-        char token[16];
+        char token[32]; /* `fieldwalk:<x>:<y>:press` needs 24 */
         int n = 0;
 
         while (*scan == ',' || *scan == ' ') {
@@ -2885,6 +3203,60 @@ void pcBootPadInit(const char *script) {
             padFieldExit = 1;
             continue;
         }
+        if (padTokenIs(token, "askpick:yes") || padTokenIs(token, "askpick:no")) {
+            /* `fieldauto` that also answers the yes/no question of an `ask` action (the port's) */
+            padFieldAuto = 1;
+            padAskPick = token[8] == 'n' ? 2 : 1;
+            continue;
+        }
+        if (padTokenIs(token, "battleplay:win")) {
+            padBattlePlay = 1;
+            continue;
+        }
+        if (padTokenIs(token, "walkend")) {
+            padWalkEnd = 1; /* with `fieldwalk`: end the run when the route is done */
+            continue;
+        }
+        if (token[0] == 'f' && padTokenStarts(token, "fieldwalk:")) {
+            /* `fieldwalk:<x>:<y>[:press]`: one more point of the route (padFieldWalkRun); it needs the dialog autopilot */
+            const char *q = token + 10;
+            int v[2] = { 0, 0 };
+            int k;
+
+            for (k = 0; k < 2; k++) {
+                int num = 0;
+                int digits = 0;
+
+                while (*q >= '0' && *q <= '9') {
+                    num = num * 10 + (*q - '0');
+                    q++;
+                    digits++;
+                }
+                v[k] = digits ? num : -1;
+                if (digits == 0 || (k == 0 && *q != ':')) {
+                    break;
+                }
+                if (k == 0) {
+                    q++;
+                }
+            }
+            if (v[0] < 0 || v[1] < 0 || padWalkCount >= PAD_WALK_MAX || (*q != '\0' && !(padTokenStarts(q, ":press") && q[6] == '\0'))) {
+                fprintf(stderr, "pad: the fieldwalk token '%s' is not fieldwalk:<x>:<y>[:press] (or the route is full); the token is a no-op\n", token);
+                continue;
+            }
+            padWalkPts[padWalkCount].x = v[0];
+            padWalkPts[padWalkCount].y = v[1];
+            padWalkPts[padWalkCount].press = (*q != '\0');
+            padWalkCount++;
+            padFieldAuto = 1;
+            continue;
+        }
+        if (padTokenIs(token, "fieldsearch")) {
+            /* `fieldauto` that also presses cross in front of a hidden spot (a kick tree); needs the search item (DW3_SEED_ITEMS=4=1) */
+            padFieldAuto = 1;
+            padFieldSearch = 1;
+            continue;
+        }
         if (padTokenIs(token, "battlepilot")) {
             /* the battle autopilot alone, without the battle's fire: for a
                run whose own field starts the fight (warp + fieldauto) */
@@ -2900,6 +3272,12 @@ void pcBootPadInit(const char *script) {
                                                                        quiet for screens whose
                                                                        animations idle the tasks */
             }
+            continue;
+        }
+        if (padTokenIs(token, "cardplay") || padTokenStarts(token, "cardplay:")) {
+            padCardPlay = token[8] != ':' ? 1 : token[9] == 'w' ? 2 : token[9] == 'l' ? 3 : 1;
+            padCardAuto = padCardPlay == 1;
+            padUntilStay = 1;
             continue;
         }
         if (padTokenIs(token, "cardauto") || padTokenStarts(token, "cardauto:")) {
@@ -3014,6 +3392,10 @@ void pcBootPadInit(const char *script) {
             if (padModeArmed != 0) {
                 padUntilImplied(value); /* the run ends when the mode closes */
             }
+            continue;
+        }
+        if (token[0] == 'r' && padTokenStarts(token, "reach:")) {
+            padReachMode = padParseHex(token + 6);
             continue;
         }
         if (token[0] == 'u' && padTokenStarts(token, "until:")) {
@@ -3141,7 +3523,11 @@ void pcBootPadInit(const char *script) {
                 value = value * 16 + (*h <= '9' ? *h - '0' : (*h | 0x20) - 'a' + 10);
                 h++;
             }
-            padWarpFlag = value;
+            if (padWarpFlag >= 0 && padExtraFlagCount < 4) {
+                padExtraFlags[padExtraFlagCount++] = value;
+            } else {
+                padWarpFlag = value;
+            }
             continue;
         }
         if (token[0] == 'w' && padTokenStarts(token, "warp:")) {
@@ -3196,7 +3582,7 @@ void pcBootPadInit(const char *script) {
                same lane the warp rides */
             return;
         }
-        if (padFieldAuto != 0 || padBattleAuto != 0 || padCardAuto != 0 || padFieldBattles != 0) {
+        if (padFieldAuto != 0 || padBattleAuto != 0 || padCardAuto != 0 || padCardPlay != 0 || padBattlePlay != 0 || padFieldBattles != 0) {
             return; /* the field autopilot alone: the frame hook runs it */
         }
         if (padBattleScheduleCount != 0) {
@@ -3345,7 +3731,7 @@ static void padLatchScripted(void) {
     }
     done = 1;
     padScriptedRun = padScriptArmed || padWarpStage != 0 || padBattleArmed != 0 || padModeArmed != 0 ||
-                     padControlsArmed != 0 || padFieldAuto != 0 || padBattleAuto != 0 || padCardAuto != 0 ||
+                     padControlsArmed != 0 || padFieldAuto != 0 || padBattleAuto != 0 || padCardAuto != 0 || padCardPlay != 0 ||
                      padBattleScheduleCount != 0 || padFieldBattles != 0;
 }
 
@@ -3570,8 +3956,11 @@ void pcBootPadFrame(int frame) {
     /* The battle schedule (T7): its own lane, out of padRunScript's phase
        gate, the presses start once the fire's frame says each rel is due */
     padBattleScheduleRun(frame);
+    padCardPlayRun(frame);
+    padBattlePlayRun(frame);
     padBattleAutoRun(frame);
     padFieldAutoRun(frame);
+    padFieldWalkRun(frame);
     padFieldBattlesRun(frame);
     padUntilRun();
 

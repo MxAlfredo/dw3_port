@@ -14,6 +14,12 @@ typedef struct {
 } ScopeRange;
 
 typedef struct {
+    unsigned char *begin;
+    size_t size;
+    int fromId;
+} ScopeCarry;
+
+typedef struct {
     StateScopeHook fn;
     void *user;
 } ScopeHook;
@@ -24,6 +30,8 @@ struct StateScope {
     int active;
     ScopeRange *ranges;
     size_t rangeCount;
+    ScopeCarry *carries;
+    size_t carryCount;
     ScopeHook *enter;
     size_t enterCount;
     ScopeHook *exit;
@@ -191,6 +199,22 @@ static void restore(StateScope *scope) {
     }
 }
 
+int stateScopeCarry(StateScope *scope, void *begin, size_t size, int fromModeId) {
+    ScopeCarry *carry;
+
+    if (scope == NULL || begin == NULL || scope->carryCount >= 8) {
+        return -1;
+    }
+    carry = growOne((void **)&scope->carries, &scope->carryCount, sizeof(*carry));
+    if (carry == NULL) {
+        return -1;
+    }
+    carry->begin = begin;
+    carry->size = size;
+    carry->fromId = fromModeId;
+    return 0;
+}
+
 void stateScopeLeave(StateScope *scope) {
     leaveTree(scope);
 }
@@ -207,6 +231,34 @@ void stateScopeEnter(StateScope *scope) {
     }
     scope->active = 1;
     runHooks(scope, scope->enter, scope->enterCount);
+}
+
+/* stateScopeEnter, keeping the carried ranges of the scope that come from the mode id `fromId` as they are in memory */
+static void enterFrom(StateScope *scope, int fromId) {
+    unsigned char *kept[8];
+    size_t i, n = 0;
+
+    for (i = 0; i < scope->carryCount && i < 8; i++) {
+        kept[i] = NULL;
+        if (scope->carries[i].fromId == fromId && scope->carries[i].size != 0) {
+            kept[i] = malloc(scope->carries[i].size);
+            if (kept[i] != NULL) {
+                memcpy(kept[i], scope->carries[i].begin, scope->carries[i].size);
+                n++;
+            }
+        }
+    }
+    if (n == 0) {
+        stateScopeEnter(scope);
+        return;
+    }
+    stateScopeEnter(scope);
+    for (i = 0; i < scope->carryCount && i < 8; i++) {
+        if (kept[i] != NULL) {
+            memcpy(scope->carries[i].begin, kept[i], scope->carries[i].size);
+            free(kept[i]);
+        }
+    }
 }
 
 static int bind(Binding **table, size_t *count, int key, StateScope *scope) {
@@ -261,11 +313,11 @@ void stateScopeModeEntered(int mode) {
     if (old != NULL) {
         stateScopeLeave(old);
     }
+    if (next != NULL) {
+        enterFrom(next, lastMode);
+    }
     lastMode = id;
     lastSub = -1;
-    if (next != NULL) {
-        stateScopeEnter(next);
-    }
 }
 
 /* overlay.c:68-77: the sub-overlay is (re)loaded only when its file changes */
@@ -294,6 +346,7 @@ void stateScopeClear(void) {
             free(scopes[i]->ranges[j].snapshot);
         }
         free(scopes[i]->ranges);
+        free(scopes[i]->carries);
         free(scopes[i]->enter);
         free(scopes[i]->exit);
         free(scopes[i]);

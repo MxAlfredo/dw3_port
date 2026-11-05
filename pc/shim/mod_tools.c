@@ -514,7 +514,7 @@ static const char *nearest(const char *word, const char *const *list, int n)
     return pick;
 }
 
-static const char *const kKnownFolders[] = {"config", "content", "card", "tables", "text", "images", "files", "video", "audio", "z_stage", "stages"};
+static const char *const kKnownFolders[] = {"config", "content", "card", "tables", "text", "images", "files", "video", "audio", "z_stage", "stages", "new-stages", "sprites"};
 static const char *const kContentFiles[] = {"items", "techs", "digimon", "cards"};
 static const char *const kModKeys[] = {"format", "name", "version", "author", "description", "kind", "port", "requires", "$schema"};
 
@@ -613,6 +613,7 @@ static void checkTree(int mi, const ModsReport *r, const ModToolsLayers *L)
         if (e->d_name[0] == '.' || !strcmp(e->d_name, "mod.json")) continue;
         snprintf(path, sizeof path, "%s/%s", r->dir, e->d_name);
         if (!isDirPath(path)) continue; /* README and the like */
+        if (!strcmp(e->d_name, "tools")) continue; /* an author's own scripts (a generator of art, a packer): never read, and no warning for them */
         for (k = 0; k < (int)(sizeof kKnownFolders / sizeof kKnownFolders[0]); k++) known |= !strcmp(e->d_name, kKnownFolders[k]);
         if (!known) {
             const char *sug = nearest(e->d_name, kKnownFolders, (int)(sizeof kKnownFolders / sizeof kKnownFolders[0]));

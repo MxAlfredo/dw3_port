@@ -52,7 +52,7 @@ regla por LBA) y un mod reemplaza un archivo por su ruta (`mods/<mod>/files/<rut
 | Stage: imágenes (MASK) | 294 | 802, 2272... | `FIELD/STAGE/SnnnMASK.BIN` | `FIELDSTG_loadFieldFiles` `src/field/field_mode/file_loader.c:56` | parcial |
 | Stage: fondos (BG) | 4 | 1897, 1898, 1909, 2200 | `S415BG01/02`, `S815BG01/02` | `wstag415.c:384`, `wstag815.c:51` | parcial |
 | Stage: demos | 2 | 2188, 2189 | `SSUBDEMO`, `SDIGDEMO` | `FIELD_ANIM_FILE` `include/field/field_mode.h:379` | parcial |
-| Z_STAGE (SnnnPACK) | 237 | 406-1926 | `Z_STAGE/SnnnPACK.BIN` | `FIELDSTG_runMapStreamer` `src/field/field_mode/map_streamer.c:293` | parcial (cabecera comprobada) |
+| Z_STAGE (SnnnPACK) | 237 | 406-1926 | `Z_STAGE/SnnnPACK.BIN` | `FIELDSTG_runMapStreamer` `src/field/field_mode/map_streamer.c:293` | entendida (ida y vuelta byte a byte) |
 | Sprites de campo | 179 + `FIELDCOM` | 390-2208; 352 | `FIELD/SPRT/PnnnXXXX.BIN` | `FIELDSTG_createActor` `src/field/field_mode/actor.c:136` | entendida (4.5) |
 | Combate: modelos | 245 | 351-1899 | `FIGHT/MODEL/MnnnXXXX.BIN`, `MNxxxx` | `FighterInfo.model` `include/battle/battle_mode/model.h:225` | formato descifrado y probado con un prototipo (ver 4.6) |
 | Combate: efectos | 239 | 1753-2210 | `FIGHT/EFFECT/MEFTnnnn`, `ENxxxx`, `ENCOMn` | `FighterInfo.effects`, `EffectModelEntry` `model.h:166` | desconocido |
@@ -127,7 +127,7 @@ Clasificación medida en el disco (heurística: tabla de offsets monótona que e
 > `CARD_NPC`, `CARDPACK`, `COUNTRY/JPN|USA`, los `.PRO`) sale tal cual a `data/raw/` y se reemplaza desde `mods/<mod>/files/`; los tipos, lo que se sabe de cada uno y
 > si el juego lee el reemplazo están en `data/raw/raw.json` y en `pc/README.md`.
 
-### 4.3 Escenarios de campo: SNTMPK, SNMASK, SNBG — parcial
+### 4.3 Escenarios de campo: SNTMPK, SNMASK, SNBG — TMPK documentado
 
 Hay 294 `SnnnMASK` y 294 `SnnnTMPK`, uno de cada por overlay `WSTAGnnn`. El overlay fija sus
 números en `setupStage` (hecho para `wstag923.c`; el resto no se revisó uno por uno).
@@ -135,7 +135,56 @@ números en `setupStage` (hecho para `wstag923.c`; el resto no se revisó uno po
 - **`SnnnTMPK.BIN`** (entradas por `FIELDSTG_map.setFile(índice, archivo << 16 | n)`, `map.c:46`):
   celdas de la cuadrícula de colisión, zonas de combate y puertas (`FieldMap`,
   `include/field/field_map.h:85-100`: `FIELD_MAP_FLOOR0`, `FIELD_MAP_AREAS`, `FIELD_MAP_TRIGGERS`).
-  Layout interno: parcial; el lector es `FieldMap.getCell`.
+  **Contenedor** (`pc/shim/map_layers.c`): tabla de `u32` con el desplazamiento de cada entrada; el primer valor distinto de 0 es
+  también el tamaño de la tabla; un 0 es una entrada ausente (18 archivos, p. ej. S920, empiezan con tres ranuras en 0, y 71 ranuras
+  están ausentes en total). La entrada 0 es la hoja de objetos del mapa (opaca aquí); `setFile(i, STAGE_FILE << 16 | n)` apunta a la
+  entrada `n` (`wstag800.c:351-353`: piso = 1, disparadores = 2, áreas = 3). 32 entradas del disco no son capas (otra clase de dato,
+  p. ej. S202 entrada 1, S415 entradas 2 y 4); el códec las rechaza como `ML_ERR_FORMAT` y el resto (728 capas) se decodifica.
+  **Capa** (`map.c:19-97`, `FIELDSTG_getMapCell`): 6 `u32` (rejilla, `cells64`, `cells32`, `cells16`, `cells8`, píxeles) y las partes:
+  rejilla = `u8` ancho, `u8` alto en celdas de 128 px y un `u8` por celda; `cells64` = 4 `u8` por nodo; `cells32/16/8` = 4 `s16` por
+  nodo; píxeles = 64 `u8` por bloque de 8x8. Cuadrante = `(y & m ? 2 : 0) + (x & m ? 1 : 0)` con `m` = 0x40, 0x20, 0x10, 8.
+  Límites que implica el lector: rejilla de 1 a 255 celdas por lado; a lo sumo 256 bloques distintos de 128 px y 256 de 64 px
+  (índices `u8`); a lo sumo 32767 de 32 px, 16 px y bloques de píxeles (índices `s16`). La partes se alinean a 4 bytes (rejilla,
+  con relleno de ceros) y las entradas del archivo van seguidas.
+  **Escritura byte a byte** (`pc/maplayertest.c`, barrido del disco EU): reescribir una capa decodificada con `mlEncode` da los mismos
+  bytes en las 728 capas, y el archivo entero reconstruido (`mlArchiveBuild`, con las entradas que no son capas copiadas tal cual)
+  da los mismos bytes en 276 de 294 (los 18 restantes empiezan con ranuras ausentes que el constructor no reproduce). El orden de
+  los identificadores que lo logra: cada nivel se recorre por filas sobre todo el plano (no en profundidad) y un bloque recibe el
+  siguiente identificador la primera vez que aparece su contenido (nivel 0: bloques de 8x8; luego 16, 32, 64 y 128 px, cuadrantes en
+  orden arriba-izquierda, arriba-derecha, abajo-izquierda, abajo-derecha).
+  **Piso (`FIELD_MAP_FLOOR0/1`, dos pisos; `GAME.mapIndex` elige uno: `SLOT_MAP`, `setFirstMap`)**, por lo que lee el código:
+  - `0`: celda cerrada. `FIELDSTG_checkFlightProbe` (`actor_control.c:10-85`) devuelve al actor un paso atrás cuando la celda del piso es 0
+    (o no está libre, `isTileFree`), con o sin altura (`actor_control.c:81-84`). Es el valor de mayor frecuencia en el disco.
+  - `1` (`FLIGHT_OPEN`, `field_mode.h:111`): abierto y plano. Para quien camina, el nibble bajo 0 y 1 dan la misma pendiente plana
+    (`map.c:149-159`: `row = cell & 0xF; row -= row != 0`; fila 0 de `FIELDSTG_dirVectors`, `fieldstg.c:3601`).
+  - `2` a `7` (nibble bajo): pendiente al caminar, fila `n - 1` de `FIELDSTG_dirVectors` (la tabla tiene 7 filas, 0 a 6; la 0 es plana y las
+    demás tienen otro largo de paso por dirección). Al volar, `2..6` son muros de altura `n * 16` px (`FLIGHT_WALL`, `field_mode.h:105-114`;
+    el actor solo pasa si su z lo supera, `actor_control.c:19-60`, `300-330`). El `7` existe en el disco (15 240 celdas) y su efecto en
+    vuelo no está en estas funciones: hipótesis, no probado.
+  - Bit `0x10` (`16 + n`): la misma pendiente espejada en x (`map.c:153-156`: `FIELDSTG_mirrorDirs`, signo -1). Al volar, `18..22` son
+    techos a `FLIGHT_LEVEL(24 - v)` hacia arriba (`FLIGHT_CEILING(n) = 24 - n`). Valores vistos en el disco: 0-7 y 18-22 solamente.
+  - Los valores 4, 6, 19 y 22 del escenario 345 son entonces: pendiente de fila 3 y 5, y pendientes espejadas de fila 2 y 5 (muro de
+    nivel 4 y 6 y techos de nivel 5 y 2 en vuelo). Es la lectura del código; qué se ve en pantalla en cada celda no se probó en el juego.
+  - Hipótesis sin probar: la colisión del suelo para un personaje a pie (z = 0) no sale de estas lecturas más que por el `cell == 0` de
+    arriba; no se encontró otra consulta de la capa en `src/field/field_mode/` (solo `getWalkStep`, `getFlyStep` y las sondas de vuelo).
+  **Pendientes caminadas (T10, sin ventana):** el valor 3 y su espejo 19 se probaron con el escenario `training-field:lower` (`pc/examples/mods/training-field`).
+  La pendiente no cambia ninguna altura del personaje (no hay `z` al caminar): `FIELDSTG_getWalkStep` (`map.c:149-160`) solo cambia el paso, y como el
+  mapa es una vista oblicua, el jugador sube por la pantalla. Fila 2 de `FIELDSTG_dirVectors` (valor 3), hacia el este: `(3939, -819) / 4096`, es decir
+  0,2079 px hacia arriba por px hacia el este; con el espejo (valor 19) el este sale `(+3940, +818)`: baja. Medido con `fieldwalk` (cada 10 cuadros, posición y valor de la
+  celda bajo el jugador, `docs/stages.md` §13): rampa oeste (valor 3) de (297, 264) a (449, 229) = 0,23 en total y 0,208 entre los dos puntos medios (372, 245) y (449, 229); rampa este (valor 19) de (726, 238) a (799, 253) bajando.
+  Para que se vea una rampa hay que **dibujar** la banda que tiene el valor (el juego no dibuja nada): una meseta de 32 px se sube con una banda de 154 px
+  (32 / 0,2079) y 32 px de alto; los lados de la rampa son muros (valor 0), y el pie del muro de un lado es un triángulo. El valor 0 de un muro frena al jugador que corre
+  (`FIELDSTG_checkFlightProbes` en `ACTOR_RUN`, `actor_control.c:1446-1447`: una banda de rampa con muro debajo no se cruza de sur a norte; el arnés se atascó en ese muro).
+  No probado: el valor 2 y 4-7 (el mismo mecanismo con otra fila), las capas `FLOOR1`/`SLOT_MAP` (un escenario nuevo solo trae el piso 0: `pcModStageSetup` fija `FIELD_MAP_FLOOR0`) y `SLOT_DEPTH`/`SLOT_CLIMB_*`/`SLOT_DROP` de un escenario de mod (hipótesis: el cargador acepta esos tipos de ranura y el campo pide su animación, `docs/stages.md` §10).
+  **Disparadores (`FIELD_MAP_TRIGGERS` = índice 7)**, `FIELDSTG_findTrigger` (`trigger.c:7-60`): valor `v`; `0` = nada; si no, dirección
+  = `v >> 5` (3 bits) y ranura = `v & 0x1F` (5 bits, 1 a 31 útiles) en `task->entries[ranura]` (`StageSlot`, `field_map.h:260-275`:
+  `SLOT_EXIT`, `SLOT_EVENT`, `SLOT_WARP*`, ...). Los tipos `SLOT_DEPTH`, `SLOT_MAP`, `SLOT_EVENT`, `SLOT_WARP*`, `SLOT_SLIDE`,
+  `SLOT_STOP_SLIDE`, `SLOT_LAUNCH*` actúan al pisar; los demás (hasta `SLOT_GAUGE`) piden mirar hacia la celda: `FIELDSTG_nearDirs[dir][dirDelActor]`
+  (`trigger.c:57`). Qué dirección es cada `v >> 5` (0 a 7) sigue la tabla de 8 direcciones del juego (`fieldstg.c`, `dirVectors`): su
+  mapeo exacto a norte/este... no se verificó (hipótesis).
+  **Áreas (`FIELD_MAP_AREAS` = índice 4)**: valor `a`; `0` = sin combate; si no, el área es `a - 1`: `FIELDSTG_state.battles->battles[a - 1]`
+  (`FieldBattles`) con `count` combates y ocho filas `AreaBattle`; cada paso resta `FIELDSTG_battleRates[count]` a `GAME.battleSteps` y,
+  al llegar a 0, `startAreaBattle` elige `RANDOM.next() & 7` (`battle.c:15-58`). La capa se vacía al entrar al campo (`field.c:511`).
 - **`SnnnMASK.BIN`** (`FieldState.imageFile`): archivo de TIM comprimidos con RLEN que
   `FIELDSTG_loadFieldFiles` sube a VRAM en `(FIELD_OBJECTS_X, FIELD_OBJECTS_Y)`
   (`file_loader.c:113-120`): imágenes de los objetos del escenario. Los 294 coinciden con la
@@ -146,32 +195,65 @@ números en `setupStage` (hecho para `wstag923.c`; el resto no se revisó uno po
 - **`SSUBDEMO`, `SDIGDEMO`**: animaciones de cinemática en el campo (`CutsceneAnim.kind`,
   `field_mode.h:367`); layout desconocido.
 
-### 4.4 Z_STAGE `SnnnPACK.BIN` (237 archivos, 239 MB) — parcial, cabecera comprobada
+### 4.4 Z_STAGE `SnnnPACK.BIN` (237 archivos, 239 MB) — entendida, ida y vuelta byte a byte
 
 Son los **mosaicos del mapa de fondo**: el campo los lee por sectores desde el CD mientras el
-jugador se mueve.
+jugador se mueve. Códec portátil: `pc/shim/map_pack.[ch]`; prueba: `make -C pc mappacktest`.
 
 - Lector: `FIELDSTG_createMapStreamer(FIELDSTG_state.mapFile)` (`src/field/field_mode/field.c:546`);
   el escenario fija `mapFile` (por ejemplo `wstag923.c`: `0x19A` = `S210PACK.BIN`). Los
   escenarios que no lo declaran explícito usan `STAGE_FILE - 1` (`wstag420.c:59`): el PACK está
   justo antes del TMPK en 228 de los 237 casos. 294 escenarios comparten 237 PACK.
-- Estructura (`src/field/field_mode/map_streamer.c:293-340`, `include/field/field_mode.h:462`):
-  - Sector 0, `MapFileHeader`: `tileCount`, `width`, `height` (en mosaicos de 128 px),
-    `tileBytes` (el espacio de un mosaico en el CD, múltiplo de 2048) y `u16 tileSizes[width *
-    height]` (bytes de cada mosaico; 0 si no hay).
-  - Sectores 1...: un mosaico cada `tileBytes / 2048` sectores, en orden de fila
-    (`sector = frame * frameSectors + 1`, `FIELDSTG_seekStream`, `stream.c:17`).
-  - Cada mosaico es un bloque RLEN (se descomprime con el `Decompressor`) que contiene: una
-    palabra, tres listas de sprites (palabra con la cuenta y seis `s16` cada uno: x, y, u, v, w, h;
-    hasta 5 por lista, tres profundidades) y, como entrada 0 de un archivo con tabla, un TIM
-    (`FIELDSTG_loadStreamSprites`, `stream.c:82`). El mosaico se pinta como esos sprites desde
-    el TIM subido a una de 12 posiciones de VRAM.
-- Verificación en el disco (los 237): `1 + width*height*(tileBytes/2048)` es igual al número de
-  sectores del archivo; el número de `tileSizes` distintos de 0 es igual a `tileCount`;
-  `max(tileSizes) <= tileBytes`. `tileBytes` va de 14 a 20 KB (20 KB en 129 archivos, 18 KB en 88). Ejemplo: `S210PACK`:
-  34 mosaicos con datos, 7x5 mosaicos de 128 px = 896x640 px.
-- Desconocido: el contenido de los TIM (paletas, 4/8 bits por mosaico) y qué hacen las tres listas
-  de profundidad más allá de `FIELDSTG_drawStream` (`stream.c:29`).
+- **Contenedor** (`src/field/field_mode/map_streamer.c:306-328`, `include/field/field_mode.h:462-469`):
+  - Sector 0, `MapFileHeader`: `s32 tileCount` (nada lo lee; es la cuenta de `tileSizes` distintos de 0),
+    `s32 width`, `s32 height` (en mosaicos de 128 px), `s32 tileBytes` (el espacio de un mosaico en el CD,
+    múltiplo de 2048) y `u16 tileSizes[width * height]` (bytes de cada mosaico, 0 si no hay); el resto del
+    sector es 0.
+  - Sectores 1...: un mosaico cada `tileBytes / 2048` sectores, en orden de fila: `sector = frame * frameSectors + 1`
+    (`FIELDSTG_seekStream`, `stream.c:17`). El archivo mide exactamente `1 + width * height * tileBytes / 2048` sectores
+    (los 237). El espacio de un mosaico vacío es 0.
+  - **Cada tamaño es un número entero de sectores**: el lector pide al CD `tileSizes >> 11` sectores
+    (`map_streamer.c:322`, `FIELDSTG_requestTiles`, `:50-53`). En los 11 745 mosaicos, `tileSizes` = el largo del bloque
+    redondeado hacia arriba al sector y el resto del último sector es 0.
+- **Mosaico**: un bloque RLEN (`"RLEN"`, `u32` tamaño sin comprimir, pasadas, 0) **o el mosaico sin comprimir**:
+  `decompressorSetData` (`src/engine/file/decompressor.c:13-25`) mira la primera palabra; si no es `RLEN_MAGIC`
+  entrega el bloque tal cual (`:101-105`). El disco usa los dos: 7342 con RLEN y 4403 sin comprimir. Una pasada con el bit 7
+  repite el byte siguiente `n & 0x7F` veces; si no, copia `n` bytes; 0 termina (`:48-69`). Cuál de los dos usa el disco no
+  depende del tamaño (en 46 de 329 sin comprimir de una muestra, RLEN ahorraría un sector); el lector acepta ambos.
+- **Mosaico sin comprimir** (`FIELDSTG_loadStreamSprites`, `stream.c:83-118`; `src/` y la copia `pc/field/stream.c:100-140`):
+  - `u32` desplazamiento del TIM (`FILE_CACHE.getArchiveEntry(0, data)`, `file_cache.c:262`: la tabla de un archivo de una
+    entrada es esa palabra).
+  - Tres listas, una por profundidad: `u32` cuenta y `cuenta` registros de seis `s16`: `x, y, u, v, w, h`. Las listas terminan
+    justo en el desplazamiento del TIM (11 745 de 11 745).
+  - En el desplazamiento, un TIM de 8 bits con CLUT: `0x10`, bandera 9, bloque CLUT (`u32` 524, `x y w h` = `0 0 256 1`, 256 colores
+    de 16 bits), bloque de imagen (`u32` 12 + 2 * `w` * `h`, `x y` = 0 0, `w` en medias palabras, `h` filas, los píxeles
+    por filas con el de la izquierda en el byte bajo). Las imágenes miden hasta 128 medias palabras (256 px) por 128 filas.
+- **Qué hace el juego con él**: el TIM sube a una de las 12 posiciones de VRAM (`FIELDSTG_slotImages`, `fieldstg.c:1505`: x = 640, 768,
+  896, y = 0, 128, 256, 384; cada una de 128 medias palabras por 128 filas, de ahí el tope de la imagen) y la CLUT en `(0, 0xF0 + ranura)`
+  con el ancho y alto de la CLUT del TIM (`stream.c:111-115`, `tim_loader.c:27-60`; el `x, y` del propio TIM se ignora). Cada
+  registro es un sprite (`SPRT`) en `(x, y)` relativo al origen del mosaico, con textura desde `(u, v)` de la imagen (`u, v` en píxeles
+  de 8 bits; `v` se suma al `y` de la ranura), tamaño `w x h`, paleta de la ranura (`FIELDSTG_drawStream`, `stream.c:29-71`). Los
+  registros pueden salir del mosaico (1020 de 17 901 en el disco) y `u + w` cabe siempre en la imagen. Las tres listas se dibujan en las
+  profundidades 7, 3 y 11 de la capa del mapa (`FIELDSTG_spriteDepths`, `fieldstg.c:1502`); la 3.ª se tiñe siempre con `spriteColor`,
+  la 1.ª y la 2.ª solo si `spriteColor.cd` no es 0 y si no con el gris neutro 0x80 (`stream.c:45-52`). Hipótesis (no leída): la 1.ª lista es el fondo y las otras son capas que quedan delante o detrás de los actores
+  según su orden de dibujo; el disco usa (1,0,0) en 7234 mosaicos, (1,1,0) en 2073 y (1,0,1) en 822.
+- **Límites del lector** (los que respeta el códec; `MP_MAX_*` en `map_pack.h`):
+  - **255 mosaicos**: `viewTiles` es `u8` con 0xFF = vacío (`map_streamer.c:275,283`), así que `frame = x + y * width` debe ser 0..254.
+    El mapa mayor del disco tiene 168. (El `u8` de la cuadrícula del TMPK, 255 celdas por lado, es otro límite.)
+  - `tileSizes` es `u16`: un mosaico mide a lo más 31 sectores (63 488 bytes); `tileBytes` es además el búfer de cada una de las 30 tareas
+    (`:326-328`). El disco usa 14 a 22 KB.
+  - 5 sprites por lista (`StreamTask.sprites[3][5]`, `field_mode.h:440`): el lector copia las que diga la cuenta sin comprobar. 8 mosaicos del disco
+    declaran más; el codificador las rechaza.
+  - La imagen mide a lo más 256 x 128 px y tiene ancho par.
+- Verificación en el disco (los 237 y los 11 745 mosaicos, `mappacktest`): la cabecera se lee en los 237; reconstruir el contenedor
+  desde los bloques en bruto da el archivo idéntico en los 237; los 11 745 se decodifican; 11 737 se vuelven a codificar y decodifican igual
+  (los otros 8 tienen listas de más de 5 sprites); 11 704 dan los mismos bytes (7301 con RLEN, 4403 sin comprimir). Los 33 restantes con RLEN
+  descomprimen igual: el empaquetador del disco termina con una pasada de 1 byte (`0x81 b`) donde el nuestro escribe un literal.
+  Ejemplo: `S210PACK`: 34 mosaicos con datos, 7x5 mosaicos de 128 px = 896x640 px.
+- Reutilización: el reemplazo de mosaicos de los mods (`stage_mod.c`, `imgSubstitute`) solo cambia el TIM del mismo tamaño y deja las listas;
+  no codifica mosaicos. `stage_export.c` lee el mismo formato pero depende de SDL y del registro; `map_pack.c` es el códec portátil con
+  la parte de escribir, y puede reemplazar el lector de `stage_export.c`.
+- Desconocido (hipótesis): el efecto exacto de cada profundidad sobre los actores y por qué el disco deja unos mosaicos sin comprimir.
 
 ### 4.5 Sprites de campo (179 + FIELDCOM) — entendida
 

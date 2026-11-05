@@ -18,7 +18,7 @@ queda en el mensaje del commit.
 Open an [issue](https://github.com/MxAlfredo/dw3_port/issues) with:
 
 1. **The version and system**: the name of the file you downloaded (for example
-   `DW3Port-1.0.0-x86_64.AppImage`) and your Windows, Linux or Android version.
+   `DW3Port-1.1.0-x86_64.AppImage`) and your Windows, Linux or Android version.
 2. **What happened** and what you expected, and the steps to repeat it (where in the game, what you
    pressed).
 3. **The newest log file** (the `.log` with the latest date in the `logs` folder). Open the game once

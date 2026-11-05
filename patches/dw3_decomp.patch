@@ -37,7 +37,7 @@ index aafaa64..88f4fbf 100644
  
  #endif /* FIGHTSTG_MENU_H */
 diff --git a/include/battle/report.h b/include/battle/report.h
-index c52300e..18a326c 100644
+index c52300e..972ad35 100644
 --- a/include/battle/report.h
 +++ b/include/battle/report.h
 @@ -38,6 +38,21 @@ typedef struct Evolution {
@@ -71,6 +71,22 @@ index c52300e..18a326c 100644
      /* 0x0D4 */ PartnerEntry entry;
      /* 0x0E8 */ s32 slot; /* whose Digimon gets its exp, -1 for none */
      /* 0x0EC */ s32 padEC; /* nothing uses it */
+@@ -154,6 +169,15 @@ extern s32 STFGTREP_statGains[6][9];
+ extern s32 STFGTREP_resistGains[8];
+ 
+ extern BattleReward STFGTREP_rewards[];
++
++/* The reward row of a battle number (STFGTREP_REWARD(n)): STFGTREP_rewards[n] on the PlayStation. PC port (DW3_PC, new-stages T5b): numbers past the
++   disc's 335 rows are the new encounters the mods add, whose rewards are rows of the port's own store (pc/boot.c). */
++#ifdef DW3_PC
++BattleReward *pcBattleReward(s32 battle);
++#define STFGTREP_REWARD(n) (*pcBattleReward(n))
++#else
++#define STFGTREP_REWARD(n) STFGTREP_rewards[n]
++#endif
+ extern FightReportFuncs STFGTREP_funcs;
+ extern Evolution *STFGTREP_evolutions[8]; /* each partner's (STFGTREP_learnDigimon) */
+ 
 diff --git a/include/cardgame/card_access.h b/include/cardgame/card_access.h
 new file mode 100644
 index 0000000..f63d097
@@ -244,10 +260,23 @@ index 7cdf0bb..950b709 100644
  void waitForFile(s32 file);
  void *loadFile(u32 file);
 diff --git a/include/engine/game_state.h b/include/engine/game_state.h
-index dd33995..de10363 100644
+index dd33995..c8e7418 100644
 --- a/include/engine/game_state.h
 +++ b/include/engine/game_state.h
-@@ -488,10 +488,24 @@ typedef struct GameState {
+@@ -422,6 +422,12 @@ typedef union PartnerTotals {
+ /* Game modes (GameState: mode >> 8 is the overlay) that more than their own
+    overlay asks for */
+ #define MODE_NEW_GAME 0x2D7 /* FIELDSTG, where a new game starts */
++#ifdef DW3_PC
++/* new-stages T4 (pc/boot.c): the game mode a field mode stands for in the game's own tables and checks (zones, map areas, the player's icon). The stages
++   mods add run in the modes 0x300-0x3FF (a session mode, never saved); they stand for their fallback stage's mode (the registry's, else Central Park,
++   0x21D). Any other mode is returned as it is. */
++s32 pcModeAsOriginal(s32 mode);
++#endif
+ #define MODE_DECK_EDITOR 0x400 /* STCRDDEK */
+ #define MODE_PLAYER_NAME 0x500 /* STPLNMET: the player's name entry */
+ #define MODE_BATTLE 0x600 /* FIGHTSTG */
+@@ -488,10 +494,24 @@ typedef struct GameState {
      /* 0x0054 */ char name[0x18]; /* the player's */
      /* 0x006C */ s32 money;
      /* 0x0070 */ s32 party[PARTY_SIZE]; /* partner indices */
@@ -272,7 +301,7 @@ index dd33995..de10363 100644
      /* 0x0628 */ Deck decks[DECK_COUNT];
      /* 0x075C */ Partner partners[PARTNER_COUNT];
      /* 0x263C */ s32 progress;
-@@ -627,12 +641,22 @@ void setStat(s32 partner, u32 stat, s16 value);
+@@ -627,12 +647,22 @@ void setStat(s32 partner, u32 stat, s16 value);
  void addStat(s32 partner, u32 stat, s32 delta);
  void computeStats(s32 partner, PartnerTotals *out);
  
@@ -295,7 +324,7 @@ index dd33995..de10363 100644
  
  /* A special condition (SPECIAL(id)): checkSpecialCondition runs the check
     function of kind `check >> 4` (checkItemSet, checkPartner, ...) with
-@@ -666,4 +690,10 @@ extern s16 EQUIP_SET_BONUSES[][6];
+@@ -666,4 +696,10 @@ extern s16 EQUIP_SET_BONUSES[][6];
  extern u16 *ITEM_LISTS[]; /* listItems' lists, 0-terminated */
  extern GameState GAME;
  
@@ -489,7 +518,7 @@ index ecc6c78..1503fdc 100644
  /*
   * What the player can trigger on a map (FIELDSTG_updateTriggers): a record
 diff --git a/include/field/field_mode.h b/include/field/field_mode.h
-index 0ae13b7..6ad3bf0 100644
+index 0ae13b7..25b5660 100644
 --- a/include/field/field_mode.h
 +++ b/include/field/field_mode.h
 @@ -291,7 +291,9 @@ typedef struct EventTask {
@@ -503,7 +532,7 @@ index 0ae13b7..6ad3bf0 100644
  } EventChildren;
  
  /* --- script.c --- */
-@@ -709,6 +711,19 @@ typedef struct FieldTask {
+@@ -709,6 +711,38 @@ typedef struct FieldTask {
      /* 0x7C */ SlotDest *warp; /* where it leads */
  } FieldTask;
  
@@ -513,7 +542,26 @@ index 0ae13b7..6ad3bf0 100644
 +#define FIELD_NPC_MAX 64
 +/* pc/boot.c: merges the active mods' patches of the stage that just started into FieldState.actors (port-close S4); nothing when none applies */
 +void pcStagePatchHook(void);
++/* new-stages T9 (pc/boot.c): fishing results and hidden-spot prizes a stage patch gives. pcFishingBegin: a gauge slot (its index in the stage's table) was set
++   off. pcFishingCatch(cell): the gauge stopped on cell 1 or 2; 0 = the stage gives no list, the game's own battle runs; 1 = the list started a battle; 2 = it
++   gave an item or nothing. pcSpotPrize(rare): the searched spot has the prize; 1 = the stage's list handled it, 0 = the game's battle 3 (6 when rare) runs. */
++void pcFishingBegin(s32 slot);
++s32 pcFishingCatch(s32 cell);
++s32 pcSpotPrize(s32 rare);
 +void pcStageWarpPoll(void);
++/* new-stages T4 (ADR-012, pc/boot.c): the stages mods add run in the modes 0x300-0x3FF (MODE_ENTRY_POINTS[3] is FIELDSTG_start too, overlay.c:5), so a
++   field mode is 0x2xx or 0x3xx (field.c's startField groups them the same way) */
++#define PC_IS_FIELD_MODE(mode) ((((mode) >> 8) & 0xFF) == 2 || (((mode) >> 8) & 0xFF) == 3)
++/* FIELDSTG_pickStage's hook: 1 and the stage filled in when `mode` is a stage of a mod (a mode of that range that is not registered runs the fallback
++   stage instead, with a log line); 0 for the game's own modes */
++s32 pcModStagePick(s32 mode, FieldState *state);
++/* the visited flag of the mode: a mod stage's goes to the named variables ("<mod>:visited.<name>"), the game's own to FLAGS_00 as always */
++void pcFieldMarkVisited(s32 mode);
++/* FIELDSTG_createBanner's argument: the area names are a table by mode (FIELDSTG_areaNames) that a mod stage is not in, and the banner reads its windows
++   without checking: a mod stage shows one only when its stage.json has a "banner" (pcFieldBannerEntries), and then FIELDSTG_showAreaName reads its two lines
++   from those entries of STAREA and STNAME */
++s32 pcFieldBannerShow(s32 mode);
++s32 pcFieldBannerEntries(s32 mode, s32 *area, s32 *place);
 +/* pc/boot.c: the slot of a rectangle a stage patch gave a slot (map pixels): 1 with its index in FieldState.slots and the direction to face (-1 any) */
 +int pcSlotAreaAt(int px, int py, s32 *index, s32 *facing);
 +#else
@@ -523,7 +571,7 @@ index 0ae13b7..6ad3bf0 100644
  /* The children of the field's main task (FieldTask, FIELDSTG_updateField) */
  typedef struct FieldChildren {
      /* 0x00 */ struct FieldEffect *effect; /* FIELDSTG_createEffect's */
-@@ -722,7 +737,7 @@ typedef struct FieldChildren {
+@@ -722,7 +756,7 @@ typedef struct FieldChildren {
      /* 0x14 */ Task *banner; /* FIELDSTG_createBanner's */
      /* 0x18 */ struct Actor *actors[4]; /* the player and the partners */
      /* 0x28 */ struct Camera *camera;
@@ -532,7 +580,23 @@ index 0ae13b7..6ad3bf0 100644
      /* 0x68 */ struct Triggers *triggers; /* FIELDSTG_createTriggers's */
      /* 0x6C */ Task *stage; /* FieldState.stageInit's */
      /* 0x70 */ struct MapStreamer *mapStreamer; /* FIELDSTG_createMapStreamer's */
-@@ -963,8 +978,8 @@ void FIELDSTG_waitWalkDone(s32 id, s32 *pc);
+@@ -742,6 +776,15 @@ typedef struct Encounter {
+     /* 0x0E */ u8 blocks[12]; /* copied to BATTLE_SETUP.blocks */
+ } Encounter;
+ 
++/* The encounter row a battle number names (FIELDSTG_ENCOUNTER(n)): FIELDSTG_encounters[n] on the PlayStation. PC port (DW3_PC, new-stages T5b):
++   numbers past the disc's 335 rows are the new encounters the mods add, rows of the port's own store (pc/boot.c); the disc's array is never written. */
++#ifdef DW3_PC
++Encounter *pcFieldEncounter(s32 encounter);
++#define FIELDSTG_ENCOUNTER(n) (*pcFieldEncounter(n))
++#else
++#define FIELDSTG_ENCOUNTER(n) FIELDSTG_encounters[n]
++#endif
++
+ /* The functions, by module in the order they link */
+ 
+ /* commands.c */
+@@ -963,8 +1006,8 @@ void FIELDSTG_waitWalkDone(s32 id, s32 *pc);
  void FIELDSTG_toScreenPos(Vec2 *pos);
  void FIELDSTG_clearScriptFlag(void);
  ScriptCommand *FIELDSTG_findScriptCommand(s32 id);
@@ -543,7 +607,7 @@ index 0ae13b7..6ad3bf0 100644
  
  /* battle.c */
  void FIELDSTG_rollBattleSteps(void);
-@@ -1033,6 +1048,9 @@ extern s32 (*FIELDSTG_tweenUpdate)(PanelAnim *tween); /* FIELDSTG_updateTween */
+@@ -1033,6 +1076,9 @@ extern s32 (*FIELDSTG_tweenUpdate)(PanelAnim *tween); /* FIELDSTG_updateTween */
  extern FieldEvent FIELDSTG_events[];
  extern s32 FIELDSTG_fileEntries[]; /* by character (Actor.key1) */
  extern u8 FIELDSTG_actorWidths[]; /* by character, in pixels (FieldState.getActorWidth) */
@@ -1725,7 +1789,7 @@ index 178b766..d29e193 100644
                  } else if (entry.level < list[n].needs[i].level) {
                      id = -1;
 diff --git a/src/battle/report/partner.c b/src/battle/report/partner.c
-index 87349f3..f1ae16e 100644
+index 87349f3..2740221 100644
 --- a/src/battle/report/partner.c
 +++ b/src/battle/report/partner.c
 @@ -45,7 +45,7 @@ void STFGTREP_fillPartnerWindows(ReportPartner *partner, ReportPartnerWindows *w
@@ -1737,6 +1801,15 @@ index 87349f3..f1ae16e 100644
                  windows->slots[i].level->setNumber(windows->slots[i].level, 0, partner->entry.level);
                  windows->slots[i].level->setRightAlign(windows->slots[i].level, 1);
              } else {
+@@ -203,7 +203,7 @@ static inline void giveDigimonExp(ReportPartner *partner) {
+         partner->slotBlinks[partner->slot].blink.on = STFGTREP_funcs.addDigimonExp(
+             member, partner->slots[partner->slot],
+             STFGTREP_funcs.getDigimonExp(member, partner->slots[partner->slot],
+-                                         STFGTREP_rewards[BATTLE_RESULT.battle].digimonExp, partner->report->used));
++                                         STFGTREP_REWARD(BATTLE_RESULT.battle).digimonExp, partner->report->used));
+     }
+     partner->substate++;
+ }
 @@ -304,7 +304,7 @@ static inline void learnNextDigimon(ReportPartner *partner, ReportPartnerWindows
      if (learnt != 0) {
          digimon = GET_DIGIMON(learnt);
@@ -1756,9 +1829,21 @@ index 87349f3..f1ae16e 100644
      partner->show = STFGTREP_showPartner;
      partner->hide = STFGTREP_hidePartner;
 diff --git a/src/battle/report/report.c b/src/battle/report/report.c
-index 098d1c7..41c1a5f 100644
+index 098d1c7..39bdb21 100644
 --- a/src/battle/report/report.c
 +++ b/src/battle/report/report.c
+@@ -117,9 +117,9 @@ static inline void giveMoney(FightReport *report, FightReportChildren *children)
+     s32 money;
+ 
+     stats = GAME.funcs.getPartnerStats(GAME.funcs.getPartyMember(BATTLE_RESULT.member));
+-    money = STFGTREP_rewards[BATTLE_RESULT.battle].money;
++    money = STFGTREP_REWARD(BATTLE_RESULT.battle).money;
+     if (stats->equip[4] == 0x142 || stats->equip[5] == 0x142) {
+-        money += STFGTREP_rewards[BATTLE_RESULT.battle].money / 5;
++        money += STFGTREP_REWARD(BATTLE_RESULT.battle).money / 5;
+     }
+     children->message->setString(children->message, FILE_CACHE.load(TEXT_FILE(TEXT_FIGHT_REPORT)), 10);
+     children->message->setNumber(children->message, 1, money);
 @@ -141,9 +141,9 @@ static inline void giveItem(FightReport *report, FightReportChildren *children)
          children->message->setTypeDelay(children->message, 6);
          report->substate = 0x19;
@@ -1772,6 +1857,23 @@ index 098d1c7..41c1a5f 100644
          }
      } else {
          report->substate = 0x32;
+@@ -325,13 +325,13 @@ void STFGTREP_updateReport(FightReport *report, FightReportChildren *children) {
+             switch (fought) {
+             case 1:
+             default:
+-                exp = STFGTREP_rewards[BATTLE_RESULT.battle].exp;
++                exp = STFGTREP_REWARD(BATTLE_RESULT.battle).exp;
+                 break;
+             case 2:
+-                exp = STFGTREP_rewards[BATTLE_RESULT.battle].exp * 6 / 10;
++                exp = STFGTREP_REWARD(BATTLE_RESULT.battle).exp * 6 / 10;
+                 break;
+             case 3:
+-                exp = STFGTREP_rewards[BATTLE_RESULT.battle].exp / 3;
++                exp = STFGTREP_REWARD(BATTLE_RESULT.battle).exp / 3;
+                 break;
+             }
+             for (i = 0; i < report->count; i++) {
 @@ -361,7 +361,7 @@ void STFGTREP_updateReport(FightReport *report, FightReportChildren *children) {
  
  /* Creates the report (STFGTREP_updateReport) on the screen layer */
@@ -2515,10 +2617,10 @@ index a967512..4b1b4b0 100644
      return NULL;
  }
 diff --git a/src/engine/game/events.c b/src/engine/game/events.c
-index 454de2c..5040179 100644
+index 454de2c..c9c9117 100644
 --- a/src/engine/game/events.c
 +++ b/src/engine/game/events.c
-@@ -1,6 +1,17 @@
+@@ -1,6 +1,23 @@
  #include "engine/game.h"
  #include "field/field_map.h"
  
@@ -2528,6 +2630,12 @@ index 454de2c..5040179 100644
 +s32 pcModCheck(u16 code, u16 value);
 +void pcModApply(s32 code, s32 value);
 +
++/* The result of a card battle by opponent (pc/shim/ext_state.c): the variables dw3:card-played/<opponent> and dw3:card-won/<opponent>, which outlive the temporary flags */
++void pcCardBattleBegin(int opponent);
++void pcCardBattleEnd(int won);
++/* The result of a battle a stage patch started (`start-battle`): the variables dw3:battle-played/<key> and dw3:battle-won/<key> (pc/shim/ext_state.h) */
++void pcFieldBattleEnd(int won);
++
 +/* The special conditions a mod adds (port-close S3, pc/shim/game_tables.c): ids 0x100-0x1FF, rows the port keeps outside SPECIAL_CONDITIONS;
 +   1 and the row when the id is a valid one */
 +s32 pcSpecialExtRow(s32 id, u8 *check, u8 *arg);
@@ -2536,7 +2644,7 @@ index 454de2c..5040179 100644
  /* Whether bit `index` of a bitset is set (set != 0) or clear (set 0) */
  s32 testBit(u8 *bits, s32 index, s32 set) {
      s32 byte = index >> 3;
-@@ -30,26 +41,26 @@ s32 checkItemSet(s32 op, s32 arg) {
+@@ -30,26 +47,26 @@ s32 checkItemSet(s32 op, s32 arg) {
      s32 ret = 0;
  
  #if VERSION_US
@@ -2574,7 +2682,7 @@ index 454de2c..5040179 100644
              ret = 1;
          }
          break;
-@@ -287,6 +298,38 @@ s32 checkSpecialCondition(s32 id, s32 expected) {
+@@ -287,6 +304,38 @@ s32 checkSpecialCondition(s32 id, s32 expected) {
      s32 op;
      s32 arg;
  
@@ -2613,7 +2721,7 @@ index 454de2c..5040179 100644
      for (cond = SPECIAL_CONDITIONS; cond->id != 0xFF; cond++) {
          if (cond->id == id) {
              op = cond->check & 0xF;
-@@ -337,11 +380,11 @@ s32 checkProgress(s32 value, s32 mode) {
+@@ -337,11 +386,11 @@ s32 checkProgress(s32 value, s32 mode) {
   */
  s32 checkItem(s32 index, s32 mode) {
      if (mode != 0) {
@@ -2627,7 +2735,7 @@ index 454de2c..5040179 100644
              return 1;
          }
      }
-@@ -351,11 +394,11 @@ s32 checkItem(s32 index, s32 mode) {
+@@ -351,11 +400,11 @@ s32 checkItem(s32 index, s32 mode) {
  /* Conditions 0x92: whether the player has card `item` (have != 0) or not */
  s32 checkCard(s32 card, s32 have) {
      if (have != 0) {
@@ -2641,7 +2749,7 @@ index 454de2c..5040179 100644
              return 1;
          }
      }
-@@ -457,14 +500,14 @@ void changeItem(s32 item, s32 add) {
+@@ -457,14 +506,14 @@ void changeItem(s32 item, s32 add) {
      s32 i;
  
      if (add != 0) {
@@ -2662,7 +2770,7 @@ index 454de2c..5040179 100644
          for (i = 0; i < PARTY_SIZE; i++) {
              if (unequipItem(GAME.funcs.getPartyMember(i), item) != 0) {
                  goto found;
-@@ -476,7 +519,7 @@ void changeItem(s32 item, s32 add) {
+@@ -476,7 +525,7 @@ void changeItem(s32 item, s32 add) {
              }
          }
      found:
@@ -2671,7 +2779,7 @@ index 454de2c..5040179 100644
      }
  }
  
-@@ -486,9 +529,9 @@ void changeCard(s32 card, s32 add) {
+@@ -486,14 +535,17 @@ void changeCard(s32 card, s32 add) {
          GAME.funcs.addCards(card, 1);
          return;
      }
@@ -2684,7 +2792,15 @@ index 454de2c..5040179 100644
      }
  }
  
-@@ -550,6 +593,10 @@ s32 checkCondition(u16 code, u16 value) {
+ /* Actions 0x76 and 0x78: a card battle (MODE_CARD_GAME) against an opponent */
+ void startCardBattle(s32 opponent, s32 kind) {
++#ifdef DW3_PC
++    pcCardBattleBegin(opponent);
++#endif
+     FIELDSTG_leaveField(MODE_CARD_GAME, opponent * 2 + kind + 1, 0, 0, 0);
+ }
+ 
+@@ -550,6 +602,10 @@ s32 checkCondition(u16 code, u16 value) {
          return checkItem(id, arg);
      } else if (group == 0x92) {
          return checkCard(id, arg);
@@ -2695,7 +2811,7 @@ index 454de2c..5040179 100644
      }
      return 1;
  }
-@@ -629,6 +676,11 @@ void applyAction(s32 code, s32 value) {
+@@ -629,6 +685,11 @@ void applyAction(s32 code, s32 value) {
      if (group == 0x94) {
          FIELDSTG_leaveField(MODE_TRAINING, id, 0, 0, 0);
      }
@@ -2707,6 +2823,24 @@ index 454de2c..5040179 100644
      if (group == 0x7A) {
          if ((u16)id < 30) {
              FIELDSTG_leaveField(MODE_ITEM_SHOP, (u16)id, 0, 0, 0);
+@@ -684,7 +745,17 @@ void updateModeFlags(void) {
+         }
+         applyAction(0x12, 0);
+     }
++#ifdef DW3_PC
++    if (GAME.funcs.getPrevMode() == MODE_BATTLE_REPORT) {
++        pcFieldBattleEnd(1); /* won: the battle report leads back to the field */
++    } else if (GAME.funcs.getPrevMode() == MODE_BATTLE) {
++        pcFieldBattleEnd(0); /* fled: the battle leads straight back */
++    }
++#endif
+     if (GAME.funcs.getPrevMode() == MODE_CARD_GAME) {
++#ifdef DW3_PC
++        pcCardBattleEnd(FLAGS_00.pendingFlag10 != 0);
++#endif
+         applyAction(0x11, 1);
+         applyAction(0x12, 1);
+         if (FLAGS_00.pendingFlag10 != 0) {
 diff --git a/src/engine/game/items.c b/src/engine/game/items.c
 index 7e31b1f..d438c29 100644
 --- a/src/engine/game/items.c
@@ -2913,10 +3047,20 @@ index 3b00c25..d5552a9 100644
          CARD_DRAWER->card = &images[n & 0x3F];
      } else {
 diff --git a/src/engine/menu/field_menu.c b/src/engine/menu/field_menu.c
-index 00791fd..99bb7c8 100644
+index 00791fd..1c1018b 100644
 --- a/src/engine/menu/field_menu.c
 +++ b/src/engine/menu/field_menu.c
-@@ -149,7 +149,7 @@ static inline void openFieldMenu(FieldMenu *task, FieldMenuWindows *win) {
+@@ -127,6 +127,9 @@ s32 getFieldZone(void) {
+     if (value == MODE_STATUS) {
+         value = GAME.fieldMode;
+     }
++#ifdef DW3_PC
++    value = pcModeAsOriginal(value); /* a stage a mod adds (0x3xx) is a field zone like its fallback stage; only the sign is read (below, line 159) */
++#endif
+     if (value >= MODE_NEW_GAME) {
+         return -1;
+     }
+@@ -149,7 +152,7 @@ static inline void openFieldMenu(FieldMenu *task, FieldMenuWindows *win) {
      startPanel(&task->panels[0], 1);
      startPanel(&task->panels[1], 1);
      startPanel(&task->panels[2], 1);
@@ -3003,11 +3147,99 @@ index 658bb99..f4745b1 100644
      s32 keepsDir;
  
      setActorMethods(actor);
+diff --git a/src/field/field_mode/actor_control.c b/src/field/field_mode/actor_control.c
+index d00989d..0c93de0 100644
+--- a/src/field/field_mode/actor_control.c
++++ b/src/field/field_mode/actor_control.c
+@@ -1299,6 +1299,14 @@ static inline void runSearch(Actor *actor) {
+     }
+ }
+ 
++#ifdef DW3_PC
++/* The port's `ask` action (pc/shim/stage_mods.c): a talk whose actions ask a yes/no question keeps the player's control until the answer, then the
++   character's talks are chosen again (the next one reads the answer) */
++int pcActionsAsk(const unsigned short *list);
++int pcAskTake(void);
++void *FIELDSTG_askChoicePort(void);
++#endif
++
+ /* ACTOR_TALK: the character's first talk whose conditions hold, then the
+    player's control back and the talk's flag actions */
+ static inline void runTalk(Actor *actor, ActorChildren *children) {
+@@ -1340,6 +1348,17 @@ static inline void runTalk(Actor *actor, ActorChildren *children) {
+         break;
+     case 1:
+         if (children->speech == NULL) {
++#ifdef DW3_PC
++            if (!isTreasure && actor->talkActions != NULL && pcActionsAsk(actor->talkActions)) {
++                FLAGS_00.applyActions(actor->talkActions);
++                actor->talkActions = NULL;
++                if (pcAskTake()) {
++                    children->speech = FIELDSTG_askChoicePort(); /* a child of the character's task, which is what runs it */
++                    actor->step = 2;
++                    break;
++                }
++            }
++#endif
+             if (!isTreasure) {
+                 actor->setSubstate(actor, ACTOR_STAND);
+             } else {
+@@ -1352,6 +1371,13 @@ static inline void runTalk(Actor *actor, ActorChildren *children) {
+             FIELDSTG_state.acting = 0;
+         }
+         break;
++#ifdef DW3_PC
++    case 2:
++        if (children->speech == NULL) {
++            actor->step = 0; /* the talks again: the answer is in the variable */
++        }
++        break;
++#endif
+     }
+ }
+ 
+diff --git a/src/field/field_mode/actor_icon.c b/src/field/field_mode/actor_icon.c
+index bf48e47..0aa39ff 100644
+--- a/src/field/field_mode/actor_icon.c
++++ b/src/field/field_mode/actor_icon.c
+@@ -94,7 +94,12 @@ void FIELDSTG_updateActorIcon(ActorIcon *task) {
+ ActorIcon *FIELDSTG_createActorIcon(Actor *actor) {
+     ActorIcon *task;
+ 
++#ifdef DW3_PC
++    /* a mod stage (0x3xx) is not past MODE_NEW_GAME: it shows the icon like its fallback stage */
++    if (pcModeAsOriginal(GAME.funcs.getMode()) < MODE_NEW_GAME) {
++#else
+     if (GAME.funcs.getMode() < MODE_NEW_GAME) {
++#endif
+         task = createTaskWithId(FIELDSTG_updateActorIcon, sizeof(ActorIcon), 0, FIELD_TASK_ICON);
+         task->actor = actor;
+         return task;
 diff --git a/src/field/field_mode/banner.c b/src/field/field_mode/banner.c
-index f91f5ff..d5f6b7b 100644
+index f91f5ff..adf2cb3 100644
 --- a/src/field/field_mode/banner.c
 +++ b/src/field/field_mode/banner.c
-@@ -239,7 +239,7 @@ void FIELDSTG_updateBanner(AreaBanner *task, AreaNameWindows *windows) {
+@@ -9,7 +9,19 @@
+ void FIELDSTG_showAreaName(AreaBanner *task, AreaNameWindows *windows) {
+     s16 mode = GAME.funcs.getMode();
+     s32 i;
++#ifdef DW3_PC
++    s32 areaEntry, placeEntry;
+ 
++    if (pcFieldBannerEntries(mode, &areaEntry, &placeEntry)) { /* a stage of a mod: the same two windows, the lines its stage.json names */
++        windows->area = createTextWindow(FIELD_LAYER_BANNER, 1, 0x80, 0x1A);
++        windows->area->setString(windows->area, FILE_CACHE.load(TEXT_FILE(TEXT_AREA_NAMES)), areaEntry);
++        windows->area->setTypeDelay(windows->area, 5);
++        windows->place = createTextWindow(FIELD_LAYER_BANNER, 1, 0x28, 0x44);
++        windows->place->setString(windows->place, FILE_CACHE.load(TEXT_FILE(TEXT_STAGE_NAMES)), placeEntry);
++        windows->place->setTypeDelay(windows->place, 5);
++        return;
++    }
++#endif
+     for (i = 0; FIELDSTG_areaNames[i].mode != 0; i++) {
+         if (FIELDSTG_areaNames[i].mode == mode) {
+             windows->area = createTextWindow(FIELD_LAYER_BANNER, 1, 0x80, 0x1A);
+@@ -239,7 +251,7 @@ void FIELDSTG_updateBanner(AreaBanner *task, AreaNameWindows *windows) {
  /* Creates the area name banner, which closes at once unless show; the
     player is frozen until it ends */
  Task *FIELDSTG_createBanner(s32 show) {
@@ -3016,6 +3248,71 @@ index f91f5ff..d5f6b7b 100644
  
      task->key1 = show;
      FIELDSTG_state.frozen = 1;
+diff --git a/src/field/field_mode/choice.c b/src/field/field_mode/choice.c
+index 4857a9f..0886598 100644
+--- a/src/field/field_mode/choice.c
++++ b/src/field/field_mode/choice.c
+@@ -2,6 +2,13 @@
+ 
+ #include "field/field_mode.h"
+ 
++#ifdef DW3_PC
++/* The port's `ask` action (pc/shim/stage_mods.c): a Yes/No panel after a talk's line, which gives its answer back instead of starting an event */
++void pcAskAnswered(int answer);
++int pcAskPanelReady; /* the question waits for the player's answer (the harness reads it, host_pad.c `askpick`) */
++#define PC_CHOICE_ASK 16 /* ChoiceTask.type of the port's question (no FIELDSTG_choices row) */
++#endif
++
+ /*
+  * A yes/no question of the story (FIELDSTG_askChoice0 to FIELDSTG_askChoice15
+  * make one per type): asks FIELDSTG_choices[type]'s question and starts the
+@@ -36,6 +43,18 @@ void FIELDSTG_runChoice(ChoiceTask *task, ChoiceChildren *children) {
+             break;
+         case 1:
+             if (FIELDSTG_tweenUpdate(&task->tween)) {
++#ifdef DW3_PC
++                if (task->type == PC_CHOICE_ASK) {
++                    /* the game's own Yes and No (the field menu's, item_screen.c); the question is the talk's own line, said just before */
++                    for (j = 0; j < 2; j++) {
++                        children->options[j]->setString(children->options[j], FILE_CACHE.load(TEXT_FILE(TEXT_STATUS)), 0x32 + j);
++                    }
++                    children->cursor->setVisible(children->cursor, 1);
++                    task->substate++;
++                    pcAskPanelReady = 1;
++                    break;
++                }
++#endif
+                 for (j = 0; j < 2; j++) {
+                     children->options[j]->setString(children->options[j], FILE_CACHE.getEntry(FIELDSTG_choices[task->type].text + (TEXT_FILE(1) << 16)), j + 2);
+                 }
+@@ -67,6 +86,14 @@ void FIELDSTG_runChoice(ChoiceTask *task, ChoiceChildren *children) {
+             }
+             break;
+         case 3:
++#ifdef DW3_PC
++            if (task->type == PC_CHOICE_ASK) {
++                pcAskPanelReady = 0;
++                pcAskAnswered(task->selection + 1); /* 1 yes, 2 no */
++                task->state = TASK_KILL;
++                break;
++            }
++#endif
+             children->event = FIELDSTG_startEvent(task->selection == 0 ? FIELDSTG_choices[task->type].events[0] : FIELDSTG_choices[task->type].events[1]);
+             task->substate++;
+             break;
+@@ -133,3 +160,12 @@ ASK_CHOICE(12)
+ ASK_CHOICE(13)
+ ASK_CHOICE(14)
+ ASK_CHOICE(15)
++
++#ifdef DW3_PC
++/* The port's yes/no question (the `ask` action of a talk) */
++void *FIELDSTG_askChoicePort(void) {
++    ChoiceTask *task = createTask(FIELDSTG_runChoice, sizeof(ChoiceTask), sizeof(ChoiceChildren));
++    task->type = PC_CHOICE_ASK;
++    return task;
++}
++#endif
 diff --git a/src/field/field_mode/data/fieldstg.c b/src/field/field_mode/data/fieldstg.c
 index 799bb6d..564711b 100644
 --- a/src/field/field_mode/data/fieldstg.c
@@ -3060,7 +3357,7 @@ index f79142e..af2ec6d 100644
      Task *other;
      s32 text;
 diff --git a/src/field/field_mode/field.c b/src/field/field_mode/field.c
-index 77b0973..084886a 100644
+index 77b0973..8dab35c 100644
 --- a/src/field/field_mode/field.c
 +++ b/src/field/field_mode/field.c
 @@ -341,6 +341,11 @@ static inline void createCharacters(FieldChildren *children) {
@@ -3084,7 +3381,7 @@ index 77b0973..084886a 100644
          if (children->npcs[i] != NULL) {
              children->npcs[i]->setState(children->npcs[i], TASK_KILL);
          }
-@@ -511,6 +516,9 @@ static inline void startField(FieldTask *task, FieldChildren *children) {
+@@ -511,8 +516,15 @@ static inline void startField(FieldTask *task, FieldChildren *children) {
      if (FIELDSTG_state.stageInit != NULL) {
          children->stage = FIELDSTG_state.stageInit(task);
      }
@@ -3092,9 +3389,27 @@ index 77b0973..084886a 100644
 +    pcStagePatchHook(); /* port-close S4, S8, S10: the mods' patches of this stage's characters, slots, events and battles, merged into what setupStage just set */
 +#endif
      FLAGS_00.updateModeFlags();
++#ifdef DW3_PC
++    pcFieldMarkVisited(GAME.funcs.getMode()); /* the flag of a mod stage is a named variable, not a bit of flags20 (ADR-012) */
++#else
      FLAGS_00.applyAction(FIELD_VISITED_FLAG(GAME.funcs.getMode()), 1);
++#endif
      mode = GAME.funcs.getPrevMode();
-@@ -632,6 +640,9 @@ void FIELDSTG_updateField(FieldTask *task, FieldChildren *children) {
+     /* from other than a field (0x2xx, 0x3xx), STDWTITL,
+        STPLNMET or STAGSLCT, the player comes back
+@@ -523,7 +535,11 @@ static inline void startField(FieldTask *task, FieldChildren *children) {
+         FIELDSTG_state.defaultStart = GAME.fieldPos;
+         FIELDSTG_state.defaultStartDir = GAME.fieldDir;
+     }
++#ifdef DW3_PC
++    children->banner = FIELDSTG_createBanner(pcFieldBannerShow(GAME.funcs.getMode()));
++#else
+     children->banner = FIELDSTG_createBanner(1);
++#endif
+     task->nextSubstate(task);
+ }
+ 
+@@ -632,6 +648,9 @@ void FIELDSTG_updateField(FieldTask *task, FieldChildren *children) {
          }
          break;
      case TASK_RUN:
@@ -3104,11 +3419,94 @@ index 77b0973..084886a 100644
          switch (task->substate) {
          case 0:
          default:
+@@ -982,13 +1001,13 @@ void FIELDSTG_startEncounter(s32 encounter) {
+         task->nextModeArg = 0;
+         task->setState(task, TASK_DONE);
+         BATTLE_SETUP.battle = encounter;
+-        BATTLE_SETUP.ambushChance = FIELDSTG_encounters[encounter].ambushChance;
+-        BATTLE_SETUP.encounterKind = FIELDSTG_encounters[encounter].kind;
++        BATTLE_SETUP.ambushChance = FIELDSTG_ENCOUNTER(encounter).ambushChance;
++        BATTLE_SETUP.encounterKind = FIELDSTG_ENCOUNTER(encounter).kind;
+         for (i = 0; i < 12; i++) {
+-            BATTLE_SETUP.blocks[i] = FIELDSTG_encounters[encounter].blocks[i];
++            BATTLE_SETUP.blocks[i] = FIELDSTG_ENCOUNTER(encounter).blocks[i];
+         }
+         for (i = 0; i < 3; i++) {
+-            BATTLE_SETUP.enemies[i] = *FIELDSTG_encounters[encounter].enemies[i];
++            BATTLE_SETUP.enemies[i] = *FIELDSTG_ENCOUNTER(encounter).enemies[i];
+         }
+         BATTLE_SETUP.hasPrize = 0;
+         if ((u32)(BATTLE_SETUP.enemies[0].fighter - FIELD_PRIZE_FIGHTERS) < FIELD_PRIZE_FIGHTER_COUNT) {
+diff --git a/src/field/field_mode/gauge.c b/src/field/field_mode/gauge.c
+index 6737ecf..36e4bbf 100644
+--- a/src/field/field_mode/gauge.c
++++ b/src/field/field_mode/gauge.c
+@@ -133,12 +133,38 @@ void FIELDSTG_runGauge(GaugeGame *task) {
+                     task->setState(task, TASK_KILL);
+                     break;
+                 case 1:
++#ifdef DW3_PC
++                    switch (pcFishingCatch(1)) { /* the stage's own results for this spot (T9) */
++                    case 1:
++                        task->setState(task, TASK_DONE);
++                        break;
++                    case 2:
++                        task->setState(task, TASK_KILL);
++                        break;
++                    default:
++#endif
+                     FIELDSTG_battleFuncs.startEventBattle(4);
+                     task->setState(task, TASK_DONE);
++#ifdef DW3_PC
++                    }
++#endif
+                     break;
+                 case 2:
++#ifdef DW3_PC
++                    switch (pcFishingCatch(2)) {
++                    case 1:
++                        task->setState(task, TASK_DONE);
++                        break;
++                    case 2:
++                        task->setState(task, TASK_KILL);
++                        break;
++                    default:
++#endif
+                     FIELDSTG_battleFuncs.startEventBattle(7);
+                     task->setState(task, TASK_DONE);
++#ifdef DW3_PC
++                    }
++#endif
+                     break;
+                 }
+                 break;
 diff --git a/src/field/field_mode/hidden_spots.c b/src/field/field_mode/hidden_spots.c
-index ab26822e..11aafb3 100644
+index ab26822e..6dd2f44 100644
 --- a/src/field/field_mode/hidden_spots.c
 +++ b/src/field/field_mode/hidden_spots.c
-@@ -151,7 +151,7 @@ void FIELDSTG_updateHiddenSpots(HiddenSpots *task, HiddenSpotsChildren *children
+@@ -99,11 +99,21 @@ void FIELDSTG_updateHiddenSpots(HiddenSpots *task, HiddenSpotsChildren *children
+             } else {
+                 if (task->forEvent == 0) {
+                     if (task->entries[task->selected].hasPrize != 0) {
++#ifdef DW3_PC
++                        { /* the stage's own prize list (T9), from the same draw that picks the game's battle */
++                            s32 rare = !((RANDOM.next() & 0x7F) < 0x66);
++
++                            if (!pcSpotPrize(rare)) {
++                                FIELDSTG_battleFuncs.startEventBattle(rare ? 6 : 3);
++                            }
++                        }
++#else
+                         if ((RANDOM.next() & 0x7F) < 0x66) {
+                             FIELDSTG_battleFuncs.startEventBattle(3);
+                         } else {
+                             FIELDSTG_battleFuncs.startEventBattle(6);
+                         }
++#endif
+                         FIELDSTG_hidePrize(task);
+                     } else {
+                         if (children->hint != NULL) {
+@@ -151,7 +161,7 @@ void FIELDSTG_updateHiddenSpots(HiddenSpots *task, HiddenSpotsChildren *children
  /* Creates the hidden spots, the map objects of animation 0xFF, and hides the
     prize in one (or where it was, in the same mode) */
  HiddenSpots *FIELDSTG_createHiddenSpots(s32 count) {
@@ -3232,6 +3630,22 @@ index 1bf63cd..730aa33 100644
 -    return createTask(FIELDSTG_updateRoot, sizeof(Task), 0xC);
 +    return createTask(FIELDSTG_updateRoot, sizeof(Task), 3 * sizeof(Task *));
  }
+diff --git a/src/field/field_mode/state.c b/src/field/field_mode/state.c
+index 506b707..0a0ddd6 100644
+--- a/src/field/field_mode/state.c
++++ b/src/field/field_mode/state.c
+@@ -31,6 +31,11 @@ void FIELDSTG_pickStage(void) {
+ #endif
+     mode = GAME.funcs.getMode();
+     HEAP.zero(&FIELDSTG_state, 100);
++#ifdef DW3_PC
++    if (pcModStagePick(mode, &FIELDSTG_state) != 0) {
++        return; /* a stage a mod adds (modes 0x300-0x3FF), which no row of the tables above names */
++    }
++#endif
+     while (1) {
+         if (entry->mode == mode) {
+             FIELDSTG_state.stageFile = entry->file;
 diff --git a/src/field/field_mode/story.c b/src/field/field_mode/story.c
 index ac88667..7a6139c 100644
 --- a/src/field/field_mode/story.c
@@ -3246,7 +3660,7 @@ index ac88667..7a6139c 100644
      task->owner = owner;
      FIELDSTG_initFuncs[0]();
 diff --git a/src/field/field_mode/trigger.c b/src/field/field_mode/trigger.c
-index 089dc09..af8ca98 100644
+index 089dc09..35385c4 100644
 --- a/src/field/field_mode/trigger.c
 +++ b/src/field/field_mode/trigger.c
 @@ -11,16 +11,34 @@ s32 FIELDSTG_findTrigger(Triggers *task) {
@@ -3300,7 +3714,17 @@ index 089dc09..af8ca98 100644
      return FIELDSTG_nearDirs[task->dir][actor->dir] != 0;
  }
  
-@@ -237,7 +260,7 @@ void FIELDSTG_updateTriggers(Triggers *task, TriggerChildren *children) {
+@@ -178,6 +201,9 @@ void FIELDSTG_setOffTrigger(Triggers *task) {
+             task->actor->dropDown(task->actor, task->dir, FIELDSTG_noOffset, task->entry->arg * 16);
+             break;
+         case SLOT_GAUGE:
++#ifdef DW3_PC
++            pcFishingBegin((s32)(task->entry - task->entries)); /* the stage's own results for this spot (T9) */
++#endif
+             task->actor->playGauge(task->actor, task->dir, (Vec2){task->entry->arg, task->entry->x});
+             break;
+         case SLOT_WARP0:
+@@ -237,7 +263,7 @@ void FIELDSTG_updateTriggers(Triggers *task, TriggerChildren *children) {
  
  /* Creates the triggers */
  Triggers *FIELDSTG_createTriggers(s32 sheetEntry, StageSlot *slots) {

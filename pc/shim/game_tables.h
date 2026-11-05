@@ -275,4 +275,9 @@ int pcSpecialExtRow(int id, unsigned char *check, unsigned char *arg);
 /* How many rows FIELDSTG_encounters has (the field battles a stage patch may name: rows 1 to this - 1) */
 int gameTablesEncounterCount(void);
 
+/* What an encounter may field (new-stages T5b, shim/field_ext.h's FeHost): the battle table id of "dw3:digimon/<id>" or "<mod>:<key>" (negative: not an
+   enemy), and whether a number is a fighter an encounter may field (an original enemy or a mod's new one, never a partner form) */
+int gameEnemyByName(const char *name);
+int gameEnemyIdOk(int id);
+
 #endif

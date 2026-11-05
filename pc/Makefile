@@ -513,7 +513,7 @@ BOOT_ENGINE_OBJS := $(FILE_OBJS) $(TEXT_OBJS) $(SHIM_CORE_OBJS) $(BUILD)/task.o 
 	$(BUILD)/pad.o $(BUILD)/port.o $(BUILD)/demo.o $(BUILD)/sound.o \
 	$(BUILD)/memcard.o $(BUILD)/random.o $(BUILD)/eu_settings.o $(BUILD)/all_files_pattern.o \
 	$(BUILD)/get_digimon.o $(BUILD)/matrices.o $(BOOT_FIELD_ENGINE_OBJS)
-BOOT_SHIM_OBJS := $(BUILD)/gym_labels.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/game_tables.o $(BUILD)/tech_ext.o $(BUILD)/digimon_ext.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/video_export.o $(BUILD)/stage_export.o $(BUILD)/stage_mod.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/stage_mods.o $(BUILD)/raw_export.o $(BUILD)/audio_export.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/save_view.o $(BUILD)/save_file.o $(BUILD)/talk_box_wide.o $(BUILD)/text_fit.o $(BUILD)/host_cd.o $(BUILD)/file_cache_pc.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/port_config.o $(BUILD)/table_mods.o $(BUILD)/host_gte.o $(BUILD)/host_gs.o $(BUILD)/host_snd.o $(BUILD)/snd_spu.o $(BUILD)/app_lifecycle.o $(BUILD)/app_lifecycle_sdl.o $(BUILD)/touch_pad.o $(BUILD)/touch_router.o $(BUILD)/touch_menu.o $(BUILD)/touch_tap.o $(BUILD)/touch_sdl.o \
+BOOT_SHIM_OBJS := $(BUILD)/gym_labels.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/game_tables.o $(BUILD)/tech_ext.o $(BUILD)/digimon_ext.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/video_export.o $(BUILD)/stage_export.o $(BUILD)/stage_mod.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_new.o $(BUILD)/field_ext.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/raw_export.o $(BUILD)/audio_export.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/save_view.o $(BUILD)/save_file.o $(BUILD)/talk_box_wide.o $(BUILD)/text_fit.o $(BUILD)/host_cd.o $(BUILD)/file_cache_pc.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/port_config.o $(BUILD)/table_mods.o $(BUILD)/host_gte.o $(BUILD)/host_gs.o $(BUILD)/host_snd.o $(BUILD)/snd_spu.o $(BUILD)/app_lifecycle.o $(BUILD)/app_lifecycle_sdl.o $(BUILD)/touch_pad.o $(BUILD)/touch_router.o $(BUILD)/touch_menu.o $(BUILD)/touch_tap.o $(BUILD)/touch_sdl.o \
 	$(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/host_xa.o $(BUILD)/host_press.o $(BUILD)/host_mdec.o \
 	$(BUILD)/host_st.o $(BUILD)/host_overlay.o $(BUILD)/host_battle.o $(BUILD)/host_memcard.o $(BUILD)/card_image.o $(BUILD)/input_cfg.o $(BUILD)/port_paths_sdl.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o \
 	$(BUILD)/input_device.o $(BUILD)/prompt_icons.o $(BUILD)/prompt_atlas_data.o $(BUILD)/text_icons.o $(BUILD)/menu_frame.o \
@@ -1220,9 +1220,9 @@ $(BUILD)/host_memcard.o: shim/host_memcard.c
 memcardtest: $(BUILD)/memcardtest
 	$(BUILD)/memcardtest
 
-$(BUILD)/memcardtest: memcardtest.c shim/host_memcard.c shim/save_file.h shim/save_view.h shim/ext_state.h shim/card_image.h shim/host_memcard.h $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o
+$(BUILD)/memcardtest: memcardtest.c shim/mod_stages.h shim/host_memcard.c shim/save_file.h shim/save_view.h shim/ext_state.h shim/card_image.h shim/host_memcard.h $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
 	@mkdir -p $(dir $@)
-	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) $(SDL_CFLAGS) -I. memcardtest.c $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o -o $@
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) $(SDL_CFLAGS) -I. memcardtest.c $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o -o $@
 
 # extended-state T2 (ADR-008 option B): dw3save-v1, the port's own save file (shim/save_file.c; plain C, no game headers) and its
 # host test (container, CRC, torn-write fallback) together with the extension chunk of shim/ext_state.c.
@@ -2001,6 +2001,40 @@ $(BUILD)/stagedatatest.o: stagedatatest.c shim/stage_data.h shim/stage_codes.h s
 $(BUILD)/stagedatatest: $(BUILD)/stagedatatest.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
+# new-stages T2: the SnnnTMPK.BIN map layer codec (shim/map_layers.c); portable C99, no game header, no other port file. maplayertest checks
+# encode/decode, dedup, limits, damaged input and the archive helpers, and sweeps the extracted disc when it is there (skipped otherwise).
+$(BUILD)/map_layers.o: shim/map_layers.c shim/map_layers.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: maplayertest
+maplayertest: $(BUILD)/maplayertest
+	$(BUILD)/maplayertest
+
+$(BUILD)/maplayertest.o: maplayertest.c shim/map_layers.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/maplayertest: $(BUILD)/maplayertest.o $(BUILD)/map_layers.o
+	$(CC) $^ -o $@
+
+# new-stages T3: the Z_STAGE SnnnPACK.BIN codec (shim/map_pack.c); portable C99, no game header, no other port file. mappacktest checks RLEN,
+# one tile (layout, limits), the container (sector math, the 255 tile limit) and sweeps the 237 PACK files of the extracted disc when it is there.
+$(BUILD)/map_pack.o: shim/map_pack.c shim/map_pack.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: mappacktest
+mappacktest: $(BUILD)/mappacktest
+	$(BUILD)/mappacktest
+
+$(BUILD)/mappacktest.o: mappacktest.c shim/map_pack.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/mappacktest: $(BUILD)/mappacktest.o $(BUILD)/map_pack.o
+	$(CC) $^ -o $@
+
 # port-close S4/S5: the stage patch layer and the mod flag codes (shim/stage_mods.c; portable C, no game header, it reads the active mods through
 # mods.h and the named variables through ext_state.h). stagemodtest checks the merge, the codes and the variables with their save chunk.
 $(BUILD)/stage_mods.o: shim/stage_mods.c shim/stage_mods.h shim/stage_data.h shim/stage_codes.h shim/content.h shim/mods.h shim/ext_state.h shim/port_log.h shim/text_data.h
@@ -2015,7 +2049,59 @@ $(BUILD)/stagemodtest.o: stagemodtest.c shim/stage_mods.h shim/stage_data.h shim
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/stagemodtest: $(BUILD)/stagemodtest.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/stagemodtest: $(BUILD)/stagemodtest.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+	$(CC) $^ -o $@
+
+# new-stages T5b: the new field encounters of the mods (shim/field_ext.c; portable C, no game header: it reads tables/field_encounters.json of the active
+# mods and the host turns its rows into the game's Encounter and BattleReward). fieldexttest checks the rows, their numbers, the rewards and every refusal.
+$(BUILD)/field_ext.o: shim/field_ext.c shim/field_ext.h shim/content.h shim/mods.h shim/port_log.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: fieldexttest
+fieldexttest: $(BUILD)/fieldexttest
+	$(BUILD)/fieldexttest
+
+$(BUILD)/fieldexttest.o: fieldexttest.c shim/field_ext.h shim/mods.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
+
+$(BUILD)/fieldexttest: $(BUILD)/fieldexttest.o $(BUILD)/field_ext.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+	$(CC) $^ -o $@
+
+# new-stages T4: the registry of the stages that mods add (shim/mod_stages.c; portable C, no game function: it needs port_fs.h for the virtual files, ext_state.h
+# for the visited variable and stage_codes.h for the name rule). modstagetest checks the registry, the visited flag, the save chunk, the names in slots and
+# warp actions and a synthetic stage's TMPK and PACK read back as virtual files.
+$(BUILD)/mod_stages.o: shim/mod_stages.c shim/mod_stages.h shim/ext_state.h shim/port_fs.h shim/stage_codes.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -c $< -o $@
+
+.PHONY: modstagetest
+modstagetest: $(BUILD)/modstagetest
+	$(BUILD)/modstagetest
+
+$(BUILD)/modstagetest.o: modstagetest.c shim/mod_stages.h shim/stage_mods.h shim/stage_codes.h shim/ext_state.h shim/mods.h shim/port_fs.h shim/map_layers.h shim/map_pack.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
+
+$(BUILD)/modstagetest: $(BUILD)/modstagetest.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
+	$(CC) $^ -o $@
+
+# new-stages T5: the loader of the stages that mods add (shim/stage_new.c; portable C: stage.json and the PNGs of a mod's new-stages/<name>/ into a TMPK, a PACK and a
+# registered stage). newstagetest builds a stage from generated PNGs, round-trips its layers and pack, and checks the refusals and the checks of the map against the sections.
+$(BUILD)/stage_new.o: shim/stage_new.c shim/stage_new.h shim/stage_mods.h shim/mod_stages.h shim/map_layers.h shim/map_pack.h shim/png_read.h shim/mods.h shim/port_fs.h shim/port_log.h shim/stage_codes.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -c $< -o $@
+
+.PHONY: newstagetest
+newstagetest: $(BUILD)/newstagetest
+	$(BUILD)/newstagetest
+
+$(BUILD)/newstagetest.o: newstagetest.c shim/stage_new.h shim/mod_stages.h shim/stage_mods.h shim/map_layers.h shim/map_pack.h shim/png_write.h shim/png_read.h shim/mods.h shim/port_fs.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
+
+$(BUILD)/newstagetest: $(BUILD)/newstagetest.o $(BUILD)/stage_new.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/png_read.o $(BUILD)/png_write.o
 	$(CC) $^ -o $@
 
 # content-export E7: the disc files no other exporter covers, as raw copies (shim/raw_export.c). rawtest builds a synthetic raw disc image in

@@ -1,4 +1,4 @@
-DW3 Port 1.0.0
+DW3 Port 1.1.0
 ==============
 
 Downloads, new versions and the source: https://github.com/MxAlfredo/dw3_port/releases
@@ -15,11 +15,11 @@ Italian (often named "Digimon World 2003 (Europe) (En,Fr,De,Es,It)"), as a
 Getting started
 ---------------
 
-The downloads of version 1.0.0 are named:
-  DW3Port-1.0.0-Setup.exe               Windows installer
-  DW3Port-1.0.0-windows-portable.zip    Windows, portable
-  DW3Port-1.0.0-x86_64.AppImage         Linux
-  DW3Port-1.0.0-android.apk             Android
+The downloads of version 1.1.0 are named:
+  DW3Port-1.1.0-Setup.exe               Windows installer
+  DW3Port-1.1.0-windows-portable.zip    Windows, portable
+  DW3Port-1.1.0-x86_64.AppImage         Linux
+  DW3Port-1.1.0-android.apk             Android
 
 Windows, installer (DW3Port-...-Setup.exe)
   Run it. On the "Your game" page, choose your disc image and, if you want to
@@ -55,6 +55,23 @@ Controllers work too (Xbox, PlayStation and most others).
 F1 (or Select on the controller) opens the options: controls, video (with the
 battle speed), display, audio and language. The language list includes
 "Espanol Latam".
+
+
+What's new in 1.1.0
+-------------------
+
+Saves and settings from 1.0.0 load as they are. Mods can now build whole new stages.
+
+  - New stages from mods ("stage-new-v1"): PNG map layers and a background of
+    any size, plus new field encounter rows.
+  - Fishing results and kick-tree results can be set from mods.
+  - A Yes/No "ask" action for talks; battle and card-game results are kept as
+    variables a mod can read later.
+  - An entry banner for mod stages, and the game's own speaker headers for mod
+    texts ({speaker-of:FILE:N}).
+  - New example mod: training-field (two floors, a guide, calibrated fights).
+    There are now 25 ready-made examples.
+  - Fixes found in play-tests.
 
 
 What's new in 1.0.0
@@ -216,7 +233,7 @@ If something goes wrong
 
 Please report it on the project's GitHub page (https://github.com/MxAlfredo/dw3_port/issues)
 and attach the newest file from the logs folder, saying which version you use
-(1.0.0) and on which system. On Windows, DW3-debug.exe is the same game with a console
+(1.1.0) and on which system. On Windows, DW3-debug.exe is the same game with a console
 window that shows the log while you play.
 
 

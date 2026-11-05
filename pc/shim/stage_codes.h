@@ -59,6 +59,14 @@ typedef struct StageCodeEnv {
        an id it made (NULL when it is not one), for the run-event action */
     int (*eventId)(void *ud, const char *name);
     const char *(*eventName)(void *ud, int id);
+    /* mod stages (new-stages T4, shim/mod_stages.h): the stage number the port gives a name "<mod>:<name>" (-1 when no such stage is registered), and the
+       name of a number it gave (NULL when it is not one), for the warp action. NULL: names are not accepted, numbers print as numbers. */
+    int (*stageByName)(void *ud, const char *name);
+    const char *(*stageName)(void *ud, int number);
+    /* new field encounters (new-stages T5b): the number of a row a mod added, by name "<mod>:<name>" (-1: none), and the name of such a number (NULL: not
+       one), for the start-battle action. NULL encounterByName: names are not accepted, numbers print as numbers. */
+    int (*encounterByName)(void *ud, const char *name);
+    const char *(*encounterName)(void *ud, int number);
 } StageCodeEnv;
 
 /* ---- the codes the port adds for mods (S5) ----
@@ -67,11 +75,13 @@ typedef struct StageCodeEnv {
    (shim/stage_mods.c): an op names a variable ("<mod>:<name>", kept in ext_state by name) and what to do with it.
      mod-flag  condition: the variable is non-zero (value 1) or zero (value 0); action: set it to 1 or 0
      mod-var   condition: the variable <cmp> n holds (value 1) or does not (value 0); action: nothing
-     set-var   action: the variable becomes `value`; condition: always holds */
+     set-var   action: the variable becomes `value`; condition: always holds
+     ask       action: ["ask", "<mod>:<name>"], when the talk's line has been said the field shows the game's own Yes/No panel and the variable becomes 1 (yes) or 2 (no);
+               the speaker's talks are then chosen again (so the next talk can read the answer); condition: always holds */
 #define SC_MOD_GROUP_FIRST 0x62
 #define SC_MOD_GROUP_LAST 0x68
 #define SC_MOD_OPS_MAX 2048 /* 4 groups x 512 */
-enum { SC_MOD_FLAG = 1, SC_MOD_VAR = 2, SC_MOD_SET = 3 };
+enum { SC_MOD_FLAG = 1, SC_MOD_VAR = 2, SC_MOD_SET = 3, SC_MOD_ASK = 4 };
 enum { SC_CMP_EQ, SC_CMP_NE, SC_CMP_GE, SC_CMP_GT, SC_CMP_LE, SC_CMP_LT, SC_CMP_COUNT };
 const char *scCmpName(int cmp);     /* "==", "!=", ">=", ">", "<=", "<"; NULL when out of range */
 int scCmpByName(const char *name);  /* -1 when unknown */

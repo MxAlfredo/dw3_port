@@ -26,6 +26,8 @@
  *  - stateScopeSubLoaded(file): a sub scope resets only when the file id changes.
  */
 
+#include <stddef.h>
+
 typedef struct StateScope StateScope;
 typedef void (*StateScopeHook)(StateScope *scope, void *user);
 
@@ -41,6 +43,11 @@ int stateScopeAddRange(StateScope *scope, void *begin, void *end);
 /* Registers a hook; hooks run in registration order. Return 0 on success, -1 on no memory. */
 int stateScopeOnEnter(StateScope *scope, StateScopeHook hook, void *user);
 int stateScopeOnExit(StateScope *scope, StateScopeHook hook, void *user);
+
+/* A range the reset leaves alone when the scope is entered by stateScopeModeEntered from the mode id `fromModeId` (at most 8 per scope): state
+ * the original's overlay keeps from one mode to the next because that change loads no overlay, where the port's modes 0x2xx and 0x3xx share one
+ * overlay but reset like two. Returns 0, or -1 on a bad range, no memory or a ninth carry. */
+int stateScopeCarry(StateScope *scope, void *begin, size_t size, int fromModeId);
 
 void stateScopeEnter(StateScope *scope);
 void stateScopeLeave(StateScope *scope);

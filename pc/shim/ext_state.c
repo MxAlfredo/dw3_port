@@ -1229,8 +1229,54 @@ const char *pcExtVarNameAt(int i) {
     return NULL;
 }
 
+static int sCardOpponent = -1; /* the opponent of the card battle in progress, -1 none */
+
+void pcCardBattleBegin(int opponent) {
+    sCardOpponent = opponent >= 0 && opponent <= 0x1FF ? opponent : -1;
+}
+
+void pcCardBattleEnd(int won) {
+    char name[64];
+    int opponent = sCardOpponent;
+
+    sCardOpponent = -1;
+    if (opponent < 0) return;
+    snprintf(name, sizeof name, "dw3:card-played/%x", opponent);
+    pcExtVarSet(name, 1);
+    if (won) {
+        snprintf(name, sizeof name, "dw3:card-won/%x", opponent);
+        pcExtVarSet(name, 1);
+    }
+    plogLine("state", "card battle against opponent 0x%X ended: %s\n", opponent, won ? "won" : "lost");
+}
+
+/* The result of a battle a talk or an event started (`start-battle`), by encounter: `key` is the name of a mod's encounter with the colon turned into a slash
+   ("training-field/duel-trio") or the row in lower-case hex ("1a"). A won battle comes back through the report (MODE_BATTLE_REPORT), a fled one straight from
+   the battle; a lost one goes to the title screen, so it leaves nothing to record. */
+static char sBattleKey[128];
+
+void pcFieldBattleBegin(const char *key) {
+    snprintf(sBattleKey, sizeof sBattleKey, "%s", key ? key : "");
+}
+
+void pcFieldBattleEnd(int won) {
+    char name[192];
+
+    if (!sBattleKey[0]) return;
+    snprintf(name, sizeof name, "dw3:battle-played/%s", sBattleKey);
+    pcExtVarSet(name, 1);
+    if (won) {
+        snprintf(name, sizeof name, "dw3:battle-won/%s", sBattleKey);
+        pcExtVarSet(name, 1);
+    }
+    plogLine("state", "field battle %s ended: %s\n", sBattleKey, won ? "won" : "left");
+    sBattleKey[0] = 0;
+}
+
 void pcExtVarsReset(void) {
     int i;
+
+    sBattleKey[0] = 0; /* a new game or a loaded one: the battle in progress (if any) is not theirs */
 
     for (i = 0; i < sVarCount; i++) free(sVars[i].name);
     free(sVars);

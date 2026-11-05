@@ -1,0 +1,614 @@
+{
+  "format": "field_encounters-v1",
+  "rows": {
+    "training-field:lower-coelamon": {
+      "enemies": [
+        {
+          "enemy": 49,
+          "level": 8,
+          "hp": 312,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 80,
+        "exp": 40,
+        "digimonExp": 8
+      }
+    },
+    "training-field:lower-woodmon": {
+      "enemies": [
+        {
+          "enemy": 222,
+          "level": 9,
+          "hp": 336,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 90,
+        "exp": 45,
+        "digimonExp": 9
+      }
+    },
+    "training-field:lower-apemon": {
+      "enemies": [
+        {
+          "enemy": 207,
+          "level": 10,
+          "hp": 360,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 100,
+        "exp": 50,
+        "digimonExp": 10
+      }
+    },
+    "training-field:lower-triceramon": {
+      "enemies": [
+        {
+          "enemy": 203,
+          "level": 10,
+          "hp": 540,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 4,
+      "kind": 1,
+      "rewards": {
+        "money": 100,
+        "exp": 50,
+        "digimonExp": 10
+      }
+    },
+    "training-field:lower-pair": {
+      "enemies": [
+        {
+          "enemy": 132,
+          "level": 10,
+          "hp": 360,
+          "mp": 9999,
+          "strength": 16
+        },
+        {
+          "enemy": 197,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 210,
+        "exp": 105,
+        "digimonExp": 21
+      }
+    },
+    "training-field:lower-minotarumon": {
+      "enemies": [
+        {
+          "enemy": 172,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:upper-tyrannomon": {
+      "enemies": [
+        {
+          "enemy": 8,
+          "level": 13,
+          "hp": 432,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 130,
+        "exp": 65,
+        "digimonExp": 13
+      }
+    },
+    "training-field:upper-apemon": {
+      "enemies": [
+        {
+          "enemy": 207,
+          "level": 14,
+          "hp": 456,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 140,
+        "exp": 70,
+        "digimonExp": 14
+      }
+    },
+    "training-field:upper-redvegiemon": {
+      "enemies": [
+        {
+          "enemy": 77,
+          "level": 15,
+          "hp": 480,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 150,
+        "exp": 75,
+        "digimonExp": 15
+      }
+    },
+    "training-field:upper-shogungekomon": {
+      "enemies": [
+        {
+          "enemy": 119,
+          "level": 16,
+          "hp": 504,
+          "mp": 200,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 160,
+        "exp": 80,
+        "digimonExp": 16
+      }
+    },
+    "training-field:upper-trio": {
+      "enemies": [
+        {
+          "enemy": 172,
+          "level": 13,
+          "hp": 432,
+          "mp": 9999,
+          "strength": 16
+        },
+        {
+          "enemy": 8,
+          "level": 14,
+          "hp": 456,
+          "mp": 9999,
+          "strength": 16
+        },
+        {
+          "enemy": 207,
+          "level": 15,
+          "hp": 480,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 4,
+      "kind": 1,
+      "rewards": {
+        "money": 420,
+        "exp": 210,
+        "digimonExp": 42
+      }
+    },
+    "training-field:tree-cardmon": {
+      "enemies": [
+        {
+          "enemy": 457,
+          "level": 9,
+          "hp": 336,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 5,
+      "paralysis": 1,
+      "confusion": 1,
+      "sleep": 1,
+      "steal": 1,
+      "rewards": {
+        "money": 90,
+        "exp": 45,
+        "digimonExp": 9
+      }
+    },
+    "training-field:tree-mojyamon": {
+      "enemies": [
+        {
+          "enemy": 52,
+          "level": 9,
+          "hp": 336,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 90,
+        "exp": 45,
+        "digimonExp": 9
+      }
+    },
+    "training-field:tree-vegiemon": {
+      "enemies": [
+        {
+          "enemy": 25,
+          "level": 10,
+          "hp": 360,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 100,
+        "exp": 50,
+        "digimonExp": 10
+      }
+    },
+    "training-field:tree-numemon": {
+      "enemies": [
+        {
+          "enemy": 11,
+          "level": 8,
+          "hp": 312,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 80,
+        "exp": 40,
+        "digimonExp": 8
+      }
+    },
+    "training-field:tree-giromon": {
+      "enemies": [
+        {
+          "enemy": 41,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:tree-mamemon": {
+      "enemies": [
+        {
+          "enemy": 13,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:tree-upper-cardmon": {
+      "enemies": [
+        {
+          "enemy": 458,
+          "level": 14,
+          "hp": 456,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 5,
+      "paralysis": 1,
+      "confusion": 1,
+      "sleep": 1,
+      "steal": 1,
+      "rewards": {
+        "money": 140,
+        "exp": 70,
+        "digimonExp": 14
+      }
+    },
+    "training-field:tree-kokatorimon": {
+      "enemies": [
+        {
+          "enemy": 50,
+          "level": 14,
+          "hp": 456,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 140,
+        "exp": 70,
+        "digimonExp": 14
+      }
+    },
+    "training-field:tree-gekomon": {
+      "enemies": [
+        {
+          "enemy": 110,
+          "level": 13,
+          "hp": 432,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 130,
+        "exp": 65,
+        "digimonExp": 13
+      }
+    },
+    "training-field:tree-sukamon": {
+      "enemies": [
+        {
+          "enemy": 39,
+          "level": 13,
+          "hp": 432,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 130,
+        "exp": 65,
+        "digimonExp": 13
+      }
+    },
+    "training-field:tree-flarerizamon": {
+      "enemies": [
+        {
+          "enemy": 69,
+          "level": 16,
+          "hp": 504,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 160,
+        "exp": 80,
+        "digimonExp": 16
+      }
+    },
+    "training-field:tree-bluemeramon": {
+      "enemies": [
+        {
+          "enemy": 104,
+          "level": 16,
+          "hp": 504,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 160,
+        "exp": 80,
+        "digimonExp": 16
+      }
+    },
+    "training-field:lake-betamon": {
+      "enemies": [
+        {
+          "enemy": 4,
+          "level": 8,
+          "hp": 312,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 80,
+        "exp": 40,
+        "digimonExp": 8
+      }
+    },
+    "training-field:lake-gizamon": {
+      "enemies": [
+        {
+          "enemy": 132,
+          "level": 9,
+          "hp": 336,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 90,
+        "exp": 45,
+        "digimonExp": 9
+      }
+    },
+    "training-field:lake-cardmon": {
+      "enemies": [
+        {
+          "enemy": 460,
+          "level": 10,
+          "hp": 360,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 5,
+      "paralysis": 1,
+      "confusion": 1,
+      "sleep": 1,
+      "steal": 1,
+      "rewards": {
+        "money": 100,
+        "exp": 50,
+        "digimonExp": 10
+      }
+    },
+    "training-field:lake-shellmon": {
+      "enemies": [
+        {
+          "enemy": 35,
+          "level": 10,
+          "hp": 360,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 100,
+        "exp": 50,
+        "digimonExp": 10
+      }
+    },
+    "training-field:lake-tortomon": {
+      "enemies": [
+        {
+          "enemy": 208,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:lake-dolphmon": {
+      "enemies": [
+        {
+          "enemy": 210,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:lake-octomon": {
+      "enemies": [
+        {
+          "enemy": 221,
+          "level": 11,
+          "hp": 384,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 8,
+      "kind": 1,
+      "rewards": {
+        "money": 110,
+        "exp": 55,
+        "digimonExp": 11
+      }
+    },
+    "training-field:duel-trio": {
+      "enemies": [
+        {
+          "enemy": 8,
+          "level": 15,
+          "hp": 480,
+          "mp": 9999,
+          "strength": 16
+        },
+        {
+          "enemy": 207,
+          "level": 16,
+          "hp": 504,
+          "mp": 9999,
+          "strength": 16
+        },
+        {
+          "enemy": 77,
+          "level": 15,
+          "hp": 480,
+          "mp": 9999,
+          "strength": 16
+        }
+      ],
+      "ambushChance": 0,
+      "kind": 2,
+      "confusion": 1,
+      "sleep": 1,
+      "knockOut": 1,
+      "runAway": 1,
+      "rewards": {
+        "money": 460,
+        "exp": 230,
+        "digimonExp": 46
+      }
+    }
+  }
+}

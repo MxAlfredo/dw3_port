@@ -1545,6 +1545,14 @@ static void testFieldTables(void)
     CHECK(FIELDSTG_encounters[1].enemies[0]->fighter == 250 && FIELDSTG_encounters[1].enemies[0]->hp == 999);
     CHECK(FIELDSTG_encounters[4].enemies[0] == &FIELDSTG_enemies[5] && FIELDSTG_encounters[4].enemies[0]->fighter == 250); /* the row is shared */
 
+    /* a row keyed by a name ("<mod>:<name>") is a new encounter of the mods' (field_ext.c), not a row of this table: skipped without a line, the rest of the file applies */
+    log = fieldStart(0, NULL, "{\"format\":\"field_encounters-v1\",\"rows\":{\"m:new\":{\"enemies\":[]},\"1\":{\"kind\":2},\"*:x\":{\"kind\":9}}}", NULL);
+    CHECK(!strstr(log, "m:new") && strstr(log, "\"*:x\"") == NULL);
+    free(log);
+    gameTablesApplyField();
+    CHECK(FIELDSTG_encounters[1].kind == 2);
+    CHECK(gameTablesEncounterCount() == 335);
+
     /* battle rates: a number, an operation that stops at the range, a negative and an over-range value refused */
     log = fieldStart(0, NULL, NULL,
         "{\"format\":\"battle_rates-v1\",\"rows\":{\"1\":{\"rate\":5},\"2\":{\"rate\":-1},\"3\":{\"rate\":2001},\"0\":{\"rate\":\"*2\"},\"4\":{\"rate\":0},"

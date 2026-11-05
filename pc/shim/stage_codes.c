@@ -256,11 +256,27 @@ static void pairToJson(const StageCodeEnv *env, ScBuf *B, unsigned code, unsigne
         if (!env->actOpInfo(env->ud, code, &kind, a) || !scActName(kind)) {
             scPrintf(B, "[\"raw\", \"0x%04X\", %u]", code, value);
         } else if (kind == SC_ACT_WARP) {
-            scPrintf(B, "[\"warp\", %d, %d, %d, %d]", a[0], a[1], a[2], a[3]);
+            const char *sn = env->stageName ? env->stageName(env->ud, a[0]) : NULL; /* a stage of a mod: its name */
+
+            if (sn) {
+                scPrintf(B, "[\"warp\", \"");
+                scPutEsc(B, sn);
+                scPrintf(B, "\", %d, %d, %d]", a[1], a[2], a[3]);
+            } else {
+                scPrintf(B, "[\"warp\", %d, %d, %d, %d]", a[0], a[1], a[2], a[3]);
+            }
         } else if (kind == SC_ACT_SOUND) {
             scPrintf(B, "[\"sound\", \"%s\"]", scSoundName(a[0]) ? scSoundName(a[0]) : "select");
         } else if (kind == SC_ACT_START_BATTLE) {
-            scPrintf(B, "[\"start-battle\", %d, %d, %d]", a[0], a[1], a[2]);
+            const char *en = env->encounterName ? env->encounterName(env->ud, a[0]) : NULL; /* a new encounter of a mod: its name */
+
+            if (en) {
+                scPrintf(B, "[\"start-battle\", \"");
+                scPutEsc(B, en);
+                scPrintf(B, "\", %d, %d]", a[1], a[2]);
+            } else {
+                scPrintf(B, "[\"start-battle\", %d, %d, %d]", a[0], a[1], a[2]);
+            }
         } else if (kind == SC_ACT_RUN_EVENT) {
             const char *en = env->eventName ? env->eventName(env->ud, a[0]) : NULL;
 
@@ -290,6 +306,10 @@ static void pairToJson(const StageCodeEnv *env, ScBuf *B, unsigned code, unsigne
             scPrintf(B, "\", \"%s\", %d", scCmpName(cmp) ? scCmpName(cmp) : "==", n);
             if (value != 1) scPrintf(B, ", %u", value);
             scPrintf(B, "]");
+        } else if (kind == SC_MOD_ASK) {
+            scPrintf(B, "[\"ask\", \"");
+            scPutEsc(B, name);
+            scPrintf(B, "\"]");
         } else {
             scPrintf(B, "[\"set-var\", \"");
             scPutEsc(B, name);
@@ -479,11 +499,11 @@ static int pairFromJson(const StageCodeEnv *env, const ExtJson *p, int index, Wo
             if (!wholeIn(&p->v[3], 0, 7, &kind)) BADREF("the item class must be a whole number from 0 to 7");
         }
         w->code = isItem ? (0x8000u | (unsigned)(kind << 9) | (unsigned)ref) : (0x9200u | (unsigned)ref);
-    } else if (!strcmp(name, "mod-flag") || !strcmp(name, "mod-var") || !strcmp(name, "set-var")) {
-        int kind = !strcmp(name, "mod-flag") ? SC_MOD_FLAG : !strcmp(name, "mod-var") ? SC_MOD_VAR : SC_MOD_SET, cmp = 0, arg = 0, code;
+    } else if (!strcmp(name, "mod-flag") || !strcmp(name, "mod-var") || !strcmp(name, "set-var") || !strcmp(name, "ask")) {
+        int kind = !strcmp(name, "mod-flag") ? SC_MOD_FLAG : !strcmp(name, "mod-var") ? SC_MOD_VAR : !strcmp(name, "ask") ? SC_MOD_ASK : SC_MOD_SET, cmp = 0, arg = 0, code;
 
         if (!env || !env->modOp) BADREF("mod flags need the stage patch layer (no mod flag table is available here)");
-        NEED(kind == SC_MOD_VAR ? 4 : 3);
+        NEED(kind == SC_MOD_VAR ? 4 : kind == SC_MOD_ASK ? 2 : 3);
         if (r->t != 1 || !r->str || !scModNameValid(r->str)) BADREF("the name must be \"<mod>:<name>\" (the mod's folder, a colon, then letters, digits, _ - /)");
         if (kind == SC_MOD_VAR) {
             long nn;
@@ -496,6 +516,8 @@ static int pairFromJson(const StageCodeEnv *env, const ExtJson *p, int index, Wo
                 VALUE(4);
                 if (value > 1) BADREF("the last element (does the comparison hold?) must be 0 or 1");
             }
+        } else if (kind == SC_MOD_ASK) {
+            value = 1; /* the pair's value is ignored */
         } else {
             VALUE(2);
             if (kind == SC_MOD_FLAG && value > 1) BADREF("the value must be 0 or 1");
@@ -522,9 +544,16 @@ static int pairFromJson(const StageCodeEnv *env, const ExtJson *p, int index, Wo
             break;
         case SC_ACT_WARP:
             NEED(5);
-            if (!wholeIn(&p->v[1], 1, 0xFFFF, &v)) BADREF("the stage must be a stage number (1 to 65535)");
-            args[0] = (int)v;
-            if (env->stageExists && !env->stageExists(env->ud, args[0])) BADREF("there is no such stage in this build");
+            if (p->v[1].t == 1 && p->v[1].str) { /* a stage a mod adds, by name (mod_stages.h): the registry's stage number */
+                int number = env->stageByName ? env->stageByName(env->ud, p->v[1].str) : -1;
+
+                if (number < 0) BADREF("there is no such stage in this build");
+                args[0] = number;
+            } else {
+                if (!wholeIn(&p->v[1], 1, 0xFFFF, &v)) BADREF("the stage must be a stage number (1 to 65535) or a name \"<mod>:<name>\"");
+                args[0] = (int)v;
+                if (env->stageExists && !env->stageExists(env->ud, args[0])) BADREF("there is no such stage in this build");
+            }
             if (!wholeIn(&p->v[2], 0, 8191, &v)) BADREF("x must be a whole number of pixels from 0 to 8191");
             args[1] = (int)v;
             if (!wholeIn(&p->v[3], 0, 8191, &v)) BADREF("y must be a whole number of pixels from 0 to 8191");
@@ -534,8 +563,15 @@ static int pairFromJson(const StageCodeEnv *env, const ExtJson *p, int index, Wo
             break;
         case SC_ACT_START_BATTLE:
             NEED(4);
-            if (!wholeIn(&p->v[1], 1, 4095, &v)) BADREF("the encounter must be a whole number from 1 to 4095 (a row of field_encounters)");
-            args[0] = (int)v;
+            if (p->v[1].t == 1 && p->v[1].str) { /* a new encounter a mod added, by name (shim/field_ext.h) */
+                int number = env->encounterByName ? env->encounterByName(env->ud, p->v[1].str) : -1;
+
+                if (number < 0) BADREF("there is no such field encounter (a name \"<mod>:<name>\" of a row a mod adds in tables/field_encounters.json)");
+                args[0] = number;
+            } else {
+                if (!wholeIn(&p->v[1], 1, 4095, &v)) BADREF("the encounter must be a whole number from 1 to 4095 (a row of field_encounters) or a name \"<mod>:<name>\"");
+                args[0] = (int)v;
+            }
             if (!wholeIn(&p->v[2], 0, 0x7FFFFFFF, &v)) BADREF("the fight stage must be a whole number (the \"stage\" of a battle in the stage's exported \"battles\")");
             args[1] = (int)v;
             if (!wholeIn(&p->v[3], 0, 0x7FFFFFFF, &v)) BADREF("the music must be a whole number (the \"music\" of a battle in the stage's exported \"battles\")");

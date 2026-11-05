@@ -83,7 +83,7 @@ void stageBannerFrame(void) {
         armed = forced = shown = released = waited = 0;
         stageBannerSetShown(0);
     }
-    banner = GAME.funcs.getMode() >> 8 == 2 ? TASK_REGISTRY.funcs.find(FIELD_TASK_BANNER, -1, -1) : NULL;
+    banner = PC_IS_FIELD_MODE(GAME.funcs.getMode()) ? TASK_REGISTRY.funcs.find(FIELD_TASK_BANNER, -1, -1) : NULL;
     if (banner == NULL || stageBannerMode() != STAGE_BANNER_FAST) {
         armed = forced = shown = released = waited = 0;
         stageBannerSetShown(0);
@@ -478,7 +478,7 @@ void fastTransitionsFrame(void) {
         }
         return;
     }
-    if (mode >> 8 != 2) {
+    if (!PC_IS_FIELD_MODE(mode)) { /* 0x2xx and the stages mods add (0x3xx) */
         return;
     }
     mapLoadingFrame();
@@ -643,14 +643,14 @@ int stageTimingFrame(int frame) {
     pollTask("banner", FIELD_TASK_BANNER, &banner, 0);
     pollWatched(mode);
     frozen = FIELDSTG_state.frozen;
-    if (mode >> 8 == 2 && frozen != lastFrozen) {
+    if (PC_IS_FIELD_MODE(mode) && frozen != lastFrozen) {
         stageTimingLog("frozen=%d", frozen);
     }
     lastFrozen = frozen;
     if (banner.present) {
         bannerSeen = 1;
     }
-    if (mode >> 8 == 2 && bannerSeen && !frozen && (!banner.present || stageBannerMode() == STAGE_BANNER_FAST)) {
+    if (PC_IS_FIELD_MODE(mode) && bannerSeen && !frozen && (!banner.present || stageBannerMode() == STAGE_BANNER_FAST)) {
         if (!playable) {
             stageTimingLog("playable");
             playable = 1;

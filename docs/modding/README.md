@@ -52,6 +52,7 @@ Esta guía es la referencia de lo que se puede modificar **hoy** y de cómo hace
 | Digimon existentes (compañeros y enemigos: estadísticas, técnicas, botín), enemigos nuevos y en qué encuentros aparecen | `content/digimon.json` (mod de contenido) | §6.9 |
 | Cartas nuevas (ficha, efecto, arte y nombre) | `content/cards.json` y `card/<llave>.png` (mod de contenido) | §6.10 |
 | Personajes de un escenario del campo (cambiar, agregar, quitar) y sus charlas, con banderas propias del mod; salidas, eventos con guion y batallas de área | `stages/<nnn>.json` (`stage-patch-v1`) | §6.11 |
+| Escenarios de campo nuevos (mapa dibujado con PNG, colisión, salidas, batallas) | `new-stages/<nombre>/` (`stage-new-v1`) | §6.11b |
 | Arte de pantallas y menús (PNG, mapa `atlas-v1`) | `images/<carpeta>/<archivo>/<NN>_<MM>.png` | §6.2 |
 | Sprites del campo (PNG por cuadro, mapa `sprite-v1`) | `images/field/sprt/<nombre>/<EEE>.png` | §6.3 |
 | Dibujo de una carta (PNG de 32x32 y 256 colores; 316 cartas) | `images/card/cardpak<0-4>/<NN>.png` | §6.2b |
@@ -151,6 +152,7 @@ mi-mod/
   content/items.json, content/techs.json   contenido nuevo (kind "content")
   tables/<tabla>.json                   parches de tablas
   stages/<nnn>.json                     parche de los personajes y charlas de un escenario (§6.11)
+  new-stages/<nombre>/stage.json        un escenario nuevo (§6.11b) y sus mapas: background.png, floor.png, triggers.png, areas.png
   text/<idioma>/<archivo>.json          idiomas: eng fra ita ger spa es-419
   images/<carpeta>/<archivo>/<NN>_<MM>.png
   images/field/sprt/<nombre>/<EEE>.png
@@ -595,7 +597,7 @@ el log (`DW3_LOG=mods`). El detalle de cada tabla (qué lee el juego, de dónde 
 | `vital_cuts`, `vital_random` (E5b) | primer nivel del tramo; ranura 0-8 | PV y PM que gana un compañero al subir de nivel | en el siguiente reporte |
 | `stat_gains`, `resist_gains` (E5b) | primer nivel del tramo (1-80); ranura 0-7 | ganancia de estadísticas y resistencias por nivel | en el siguiente reporte |
 | `field_enemies` (E5c) | número de fila (0-522) | Digimon, nivel, PV, PM y fuerza de los enemigos de los encuentros del campo | en la siguiente batalla del campo |
-| `field_encounters` (E5c) | índice del encuentro (0-334) | qué filas de enemigo usa cada encuentro, la emboscada, el tipo y los 12 bloqueos | en la siguiente batalla del campo |
+| `field_encounters` (E5c) | índice del encuentro (0-334); `"<mod>:<nombre>"` agrega uno (T5b) | qué filas de enemigo usa cada encuentro, la emboscada, el tipo y los 12 bloqueos; en una fila nueva, sus enemigos y recompensas | en la siguiente batalla del campo |
 | `battle_rates` (E5c) | índice de tasa (0-5) | cuántos pasos resta cada tasa a la cuenta hasta la próxima batalla al azar | desde el siguiente paso |
 | `card_prices` (E5d) | id de carta (44 cartas con precio) | lo que cobra la tienda de cartas por cada una | al abrir la tienda de cartas |
 | `card_shop_stock` (E5d) | número de tienda (49-67, 70-74) | las cartas que vende cada tienda (lista de ids 1-314 o `"<mod>:<nombre>"`) | al abrir la compra |
@@ -617,6 +619,26 @@ Notas:
 - Las tablas del campo se aplican cada vez que se entra al campo. `field_encounters` nombra a los enemigos por número de fila de
   `field_enemies`: las filas se comparten, así que cambiar una fila cambia todos los encuentros que la usan. Ni la fila 0 de
   `field_enemies` ni el encuentro 0 pueden cambiar, y un encuentro no puede quedar con el primer enemigo vacío.
+- **Encuentros nuevos (T5b).** Una fila de `tables/field_encounters.json` cuya llave es un nombre `"<mod>:<nombre>"` (la carpeta del mod propio, dos puntos y
+  una llave de `a-z 0-9 - _`) **agrega** un encuentro en vez de cambiar uno; los originales nunca se tocan y quitar el mod los deja como estaban. Lleva sus propios
+  enemigos (no comparte filas de `field_enemies`) y sus recompensas:
+
+  ```json
+  {"format": "field_encounters-v1", "rows": {
+    "mimod:prado": {
+      "enemies": [{"enemy": 206, "level": 10, "hp": 300, "mp": 40, "strength": 30},
+                  {"enemy": "mimod:limo", "level": 9, "hp": 250, "mp": 0, "strength": 25}],
+      "ambushChance": 0, "kind": 1, "runAway": 0,
+      "rewards": {"money": 120, "exp": 45, "digimonExp": 30}}}}
+  ```
+
+  `enemies` son de 1 a 3 enemigos (el primero no puede ser 0); `enemy` es un id, `"dw3:digimon/<id>"` o `"<mod>:<clave>"` (un enemigo nuevo; una forma de socio se rechaza) y
+  los cuatro valores son obligatorios (`level` 1-99, `hp` 1-32767, `mp` 0-32767, `strength` 1-32767). Opcionales: `ambushChance` 0-255 (0), `kind` 0-255 (1) y los 12 bloqueos
+  de arriba (`poison` ... `runAway`, 0 o 1, por defecto 0). `rewards` (`money` 0-9999999, `exp` 0-999999, `digimonExp` 0-9999999; por defecto 0) es la fila que el reporte lee para
+  esa batalla. El botín sale del enemigo (`battle_loot`), no del encuentro. Los números se dan después de los 335 del disco (335, 336...) en el orden de los mods y del archivo; en
+  `battles` de un escenario y en la acción `start-battle` el encuentro se escribe por nombre (`"encounter": "mimod:prado"`) o por ese número. Una fila inválida se registra
+  (`tables: <archivo> row "<nombre>" rejected: <motivo>`) y no existe: el escenario que la nombra se rechaza con "there is no field encounter named". Hasta 1024 filas nuevas entre todos los mods.
+  La condición 12 del enemigo (`BATTLE_SETUP.battle == arg`) compara con ese número, que depende del orden de los mods: no la uses con encuentros nuevos.
 - `field_enemies` acepta en `fighter` el id de un enemigo, `"dw3:digimon/<id>"` o el nombre de un enemigo de un mod de contenido
   (`"<mod>:<clave>"`); una forma de compañero se rechaza.
 - Las tablas de cartas se aplican cada vez que se entra a la tienda de cartas o al duelo. Cada referencia trae en `"labels"` el nombre inglés
@@ -1173,7 +1195,10 @@ no se guarda nunca (la partida guarda el nombre: sección `EXTK`). Ejemplo compl
   última no lleva condiciones. Las condiciones y acciones usan el vocabulario de `docs/stages.md` §4: `["flag", "1A:1F", 1]`, `["item", "dw3:item/18", 1]`...
 - **Banderas propias:** `["mod-flag", "<mod>:<nombre>", 1]` (condición: está puesta; acción: ponerla), `["mod-var", "<mod>:<nombre>", ">=", 3]` y `["set-var", "<mod>:<nombre>", 3]` para contadores.
   Se guardan en la partida por nombre: quitar el mod y volver a ponerlo no pierde el progreso.
+- **Preguntas de sí o no:** `["ask", "<mod>:<nombre>"]` en las `actions` de una charla: cuando se dijo la línea, el campo muestra el panel Sí/No del juego y la variable vale 1 (sí) o 2 (no); después las charlas del personaje se eligen otra vez, así que la siguiente lee la respuesta con `["mod-var", ..., "==", 1]`. La pregunta es la línea de la charla. `docs/stages.md` §17.
+- **Resultado de una batalla de `start-battle`:** al volver al campo el puerto deja `dw3:battle-won/<clave>` y `dw3:battle-played/<clave>` (`<clave>` = el nombre del encuentro con `/` en vez de `:`, p. ej. `dw3:battle-won/training-field/duel-trio`, o el número en hex). Perder lleva a la pantalla de título: no queda nada que leer.
 - **Textos propios:** una charla puede decir `{"text": "<mod>:<nombre>", ...}` en vez de `entry`. Las palabras van en `text/<idioma>/stages.json` (formato `stage-text-v1`, una carpeta por idioma; el inglés es obligatorio y un idioma que
+  - **La cabecera de hablante del juego:** un texto puede empezar con `{speaker-of:<ARCHIVO>:<entrada>}` (ARCHIVO es un archivo de texto del juego, p. ej. `TALK04`): el puerto pone ahí la cabecera que esa entrada tiene en el disco del jugador, en el idioma que se juega (los letreros del juego dicen su nombre en `TALK04` entrada 19), así que el mod no copia texto del juego. Archivo desconocido o prefijo mal formado: se rechaza el `stages.json` de ese idioma. `docs/stages.md` sección 8.
   no tiene el nombre muestra el inglés, es-419 prueba antes el español): `{"format": "stage-text-v1", "texts": {"bienvenida": "..."}}`. El puerto agrega la línea al texto del escenario y la ajusta a la caja de charla. Detalle y esquema: `docs/stages.md` §8, `docs/modding/schema/stage-text.schema.json`.
 - **Condiciones propias:** una fila nueva en `tables/special_conditions.json` con la llave `"<mod>:<nombre>"` (ver `docs/data-tables.md` §3.9) se usa como `["special", "<mod>:<nombre>", 1]`; también están las tablas de dinero, rangos de progreso y umbrales del grupo.
 - **Acciones nuevas:** `["give-money", 500]`, `["take-money", 500]`, `["set-progress", 12]`, `["warp", 380, 1186, 874, 3]` (escenario, x, y, dirección) y `["sound", "teleport"]` (`docs/stages.md` §9). Dar o quitar un objeto de un mod ya se podía: `["item", "<mod>:<nombre>", 1]`.
@@ -1181,13 +1206,105 @@ no se guarda nunca (la partida guarda el nombre: sección `EXTK`). Ejemplo compl
   de log. Sin parche, el escenario es idéntico al original. `--validate-mod` revisa el archivo.
 - **Personajes y sprites propios** (`docs/stages.md` §11): un personaje nuevo sin `image` recibe un espacio de VRAM propio, y puede ser cualquier `character` del juego o un `"sprite": "<nombre>"` de `mods/<mod>/sprites/<nombre>/`; lo que no cabe se quita con una línea de log.
 - **Salidas, eventos y batallas** (`docs/stages.md` §10): además de `actors`, el archivo puede traer `slots`, `events` y `battles`.
-  - `slots` (`patch` por `index` o `key`, `add`, `remove`): una salida lleva `type`, `arg`, `x`, `y`, `dir` y condiciones; `"stage": 380` apunta la salida a ese escenario y `"event": "<mod>:<nombre>"` a un evento. Una salida nueva lleva `"area": {"x", "y", "w", "h"}`, un rectángulo del mapa en píxeles donde se dispara (el mapa no se edita).
+  - `slots` (`patch` por `index` o `key`, `add`, `remove`): una salida lleva `type`, `arg`, `x`, `y`, `dir` y condiciones; `"stage": 380` apunta la salida a ese escenario y `"event": "<mod>:<nombre>"` a un evento. Una salida nueva lleva `"area": {"x", "y", "w", "h"}`, un rectángulo del mapa en píxeles donde se dispara (este mapa es el del escenario original: se parcha, no se redibuja; para un mapa propio usa §6.11b).
   - `events` (`patch` por `id`, `add` con llave): `script` con los comandos del juego (`["wait", 20]`, `["talk", 0, "<mod>:<texto>", 0, 4]`, `["walk", ...]`, `["leave", ...]`, siempre terminando en `["end"]`). Una charla o una salida lo empiezan: `["run-event", "<mod>:<nombre>"]`. Un evento nuevo no tiene código de C.
   - `battles` (`patch`, `add`): por área del mapa, `rate`, y por batalla `encounter` (una fila de `field_encounters`), `stage` (escenario de lucha) y `music`; mira `battles` en `data/stages/<nnn>.json`. La acción `["start-battle", encuentro, escenario_de_lucha, musica]` empieza una desde una charla.
 
+### 6.11b Tu primer escenario nuevo
+
+`new-stages/<nombre>/` agrega un escenario de campo entero: un mapa que dibujas tú, su colisión, sus salidas y sus batallas. Es el formato `stage-new-v1`; el detalle (cada campo, cada rechazo, lo que se probó y lo que no) está en `docs/stages.md` §13 y el esquema en `docs/modding/schema/stage-new.schema.json`. El escenario se llama `<mod>:<nombre>` (el nombre de la carpeta) y así lo nombran las salidas de otros escenarios (`"stage": "<mod>:<nombre>"`) y la acción `warp`.
+
+```
+new-stages/patio/
+  stage.json       la cabecera y las secciones (como un stage-patch-v1, solo "add")
+  background.png   el dibujo del mapa: PNG indexado (hasta 256 colores), ancho y alto múltiplos de 128 px, a lo más 255 mosaicos de 128 x 128
+  floor.png        colisión (obligatorio): del mismo tamaño, un píxel por píxel del mapa, el índice del PNG es el valor: 0 cerrado, 1 plano, 2-7 y 16-23 pendientes
+  triggers.png     (opcional) salidas y disparadores: 0 nada, si no dirección * 32 + número de ranura (0 a 31) de "slots"
+  areas.png        (opcional) zonas de combate: 0 sin combate, n es la n-ésima área de "battles"
+```
+
+```json
+{
+  "format": "stage-new-v1",
+  "fallback": {"stage": 330, "x": 900, "y": 1000, "dir": 0},
+  "start": {"x": 128, "y": 128, "dir": 0},
+  "soundBank": 9, "music": {"bank": 9, "track": 0},
+  "slots": {"add": [{"key": "salida", "stage": 330, "x": 900, "y": 1000, "dir": 0, "area": {"x": 100, "y": 100, "w": 56, "h": 56}}]}
+}
+```
+
+- `start` es donde aparece el jugador sin una salida que lo diga; `fallback` es el escenario del juego adonde va una partida guardada ahí si quitas el mod (por defecto, el Parque Central).
+- `banner` (opcional): `{"area": "<mod>:<texto>", "place": "<mod>:<texto>"}`, las dos líneas del letrero con el nombre del lugar que ve el jugador al entrar al escenario (la grande y luego el sitio, como "Asuka City" y "Weapons Shop"). Cada una es el nombre de una línea de `text/<idioma>/stages.json` (textos con nombre de §6.11), así que se traduce por idioma (`eng` es obligatorio, otro idioma cae a él). Sin `banner` el escenario no muestra letrero. Sigue la opción de banner (Rápido o Clásico) igual que los escenarios del juego. Ejemplo: `"banner": {"area": "mi-mod:patio-area", "place": "mi-mod:patio-lugar"}`.
+- `dw3:card-won/<oponente>` y `dw3:card-played/<oponente>` (el oponente de una acción `card-battle` en hex en minúsculas, `"13:0"` -> `13`) son variables que el puerto fija al terminar una partida de cartas (se guardan con la partida); se leen con `mod-flag`. Las banderas del propio juego 00:10/00:11 son temporales y se borran al empezar el escenario siguiente, así que una misión debe leer estas (`docs/stages.md` §16).
+- Las secciones `actors`, `slots`, `events` y `battles` son las de §6.11 pero solo con `add` (un escenario nuevo no tiene nada que parchar). Una salida puede dispararse por celdas de `triggers.png` (el número de ranura es su lugar en `slots.add`, desde 0) o por un `area` rectangular.
+- Un escenario que no es válido se rechaza entero con una línea `[stages] <archivo> rejected: <motivo>` y nunca cuelga el juego; `--validate-mod` muestra esas líneas. Los mapas se leen una vez al inicio.
+- `battles` y la acción `start-battle` aceptan `"encounter": "<mod>:<nombre>"` de un encuentro nuevo de `tables/field_encounters.json` (§6.5b), con sus propios enemigos y recompensas: así el escenario no cambia las zonas originales.
+- Ejemplo completo: `pc/examples/mods/training-field` (dos pisos, guía en el Parque Central, encuentros calibrados). Una carpeta `tools/` dentro del mod es para tus propios scripts (el ejemplo trae el que dibuja su arte): el juego no la lee y `--validate-mod` no la avisa.
+
+**Receta paso a paso** (el ejemplo completo y funcional es `pc/examples/mods/training-field`; copia su estructura):
+
+1. **Carpeta:** `mods/mi-mod/new-stages/patio/` con `stage.json`, `background.png` y `floor.png` (los otros dos PNG son opcionales). El mod necesita su `mod.json` como cualquier otro (§4).
+2. **Dibujo:** `background.png` indexado, de `ancho x alto` múltiplos de 128 (por ejemplo 1024 x 768 = 48 mosaicos; máximo 255 mosaicos). Con muchos bloques distintos el escenario se rechaza con el motivo del códec.
+3. **Capas** (mismo tamaño que el fondo, un píxel de la capa por píxel del mapa; el valor es el **índice** del PNG indexado, no el color):
+   - `floor.png`: 0 cerrado (no se camina), 1 abierto y plano, 2-7 pendientes y 16-23 pendientes espejadas (`docs/formats.md` §4.3). Otro valor se rechaza.
+   - `triggers.png`: 0 nada; si no, `dirección * 32 + ranura`, con dirección 1-7 y ranura 0-31 (su lugar en `slots.add`, desde 0).
+   - `areas.png`: 0 sin combate; `n` es la `n`-ésima entrada de `battles.add` (desde 1).
+4. **Cabecera:** `start` (obligatorio, dentro del mapa y sobre piso caminable), `fallback`, `soundBank` y `music`, como en el ejemplo de arriba.
+5. **Encuentros propios:** en `tables/field_encounters.json` agrega filas `<mod>:<nombre>` con sus enemigos y recompensas (§6.5b) y nómbralas en `battles.add` (`"encounter": "mi-mod:prado"`). Así no cambias ninguna zona original.
+6. **La entrada:** un personaje en un escenario del juego (`stages/330.json`, §6.11) cuya charla tiene una `conditions` (por ejemplo `["item", "dw3:item/9", 1]`) y la acción `["warp", "mi-mod:patio", x, y, dir]`. La salida de vuelta es una ranura de `slots.add` con `"stage": 330` y su `x`, `y`.
+7. **Comprobar:** `boot "<disco>.bin" --validate-mod mi-mod` debe terminar con `ok` y código 0 (§2c). Los mapas se leen una vez al arrancar: reinicia el juego tras cada cambio.
+
+**Errores comunes** (cada uno sale como `[stages] <archivo> rejected: <motivo>` y el escenario se rechaza entero; nunca cuelga el juego):
+
+| Síntoma | Causa habitual |
+|---|---|
+| tamaño rechazado | ancho o alto que no es múltiplo de 128, o una capa de otro tamaño que el fondo |
+| valor de piso sin sentido | un índice distinto de 0-7 y 16-23 en `floor.png` (revisa que el PNG sea indexado y que el índice, no el color, sea el valor) |
+| ranura o área que no existe | `triggers.png` nombra una ranura que `slots.add` no tiene, o `areas.png` un `n` mayor que `battles.add` |
+| `there is no field encounter named` | el encuentro de `battles` o de `start-battle` no está en `tables/field_encounters.json` |
+| `start` fuera del mapa | el aviso de `start` sobre piso 0 no rechaza, pero deja al jugador dentro de un muro: ponlo en piso 1 |
+| una salida a un escenario rechazado | rechaza también al escenario que la tiene: arregla primero el escenario de destino |
+
+Preguntas abiertas y salvedades (sin verificar con el juego): `soundBank` inexistente (no suena nada), el bit 15 de la paleta (convención de PS1), y que los escenarios de mod no salen en el mapa del mundo.
+
+#### Alturas y rampas
+
+El juego no tiene altura al caminar: una **pendiente** es un valor de `floor.png` (2 a 7, y 16 + n espejado) que cambia el paso de la caminata para que el jugador siga la inclinación (`docs/formats.md` §4.3). La altura la pone tu dibujo. Receta (la usa `training-field:lower`, una meseta con una rampa a cada lado, `tools/make_art.py`):
+
+1. Elige la pendiente: el valor 3 hacia el este avanza `(3939, -819)`: 0,2079 px hacia arriba por px hacia el este. Una meseta de 32 px de alto se sube con una banda de 154 px de largo (32 / 0,2079).
+2. Dibuja la banda inclinada (escalones, bordes) y pon **exactamente** esa banda con el valor 3 en `floor.png`; el valor 19 (16 + 3) es la misma pendiente espejada: caminar al este baja, para la rampa del otro lado.
+3. Los lados de la rampa y el acantilado son muros (valor 0): el jugador que corre no los cruza. Abajo de la rampa, un triángulo de muro (hasta el pie del acantilado) da el aspecto de cuña.
+4. Pruébalo sin ventana con `fieldwalk:<x>:<y>` (ruta por estado) y mira `floor cell` en el log (`docs/stages.md` §15).
+
+No cubierto por mods todavía: un segundo piso de capa (`SLOT_MAP`) y subir muros con el pad (`SLOT_CLIMB_*`, `SLOT_DROP`); no los uses sin probarlos.
+
+#### Pesca y árboles para patear
+
+Dos mecánicas del juego que tu escenario (nuevo o parchado) puede llenar con **tus** Digimon (detalle y lo que dice el código: `docs/stages.md` §14).
+
+**Pesca.** Un slot `gauge` es un punto de pesca (necesita la Caña de pescar, `dw3:item/5`: un `gauge` agregado la pide solo; `"conditions": []` quita la condición). El cursor del medidor se detiene en la celda 0 (nada), 1 o 2. Cada celda se llena con una lista de resultados, uno se elige al azar (con `weight` opcional):
+
+```json
+"slots":   {"add": [{"key": "laguna", "type": "gauge", "area": {"x": 400, "y": 600, "w": 200, "h": 120}}]},
+"fishing": {"slots": [{"key": "laguna",
+    "1": [{"encounter": "mimod:anguila", "stage": 1, "music": 1611137024, "weight": 3}, {"item": "dw3:item/18"}, {"nothing": true}],
+    "2": {"encounter": "mimod:lubina", "stage": 1, "music": 1611137024}}]}
+```
+
+`"fishing": {"default": {"1": [...], "2": [...]}}` vale para todo slot `gauge` del escenario sin entrada propia. Una celda sin lista queda como en el juego. Cuál celda es verde y cuál amarillo lo dice el dibujo del medidor (hipótesis: la 2 es la larga y la 1 la corta con sonido); pruébalo en el juego.
+
+**Árboles para patear.** Cada mapa tiene varios árboles y **uno solo** tiene al Digimon; el indicador dice qué tan cerca está. `hiddenSpots.add` pone árboles (`x`, `y` en píxeles del mapa) y `prize` cambia qué esconde el árbol del premio (`common` 80 %, `rare` 20 %); con varias entradas, el árbol esconde uno de varios Digimon. El jugador necesita el objeto 4 para patear. El premio del juego siempre es una batalla; aquí también puede ser un `item` o `nothing`.
+
+```json
+"hiddenSpots": {"add": [{"x": 700, "y": 400}, {"x": 812, "y": 520}],
+    "prize": {"common": [{"encounter": "mimod:cardmon", "stage": 1, "music": 1611137024}, {"encounter": 20, "stage": 1, "music": 1611137024, "weight": 2}]}}
+```
+
+`--validate-mod` comprueba los nombres de encuentro y de objeto. Sin estas secciones, el escenario se comporta como siempre.
+
 ## 7. Ejemplos
 
-24 mods de ejemplo en `pc/examples/mods/`, al menos uno por tipo, todos apagados al instalarlos: `pc/examples/install_examples.sh [--only tables|content|media]
+25 mods de ejemplo en `pc/examples/mods/`, al menos uno por tipo, todos apagados al instalarlos: `pc/examples/install_examples.sh [--only tables|content|media]
 [carpeta de usuario]` los copia, genera lo que necesita tu `data/` (nada del juego va en el repositorio) y los agrega a `[mods] disabled`. Cada uno
 tiene un `README.txt` con qué cambia y dónde verlo; la guía de instalación (Windows, Android, grupos) está en `pc/examples/README.md`.
 
@@ -1208,6 +1325,7 @@ tiene un `README.txt` con qué cambia y dónde verlo; la guía de instalación (
 | `stage-tiles` | baldosas de escenario (E6b) | el mapa del Parque Central en violeta (se genera de tu export `S330`) | caminar por el Parque Central |
 | `stage-objects` | objetos de escenario (E6a) | los objetos del escenario 233 en violeta (se genera) | escenario 233: la pantalla grande sobre la plataforma |
 | `stage-npc` | personajes de escenario (S4-S7) | un personaje del Parque Central se mueve junto al inicio, aparecen un visitante (personaje 75 del juego) y un rival (sprite propio, copia verde del jugador) y uno nuevo que saluda con texto propio, da 100 BIT una vez y cambia la segunda vez (bandera propia del mod) | Parque Central (escenario 330), junto al punto de inicio |
+| `training-field` | escenarios nuevos (T6) | dos pisos nuevos (arte propio, generado por `tools/make_art.py`) y un guía junto a Leomon en el Parque Central; con la Medalla de Seiryu te lleva al piso de abajo (encuentros nuevos de nivel 8 a 11); una escalera sube al de arriba (13 a 16); una salida vuelve al parque | Parque Central (330), junto a Leomon: hablar con el guía (con y sin la Medalla de Seiryu); caminar en la hierba |
 | `sfx-beep` | audio: efecto (E3c) | la muestra 50 del banco COMMON se reemplaza por un pitido sintético | menú del campo (Start): el sonido del cursor |
 | `song-title-chime` | audio: canción (E3d) | la música del título se reemplaza por un carillón sintético en bucle | pantalla de título |
 | `video-bars` | video (E2b) | la película de apertura se reemplaza por barras de colores sintéticas | al iniciar el juego, antes del título |
@@ -1555,7 +1673,7 @@ Los enemigos nuevos y las formas de compañero se explican en §6.9. Hoy hace fa
 | 1. Recursos | reemplazar texto, config, imágenes, sprites y archivos crudos; manifiesto con dependencias; esta guía | **hecha** (revisión pendiente) |
 | 2. Tablas de datos | tablas del juego (Digimon, técnicas, objetos, recompensas, experiencia, tiendas, encuentros) en JSON; parches por clave y filas nuevas con id `<mod>:<nombre>` | **hecha** (`stageBattles` va en los parches de escenario, S10, §6.11). Incluye tienda de cartas, gimnasio, posadas, rivales de cartas y cartas nuevas (E5d, E5e, U8a-c), objetos y técnicas nuevos, cambios a Digimon existentes, enemigos nuevos y formas de compañero nuevas |
 | 3. Scripts | lenguaje embebido (candidato Lua 5.4, en una caja sin acceso a archivos, red ni sistema) para eventos, misiones, personajes | planeada (su propio ADR) |
-| 4. Entidades nuevas | personajes nuevos de escenario con charlas y banderas propias ya funcionan (S4 y S5, §6.11, reusando sprites del escenario); sus sprites propios son S9; los Digimon nuevos ya funcionan (modelos de batalla en glTF, 8.2) | **en curso** |
+| 4. Entidades nuevas | escenarios de campo nuevos desde un mod (ADR-012, `stage-new-v1`, §6.11b, ejemplo `training-field`); personajes nuevos de escenario con charlas y banderas propias ya funcionan (S4 y S5, §6.11, reusando sprites del escenario); sus sprites propios son S9; los Digimon nuevos ya funcionan (modelos de batalla en glTF, 8.2) | **en curso** (escenarios nuevos hechos; faltan árboles y pesca como datos) |
 | Formatos de recursos | video (AVI), audio (exportar y reemplazar WAV/MIDI), imágenes (PNG), modelos de batalla (glTF) y arte de escenario (PNG) | **hecha** (§8) |
 
 Reservado para las fases 2 a 4: `"kind": "content"` y los identificadores `<mod>:<nombre>`. Las partidas ya no se guardan

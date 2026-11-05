@@ -626,6 +626,9 @@ static int parseRows(Cur *c, const Entry *e, const char *path, Patch *p)
                 }
             }
         }
+        if (row == -2 && e->t.ownKey && e->t.ownKey(key)) {
+            row = -4; /* another module's row (a new encounter): its value is skipped, and it says why if it refuses it */
+        }
         if (row == -4) {
             if (skipValue(c, 0)) { rc = -1; break; }
         } else if (row == -2) {

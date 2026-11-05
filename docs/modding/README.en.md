@@ -62,6 +62,7 @@ inside `mods/`, and a broken mod never stops the game (it goes to the log and th
 | A sound effect (one sample of a bank, 16-bit WAV) | `audio/<BANK>/vag_NNN.wav` | 8.1d |
 | A song (16-bit WAV in place of a sequence, with a loop) | `audio/<BANK>/seq_<package>_<record>.wav` | 8.1d |
 | The characters of a field stage (change, add, remove) and their talks, with the mod's own flags; exits, scripted events and area battles | `stages/<nnn>.json` (`stage-patch-v1`) | 6.11 |
+| New field stages (a map drawn with PNGs, collision, exits, battles) | `new-stages/<name>/` (`stage-new-v1`) | 6.11b |
 
 New sprites for field characters: `mods/<mod>/sprites/<name>/` (`sprite.json` + one PNG per frame), named by a stage patch with `"sprite"` (`docs/stages.md` section 11, in Spanish). Not yet: scripts (Lua, later), and loose XA audio (only inside the movies, 8.1b). See section 10.
 
@@ -150,6 +151,7 @@ my-mod/
   content/items.json, content/techs.json   new content (kind "content")
   tables/<table>.json                   table patches
   stages/<nnn>.json                     patch of the characters and talks of one stage (6.11)
+  new-stages/<name>/stage.json          a new stage (6.11b) and its maps: background.png, floor.png, triggers.png, areas.png
   text/<language>/<file>.json           languages: eng fra ita ger spa es-419
   images/<folder>/<file>/<NN>_<MM>.png
   images/field/sprt/<name>/<EEE>.png
@@ -587,7 +589,7 @@ in `"labels"`); it is only for reading, editing it changes nothing. A row or fie
 | `vital_cuts`, `vital_random` (E5b) | first level of the tier; slot 0-8 | the HP and MP a partner gains on a level up | in the next report |
 | `stat_gains`, `resist_gains` (E5b) | first level of the tier (1-80); slot 0-7 | the stats' and resistances' gain per level | in the next report |
 | `field_enemies` (E5c) | row number (0-522) | Digimon, level, HP, MP and strength of the enemies of the field's encounters | in the next field battle |
-| `field_encounters` (E5c) | encounter index (0-334) | which enemy rows each encounter uses, the ambush, the kind and the 12 blocks | in the next field battle |
+| `field_encounters` (E5c) | encounter index (0-334); `"<mod>:<name>"` adds one (T5b) | which enemy rows each encounter uses, the ambush, the kind and the 12 blocks; in a new row, its enemies and rewards | in the next field battle |
 | `battle_rates` (E5c) | rate index (0-5) | how many steps each rate takes off the count to the next random battle | from the next step |
 | `card_prices` (E5d) | card id (the 44 priced cards) | what the card shop charges for each | when the card shop opens |
 | `card_shop_stock` (E5d) | shop number (49-67, 70-74) | the cards each shop sells (a list of ids 1-314 or `"<mod>:<name>"`) | when the buy screen opens |
@@ -609,6 +611,26 @@ Notes:
 - The field tables are applied each time the field is entered. `field_encounters` names its enemies by row number of
   `field_enemies`: the rows are shared, so changing a row changes every encounter that uses it. Neither row 0 of `field_enemies`
   nor encounter 0 can change, and an encounter cannot be left with an empty first enemy.
+- **New encounters (T5b).** A row of `tables/field_encounters.json` whose key is a name `"<mod>:<name>"` (the mod's own folder, a colon and a key of `a-z 0-9 - _`)
+  **adds** an encounter instead of changing one; the originals are never touched and removing the mod leaves them as they were. It carries its own enemies (it does not share
+  `field_enemies` rows) and its rewards:
+
+  ```json
+  {"format": "field_encounters-v1", "rows": {
+    "mymod:meadow": {
+      "enemies": [{"enemy": 206, "level": 10, "hp": 300, "mp": 40, "strength": 30},
+                  {"enemy": "mymod:slime", "level": 9, "hp": 250, "mp": 0, "strength": 25}],
+      "ambushChance": 0, "kind": 1, "runAway": 0,
+      "rewards": {"money": 120, "exp": 45, "digimonExp": 30}}}}
+  ```
+
+  `enemies` is 1 to 3 enemies (the first cannot be 0); `enemy` is an id, `"dw3:digimon/<id>"` or `"<mod>:<key>"` (a new enemy; a partner form is rejected) and the four values
+  are required (`level` 1-99, `hp` 1-32767, `mp` 0-32767, `strength` 1-32767). Optional: `ambushChance` 0-255 (0), `kind` 0-255 (1) and the 12 blocks above (`poison` ... `runAway`,
+  0 or 1, default 0). `rewards` (`money` 0-9999999, `exp` 0-999999, `digimonExp` 0-9999999; default 0) is the row the report reads for that battle. The loot comes from the
+  enemy (`battle_loot`), not from the encounter. The numbers come after the disc's 335 (335, 336...) in the order of the mods and of the file; in a stage's `battles` and in the
+  `start-battle` action the encounter is written by name (`"encounter": "mymod:meadow"`) or by that number. A bad row is logged (`tables: <file> row "<name>" rejected: <why>`) and does
+  not exist: a stage that names it is rejected with "there is no field encounter named". Up to 1024 new rows across all mods. The enemy condition 12 (`BATTLE_SETUP.battle == arg`)
+  compares with that number, which depends on the order of the mods: do not use it with new encounters.
 - `field_enemies` takes in `fighter` an enemy id, `"dw3:digimon/<id>"` or the name of an enemy of a content mod
   (`"<mod>:<key>"`); a partner form is rejected.
 - The card tables are applied each time the card shop or the duel is entered. Each reference carries the English card (or item) name in
@@ -1141,20 +1163,115 @@ named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabet
   last one has no conditions. Conditions and actions use the vocabulary of `docs/stages.md` section 4: `["flag", "1A:1F", 1]`, `["item", "dw3:item/18", 1]`...
 - **The mod's own flags:** `["mod-flag", "<mod>:<name>", 1]` (condition: it is set; action: set it), `["mod-var", "<mod>:<name>", ">=", 3]` and `["set-var", "<mod>:<name>", 3]` for counters.
   They are saved with the game by name: removing the mod and putting it back does not lose the progress.
+- **Yes/No questions:** `["ask", "<mod>:<name>"]` in a talk's `actions`: once the line has been said the field shows the game's own Yes/No panel and the variable becomes 1 (yes) or 2 (no); the character's talks are then chosen again, so the next one reads the answer with `["mod-var", ..., "==", 1]`. The question is the talk's own line. `docs/stages.md` section 17.
+- **The result of a `start-battle` battle:** back on the field the port sets `dw3:battle-won/<key>` and `dw3:battle-played/<key>` (`<key>` = the encounter name with `/` instead of `:`, e.g. `dw3:battle-won/training-field/duel-trio`, or the row number in hex). A lost battle goes to the title screen, so there is nothing to read for it.
 - **Texts of your own:** a talk can say `{"text": "<mod>:<name>", ...}` instead of `entry`. The words go in `text/<language>/stages.json` (format `stage-text-v1`, one folder per language; English is required and a language that lacks the
+  - **The game's own speaker header:** a text can start with `{speaker-of:<FILE>:<entry>}` (FILE is one of the game's text files, e.g. `TALK04`): the port puts there the header that entry has on the player's disc, in the language being played (the game's signs say their name in `TALK04` entry 19), so the mod copies no game text. Unknown file or malformed prefix: that language's `stages.json` is rejected. `docs/stages.md` section 8.
   name shows the English one, es-419 tries Spanish first): `{"format": "stage-text-v1", "texts": {"welcome": "..."}}`. The port appends the line to the stage's text and fits it to the talk box. Details and schema: `docs/stages.md` section 8 (Spanish), `docs/modding/schema/stage-text.schema.json`.
 - **Conditions of your own:** a new row in `tables/special_conditions.json` keyed `"<mod>:<name>"` (see `docs/data-tables.md` section 3.9) is used as `["special", "<mod>:<name>", 1]`; the money, progress-range and party-threshold tables are patchable too.
 - **New actions:** `["give-money", 500]`, `["take-money", 500]`, `["set-progress", 12]`, `["warp", 380, 1186, 874, 3]` (stage, x, y, direction) and `["sound", "teleport"]` (`docs/stages.md` section 9). Giving or taking a mod's item was already possible: `["item", "<mod>:<name>", 1]`.
 - Several mods can patch the same stage: they apply in load order and the last one wins (the log says which field was overridden). An `index` that does not exist at the current story progress is skipped with a log
   line. With no patch the stage is identical to the original. `--validate-mod` checks the file.
 - **Exits, events and battles** (`docs/stages.md` section 10, Spanish): besides `actors`, the file may hold `slots`, `events` and `battles`.
-  - `slots` (`patch` by `index` or `key`, `add`, `remove`): an exit has `type`, `arg`, `x`, `y`, `dir` and conditions; `"stage": 380` points the exit at that stage and `"event": "<mod>:<name>"` at an event. A new exit carries `"area": {"x", "y", "w", "h"}`, a rectangle of the map in pixels where it fires (maps are not edited).
+  - `slots` (`patch` by `index` or `key`, `add`, `remove`): an exit has `type`, `arg`, `x`, `y`, `dir` and conditions; `"stage": 380` points the exit at that stage and `"event": "<mod>:<name>"` at an event. A new exit carries `"area": {"x", "y", "w", "h"}`, a rectangle of the map in pixels where it fires (this is the original stage's map: it is patched, not redrawn; for a map of your own use 6.11b).
   - `events` (`patch` by `id`, `add` with a key): `script` with the game's commands (`["wait", 20]`, `["talk", 0, "<mod>:<text>", 0, 4]`, `["walk", ...]`, `["leave", ...]`, always ending in `["end"]`). A talk or an exit starts it: `["run-event", "<mod>:<name>"]`. A new event has no C code.
   - `battles` (`patch`, `add`): per map area, `rate`, and per battle `encounter` (a row of `field_encounters`), `stage` (the fight stage) and `music`; look at `battles` in `data/stages/<nnn>.json`. The action `["start-battle", encounter, fight_stage, music]` starts one from a talk.
 
+### 6.11b Your first new stage
+
+`new-stages/<name>/` adds a whole field stage: a map you draw, its collision, its exits and its battles. The format is `stage-new-v1`; the detail (every field, every refusal, what was tested and what was not) is in `docs/stages.md` section 13 (Spanish) and the schema in `docs/modding/schema/stage-new.schema.json`. The stage is called `<mod>:<name>` (the folder's name) and that is how exits of other stages (`"stage": "<mod>:<name>"`) and the `warp` action name it.
+
+```
+new-stages/yard/
+  stage.json       the header and the sections (like a stage-patch-v1, "add" only)
+  background.png   the map's picture: indexed PNG (up to 256 colours), width and height multiples of 128 px, at most 255 tiles of 128 x 128
+  floor.png        collision (required): the same size, one pixel per pixel of the map, the PNG's index is the value: 0 closed, 1 flat, 2-7 and 16-23 slopes
+  triggers.png     (optional) exits and triggers: 0 nothing, else direction * 32 + the slot number (0 to 31) of "slots"
+  areas.png        (optional) battle zones: 0 no battle, n is the n-th area of "battles"
+```
+
+```json
+{
+  "format": "stage-new-v1",
+  "fallback": {"stage": 330, "x": 900, "y": 1000, "dir": 0},
+  "start": {"x": 128, "y": 128, "dir": 0},
+  "soundBank": 9, "music": {"bank": 9, "track": 0},
+  "slots": {"add": [{"key": "exit", "stage": 330, "x": 900, "y": 1000, "dir": 0, "area": {"x": 100, "y": 100, "w": 56, "h": 56}}]}
+}
+```
+
+- `start` is where the player appears when no exit says where; `fallback` is the game's stage a saved game that was there goes to when the mod is removed (Central Park by default).
+- `banner` (optional): `{"area": "<mod>:<text>", "place": "<mod>:<text>"}`, the two lines of the area name banner the player sees when entering the stage (the big line, then the place, like "Asuka City" and "Weapons Shop"). Each is the name of a line of `text/<lang>/stages.json` (6.11 named texts), so it can be translated per language (`eng` is required, another language falls back to it). Without `banner` the stage shows none. It follows the Stage banner option (Fast or Classic) like the game's own stages. Example: `"banner": {"area": "my-mod:yard-area", "place": "my-mod:yard-place"}`.
+- `dw3:card-won/<opponent>` and `dw3:card-played/<opponent>` (the opponent of a `card-battle` action in lower-case hex, `"13:0"` -> `13`) are variables the port sets the moment a card battle ends (kept in the save); read them with `mod-flag`. The game's own flags 00:10/00:11 are temporary and are cleared when the next stage starts, so a quest should read these instead (`docs/stages.md` 16).
+- `actors`, `slots`, `events` and `battles` are the ones of 6.11 with `add` only (a new stage has nothing to patch). An exit can be fired by cells of `triggers.png` (the slot number is its place in `slots.add`, from 0) or by a rectangular `area`.
+- A stage that is not valid is refused whole with a `[stages] <file> rejected: <reason>` line and never hangs the game; `--validate-mod` shows those lines. The maps are read once at startup.
+- `battles` and the `start-battle` action accept `"encounter": "<mod>:<name>"` of a new encounter of `tables/field_encounters.json` (6.5b), with its own enemies and rewards: the stage then changes none of the original zones.
+- Full example: `pc/examples/mods/training-field` (two floors, a guide in Central Park, calibrated encounters). A `tools/` folder inside a mod is for your own scripts (the example's draws its art): the game never reads it and `--validate-mod` does not warn about it.
+
+**Step by step** (the complete working example is `pc/examples/mods/training-field`; copy its layout):
+
+1. **Folder:** `mods/my-mod/new-stages/yard/` with `stage.json`, `background.png` and `floor.png` (the other two PNGs are optional). The mod needs its `mod.json` like any other (§4).
+2. **Art:** an indexed `background.png` whose width and height are multiples of 128 (for example 1024 x 768 = 48 tiles; at most 255 tiles). With too many distinct blocks the stage is refused with the codec's reason.
+3. **Layers** (same size as the background, one layer pixel per map pixel; the value is the **index** of the indexed PNG, not the color):
+   - `floor.png`: 0 closed (cannot walk), 1 open and flat, 2-7 slopes and 16-23 mirrored slopes (`docs/formats.md` 4.3). Any other value is refused.
+   - `triggers.png`: 0 nothing; otherwise `direction * 32 + slot`, with direction 1-7 and slot 0-31 (its place in `slots.add`, from 0).
+   - `areas.png`: 0 no battles; `n` is the n-th entry of `battles.add` (from 1).
+4. **Header:** `start` (required, inside the map and on walkable floor), `fallback`, `soundBank` and `music`, as in the example above.
+5. **Encounters of your own:** in `tables/field_encounters.json` add `<mod>:<name>` rows with their enemies and rewards (6.5b) and name them in `battles.add` (`"encounter": "my-mod:meadow"`). That way no original zone changes.
+6. **The entry:** a character on a game stage (`stages/330.json`, 6.11) whose talk has a `conditions` entry (for example `["item", "dw3:item/9", 1]`) and the action `["warp", "my-mod:yard", x, y, dir]`. The way back is a `slots.add` entry with `"stage": 330` and its `x`, `y`.
+7. **Check:** `boot "<disc>.bin" --validate-mod my-mod` must end with `ok` and exit code 0 (2c). Maps are read once at startup: restart the game after each change.
+
+**Common errors** (each one shows up as `[stages] <file> rejected: <reason>` and the stage is refused whole; the game never hangs):
+
+| Symptom | Usual cause |
+|---|---|
+| size refused | width or height that is not a multiple of 128, or a layer whose size differs from the background |
+| meaningless floor value | an index other than 0-7 and 16-23 in `floor.png` (check the PNG is indexed and that the index, not the color, is the value) |
+| slot or area that does not exist | `triggers.png` names a slot `slots.add` does not have, or `areas.png` an `n` above `battles.add` |
+| `there is no field encounter named` | the encounter in `battles` or `start-battle` is not in `tables/field_encounters.json` |
+| `start` outside the map | a `start` on floor 0 is only warned about, not refused, but leaves the player inside a wall: put it on floor 1 |
+| an exit to a refused stage | refuses the stage that holds it too: fix the destination stage first |
+
+Open questions and caveats (not verified against the game): a `soundBank` the game lacks (nothing plays), palette bit 15 (a PS1 convention), and that mod stages do not appear on the world map.
+
+#### Heights and ramps
+
+The game has no height while walking: a **slope** is a `floor.png` value (2 to 7, and 16 + n mirrored) that changes the walking step so the player follows the incline (`docs/formats.md` section 4.3). The height is your drawing. Recipe (used by `training-field:lower`, a plateau with a ramp on each side, `tools/make_art.py`):
+
+1. Pick the slope: value 3 going east steps `(3939, -819)`: 0.2079 px up per px east. A 32 px high plateau is climbed with a band 154 px long (32 / 0.2079).
+2. Draw the slanted band (steps, edges) and put **exactly** that band at value 3 in `floor.png`; value 19 (16 + 3) is the same slope mirrored: walking east goes down, for the ramp on the other side.
+3. The sides of the ramp and the cliff are walls (value 0): a running player does not cross them. A triangle of wall under the ramp (down to the cliff's foot) gives the wedge look.
+4. Test it without a window with `fieldwalk:<x>:<y>` (a route by state) and read `floor cell` in the log (`docs/stages.md` section 15).
+
+Not covered by mods yet: a second floor layer (`SLOT_MAP`) and climbing walls with the pad (`SLOT_CLIMB_*`, `SLOT_DROP`); do not use them untested.
+
+#### Fishing and kick trees
+
+Two mechanics of the game that your stage (new or patched) can fill with **your** Digimon (details and what the code says: `docs/stages.md` section 14).
+
+**Fishing.** A `gauge` slot is a fishing spot (it needs the Fishing Pole, `dw3:item/5`: an added `gauge` asks for it by itself; `"conditions": []` removes the condition). The gauge cursor stops on cell 0 (nothing), 1 or 2. Each cell is filled with a list of results, one picked at random (optional `weight`):
+
+```json
+"slots":   {"add": [{"key": "pond", "type": "gauge", "area": {"x": 400, "y": 600, "w": 200, "h": 120}}]},
+"fishing": {"slots": [{"key": "pond",
+    "1": [{"encounter": "mymod:eel", "stage": 1, "music": 1611137024, "weight": 3}, {"item": "dw3:item/18"}, {"nothing": true}],
+    "2": {"encounter": "mymod:bass", "stage": 1, "music": 1611137024}}]}
+```
+
+`"fishing": {"default": {"1": [...], "2": [...]}}` applies to every `gauge` slot of the stage without its own entry. A cell with no list stays as in the game. Which cell is green and which yellow is in the gauge's art (hypothesis: 2 is the long one, 1 the short one with a sound); check it in the game.
+
+**Kick trees.** Every map has several trees and **only one** holds the Digimon; the radar tells how close it is. `hiddenSpots.add` places trees (`x`, `y` in map pixels) and `prize` changes what the prize tree hides (`common` 80%, `rare` 20%); with several entries the tree hides one of several Digimon. The player needs item 4 to kick. The game's prize is always a battle; here it may also be an `item` or `nothing`.
+
+```json
+"hiddenSpots": {"add": [{"x": 700, "y": 400}, {"x": 812, "y": 520}],
+    "prize": {"common": [{"encounter": "mymod:cardmon", "stage": 1, "music": 1611137024}, {"encounter": 20, "stage": 1, "music": 1611137024, "weight": 2}]}}
+```
+
+`--validate-mod` checks the encounter and item names. Without these sections the stage plays as always.
+
 ## 7. Examples
 
-24 example mods in `pc/examples/mods/`, at least one per type, all switched off when installed: `pc/examples/install_examples.sh [--only tables|content|media]
+25 example mods in `pc/examples/mods/`, at least one per type, all switched off when installed: `pc/examples/install_examples.sh [--only tables|content|media]
 [user folder]` copies them, generates what needs your `data/` (nothing from the game is in the repository) and adds them to `[mods] disabled`. Each has a
 `README.txt` saying what changes and where to see it; the install guide (Windows, Android, groups) is in `pc/examples/README.md`.
 
@@ -1175,6 +1292,7 @@ named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabet
 | `stage-tiles` | stage tiles (E6b) | the Central Park map in purple (made from your `S330` export) | walk in Central Park |
 | `stage-objects` | stage objects (E6a) | the objects of stage 233 in purple (generated) | stage 233: the big screen over the platform |
 | `stage-npc` | stage characters (S4-S7) | a Central Park character moves next to the start and a new one appears that greets with a text of its own, gives 100 BIT once and changes the second time (the mod's own flag) | Central Park (stage 330), next to the start point |
+| `training-field` | new stages (T6) | two new floors (original art, made by `tools/make_art.py`) and a guide beside Leomon in Central Park; with the Seiryu Badge it takes you to the lower floor (new encounters of level 8 to 11); stairs lead up to the upper floor (13 to 16); an exit leads back to the park | Central Park (330), beside Leomon: talk to the guide (with and without the Seiryu Badge); walk in the grass |
 | `sfx-beep` | audio: effect (E3c) | sample 50 of the COMMON bank replaced by a synthetic beep | field menu (Start): the cursor sound |
 | `song-title-chime` | audio: song (E3d) | the title music replaced by a synthetic looping chime | title screen |
 | `video-bars` | video (E2b) | the opening movie replaced by synthetic colour bars | when the game starts, before the title |
@@ -1514,7 +1632,7 @@ partner forms are explained in 6.9. Today the baked file has to be inside the mo
 | 1. Resources | replace text, config, images, sprites and raw files; manifest with dependencies; this guide | **done** (review pending) |
 | 2. Data tables | the game's tables (Digimon, techniques, items, rewards, experience, shops, encounters) as JSON; patch by key and add rows with ids `<mod>:<name>` | **done** (`stageBattles` is part of the stage patches, S10, 6.11). Includes the card shop, gym, inns, card opponents and new cards (E5d, E5e, U8a-c), new items and techniques, changes to existing Digimon, new enemies, and new partner forms |
 | 3. Scripts | an embedded language (candidate Lua 5.4, sandboxed: no files, network or system) for events, quests, characters | planned (its own ADR) |
-| 4. New entities | new stage characters with talks and flags of their own already work (S4 and S5, 6.11, reusing the stage's sprites); their own sprites are S9; new Digimon already work (battle models in glTF, 8.2) | **in progress** |
+| 4. New entities | new field stages from a mod (ADR-012, `stage-new-v1`, 6.11b, example `training-field`); new stage characters with talks and flags of their own already work (S4 and S5, 6.11, reusing the stage's sprites); their own sprites are S9; new Digimon already work (battle models in glTF, 8.2) | **in progress** (new stages done; trees and fishing as data still missing) |
 | Asset formats | video (AVI), audio (WAV and MIDI export and replacement), images (PNG), battle models (glTF) and stage art (PNG) | **done** (§8) |
 
 Reserved for phases 2 to 4: `"kind": "content"` and the `<mod>:<name>` identifiers. Saves are no longer kept on a PS1

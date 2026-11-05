@@ -1868,6 +1868,7 @@ static void testOptionsLanguage(void) {
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x214, 1, 0) == OPT_LANG_LIVE_FIELD);
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x214, 0, 0) == OPT_LANG_LIVE_WAIT); /* a talk, an event or a menu holds the field */
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x214, 1, 1) == OPT_LANG_LIVE_WAIT); /* the options menu is still open */
+    CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x305, 1, 0) == OPT_LANG_LIVE_FIELD); /* a stage a mod adds is a field too */
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0xE00, 1, 0) == OPT_LANG_LIVE_TITLE);
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x600, 1, 0) == OPT_LANG_LIVE_WAIT); /* battle: its text is loaded per fight */
     CHECK(optLangLive(1, OPT_LANG_EN, 6, 0, 0x1000, 1, 0) == OPT_LANG_LIVE_WAIT);
@@ -2947,6 +2948,26 @@ static void testStateScopes(void) {
     stateScopeSubLoaded(0x9999);
     stateScopeModeEntered(0x600);
     CHECK(stateScopeIsActive(mode));
+
+    /* A carried range survives the reset when the scope is entered from its mode id (field 0x2xx <-> 0x3xx), and only then */
+    {
+        static unsigned char carried[4];
+
+        CHECK(stateScopeBindMode(7, mode) == 0);
+        CHECK(stateScopeAddRange(mode, carried, carried + 4) == 0);
+        CHECK(stateScopeCarry(mode, carried, 4, 7) == 0);
+        CHECK(stateScopeCarry(mode, NULL, 4, 7) == -1);
+        stateScopeModeEntered(0x600);
+        carried[0] = 0x42;
+        stateScopeModeEntered(0x700); /* 6 -> 7: reset, but the carry says "from 7" only */
+        CHECK(carried[0] == 0);
+        carried[0] = 0x42;
+        stateScopeModeEntered(0x600); /* 7 -> 6: the carry applies */
+        CHECK(carried[0] == 0x42);
+        stateScopeModeEntered(0x1700); /* leave, then come back from an unrelated mode: reset */
+        stateScopeModeEntered(0x600);
+        CHECK(carried[0] == 0);
+    }
 
     /* Many scopes: the registry has no fixed size */
     {

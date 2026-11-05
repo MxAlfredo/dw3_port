@@ -549,6 +549,32 @@ static int fakeStageExists2(int n) {
     return n > 0 && n < 1000;
 }
 
+/* "{speaker-of:FILE:N}" at the start of a text: accepted for a game file, refused for an unknown file or a malformed prefix */
+static void testSpeakerText(void) {
+    char logPath[1200], *log;
+    SmHost host;
+
+    mod("sp");
+    put("sp/text/eng/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:TALK04:19}North: Home\"}}\n");
+    put("sp/text/fra/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:NOPE:19}x\"}}\n");
+    put("sp/text/ger/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:TALK04}x\"}}\n");
+    put("sp/text/ita/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:TALK04:19}\"}}\n");
+    put("sp/stages/210.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"sp:sign\"}]}]}}\n");
+    snprintf(logPath, sizeof logPath, "%s/.stagelog3", root);
+    CHECK(modsInit(root, "sp") == 1);
+    memset(&host, 0, sizeof host);
+    host.textFirst = fakeTextFirst;
+    host.textChanged = fakeTextChanged;
+    logBegin(logPath);
+    CHECK(smLoad(&host) == 1);
+    log = logEnd(logPath);
+    CHECK(strstr(log, "text/fra/stages.json rejected: \"sign\": {speaker-of:NOPE:19}: NOPE is not one of the game's text files") != NULL);
+    CHECK(strstr(log, "text/ger/stages.json rejected: \"sign\": {speaker-of:<FILE>:<entry>} is not well formed") != NULL);
+    CHECK(strstr(log, "text/ita/stages.json rejected: \"sign\": {speaker-of:...} needs the line after it") != NULL);
+    CHECK(strstr(log, "text/eng/stages.json rejected") == NULL);
+    free(log);
+}
+
 static void testStageData(void) {
     char logPath[1200], *log;
     SmHost host;
@@ -698,6 +724,210 @@ static void testStageData(void) {
     CHECK(smEventName(SM_EVENT_BASE) == NULL); /* the names are forgotten with the patches */
 }
 
+
+/* ---- T9: fishing results and hidden spots ---- */
+
+static int fakeEncounterOk3(int row) {
+    return row >= 1 && row <= 337;
+}
+
+static int fakeEncounterByName3(const char *name) {
+    return !strcmp(name, "t9:eel") ? 335 : !strcmp(name, "t9:bass") ? 336 : -1;
+}
+
+static void testCatches(void) {
+    char logPath[1200], *log;
+    SmHost host;
+    SdStage s;
+    SmReport rep;
+    SdSlot *sl;
+    int i, hit[3] = {0, 0, 0};
+
+    mod("t9");
+    put("t9/stages/300.json",
+        "{\"format\": \"stage-patch-v1\",\n"
+        " \"slots\": {\"add\": [{\"key\": \"pond\", \"type\": \"gauge\", \"x\": 4, \"area\": {\"x\": 10, \"y\": 20, \"w\": 30, \"h\": 8}},\n"
+        "                      {\"key\": \"free\", \"type\": \"gauge\", \"conditions\": [], \"area\": {\"x\": 50, \"y\": 20, \"w\": 30, \"h\": 8}}]},\n"
+        " \"fishing\": {\"default\": {\"1\": {\"encounter\": 12, \"stage\": 1, \"music\": 2}},\n"
+        "   \"slots\": [{\"key\": \"pond\", \"1\": [{\"encounter\": \"t9:eel\", \"stage\": 1, \"music\": 2, \"weight\": 3}, {\"item\": \"dw3:item/18\"}, {\"nothing\": true}],\n"
+        "                                 \"2\": {\"encounter\": \"t9:bass\", \"stage\": 1, \"music\": 2}},\n"
+        "              {\"index\": 0, \"1\": []}, {\"key\": \"ghost\", \"2\": []}]},\n"
+        " \"hiddenSpots\": {\"add\": [{\"x\": 100, \"y\": 200}, {\"x\": 300, \"y\": 400}],\n"
+        "   \"prize\": {\"common\": [{\"encounter\": \"t9:eel\", \"stage\": 1, \"music\": 2}, {\"encounter\": 20, \"stage\": 1, \"music\": 2, \"weight\": 2}], \"rare\": {\"encounter\": \"t9:bass\", \"stage\": 1, \"music\": 2}}}}\n");
+    put("t9/stages/301.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": 12, \"music\": 2}}]}}\n");
+    put("t9/stages/302.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": \"t9:nope\", \"stage\": 1, \"music\": 2}}]}}\n");
+    put("t9/stages/303.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"item\": 0}}]}}\n");
+    put("t9/stages/304.json", "{\"format\": \"stage-patch-v1\", \"hiddenSpots\": {\"add\": [{\"x\": 5}]}}\n");
+    put("t9/stages/305.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"key\": \"a\", \"1\": []}]}}\n");
+    put("t9/stages/306.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"nothing\": true, \"item\": 5}}]}}\n");
+    snprintf(logPath, sizeof logPath, "%s/.stagelog9", root);
+    CHECK(modsInit(root, "t9") == 1);
+    memset(&host, 0, sizeof host);
+    host.textFirst = fakeTextFirst;
+    host.textChanged = fakeTextChanged;
+    host.stageMode = fakeStageMode;
+    host.stageExists = fakeStageExists2;
+    host.encounterOk = fakeEncounterOk3;
+    host.encounterByName = fakeEncounterByName3;
+    logBegin(logPath);
+    CHECK(smLoad(&host) == 1);
+    log = logEnd(logPath);
+    CHECK(strstr(log, "301.json rejected: fishing slot 0 cell 1: a battle result needs \"stage\"") != NULL);
+    CHECK(strstr(log, "302.json rejected: fishing slot 0 cell 1: there is no field encounter named \"t9:nope\"") != NULL);
+    CHECK(strstr(log, "303.json rejected: fishing slot 0 cell 1: \"item\" must be an item") != NULL);
+    CHECK(strstr(log, "304.json rejected: hidden spot add 0 needs \"x\" and \"y\"") != NULL);
+    CHECK(strstr(log, "305.json rejected: fishing slot 0 needs exactly one of \"index\"") != NULL);
+    CHECK(strstr(log, "306.json rejected: fishing slot 0 cell 1 needs exactly one of") != NULL);
+    free(log);
+
+    memset(&s, 0, sizeof s);
+    s.number = 300;
+    sl = sdStageAddSlot(&s); /* the stage's own gauge slot 0 */
+    sl->type = 7;
+    sl->facing = -1;
+    logBegin(logPath);
+    CHECK(smApplyStage(300, &s, &rep) == 1);
+    log = logEnd(logPath);
+    CHECK(s.nslots == 3 && s.slots[1].type == 7 && s.slots[2].type == 7);
+    /* the pole by default for an added gauge slot; "conditions": [] opts out; the game's own slot is not touched */
+    CHECK(s.slots[1].cond.set && s.slots[1].cond.n == 2 && s.slots[1].cond.w[0] == 0x8005 && s.slots[1].cond.w[1] == 1);
+    CHECK(s.slots[2].cond.set && s.slots[2].cond.n == 0);
+    CHECK(!s.slots[0].cond.set);
+    CHECK(s.nfishing == 2 && rep.fishingSet == 3 && s.fishDefault[0].set && s.fishDefault[0].n == 1 && !s.fishDefault[1].set);
+    CHECK(s.fishing[0].slot == 1 && s.fishing[0].cell[0].n == 3 && s.fishing[0].cell[0].v[0].encounter == 335 && s.fishing[0].cell[0].v[0].weight == 3);
+    CHECK(s.fishing[0].cell[0].v[1].kind == SD_CATCH_ITEM && s.fishing[0].cell[0].v[1].item == 18 && s.fishing[0].cell[0].v[2].kind == SD_CATCH_NOTHING);
+    CHECK(s.fishing[0].cell[1].n == 1 && s.fishing[0].cell[1].v[0].encounter == 336 && s.fishing[0].cell[1].v[0].stage == 1 && s.fishing[0].cell[1].v[0].music == 2);
+    CHECK(s.fishing[1].slot == 0 && s.fishing[1].cell[0].set && s.fishing[1].cell[0].n == 0 && !s.fishing[1].cell[1].set); /* an empty list: nothing */
+    CHECK(strstr(log, "slot \"t9:ghost\" skipped: fishing: no slot has this key") != NULL);
+    CHECK(s.nspots == 2 && s.spots[1].x == 300 && s.spots[1].y == 400 && rep.spotsAdded == 2);
+    CHECK(rep.prizesSet == 2 && s.prize[0].n == 2 && s.prize[0].v[1].weight == 2 && s.prize[1].n == 1 && s.prize[1].v[0].encounter == 336);
+    free(log);
+    /* the weighted pick: weights 1 and 2 */
+    for (i = 0; i < 5; i++) {
+        const SdCatch *c = sdCatchPick(&s.prize[0], (unsigned)i);
+
+        CHECK(c != NULL);
+        if (c) hit[c->encounter == 335 ? 0 : 1]++;
+    }
+    CHECK(hit[0] == 2 && hit[1] == 3); /* weights 1 and 2 over the draws 0..4 (mod 3) */
+    CHECK(sdCatchPick(&s.fishing[1].cell[0], 0) == NULL);
+    sdStageFree(&s);
+    smUnload();
+}
+
+/* ---- T5b: battles and start-battle actions that name a new field encounter ("<mod>:<name>") ---- */
+
+static int fakeEncounterOk2(int row) {
+    return row >= 1 && row <= 337; /* the disc's 335 and two new ones */
+}
+
+static int fakeEncounterByName(const char *name) {
+    return !strcmp(name, "t5b:meadow") ? 335 : !strcmp(name, "t5b:cave") ? 336 : -1;
+}
+
+static const char *fakeEncounterName(int number) {
+    return number == 335 ? "t5b:meadow" : number == 336 ? "t5b:cave" : NULL;
+}
+
+static void testEncounterNames(void) {
+    char logPath[1200], *log;
+    SmHost host;
+    SdStage s;
+    SmReport rep;
+    int i, k;
+
+    mod("t5b");
+    put("t5b/stages/300.json",
+        "{\"format\": \"stage-patch-v1\",\n"
+        " \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": \"t5b:meadow\", \"stage\": 3, \"music\": 4}, {\"area\": 2, \"index\": 1, \"encounter\": 337}],\n"
+        "   \"add\": [{\"area\": 4, \"rate\": 2, \"slots\": [{\"encounter\": \"t5b:cave\", \"stage\": 1, \"music\": 2}, {\"encounter\": 12, \"stage\": 1, \"music\": 2}]}]},\n"
+        " \"events\": {\"add\": [{\"key\": \"fight\", \"script\": [[\"end\"]]}]}}\n");
+    put("t5b/stages/301.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": \"t5b:nope\"}]}}\n");
+    put("t5b/stages/302.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 338}]}}\n");
+    put("t5b/stages/303.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 0}]}}\n");
+    put("t5b/stages/304.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"add\": [{\"area\": 4, \"rate\": 1, \"slots\": [{\"encounter\": \"t5b:gone\", \"stage\": 1, \"music\": 2}]}]}}\n");
+    snprintf(logPath, sizeof logPath, "%s/.stagelog3", root);
+    CHECK(modsInit(root, "t5b") == 1);
+    memset(&host, 0, sizeof host);
+    host.textFirst = fakeTextFirst;
+    host.textChanged = fakeTextChanged;
+    host.stageMode = fakeStageMode;
+    host.stageExists = fakeStageExists2;
+    host.encounterOk = fakeEncounterOk2;
+    host.encounterByName = fakeEncounterByName;
+    host.encounterName = fakeEncounterName;
+    logBegin(logPath);
+    CHECK(smLoad(&host) == 1); /* only 300 stands */
+    log = logEnd(logPath);
+    CHECK(strstr(log, "301.json rejected: battles patch 0: there is no field encounter named \"t5b:nope\"") != NULL);
+    CHECK(strstr(log, "302.json rejected: battles patch 0: there is no field encounter 338") != NULL);
+    CHECK(strstr(log, "303.json rejected") != NULL); /* 0 is no encounter: the battle lists use it for none */
+    CHECK(strstr(log, "304.json rejected: battles add 0 slot 0: there is no field encounter named \"t5b:gone\"") != NULL);
+    free(log);
+    memset(&s, 0, sizeof s);
+    s.number = 300;
+    s.battles.present = 1;
+    s.battles.nareas = 3;
+    for (i = 0; i < 3; i++) {
+        for (k = 0; k < 8; k++) s.battles.areas[i].b[k].encounter = 10 + i;
+    }
+    logBegin(logPath);
+    CHECK(smApplyStage(300, &s, &rep) == 1);
+    log = logEnd(logPath);
+    free(log);
+    CHECK(s.battles.areas[0].b[0].encounter == 335 && s.battles.areas[0].b[0].stage == 3 && s.battles.areas[0].b[0].music == 4); /* by name */
+    CHECK(s.battles.areas[0].b[7].encounter == 335); /* no "index": every battle of the area */
+    CHECK(s.battles.areas[1].b[1].encounter == 337 && s.battles.areas[1].b[0].encounter == 11); /* by number: a new row is a valid number too */
+    CHECK(s.battles.nareas == 4 && s.battles.areas[3].b[0].encounter == 336 && s.battles.areas[3].b[1].encounter == 12 && s.battles.areas[3].b[2].encounter == 336);
+    sdStageFree(&s);
+    smUnload();
+
+    /* the start-battle action: a name, a new row's number and a bad name; printed back by name */
+    {
+        StageCodeEnv env, base;
+        ExtJson j;
+        uint16_t *w = NULL;
+        int n = 0;
+        char err[300] = "";
+        ScBuf b;
+        const char *text = "{\"l\": [[\"start-battle\", \"t5b:cave\", 5, 12], [\"start-battle\", 337, 1, 2], [\"start-battle\", 35, 1, 2]]}";
+
+        memset(&base, 0, sizeof base);
+        memset(&host, 0, sizeof host);
+        host.encounterByName = fakeEncounterByName;
+        host.encounterName = fakeEncounterName;
+        smLoad(&host); /* no mods active for the lookups below: the hooks are the host's */
+        smCodeEnv(&env, &base);
+        smSetActRunner(fakeRunner);
+        CHECK(extJsonParse((const uint8_t *)text, strlen(text), &j) == 0);
+        CHECK(scListFromJson(&env, extJsonGet(&j, "l"), &w, &n, err, sizeof err) == 0 && n == 6);
+        if (n == 6) {
+            sRan = 0;
+            pcModApply((int)w[0], 1);
+            CHECK(sRan == 1 && sRanKind == SC_ACT_START_BATTLE && sRanArgs[0] == 336 && sRanArgs[1] == 5 && sRanArgs[2] == 12);
+            pcModApply((int)w[2], 1);
+            CHECK(sRanArgs[0] == 337);
+            memset(&b, 0, sizeof b);
+            CHECK(scListToJson(&env, w, n, &b) == 0 && strcmp(b.b, "[[\"start-battle\", \"t5b:cave\", 5, 12], [\"start-battle\", 337, 1, 2], [\"start-battle\", 35, 1, 2]]") == 0);
+            scFree(&b);
+        }
+        free(w);
+        extJsonFree(&j);
+        {
+            ExtJson x;
+            uint16_t *wx = NULL;
+            int nx = 0;
+            const char *bad = "{\"l\": [[\"start-battle\", \"t5b:gone\", 1, 1]]}";
+
+            CHECK(extJsonParse((const uint8_t *)bad, strlen(bad), &x) == 0);
+            err[0] = '\0';
+            CHECK(scListFromJson(&env, extJsonGet(&x, "l"), &wx, &nx, err, sizeof err) != 0 && strstr(err, "no such field encounter") != NULL);
+            free(wx);
+            extJsonFree(&x);
+        }
+    }
+    smUnload();
+}
 
 /* ---- S9: the sprites mods bring and the actors that need a slot of their own ---- */
 
@@ -994,6 +1224,48 @@ int main(void) {
         }
         free(w);
         extJsonFree(&j);
+
+        /* the `ask` action: a yes/no question after the talk's line; the answer lands in the variable (1 yes, 2 no) */
+        {
+            const char *t2 = "{\"l\": [[\"ask\", \"a:rematch\"], [\"set-var\", \"a:count\", 3]]}";
+            ExtJson j2;
+            uint16_t *w2 = NULL;
+            int n2 = 0;
+            ScBuf b2;
+
+            CHECK(extJsonParse((const uint8_t *)t2, strlen(t2), &j2) == 0);
+            CHECK(scListFromJson(&env, extJsonGet(&j2, "l"), &w2, &n2, err, sizeof err) == 0 && n2 == 4);
+            if (n2 == 4) {
+                unsigned short list[6] = {w2[0], w2[1], w2[2], w2[3], 0xFFFF, 0};
+
+                CHECK(w2[1] == 1 && isModCode(w2[0]));
+                CHECK(pcActionsAsk(list) == 1 && pcActionsAsk(list + 2) == 0); /* the list holds one; the set-var alone does not */
+                pcExtVarsReset();
+                CHECK(pcAskTake() == 0);
+                pcModApply((int)w2[0], 1);                   /* posts the question, changes nothing yet */
+                CHECK(pcExtVarGet("a:rematch") == 0 && pcAskTake() == 1 && pcAskDone() == 0);
+                CHECK(pcAskTake() == 0);                      /* taken once */
+                pcAskAnswered(2);
+                CHECK(pcAskDone() == 1 && pcExtVarGet("a:rematch") == 2);
+                CHECK(pcModCheck(w2[0], 1) == 1);             /* as a condition it holds */
+                memset(&b2, 0, sizeof b2);
+                CHECK(scListToJson(&env, w2, n2, &b2) == 0 && strcmp(b2.b, "[[\"ask\", \"a:rematch\"], [\"set-var\", \"a:count\", 3]]") == 0);
+                scFree(&b2);
+            }
+            free(w2);
+            extJsonFree(&j2);
+            {
+                const char *bad = "{\"l\": [[\"ask\"]]}";
+                ExtJson j3;
+                uint16_t *w3 = NULL;
+                int n3 = 0;
+
+                CHECK(extJsonParse((const uint8_t *)bad, strlen(bad), &j3) == 0);
+                CHECK(scListFromJson(&env, extJsonGet(&j3, "l"), &w3, &n3, err, sizeof err) != 0);
+                free(w3);
+                extJsonFree(&j3);
+            }
+        }
         /* names and shapes that are refused, each with its reason */
         {
             static const char *const bad[] = {
@@ -1076,7 +1348,10 @@ int main(void) {
     smUnload();
     CHECK(smPatchCount() == 0 && !smHasPatches(100));
     testNamedTexts();
+    testSpeakerText();
     testStageData();
+    testEncounterNames();
+    testCatches();
     testSprites();
     {
         char cmd[1100];

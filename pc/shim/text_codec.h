@@ -82,6 +82,13 @@ TcLang *tcDocLang(TcDoc *doc, int part);
 /* Entry text as raw tokens (tcDecode of the body); malloc'ed */
 char *tcEntryText(const TcLang *lang, int index);
 
+/* A mod text may start with `{speaker-of:<FILE>:<entry>}`: "the speaker label the game's own text file <FILE> (tdFileBase, e.g. TALK04) gives its entry
+   <entry>" (a sign of the game says its name there), taken from the player's disc at run time so no game text is in the mod. tcSpeakerRef reads that
+   prefix: 1 with the file name, the entry and `*rest` (the text after it); 0 when the text does not start with it (`*bad` is 1 when it starts with
+   `{speaker-of:` but is malformed). tcSpeakerLabel returns the label of an entry (the raw text between its two `{0207}`), malloc'ed, or NULL when it has none. */
+int tcSpeakerRef(const char *text, char *file, size_t cap, int *entry, const char **rest, int *bad);
+char *tcSpeakerLabel(const TcLang *lang, int index);
+
 /* Replace one string (lang.py set_text): `text` is raw-token text, the entry stops sharing
    storage and gets a canonical tail. Fails on a bad index or an unencodable character. */
 int tcSetText(TcLang *lang, int index, const char *text, char *err, size_t errSize);

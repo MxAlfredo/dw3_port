@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "DW3 port stages/<number>.json (a stage patch, stage-patch-v1)",
-  "description": "Changes the characters of one field stage (pc/shim/stage_mods.c, docs/stages.md section 7): patch the ones the stage has, add new ones, remove some, and change their talks. The patch is merged into what the stage's own setup produced when it starts, so a character is named by its place in that list (\"index\", 0-based, as the reference file data/stages/<number>.json shows it) or by the key of one a patch added (\"<mod>:<key>\"). Later mods win; a field two mods set is logged. S8/S10 add \"slots\" (exits), \"events\" (scripted events) and \"battles\" (area battles) to the same file (docs/stages.md section 10).",
+  "description": "Changes the characters of one field stage (pc/shim/stage_mods.c, docs/stages.md section 7): patch the ones the stage has, add new ones, remove some, and change their talks. The patch is merged into what the stage's own setup produced when it starts, so a character is named by its place in that list (\"index\", 0-based, as the reference file data/stages/<number>.json shows it) or by the key of one a patch added (\"<mod>:<key>\"). Later mods win; a field two mods set is logged. S8/S10 add \"slots\" (exits), \"events\" (scripted events) and \"battles\" (area battles) to the same file (docs/stages.md section 10). T9 adds \"fishing\" and \"hiddenSpots\" (docs/stages.md section 14).",
   "type": "object",
   "required": [
     "format"
@@ -113,6 +113,93 @@
           }
         }
       }
+    },
+    "fishing": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Results of the fishing gauge game (docs/stages.md section 14). A gauge slot's cursor stops on cell 0 (nothing), 1 or 2; a cell without a list keeps the game's own battle (4 or 7 of the fourth area).",
+      "properties": {
+        "default": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Lists for the cells of every gauge slot of the stage that has none of its own.",
+          "properties": {
+            "1": {
+              "$ref": "#/$defs/resultList"
+            },
+            "2": {
+              "$ref": "#/$defs/resultList"
+            }
+          }
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "One gauge slot, by \"index\" (its place in the stage's table) or \"key\" (a slot a patch added), with the lists of its cells.",
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1023
+              },
+              "key": {
+                "type": "string"
+              },
+              "1": {
+                "$ref": "#/$defs/resultList"
+              },
+              "2": {
+                "$ref": "#/$defs/resultList"
+              }
+            }
+          }
+        }
+      }
+    },
+    "hiddenSpots": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Kick trees (the game's hidden spots, docs/stages.md section 14): \"add\" places trees; \"prize\" says what the tree that holds the prize gives (the game: event battle 3 of the fourth area, 80%, or 6, 20%).",
+      "properties": {
+        "add": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32767
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32767
+              }
+            }
+          }
+        },
+        "prize": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "common": {
+              "$ref": "#/$defs/resultList"
+            },
+            "rare": {
+              "$ref": "#/$defs/resultList"
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -133,7 +220,7 @@
     },
     "code": {
       "type": "array",
-      "description": "One condition or action: [\"flag\", \"1A:1F\", 1], [\"item\", \"dw3:item/18\", 1], [\"special\", \"<mod>:<name>\", 1] (a row a mod added to special_conditions), [\"mod-flag\", \"<mod>:<name>\", 1], [\"mod-var\", \"<mod>:<name>\", \">=\", 3], [\"set-var\", \"<mod>:<name>\", 3], and the port actions [\"give-money\", 500], [\"take-money\", 500], [\"set-progress\", 12], [\"warp\", 380, 1186, 874, 3], [\"sound\", \"teleport\"] (docs/stages.md sections 4, 7 and 8).",
+      "description": "One condition or action: [\"flag\", \"1A:1F\", 1], [\"item\", \"dw3:item/18\", 1], [\"special\", \"<mod>:<name>\", 1] (a row a mod added to special_conditions), [\"mod-flag\", \"<mod>:<name>\", 1], [\"mod-var\", \"<mod>:<name>\", \">=\", 3], [\"set-var\", \"<mod>:<name>\", 3], [\"ask\", \"<mod>:<name>\"] (a Yes/No question after the talk's line: the variable becomes 1 for yes, 2 for no, and the talks are chosen again), and the port actions [\"give-money\", 500], [\"take-money\", 500], [\"set-progress\", 12], [\"warp\", 380, 1186, 874, 3], [\"sound\", \"teleport\"] (docs/stages.md sections 4, 7 and 8).",
       "minItems": 2,
       "items": {
         "type": [
@@ -302,8 +389,16 @@
         "y"
       ],
       "anyOf": [
-        {"required": ["character"]},
-        {"required": ["sprite"]}
+        {
+          "required": [
+            "character"
+          ]
+        },
+        {
+          "required": [
+            "sprite"
+          ]
+        }
       ],
       "properties": {
         "key": {
@@ -730,10 +825,18 @@
           "description": "An index of battle_rates."
         },
         "encounter": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 4095,
-          "description": "A row of field_encounters."
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4095
+            },
+            {
+              "type": "string",
+              "pattern": "^[^:]+:[a-z0-9_-]+$"
+            }
+          ],
+          "description": "A row of field_encounters: its number, or the name \"<mod>:<name>\" of a new encounter a mod adds in tables/field_encounters.json."
         },
         "stage": {
           "type": "integer",
@@ -782,10 +885,18 @@
             "additionalProperties": false,
             "properties": {
               "encounter": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 4095,
-                "description": "A row of field_encounters."
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4095
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[^:]+:[a-z0-9_-]+$"
+                  }
+                ],
+                "description": "A row of field_encounters: its number, or the name \"<mod>:<name>\" of a new encounter a mod adds in tables/field_encounters.json."
               },
               "stage": {
                 "type": "integer",
@@ -803,6 +914,73 @@
           }
         }
       }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "One result: a battle (\"encounter\" with \"stage\" and \"music\"), an item (one copy) or nothing. \"weight\" is its share of the list.",
+      "properties": {
+        "encounter": {
+          "description": "A field encounter: a number of field_encounters or a name \"<mod>:<name>\" of a row a mod adds.",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4095
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The fight stage (BATTLE_SETUP.stage); required with encounter."
+        },
+        "music": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "BATTLE_SETUP.music; required with encounter."
+        },
+        "item": {
+          "description": "An item: a number 1-511, \"dw3:item/<id>\" or a mod's \"<mod>:<key>\".",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 511
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "nothing": {
+          "const": true
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 1
+        }
+      }
+    },
+    "resultList": {
+      "description": "A result or a list of up to 16 (one is picked by weight; an empty list gives nothing).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/result"
+        },
+        {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/result"
+          }
+        }
+      ]
     }
   }
 }

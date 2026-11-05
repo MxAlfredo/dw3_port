@@ -21,6 +21,7 @@
 #include "stage_data.h"
 
 #define SM_FORMAT "stage-patch-v1"
+#define SM_NEW_FORMAT "stage-new-v1" /* a stage a mod adds (new-stages T5): mods/<mod>/new-stages/<name>/stage.json, shim/stage_new.h */
 
 /* A sprite a mod brings (S9): what the host built from mods/<mod>/sprites/<name>/ */
 typedef struct SmSprite {
@@ -28,6 +29,12 @@ typedef struct SmSprite {
     int width;  /* the character's width for the field's collision, in pixels */
     int w, h;   /* the largest frame it plays, in pixels: the VRAM slot it needs */
 } SmSprite;
+
+/* What a stage-new-v1 file defines, for the checks that tie its map to its sections (stage_new.c: a trigger cell names a slot of the table, an area cell a battle area) */
+typedef struct SmNewInfo {
+    int slots;       /* the slots its "slots.add" gives, in order: the indices a trigger cell may name */
+    int battleAreas; /* the areas its "battles.add" gives, 1..n: the values an area cell may hold */
+} SmNewInfo;
 
 typedef struct SmHost {
     const StageCodeEnv *env; /* the item/card names of the content mods (modOp and modOpInfo are filled by smLoad); NULL: plain */
@@ -40,12 +47,24 @@ typedef struct SmHost {
     int (*stageMode)(int number);
     /* whether a row of the field encounters exists (S10); NULL: any number from 1 to 4095 */
     int (*encounterOk)(int row);
+    /* new field encounters (new-stages T5b, shim/field_ext.h): the number of a row a mod added, by name "<mod>:<name>" (-1: none), and the name of such a number
+       (NULL when it is not one). NULL encounterByName: only numbers are accepted. The number answers encounterOk like the build's own rows. */
+    int (*encounterByName)(const char *name);
+    const char *(*encounterName)(int number);
     /* S9: whether the game has a character with that id and a sprite file for it (a patch's "character"); NULL: any number */
     int (*characterOk)(int character);
     /* S9: builds the sprite of a folder (mods/<mod>/sprites/<name>, label "<mod>:<name>"). 0 and *out, or -1 with the reason in why. spritesDone runs after
        the last one of a load (the host closes its file). NULL spriteAdd: the mods' sprites are ignored. */
     int (*spriteAdd)(const char *dir, const char *label, SmSprite *out, char *why, size_t whySize);
     void (*spritesDone)(void);
+    /* mod stages (new-stages T4): the stage number of a name "<mod>:<name>" an exit or a warp may name (-1: no such stage) and the name of a number it made
+       (NULL when it is not one). NULL stageByName: only numbers are accepted. The number answers stageExists and stageMode like the build's own. */
+    int (*stageByName)(const char *name);
+    const char *(*stageName)(int number);
+    /* mod stages (new-stages T5): called by smLoad for each stage-new-v1 file that parsed, with what it defines. A nonzero return (with the reason in why) refuses the
+       stage whole. stageRefused is then told the key, so the name stops resolving (stageByName answers -1) and the files that named it are read again. Both NULL: no checks. */
+    int (*newCheck)(const char *key, const SmNewInfo *info, char *why, size_t whySize);
+    void (*stageRefused)(const char *key);
 } SmHost;
 
 /* What one smApplyActors did */
@@ -59,11 +78,15 @@ typedef struct SmReport {
     int slotsPatched, slotsAdded, slotsRemoved;       /* S8 */
     int eventsPatched, eventsAdded;                   /* S8 */
     int battlesPatched, areasAdded;                   /* S10 */
+    int fishingSet, spotsAdded, prizesSet;            /* T9: gauge slots with results (and the default's cells), hidden spots added, prize lists set */
 } SmReport;
 
 /* Reads mods/<mod>/stages/<nnn>.json of every active mod (modsCount/modsDirOf, in order). A file that is not valid is refused whole, with
    "[stages] <path> rejected: <reason>" on the log. Forgets what an earlier call loaded. Returns the number of files kept. */
 int smLoad(const SmHost *host);
+/* mods/<mod>/new-stages/<name>/stage.json (stage-new-v1) of every active mod whose "<mod>:<name>" the host's stageByName knows (nsScan registered it before): the
+   sections actors, slots, events and battles (only "add") are read by the same parser as a stage patch, as the patch of the stage's own number. The file counts in
+   smPatchCount. A file that is not valid is refused whole ("[stages] <path> rejected: <reason>"). */
 void smUnload(void); /* forgets the patches and the table of mod ops */
 int smPatchCount(void);      /* files kept */
 int smHasPatches(int stage); /* 1 when a kept file patches that stage */
@@ -127,6 +150,13 @@ void smCodeEnv(StageCodeEnv *out, const StageCodeEnv *base);
 int smActCode(int kind, const int *args);              /* -1 when the table is full or the kind is not one */
 int smActInfo(unsigned code, int *kind, int *args);    /* 1 when the table made the code; args holds SC_ACT_ARGS numbers */
 void smSetActRunner(void (*run)(int kind, const int *args));
+/* the `ask` action (a yes/no question after a talk's line): pcActionsAsk says whether a talk's actions hold one (checked before they run), applying the
+   action posts the question, pcAskTake takes it (1 when one was posted), the field shows the game's Yes/No panel and pcAskAnswered(1 yes | 2 no) stores
+   the answer in the action's variable; pcAskDone says it has */
+int pcActionsAsk(const unsigned short *list);
+int pcAskTake(void);
+void pcAskAnswered(int answer);
+int pcAskDone(void);
 
 /* A request to change what the field is doing (the warp, start-battle and run-event actions): the runner posts it, the field's own running frame takes it and
    asks the game for it (FIELDSTG_leaveField, FIELDSTG_startBattle, FIELDSTG_startEvent), so a talk's actions never change the stage from inside the talk.

@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 
 #include "controls_screen.h"
+#include "mod_stages.h"
 #include "options_language.h"
 
 static int choice_ = OPT_LANG_NONE;
@@ -149,8 +150,8 @@ int optLangLive(int pending, int choice, int language, int variant, int mode, in
     if (mode == LANG_MODE_TITLE) {
         return OPT_LANG_LIVE_TITLE;
     }
-    /* the field's modes are the stage numbers, 0x2xx .. */
-    return (mode >> 8) == 2 && fieldIdle ? OPT_LANG_LIVE_FIELD : OPT_LANG_LIVE_WAIT;
+    /* the field's modes are the stage numbers, 0x2xx, and 0x3xx for the stages mods add */
+    return MS_IS_FIELD_MODE(mode) && fieldIdle ? OPT_LANG_LIVE_FIELD : OPT_LANG_LIVE_WAIT;
 }
 
 int optLangShiftFile(int file, int from, int to) {

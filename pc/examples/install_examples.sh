@@ -11,7 +11,7 @@
 #
 # --only takes example names or groups, separated by commas:
 #   tables  (10 mods: data-table patches)   content (6: new items, techs, Digimon, cards, a model)
-#   media   (9: text, images, sound, song, movie, stage art, stage characters)
+#   media   (10: text, images, sound, song, movie, stage art, stage characters, new stages)
 # The Mods tab of the options menu scrolls through every installed mod. Run it again after "Prepare modding files" to add the ones it skipped.
 # Needs python3 (and Pillow for the movie) for the generated examples; the others need nothing.
 set -e
@@ -22,7 +22,7 @@ src="$here/mods"
 
 G_TABLES="cheap-shops double-rewards generous-loot shop-extra-item field-encounters fast-growth gym-inn-prices card-rival-deck strong-weapons"
 G_CONTENT="sample-card sample-digimon sample-enemy sample-item sample-model sample-tech"
-G_MEDIA="menu-frames-gold player-recolor text-upper-items sfx-beep song-title-chime video-bars stage-tiles stage-objects stage-npc"
+G_MEDIA="menu-frames-gold player-recolor text-upper-items sfx-beep song-title-chime video-bars stage-tiles stage-objects stage-npc training-field"
 
 only=""
 list=0

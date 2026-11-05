@@ -1,4 +1,4 @@
-DW3 Port 1.0.0
+DW3 Port 1.1.0
 ==============
 
 Descargas, versiones nuevas y código fuente: https://github.com/MxAlfredo/dw3_port/releases
@@ -16,11 +16,11 @@ par .cue + .bin o como un solo .bin.
 Para empezar
 ------------
 
-Las descargas de la versión 1.0.0 se llaman:
-  DW3Port-1.0.0-Setup.exe               instalador de Windows
-  DW3Port-1.0.0-windows-portable.zip    Windows, portátil
-  DW3Port-1.0.0-x86_64.AppImage         Linux
-  DW3Port-1.0.0-android.apk             Android
+Las descargas de la versión 1.1.0 se llaman:
+  DW3Port-1.1.0-Setup.exe               instalador de Windows
+  DW3Port-1.1.0-windows-portable.zip    Windows, portátil
+  DW3Port-1.1.0-x86_64.AppImage         Linux
+  DW3Port-1.1.0-android.apk             Android
 
 Windows, instalador (DW3Port-...-Setup.exe)
   Ejecútalo. En la página "Tu juego", elige la imagen de tu disco y, si quieres
@@ -58,6 +58,23 @@ También funcionan los mandos (Xbox, PlayStation y la mayoría de los demás).
 F1 (o Select en el mando) abre las opciones: controles, video (con la
 velocidad de batalla), pantalla, audio e idioma. En la lista de idiomas está
 "Espanol Latam".
+
+
+Novedades de 1.1.0
+------------------
+
+Las partidas y ajustes de 1.0.0 cargan tal cual. Los mods ahora pueden crear escenarios completos.
+
+  - Escenarios nuevos desde mods ("stage-new-v1"): capas de mapa en PNG y un
+    fondo de cualquier tamaño, más filas nuevas de encuentros de campo.
+  - Los resultados de la pesca y del árbol de patadas se pueden definir desde mods.
+  - Una acción "ask" de Sí/No para las charlas; los resultados de batallas y de
+    cartas quedan como variables que un mod puede leer después.
+  - Un letrero de entrada para los escenarios de mods y los encabezados de
+    hablante del propio juego en los textos de mods ({speaker-of:ARCHIVO:N}).
+  - Mod de ejemplo nuevo: training-field (dos pisos, un guía, peleas calibradas).
+    Ahora hay 25 ejemplos listos.
+  - Arreglos encontrados al jugar las pruebas.
 
 
 Novedades de 1.0.0
@@ -228,7 +245,7 @@ Si algo falla
 
 Avísanos en la página de GitHub del proyecto
 (https://github.com/MxAlfredo/dw3_port/issues) y adjunta el archivo más reciente
-de la carpeta logs, diciendo qué versión usas (1.0.0) y en qué sistema. En Windows, DW3-debug.exe es el mismo juego con una
+de la carpeta logs, diciendo qué versión usas (1.1.0) y en qué sistema. En Windows, DW3-debug.exe es el mismo juego con una
 ventana de consola que muestra el registro mientras juegas.
 
 

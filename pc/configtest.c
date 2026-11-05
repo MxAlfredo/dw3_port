@@ -664,6 +664,7 @@ static void testListAndValidate(void)
 
     put("mods/good/mod.json", "{\"format\":\"mod-v1\",\"name\":\"Good\",\"version\":\"1.2\",\"kind\":\"assets\"}");
     put("mods/good/tables/battle_rewards.json", "{\"format\":\"battle_rewards-v1\",\"rows\":{\"1\":{\"money\":50}}}");
+    put("mods/good/tools/make_art.py", "print(1)\n"); /* an author's script: no \"never read\" warning */
     put("mods/broken/mod.json", "{\"format\":\"mod-v1\",\"name\":");
     put("mods/needy/mod.json", "{\"format\":\"mod-v1\",\"requires\":[\"nobody\"]}");
     put("mods/badrow/mod.json", "{\"format\":\"mod-v1\",\"kind\":\"content\",\"nmae\":\"typo\"}");
@@ -718,6 +719,7 @@ static void testListAndValidate(void)
     CHECK(strstr(txt, "tables/battle_reward.json: there is no table called \"battle_reward\" (did you mean \"battle_rewards\"?)"));
     CHECK(strstr(txt, "content/item.json is ignored (did you mean content/items.json?)"));
     CHECK(strstr(txt, "folder table/ is never read (did you mean tables/?)"));
+    CHECK(!strstr(txt, "folder tools/"));
     CHECK(strstr(txt, "files/dat/nothing.bin: no such file on the disc (looked for AAA/DAT/NOTHING.BIN)"));
     CHECK(!strstr(txt, "files/dat/z_stage/s330pack.bin: no such")); /* the one the "disc" has */
     CHECK(strstr(txt, "images/SCREEN/X/00_00.png") && strstr(txt, "40x40")); /* oversize image, attributed to its mod */

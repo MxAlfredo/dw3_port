@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port new-stages/<name>/stage.json (a stage a mod adds, stage-new-v1)",
+  "description": "A field stage that a mod adds (docs/stages.md section 13, ADR-012). The folder name is the stage's name: the stage is \"<mod>:<name>\". Next to this file: background.png (indexed PNG, the size a multiple of 128 px, at most 255 tiles of 128 x 128 px), floor.png (required), triggers.png and areas.png (optional): indexed PNGs of the same size, one pixel per pixel of the map, whose index is the cell's value. The sections \"actors\", \"slots\", \"events\" and \"battles\" are the ones of stage-patch-v1 (stage-patch.schema.json) with only \"add\": a new stage has nothing to patch or remove.",
+  "type": "object",
+  "required": [
+    "format",
+    "start"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "stage-new-v1"
+    },
+    "about": {
+      "type": "string",
+      "description": "Free text for people; the game does not read it."
+    },
+    "notes": {
+      "description": "Free notes for people; the game does not read them."
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "x",
+        "y"
+      ],
+      "description": "Where a saved game that was in this stage goes when the mod is gone: a stage of the game (its number), where the player appears there (pixels). Default: Central Park (330) at its start.",
+      "properties": {
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "A stage number of the game (not a mod's)."
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32767
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32767
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7,
+          "default": 0
+        }
+      }
+    },
+    "start": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "description": "Where the player appears when the stage is entered without an exit that says where (a new game's start, a harness): pixels of the map, inside it.",
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32767
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32767
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7,
+          "default": 0
+        }
+      }
+    },
+    "textFile": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "The text file of one of the game's stages (the number a stage's setup adds to LANGUAGE: Central Park's is 211) that the stage's named texts are appended to. Without it a talk cannot use a named text."
+    },
+    "soundBank": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255,
+      "description": "The sound bank the field loads (SOUND.loadBank), one the game has: Central Park's is 9. 0 loads none."
+    },
+    "music": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bank"
+      ],
+      "description": "The field's music, the game's MUSIC(bank, track): Central Park's is bank 9, track 0. No \"music\": silence.",
+      "properties": {
+        "bank": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "track": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 0
+        }
+      }
+    },
+    "spriteColor": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "description": "[r, g, b, cd]: the colour the field's sprites are modulated by; cd 0 leaves them as they are."
+    },
+    "banner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "place"],
+      "properties": {
+        "area": {
+          "type": "string",
+          "description": "\"<mod>:<name>\" of a line of text/<lang>/stages.json: the big line of the area name banner shown when the stage is entered (the original's area name, like \"Asuka City\")."
+        },
+        "place": {
+          "type": "string",
+          "description": "\"<mod>:<name>\" of a line of text/<lang>/stages.json: the second line (the original's place name). Both lines need an English text; another language falls back to it."
+        }
+      },
+      "description": "The area name banner of the stage. Without it the stage shows no banner (the player moves at once). Both lines are appended to the game's area-name and place-name text files when the mods load."
+    },
+    "actors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "The stage's characters. A character with no \"image\" gets a VRAM slot of its own; the stage has no actor images to name.",
+          "items": {
+            "$ref": "stage-patch.schema.json#/$defs/add"
+          }
+        }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "The stage's exits and triggers (StageSlot), numbered from 0 in the order of the list.",
+          "items": {
+            "$ref": "#/$defs/slotAdd"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "add": {
+          "type": "array",
+          "items": {
+            "$ref": "stage-patch.schema.json#/$defs/eventAdd"
+          }
+        }
+      }
+    },
+    "battles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "The area battles: the n-th entry is the area n (1, 2, ...) that a cell of areas.png holds. The stage has none of its own.",
+          "items": {
+            "$ref": "stage-patch.schema.json#/$defs/battleAdd"
+          }
+        }
+      }
+    },
+    "fishing": {
+      "$ref": "stage-patch.schema.json#/properties/fishing"
+    },
+    "hiddenSpots": {
+      "$ref": "stage-patch.schema.json#/properties/hiddenSpots"
+    }
+  },
+  "$defs": {
+    "slotAdd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key"
+      ],
+      "description": "type, or stage (exit), or event (event), is required. The slot is number n (from 0, in the order of this list): a cell of triggers.png holds direction << 5 | n (n up to 31) to fire it; with an \"area\" it also fires inside that rectangle of the map (pixels).",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "type": {
+          "description": "A slot type name (exit, climb-up, climb-down, drop, depth, map, gauge, event, warp-1, warp-0, slide, stop-slide, launch, launch-out) or a number 1-14.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 14
+            }
+          ]
+        },
+        "arg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "By type: a game mode, an event id, a height... Not together with stage or event."
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "The exit leads to this stage (arg becomes its game mode). Not together with arg or event."
+        },
+        "event": {
+          "description": "The event a slot of type event starts: a name \"<mod>:<name>\" or an id. Not together with arg or stage.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Where an exit puts the player, in map pixels."
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "dir": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "The direction the player faces after the exit (0-7)."
+        },
+        "hideAnim": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "place": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "placeArg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "conditions": {
+          "type": "array",
+          "maxItems": 2,
+          "description": "At most two conditions (docs/stages.md section 4).",
+          "items": {
+            "type": "array"
+          }
+        },
+        "area": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "description": "A rectangle of the map in pixels where the slot fires.",
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32767
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32767
+            },
+            "facing": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7,
+              "description": "The direction the player must face; without it, any."
+            }
+          }
+        }
+      }
+    }
+  }
+}

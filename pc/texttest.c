@@ -161,6 +161,35 @@ static void testAliases(void)
     free(p);
 }
 
+/* {speaker-of:FILE:N}: the prefix of a mod text, and the label of an entry (tcSpeakerRef, tcSpeakerLabel) */
+static void testSpeakerRef(void)
+{
+    static const char *const t[] = {"{0207}SIGN{0207}North", "No label here", "{0207}broken"};
+    Bytes b;
+    TcDoc doc;
+    char file[16], *s;
+    const char *rest = NULL;
+    int entry = -1, bad = -1;
+
+    CHECK(tcSpeakerRef("{speaker-of:TALK04:19}Hello", file, sizeof file, &entry, &rest, &bad) == 1);
+    CHECK_STR(file, "TALK04");
+    CHECK(entry == 19 && bad == 0 && strcmp(rest, "Hello") == 0);
+    CHECK(tcSpeakerRef("Hello {speaker-of:TALK04:19}", file, sizeof file, &entry, &rest, &bad) == 0 && bad == 0);
+    CHECK(tcSpeakerRef("{speaker-of:TALK04}x", file, sizeof file, &entry, &rest, &bad) == 0 && bad == 1);
+    CHECK(tcSpeakerRef("{speaker-of:TALK04:x1}x", file, sizeof file, &entry, &rest, &bad) == 0 && bad == 1);
+    CHECK(tcSpeakerRef("{speaker-of::3}x", file, sizeof file, &entry, &rest, &bad) == 0 && bad == 1);
+    CHECK(tcSpeakerRef("{speaker-of:TALK04:3", file, sizeof file, &entry, &rest, &bad) == 0 && bad == 1);
+    makeLang(&b, 3, t);
+    CHECK(tcDocParse(b.d, b.n, &doc, NULL, 0) == 0);
+    s = tcSpeakerLabel(&doc.lang, 0);
+    CHECK_STR(s, "SIGN");
+    free(s);
+    CHECK(tcSpeakerLabel(&doc.lang, 1) == NULL);
+    CHECK(tcSpeakerLabel(&doc.lang, 2) == NULL);
+    CHECK(tcSpeakerLabel(&doc.lang, 3) == NULL);
+    tcDocFree(&doc);
+}
+
 static void testLangFile(void)
 {
     static const char *const t[] = {"Hola", "A\xc3\xb1o \xc2\xbf" "qu\xc3\xa9?", ""};
@@ -1334,6 +1363,7 @@ int main(int argc, char **argv)
 {
     testCharmap();
     testAliases();
+    testSpeakerRef();
     testLangFile();
     testQuirks();
     testPack();

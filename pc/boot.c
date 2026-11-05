@@ -77,6 +77,7 @@
 #undef CARD_GRID
 #include "cardgame/card_battle.h"
 #undef OVL_NAME
+#include "menus/field_menu.h"
 #include "menus/gym.h" /* content-export E5e: the layouts game_tables.c mirrors */
 #include "shim/ext_state.h"
 #include "shim/game_tables.h"
@@ -87,6 +88,7 @@
 #include "shim/save_view.h"
 #include "shim/tech_ext.h"
 #include "shim/digimon_ext.h"
+#include "shim/field_ext.h"
 #include "shim/text_codec.h"
 #include "shim/text_data.h"
 #include "shim/host.h"
@@ -102,6 +104,8 @@
 #include "shim/stage_mod.h"
 #include "shim/stage_data.h"
 #include "shim/stage_mods.h"
+#include "shim/stage_new.h"
+#include "shim/mod_stages.h"
 #include "shim/options_language.h"
 #include "shim/raw_export.h"
 #include "shim/image_data.h"
@@ -1414,6 +1418,7 @@ typedef struct PcStageBuf {
     FieldBattles *battles;
     BattleList *lists;
     AreaBattle *areas;
+    StageTile *objects;
 } PcStageBuf;
 
 static PcStageBuf sStageBuf[2];
@@ -1433,7 +1438,204 @@ static void pcStageBufFree(PcStageBuf *b) {
     free(b->battles);
     free(b->lists);
     free(b->areas);
+    free(b->objects);
     memset(b, 0, sizeof *b);
+}
+
+/* ---- fishing and hidden spots (new-stages T9, docs/stages.md section 14) ----
+   What the stage's patches gave the gauge slots' cells and the hidden spots' prize. Kept from smApplyStage (moved out of the SdStage) until the next stage
+   starts. A cell or a prize with no list here is the game's own: pcFishingCatch / pcSpotPrize return 0 and the code of the game runs, so a stage without a
+   patch plays as it always did. */
+static SdFishSlot *sFish;
+static int sFishCount;
+static SdCatchList sFishDefault[2];
+static SdCatchList sPrize[2];
+static int sFishingSlot = -1; /* the slot the running gauge game was started from */
+
+static void pcCatchesClear(void) {
+    int i;
+
+    for (i = 0; i < sFishCount; i++) {
+        sdCatchListFree(&sFish[i].cell[0]);
+        sdCatchListFree(&sFish[i].cell[1]);
+    }
+    free(sFish);
+    sFish = NULL;
+    sFishCount = 0;
+    for (i = 0; i < 2; i++) {
+        sdCatchListFree(&sFishDefault[i]);
+        sdCatchListFree(&sPrize[i]);
+    }
+    sFishingSlot = -1;
+}
+
+/* moves the stage's lists out of `s` (so sdStageFree leaves them) */
+static void pcCatchesTake(SdStage *s) {
+    int i;
+
+    sFish = s->fishing;
+    sFishCount = s->nfishing;
+    s->fishing = NULL;
+    s->nfishing = 0;
+    for (i = 0; i < 2; i++) {
+        sFishDefault[i] = s->fishDefault[i];
+        sPrize[i] = s->prize[i];
+        memset(&s->fishDefault[i], 0, sizeof s->fishDefault[i]);
+        memset(&s->prize[i], 0, sizeof s->prize[i]);
+    }
+}
+
+/* Plays one result of a list: a battle (the same FIELDSTG_startBattle the area battles use), an item (one copy, as an item action of a talk) or nothing.
+   Returns 1 when a battle started. */
+static int pcCatchPlay(const SdCatchList *l, const char *what) {
+    const SdCatch *c = sdCatchPick(l, (unsigned)RANDOM.next());
+
+    if (c == NULL || c->kind == SD_CATCH_NOTHING) {
+        PLOG("stages", PLOG_TRACE, "%s: nothing\n", what);
+        return 0;
+    }
+    if (c->kind == SD_CATCH_ITEM) {
+        PLOG("stages", PLOG_TRACE, "%s: item %d\n", what, c->item);
+        FLAGS_00.applyAction(ITEM(0, c->item), 1);
+        return 0;
+    }
+    {
+        AreaBattle b;
+
+        b.encounter = c->encounter;
+        b.stage = c->stage;
+        b.music = c->music;
+        PLOG("stages", PLOG_TRACE, "%s: encounter %d %s (fight stage %d, music %d)\n", what, c->encounter, fieldExtNameOf(c->encounter) != NULL ? fieldExtNameOf(c->encounter) : "(the game's own)",
+             c->stage, c->music);
+        FIELDSTG_startBattle(&b);
+    }
+    return 1;
+}
+
+/* FIELDSTG_setOffTrigger: a gauge slot was set off (index in the stage's table) */
+void pcFishingBegin(s32 slot) {
+    sFishingSlot = slot;
+}
+
+/* the harness (host_pad.c, `fieldexit`/`fieldsearch`): a gauge game of a fishing spot is running (it started and has not stopped on cell 1 or 2), and the
+   hidden spot the player faces, if any */
+int pcFishingWaiting(void) {
+    return sFishingSlot >= 0;
+}
+
+/* the harness (host_pad.c, `fieldwalk`): where the player's actor is (map pixels), the floor value under it (the map the player is on, GAME.mapIndex)
+   and its direction; 0 while there is no player actor */
+int pcFieldPlayer(int *px, int *py, int *cell, int *dir) {
+    Actor *a = TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0);
+    Vec2 pos;
+
+    if (a == NULL) {
+        return 0;
+    }
+    pos.x = a->pos.x >> 8;
+    pos.y = a->pos.y >> 8;
+    *px = pos.x;
+    *py = pos.y;
+    *cell = (u8)FIELDSTG_map.getCell(GAME.mapIndex, &pos);
+    *dir = a->dir;
+    return 1;
+}
+
+/* the harness (host_pad.c): the state a proof reads, one line: money and the count of the items the example mod gives or asks for */
+void pcHarnessState(const char *tag) {
+    PLOG("stages", PLOG_TRACE, "harness state (%s): money %d, Tree Boots %d, Fishing Pole %d, HP Chip %d, Power Charge %d, card 0x13 played %d won %d, quest %d, duel played %d won %d, rematch %d\n", tag,
+         (int)GAME.money, (int)PC_ITEM_COUNT(4), (int)PC_ITEM_COUNT(5), (int)PC_ITEM_COUNT(47), (int)PC_ITEM_COUNT(43), pcExtVarGet("dw3:card-played/13"),
+         pcExtVarGet("dw3:card-won/13"), pcExtVarGet("training-field:quest"), pcExtVarGet("dw3:battle-played/training-field/duel-trio"),
+         pcExtVarGet("dw3:battle-won/training-field/duel-trio"), pcExtVarGet("training-field:rematch"));
+}
+
+int pcSpotFaced(void) {
+    Actor *a = TASK_REGISTRY.funcs.find(FIELD_TASK_ACTOR, -1, 0);
+    Vec2 pos;
+
+    if (a == NULL) {
+        return 0;
+    }
+    a->getFacingTile(a, &pos);
+    if (FIELDSTG_findHiddenSpot(&pos, 0) == NULL) {
+        return 0;
+    }
+    {
+        static int lastX = -1;
+        static int lastY = -1;
+
+        if (lastX != (int)(a->pos.x >> 8) || lastY != (int)(a->pos.y >> 8)) {
+            lastX = (int)(a->pos.x >> 8);
+            lastY = (int)(a->pos.y >> 8);
+            PLOG("stages", PLOG_TRACE, "harness: a hidden spot is within 10 px of the facing tile (%d, %d) of the player at (%d, %d), facing %d\n", (int)pos.x, (int)pos.y, lastX, lastY,
+                 (int)a->dir);
+        }
+    }
+    return 1;
+}
+
+/* FIELDSTG_runGauge: the cursor stopped on cell 1 or 2. 0: no list for it, the game's battle (4 or 7 of the fourth area) runs. 1: handled and a battle started
+   (the gauge ends done). 2: handled and nothing started (the gauge ends killed, as on a miss). */
+s32 pcFishingCatch(s32 cell) {
+    const SdCatchList *l = NULL;
+    int i;
+
+    if (cell < 1 || cell > 2) {
+        return 0;
+    }
+    for (i = 0; i < sFishCount; i++) {
+        if (sFish[i].slot == sFishingSlot && sFish[i].cell[cell - 1].set) {
+            l = &sFish[i].cell[cell - 1];
+        }
+    }
+    if (l == NULL && sFishDefault[cell - 1].set) {
+        l = &sFishDefault[cell - 1];
+    }
+    if (l == NULL) {
+        return 0;
+    }
+    sFishingSlot = -1;
+    return pcCatchPlay(l, cell == 1 ? "fishing cell 1" : "fishing cell 2") ? 1 : 2;
+}
+
+/* FIELDSTG_updateHiddenSpots: the spot with the prize was searched (rare: the draw that picks the game's battle 6). 1 when the stage's list handled it. */
+s32 pcSpotPrize(s32 rare) {
+    if (!sPrize[rare != 0].set) {
+        return 0;
+    }
+    pcCatchPlay(&sPrize[rare != 0], rare ? "hidden spot prize (rare)" : "hidden spot prize");
+    return 1;
+}
+
+/* the map objects with the hidden spots a patch added: the stage's own table, then a spot (animation 0xFF, as the game's: wstag330.c) for each, then the end */
+static int pcSpotsInstall(const SdStage *s, PcStageBuf *b) {
+    const StageTile *src = FIELDSTG_state.objects;
+    int n = 0, i;
+
+    if (src != NULL) {
+        for (; src[n].margin != 0 || src[n].y != 0; n++) {
+        }
+    }
+    b->objects = (StageTile *)pcZalloc((size_t)(n + s->nspots) + 1, sizeof *b->objects);
+    if (b->objects == NULL) {
+        return 0;
+    }
+    if (n > 0) {
+        memcpy(b->objects, src, (size_t)n * sizeof *b->objects);
+    }
+    for (i = 0; i < s->nspots; i++) {
+        StageTile *t = &b->objects[n + i];
+
+        t->visible = 1;
+        t->anim = 0xFF;
+        t->margin = 0x64;
+        t->depth = 4;
+        t->frame = 0x38;
+        t->x = (s16)s->spots[i].x;
+        t->y = (s16)s->spots[i].y;
+        t->sortY = (s16)s->spots[i].y; /* drawn from the field's effect sprites, in the sorted pass (map_objects.c:18-24) */
+    }
+    return 1;
 }
 
 /* the slot under (px, py) of the areas the patches gave (the last one added wins): 1 with its index in the table and the direction to face (-1 any) */
@@ -1580,6 +1782,26 @@ static int pcBattlesInstall(const SdStage *s, PcStageBuf *b) {
     return 1;
 }
 
+/* extended-state T2, test harness only: DW3_SEED_ITEMS="id=count,id=count" gives items before the card screen opens (a save then carries them;
+   ids above the original range live in the extension). T6: a field stage's own start also applies it (a run that warps into a stage and talks to a
+   character whose talk asks for an item has no other way to hold one). A normal run never sets it. */
+static void pcSeedItems(void) {
+    const char *seed = getenv("DW3_SEED_ITEMS");
+
+    while (seed != NULL && *seed != '\0') {
+        char *end;
+        long id = strtol(seed, &end, 10);
+        long count;
+
+        if (end == seed || *end != '=') {
+            break;
+        }
+        count = strtol(end + 1, &end, 10);
+        PC_ITEM_COUNT((int)id) = (s8)count;
+        seed = (*end == ',') ? end + 1 : end;
+    }
+}
+
 /* DW3_LOG=trace: for every character of the merged list, whether the game would create it now (its conditions, through the game's own interpreter, mod flags
    included) and which of its talks would be said. Evaluates only: nothing is applied. */
 /* DW3_STAGE_APPLY="<actor>[:<rounds>]": a test hook (a normal run never sets it) that applies the actions of the talk the interpreter picks for the
@@ -1659,6 +1881,9 @@ static void pcActorsTrace(const char *name, const PcActorBuf *b, int n) {
 static int pcStageExists(int number) {
     const SdSetup *su;
 
+    if (msModeOfNumber(number) >= 0) {
+        return 1; /* a stage a mod adds (shim/mod_stages.h) */
+    }
     for (su = SD_SETUPS; su->name != NULL; su++) {
         if (su->number == number) {
             return 1;
@@ -1693,6 +1918,9 @@ static const s32 sActSounds[SC_SOUND_COUNT] = {SOUND_SELECT, SOUND_MENU_CANCEL, 
 static s32 pcStageWarpMode(int number) {
     const SdSetup *su;
 
+    if (number >= MS_NUMBER_BASE) {
+        return msModeOfNumber(number) >= 0 ? msModeOfNumber(number) : 0; /* the session mode of a mod's stage */
+    }
     for (su = SD_SETUPS; su->name != NULL; su++) {
         if (su->number == number) {
             SdStage s;
@@ -1704,6 +1932,8 @@ static s32 pcStageWarpMode(int number) {
     }
     return 0;
 }
+
+static const char *pcEncounterName(int number);
 
 void pcStageWarpPoll(void) {
     SmRequest l;
@@ -1718,6 +1948,19 @@ void pcStageWarpPoll(void) {
         b.stage = l.arg;
         b.music = l.x;
         PLOG("stages", PLOG_TRACE, "starting the field battle %d (fight stage %d, music %d)\n", l.mode, l.arg, l.x);
+        {
+            const char *en = pcEncounterName(l.mode);
+            char key[128];
+            int i;
+
+            if (en) {
+                snprintf(key, sizeof key, "%s", en);
+                for (i = 0; key[i]; i++) key[i] = key[i] == ':' ? '/' : key[i];
+            } else {
+                snprintf(key, sizeof key, "%x", l.mode);
+            }
+            pcFieldBattleBegin(key); /* dw3:battle-played/<key> and dw3:battle-won/<key> when the field comes back (shim/ext_state.h) */
+        }
         FIELDSTG_startBattle(&b);
     } else if (l.kind == SM_REQ_EVENT) {
         FieldTask *field = (FieldTask *)TASK_REGISTRY.funcs.find(FIELD_TASK_FIELD, -1, -1);
@@ -1737,7 +1980,16 @@ static int pcStageModeOf(int number) {
 }
 
 static int pcEncounterOk(int row) {
-    return row >= 1 && row < gameTablesEncounterCount();
+    return row >= 1 && row < gameTablesEncounterCount() + fieldExtCount();
+}
+
+/* the number of an encounter a mod added, by name ("<mod>:<name>"; -1: none), for the stage battles and the start-battle action */
+static int pcEncounterByName(const char *name) {
+    return fieldExtNumberOf(name);
+}
+
+static const char *pcEncounterName(int number) {
+    return fieldExtNameOf(number);
 }
 
 static void pcActRun(int kind, const int *a) {
@@ -1776,7 +2028,7 @@ static void pcActRun(int kind, const int *a) {
     }
     case SC_ACT_START_BATTLE:
         PLOG("stages", PLOG_TRACE, "action start-battle: encounter %d, fight stage %d, music %d\n", a[0], a[1], a[2]);
-        if (a[0] >= 1 && a[0] < gameTablesEncounterCount()) {
+        if (pcEncounterOk(a[0])) {
             SmRequest l = {SM_REQ_BATTLE, a[0], a[1], a[2], 0, 0};
 
             smPostRequest(&l); /* the same FIELDSTG_startBattle the stages' own event battles call, from the field's frame (see warp) */
@@ -1811,15 +2063,25 @@ static void pcInstallStageMods(void) {
     host.env = &env;
     host.stageExists = pcStageExists;
     host.stageMode = pcStageModeOf;
+    host.stageByName = msNumberOfKey; /* "stage": "<mod>:<name>" in a slot, ["warp", "<mod>:<name>", ...] in an action (new-stages T4) */
+    host.stageName = msKeyOfNumber;
     host.encounterOk = pcEncounterOk;
+    host.encounterByName = pcEncounterByName; /* "encounter": "<mod>:<name>" of a battle, ["start-battle", "<mod>:<name>", ...] (new-stages T5b) */
+    host.encounterName = pcEncounterName;
     host.textFirst = tdStageTextFirst;
     host.textChanged = tdStageTextInvalidate;
     host.characterOk = pcCharacterOk;
     host.spriteAdd = pcSpriteAdd;
     host.spritesDone = pcSpritesDone;
+    host.newCheck = nsCheck; /* a stage a mod adds: its map and its sections have to agree (shim/stage_new.h) */
+    host.stageRefused = nsRefuse;
+    msReset();
+    nsScan(&host); /* new-stages T5: reads mods/<mod>/new-stages/<name>/ (stage.json and the PNGs) and registers the stages that are valid */
+    msSeal(); /* from here the names of the registered stages resolve to modes */
     smSetActRunner(pcActRun); /* the port actions of the patches' talks (S7) */
     tdSetStageTextHook(smTextCount, smTextOf); /* the named texts of the patches' talks are appended to the stage's text file (S6) */
-    smLoad(&host);
+    smLoad(&host); /* the stage patches, and the sections of the new stages (which can still refuse one) */
+    nsInstall();   /* the virtual files (TMPK, PACK) of the new stages that stood */
 }
 
 /* DW3_MODVAR="mod:name=1,other:name=3": mod variables set when the first patched stage starts (after the new game's own reset), so a harness run can
@@ -2048,45 +2310,75 @@ static void pcImagesInstall(SdStage *s) {
     }
 }
 
+static Task *pcModStageStart(void *owner);
+
 void pcStagePatchHook(void) {
     const SdSetup *su;
+    const MsStage *mst = NULL;
+    const char *stageName;
+    int stageNumber;
     SdStage s;
     SmReport rep;
     int maxImage = 1;
 
     sSlotAreaCount = 0; /* the previous stage's trigger areas are not this one's */
+    pcCatchesClear();   /* nor its fishing results and hidden-spot prizes (T9) */
     if (smPatchCount() == 0 || FIELDSTG_state.stageInit == NULL) {
         return;
     }
     pcModVarsPreset();
-    for (su = SD_SETUPS; su->name != NULL; su++) {
-        if (su->start != NULL && (const void *)su->start == (const void *)FIELDSTG_state.stageInit) {
-            break;
+    if ((const void *)FIELDSTG_state.stageInit == (const void *)pcModStageStart) {
+        /* a stage a mod adds (new-stages T5): no setup of the game behind it, its sections are the patch of its own number, applied to an empty stage */
+        mst = msByMode(GAME.funcs.getMode());
+        if (mst == NULL || !smHasPatches(msNumberOfMode(mst->mode))) {
+            return;
         }
-    }
-    if (su->name == NULL || !smHasPatches(su->number)) {
-        return;
+        stageName = mst->key;
+        stageNumber = msNumberOfMode(mst->mode);
+    } else {
+        for (su = SD_SETUPS; su->name != NULL; su++) {
+            if (su->start != NULL && (const void *)su->start == (const void *)FIELDSTG_state.stageInit) {
+                break;
+            }
+        }
+        if (su->name == NULL || !smHasPatches(su->number)) {
+            return;
+        }
+        stageName = su->name;
+        stageNumber = su->number;
     }
     memset(&s, 0, sizeof s);
-    s.number = su->number;
+    s.number = stageNumber;
+    if (mst != NULL) {
+        s.battles.present = 1; /* a new stage has no battles of the game's: its "battles.add" areas are the first (1, 2, ...) */
+        s.battles.place = GAME.place;
+        s.battles.serial = 1;
+    }
     s.textFile = FIELDSTG_state.textFile != 0 ? FIELDSTG_state.textFile - LANGUAGE : -1; /* named texts append to it (S6) */
     pcStageReadActors(&FIELDSTG_state, &s, 0, &maxImage);
     pcStageReadSlots(&FIELDSTG_state, &s);
     pcStageReadEvents(&FIELDSTG_state, &s);
     pcStageReadBattles(&FIELDSTG_state, &s);
     s.nimages = maxImage >= 2 ? maxImage - 1 : 0; /* the actor images the stage's own characters use: a patch can reuse those */
-    if (smApplyStage(su->number, &s, &rep)) {
+    if (smApplyStage(stageNumber, &s, &rep)) {
         PcStageBuf *sb = &sStageBuf[sStageBufNow ^ 1];
-        int others = rep.slotsPatched + rep.slotsAdded + rep.slotsRemoved + rep.eventsPatched + rep.eventsAdded + rep.battlesPatched + rep.areasAdded;
+        int others = rep.slotsPatched + rep.slotsAdded + rep.slotsRemoved + rep.eventsPatched + rep.eventsAdded + rep.battlesPatched + rep.areasAdded + rep.spotsAdded;
 
+        if (rep.fishingSet + rep.prizesSet > 0) {
+            pcCatchesTake(&s);
+        }
+        if (others > 0) {
+            pcSeedItems(); /* harness: a stage with fishing spots or hidden spots needs the pole (5) or the search item (4) in the bag (T9) */
+        }
         if (rep.patched + rep.added + rep.removed > 0) {
             pcImagesInstall(&s);
         }
         if (rep.patched + rep.added + rep.removed > 0 && pcActorsInstall(&s)) {
+            pcSeedItems();
             if (plogOn("stages", PLOG_TRACE)) {
-                pcActorsTrace(su->name, &sActorBuf[sActorBufNow], s.nactors);
+                pcActorsTrace(stageName, &sActorBuf[sActorBufNow], s.nactors);
             }
-            pcApplyTalkHook(su->name, &sActorBuf[sActorBufNow], s.nactors);
+            pcApplyTalkHook(stageName, &sActorBuf[sActorBufNow], s.nactors);
         }
         if (others > 0) {
             pcStageBufFree(sb);
@@ -2099,16 +2391,211 @@ void pcStagePatchHook(void) {
             if (rep.battlesPatched + rep.areasAdded > 0 && pcBattlesInstall(&s, sb)) {
                 FIELDSTG_state.battles = sb->battles;
             }
+            if (rep.spotsAdded > 0 && pcSpotsInstall(&s, sb)) {
+                FIELDSTG_state.objects = sb->objects;
+            }
             sStageBufNow ^= 1;
         }
-        PLOG("stages", PLOG_MODS, "%s: %d character(s) patched, %d added, %d removed, %d skipped, %d conflict(s); %d in the list now%s\n", su->name, rep.patched,
+        PLOG("stages", PLOG_MODS, "%s: %d character(s) patched, %d added, %d removed, %d skipped, %d conflict(s); %d in the list now%s\n", stageName, rep.patched,
              rep.added, rep.removed, rep.skipped, rep.conflicts, s.nactors, rep.texts > 0 ? "; named texts resolved" : "");
         if (others > 0) {
-            PLOG("stages", PLOG_MODS, "%s: slots %d patched, %d added, %d removed; events %d patched, %d added; battles %d patched, %d area(s) added\n", su->name,
-                 rep.slotsPatched, rep.slotsAdded, rep.slotsRemoved, rep.eventsPatched, rep.eventsAdded, rep.battlesPatched, rep.areasAdded);
+            PLOG("stages", PLOG_MODS, "%s: slots %d patched, %d added, %d removed; events %d patched, %d added; battles %d patched, %d area(s) added; fishing %d set, hidden spots %d added, %d prize list(s)\n", stageName,
+                 rep.slotsPatched, rep.slotsAdded, rep.slotsRemoved, rep.eventsPatched, rep.eventsAdded, rep.battlesPatched, rep.areasAdded, rep.fishingSet,
+                 rep.spotsAdded, rep.prizesSet);
         }
     }
     sdStageFree(&s);
+}
+
+/* ---- new-stages T4 (ADR-012): the stages mods add (shim/mod_stages.h), in the game modes 0x300-0x3FF ----
+   FIELDSTG_pickStage asks pcModStagePick first (src/field/field_mode/state.c). A stage of a mod has no row in FIELDSTG_stages and no overlay file:
+   stageFile is 0 (startField skips loadSubOverlay) and stageInit is the generic start below, which does what a stage's own startStage does
+   (src/field/stages/common/start_stage.inc.c: a task updated by updateStage, then the stage's setupStage) with the data of the registry. */
+
+typedef struct PcModStageTask {
+    TASK_HEADER(PcModStageTask);
+    /* 0x50 */ void *owner;
+} PcModStageTask; /* StageTask (include/field/stage.h) */
+
+/* update_stage.inc.c's updateStage: nothing to do */
+static void pcModStageUpdate(PcModStageTask *task) {
+    switch (task->state) {
+    case TASK_INIT:
+    default:
+        task->nextState(task);
+        break;
+    case TASK_RUN:
+    case TASK_DONE:
+    case TASK_KILL:
+        break;
+    }
+}
+
+/* the end markers the field reads up to: a map object with margin 0 (commands.c, map_objects.c), a slot of type 0 (field.c), an event with id -1 (event.c:256) */
+static StageTile sModNoObjects[1];
+static StageSlot sModNoSlots[1];
+static FieldEvent sModNoEvents[1] = {{-1, NULL, 0, NULL, NULL}};
+static FieldActorEntry *sModNoActors[1]; /* NULL: no characters */
+/* the actor images of a stage with none of its own: the field image's two entries and the game's 20 actor ones, all zero. A character a mod adds takes a slot
+   of the port's VRAM band (pcImagesInstall copies this table and adds the extra ones after it), so the copy has this size (2 + SD_IMAGE_EXTRA_FIRST) */
+static ActorImage sModNoImages[2 + SD_IMAGE_EXTRA_FIRST];
+
+/* A setupStage (wstag345.c:32-62 is the simplest) from the registry: FieldState, then the three map layers (entries 1-3 of the TMPK archive, entry 0 the
+   object sheet) and the first map. A field the stage left at 0 takes the neutral value the field accepts (no music, no battles, no characters). */
+static void pcModStageSetup(const MsStage *ms) {
+    FIELDSTG_state.textFile = ms->textFile > 0 ? LANGUAGE + ms->textFile : 0;
+    FIELDSTG_state.mapFile = ms->packFile;
+    FIELDSTG_state.sheetEntry = msLayerRef(ms, 0);
+    FIELDSTG_state.objects = ms->objects != NULL ? (StageTile *)ms->objects : sModNoObjects;
+    FIELDSTG_state.slots = ms->slots != NULL ? (StageSlot *)ms->slots : sModNoSlots;
+    FIELDSTG_state.imageEntry = ms->imageEntry;
+    FIELDSTG_state.imageFile = ms->imageFile;
+    /* FieldState.images is a union: the field image is the first two ActorImages of the table (field_map.h:456-462) and the next four the player's and the three
+       partners' (FIELDSTG_createActor, field.c:410-422: image + 2). Every stage the game has starts its table with the same six (wstag200, 330, 345, 420...) and they are
+       FIELDSTG_images's first six: the shadow and the cover live in the field sprites every stage loads (file_loader.c:60-73), the party's frames go where those say. */
+    memcpy(sModNoImages, &FIELDSTG_images, sizeof(FieldImage) + 4 * sizeof(ActorImage));
+    FIELDSTG_state.images.actors = ms->images != NULL ? (ActorImage *)ms->images : sModNoImages;
+    FIELDSTG_state.start.x = ms->startX << 8;
+    FIELDSTG_state.start.y = ms->startY << 8;
+    FIELDSTG_state.startDir = ms->startDir;
+    FIELDSTG_state.spriteColor.r = (u_char)ms->spriteColor[0];
+    FIELDSTG_state.spriteColor.g = (u_char)ms->spriteColor[1];
+    FIELDSTG_state.spriteColor.b = (u_char)ms->spriteColor[2];
+    FIELDSTG_state.spriteColor.cd = (u_char)ms->spriteColor[3];
+    FIELDSTG_state.soundBank = ms->soundBank;
+    FIELDSTG_state.music = ms->music;
+    FIELDSTG_state.actors = ms->actors != NULL ? (FieldActorEntry **)ms->actors : sModNoActors;
+    FIELDSTG_state.battles = (FieldBattles *)ms->battles; /* NULL: no area battles (battle.c:41); the stage's "battles.add" fills it (pcStagePatchHook) */
+    FIELDSTG_state.events = ms->events != NULL ? (FieldEvent *)ms->events : sModNoEvents;
+    FIELDSTG_map.setFile(FIELD_MAP_FLOOR0, msLayerRef(ms, 1));
+    FIELDSTG_map.setFile(FIELD_MAP_TRIGGERS, msLayerRef(ms, 2));
+    FIELDSTG_map.setFile(FIELD_MAP_AREAS, msLayerRef(ms, 3));
+    FIELDSTG_map.setFirstMap(0);
+    if (ms->packFile == 0 || ms->layerFile == 0) {
+        plogLine("stages", "the stage %s has no map files yet (pack %d, layers %d): the field will not draw it\n", ms->key, ms->packFile, ms->layerFile);
+    }
+}
+
+/* StageEntry.init of every mod stage (start_stage.inc.c's startStage); the stage is the registry's entry of the running mode */
+static Task *pcModStageStart(void *owner) {
+    PcModStageTask *task = createTask(pcModStageUpdate, sizeof(PcModStageTask), 0);
+    const MsStage *ms = msByMode(GAME.funcs.getMode());
+
+    task->owner = owner;
+    if (ms != NULL) {
+        pcModStageSetup(ms);
+    }
+    return (Task *)task;
+}
+
+/* The row of FIELDSTG_stages (the extra chapter's first, as pickStage) of a mode, or NULL */
+static const StageEntry *pcStageRowOf(s32 mode) {
+    const StageEntry *entry = GAME.progress != FIELD_PROGRESS_EXTRA ? FIELDSTG_stages : FIELDSTG_extraStages;
+
+    for (; entry->mode != 0; entry++) {
+        if (entry->mode == mode) {
+            return entry;
+        }
+    }
+    return NULL;
+}
+
+s32 pcModStagePick(s32 mode, FieldState *state) {
+    const StageEntry *row;
+    int fbMode, x, y, dir;
+
+    if (!msIsModMode(mode)) {
+        return 0;
+    }
+    if (msByMode(mode) != NULL) {
+        state->stageFile = 0;
+        state->stageInit = pcModStageStart;
+        return 1;
+    }
+    /* a mode of the range with no stage behind it (the mod is gone, or a harness asked for it): the fallback stage runs, under its own mode, instead
+       of pickStage's endless loop */
+    msFallbackOf(NULL, &fbMode, &x, &y, &dir);
+    row = pcStageRowOf(fbMode);
+    if (row == NULL) {
+        row = FIELDSTG_stages;
+    }
+    plogLine("stages", "the field mode 0x%X is not a stage that is installed: running the stage of mode 0x%X instead\n", (int)mode, (int)row->mode);
+    state->stageFile = row->file;
+    state->stageInit = row->init;
+    GAME.mode = row->mode;
+    return 1;
+}
+
+s32 pcModeAsOriginal(s32 mode) {
+    int fbMode, x, y, dir;
+
+    if (!msIsModMode(mode)) {
+        return mode;
+    }
+    msFallbackOf(msByMode(mode), &fbMode, &x, &y, &dir);
+    return fbMode;
+}
+
+/* STSTATUS_areaFuncs (src/menus/field_menu/helpers.c:171-200) reads GAME.fieldMode, which in a mod stage is the session mode 0x3xx: getGameHalf would
+   say -1 ("past the field", >= 0x2D7) and getArea would index STSTATUS_mapAreas by the low byte of a mode that is not there. The wrappers let the
+   original functions see the fallback stage's mode for the call. */
+static s32 pcStatusHalf(void) {
+    s32 keep = GAME.fieldMode, r;
+
+    GAME.fieldMode = pcModeAsOriginal(keep);
+    r = STSTATUS_getGameHalf();
+    GAME.fieldMode = keep;
+    return r;
+}
+
+static s32 pcStatusArea(void) {
+    s32 keep = GAME.fieldMode, r;
+
+    GAME.fieldMode = pcModeAsOriginal(keep);
+    r = STSTATUS_getArea();
+    GAME.fieldMode = keep;
+    return r;
+}
+
+static void pcStatusVisited(s32 *out) {
+    s32 keep = GAME.fieldMode;
+
+    GAME.fieldMode = pcModeAsOriginal(keep);
+    STSTATUS_getVisitedAreas(out);
+    GAME.fieldMode = keep;
+}
+
+static void pcInstallModStageStatus(void) {
+    STSTATUS_areaFuncs.getGameHalf = pcStatusHalf;
+    STSTATUS_areaFuncs.getArea = pcStatusArea;
+    STSTATUS_areaFuncs.getVisitedAreas = pcStatusVisited;
+}
+
+void pcFieldMarkVisited(s32 mode) {
+    if (msIsModMode(mode)) {
+        msMarkVisited(mode); /* "<mod>:visited.<name>" = 1; never a bit of flags20, whose 240 bits end before 0x2F0 (game_state.h:558) */
+        return;
+    }
+    FLAGS_00.applyAction(FIELD_VISITED_FLAG(mode), 1);
+}
+
+/* A mod stage shows the banner when its stage.json names the two lines (shim/stage_mods.c bannerAssign appended them to STAREA and STNAME); without them the
+   banner would read FIELDSTG_areaNames, a table by mode the stage is not in. */
+s32 pcFieldBannerEntries(s32 mode, s32 *area, s32 *place) {
+    const MsStage *ms = msIsModMode(mode) ? msByMode(mode) : NULL;
+
+    if (ms == NULL || ms->bannerAreaEntry <= 0 || ms->bannerPlaceEntry <= 0) {
+        return 0;
+    }
+    *area = ms->bannerAreaEntry;
+    *place = ms->bannerPlaceEntry;
+    return 1;
+}
+
+s32 pcFieldBannerShow(s32 mode) {
+    s32 area, place;
+
+    return !msIsModMode(mode) || pcFieldBannerEntries(mode, &area, &place);
 }
 
 /* content-export E7: the disc files no other exporter covers, copied byte for byte to data/raw (shim/raw_export.c). About 15 MB, so it runs here, before the
@@ -2551,6 +3038,63 @@ static void pcApplyEncounterPlacements(StateScope *scope, void *user) {
 
 extern Evolution STFGTREP_evolutionLists[8][44]; /* data/stfgtrep.c: the lists the port extends (a copy) */
 
+/* new-stages T5b: the new field encounters of the mods (shim/field_ext.c). The game's FIELDSTG_encounters and STFGTREP_rewards are overlay
+   data of 335 rows each, restored on every entry to their mode; the rows past them live here, and the game reads them through
+   pcFieldEncounter / pcBattleReward (FIELDSTG_ENCOUNTER, STFGTREP_REWARD: PS1 build identical). Built once, after the Digimon load (their enemies
+   are named) and before the stage patches (their battles name the rows). */
+static Encounter sExtEncounter[FE_MAX_ROWS];
+static BattleEnemy sExtEnemy[FE_MAX_ROWS][3];
+static BattleEnemy sExtNoEnemy; /* the empty slot of an encounter (the disc's rows point at FIELDSTG_enemies[0]) */
+static BattleReward sExtReward[FE_MAX_ROWS];
+static int sExtFirst = 335;
+
+Encounter *pcFieldEncounter(s32 encounter) {
+    return encounter >= sExtFirst && encounter - sExtFirst < fieldExtCount() ? &sExtEncounter[encounter - sExtFirst]
+                                                                              : &FIELDSTG_encounters[encounter];
+}
+
+BattleReward *pcBattleReward(s32 battle) {
+    return battle >= sExtFirst && battle - sExtFirst < fieldExtCount() ? &sExtReward[battle - sExtFirst] : &STFGTREP_rewards[battle];
+}
+
+static void pcInstallFieldRows(void) {
+    FeHost host;
+    int i, k, n;
+
+    sExtFirst = gameTablesEncounterCount();
+    host.firstRow = sExtFirst;
+    host.enemyByName = gameEnemyByName;
+    host.enemyIdOk = gameEnemyIdOk;
+    n = fieldExtLoad(&host);
+    for (i = 0; i < n; i++) {
+        const FeRow *r = fieldExtRow(i);
+        Encounter *e = &sExtEncounter[i];
+
+        memset(e, 0, sizeof *e);
+        for (k = 0; k < 3; k++) {
+            BattleEnemy *b = &sExtEnemy[i][k];
+
+            memset(b, 0, sizeof *b);
+            if (r->enemy[k].fighter != 0) {
+                b->fighter = r->enemy[k].fighter;
+                b->level = (s16)r->enemy[k].level;
+                b->hp = (s16)r->enemy[k].hp;
+                b->mp = (s16)r->enemy[k].mp;
+                b->strength = (s16)r->enemy[k].strength;
+            }
+            e->enemies[k] = r->enemy[k].fighter != 0 ? b : &sExtNoEnemy;
+        }
+        e->ambushChance = (u8)r->ambushChance;
+        e->kind = (u8)r->kind;
+        for (k = 0; k < 12; k++) {
+            e->blocks[k] = r->blocks[k];
+        }
+        sExtReward[i].digimonExp = r->digimonExp;
+        sExtReward[i].exp = r->exp;
+        sExtReward[i].money = r->money;
+    }
+}
+
 static void pcInstallDigimon(void) {
     size_t len = 0;
     unsigned char *file;
@@ -2566,6 +3110,7 @@ static void pcInstallDigimon(void) {
     free(file);
     digimonExtLoad();
     pcServeNewEnemyFiles();
+    pcInstallFieldRows();
 }
 
 /* extended techs T2/T3: the techniques of the content mods (store, ids, learnedBy, names). After the disc is open: the
@@ -2790,22 +3335,7 @@ static void pcSeedTechs(void) {
    mode argument). Units: src/menus/memory_card/ (pc/Makefile's MCARD_*); the
    card is shim/host_memcard.c. */
 static Task *pcStartMemCard(void) {
-    /* extended-state T2, test harness only: DW3_SEED_ITEMS="id=count,id=count" gives items before the card
-       screen opens (a save then carries them; ids above the original range live in the extension) */
-    const char *seed = getenv("DW3_SEED_ITEMS");
-
-    while (seed != NULL && *seed != '\0') {
-        char *end;
-        long id = strtol(seed, &end, 10);
-        long count;
-
-        if (end == seed || *end != '=') {
-            break;
-        }
-        count = strtol(end + 1, &end, 10);
-        PC_ITEM_COUNT((int)id) = (s8)count;
-        seed = (*end == ',') ? end + 1 : end;
-    }
+    pcSeedItems();
     pcSeedTechs();
     return STGMCARD_start();
 }
@@ -2857,6 +3387,7 @@ static Task *pcStartCardGame(void) {
 static Task *(*const PC_MODE_ENTRY_POINTS[23])(void) = {
     [MODE_COUNTRY_SELECT >> 8] = pcStartCountrySelect,
     [MODE_NEW_GAME >> 8] = pcStartField,
+    [MS_MODE_FIRST >> 8] = pcStartField, /* 0x3xx: the stages mods add; the game's MODE_ENTRY_POINTS[3] is FIELDSTG_start too (overlay.c:5) */
     [MODE_TITLE >> 8] = pcStartTitle,
     [MODE_PLAYER_NAME >> 8] = pcStartPlayerName,
     [MODE_BATTLE >> 8] = pcStartBattle,
@@ -2980,7 +3511,7 @@ static const TmTable PC_REWARD_TABLE = {
    wallet, to see a table mod at work */
 static void pcTraceReward(const char *when) {
     if (plogOn("tables", PLOG_TRACE)) {
-        const BattleReward *row = &STFGTREP_rewards[BATTLE_RESULT.battle];
+        const BattleReward *row = pcBattleReward(BATTLE_RESULT.battle);
 
         plogLine("tables", "report %s: encounter %d digimonExp %d exp %d money %d, wallet %d\n", when,
                 (int)BATTLE_RESULT.battle, (int)row->digimonExp, (int)row->exp, (int)row->money, (int)GAME.money);
@@ -3002,7 +3533,7 @@ static void pcModLogReward(void) {
     if (!plogOn("tables", PLOG_MODS) || tmPatchCount("battle_rewards") == 0) {
         return;
     }
-    row = &STFGTREP_rewards[BATTLE_RESULT.battle];
+    row = pcBattleReward(BATTLE_RESULT.battle);
     orig = (const BattleReward *)tmOriginalRow("battle_rewards", (long)BATTLE_RESULT.battle);
     if (orig == NULL || (row->exp == orig->exp && row->money == orig->money && row->digimonExp == orig->digimonExp)) {
         return;
@@ -3381,6 +3912,13 @@ static void pcRegisterStateScopes(void) {
             fightstg = scope;
         } else if (m->modeId == MODE_NEW_GAME >> 8) {
             fieldstg = scope;
+            /* the modes 0x3xx run the same overlay: overlay.c reloads it when mode >> 8 changes (2 <-> 3), so the one scope is left and entered then */
+            stateScopeBindMode(MS_MODE_FIRST >> 8, scope);
+            /* ...but the original's 2 -> 2 change loads nothing, so what a field leaves for the next one survives it: the start FIELDSTG_leaveField sets
+               (defaultStart, defaultStartDir; field.c startField reads it for a field entered from a field). Carried both ways, 0x2xx <-> 0x3xx, else a
+               warp into a mod stage (or out of it) put the player at (0, 0) with the camera on the map's corner (new-stages, play-test) */
+            stateScopeCarry(scope, &FIELDSTG_state.defaultStart, sizeof FIELDSTG_state.defaultStart + sizeof FIELDSTG_state.defaultStartDir, MS_MODE_FIRST >> 8);
+            stateScopeCarry(scope, &FIELDSTG_state.defaultStart, sizeof FIELDSTG_state.defaultStart + sizeof FIELDSTG_state.defaultStartDir, MODE_NEW_GAME >> 8);
         }
     }
     /* FIGHTSTG's sub-overlays: the battle menu and the battle test, one file each */
@@ -3423,6 +3961,9 @@ static const char *pcModeName(s32 mode) {
     case MODE_STATUS:
         return "STSTATUS (field menu screens)";
     default:
+        if (msIsModMode(mode)) {
+            return "FIELDSTG (a stage of a mod)";
+        }
         return "unknown";
     }
 }
@@ -3882,7 +4423,7 @@ static int pcValidateMods(const char *target, const char *dataDir) {
     memset(&layers, 0, sizeof layers);
     layers.run = pcValidateRun;
     layers.discHas = pcValidateDiscHas;
-    layers.covered = "config,content,card,tables,images,audio,video,stages";
+    layers.covered = "config,content,card,tables,images,audio,video,stages,new-stages";
     layers.ud = (void *)dataDir;
     fflush(stdout);
     return modToolsValidate(target, &layers, stdout);
@@ -4116,6 +4657,7 @@ int main(int argc, char **argv) {
         pcInstallModelExport(haveData ? dataDir : NULL);
         pcInstallVideoExport(haveData ? dataDir : NULL);
         pcInstallAudioExport(haveData ? dataDir : NULL);
+        pcInstallModStageStatus();
         pcInstallStages(haveData ? dataDir : NULL);
         gameTablesRegisterEvents(); /* S3: the condition tables (the executable's data, patched once) and the mods' own special conditions, which the patches below name */
         pcInstallStageMods();

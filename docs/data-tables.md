@@ -50,7 +50,7 @@ El punto de aplicación (parchear el arreglo ya inicializado) es el mismo en los
 | Crecimiento y nivel | `STFGTREP_levelExp`, `_vitalCuts`, `_vitalRandom`, `_statGains`, `_resistGains` | overlay STFGTREP | 4, 4, 9, 6x9, 8 | **Sí** (`level_exp`, `vital_cuts`, `vital_random`, `stat_gains`, `resist_gains`, E5b): llave = primer nivel del tramo (1, 5, 20, 40 y 60, 80 en `stat_gains`) o ranura 0..n; se aplican al abrir el reporte |
 | Evoluciones | `STFGTREP_evolutionLists` / `Evolution` | overlay STFGTREP | 8 socios x 44 | **Sí** (`evolutions`, E5b): llave = `socio * 100 + entrada` (352 filas); las entradas 44+ de `digimon.json` no son filas |
 | Formas de ráfaga | `DigimonData.blastForms[5]` | ejecutable | 52 filas x 5 | **Sí** (`blast_forms`, E5b): llave = id del Digimon; solo importan las 8 filas de socio. Valores de 16 bits (U9: `PcDigiLinks` en `ext_state`, `PC_DIGIMON_BLAST`) |
-| Encuentros | `FIELDSTG_encounters` / `Encounter`; `FIELDSTG_enemies` / `BattleEnemy` | overlay FIELDSTG | 335; 523 (EU) | **Sí** (`field_encounters`, `field_enemies`, E5c): llave = número de fila; el encuentro nombra las filas de enemigo por número (`enemy1`..`enemy3`); se aplican al entrar al campo |
+| Encuentros | `FIELDSTG_encounters` / `Encounter`; `FIELDSTG_enemies` / `BattleEnemy` | overlay FIELDSTG | 335; 523 (EU) | **Sí** (`field_encounters`, `field_enemies`, E5c; filas nuevas `"<mod>:<nombre>"` con recompensas, T5b): llave = número de fila; el encuentro nombra las filas de enemigo por número (`enemy1`..`enemy3`); se aplican al entrar al campo |
 | Tasas de encuentro | `FIELDSTG_battleRates` | overlay FIELDSTG | 6 | **Sí** (`battle_rates`, E5c): llave = índice de tasa 0-5 (el `count` de la lista de batallas del escenario) |
 | Lugares y áreas de batalla | `stageBattles` / `FieldBattles` -> `BattleList` -> `AreaBattle` | cada `WSTAGnnn.PRO` | 214 escenarios lo definen (conteo de `rg`) | No todavía (E5c, pendiente: ver §3.5) |
 | Enemigos (stats, botín, IA) | tabla de batalla / `BattleTableEntry` | archivo del disco 463 (`FILE_BATTLE_TABLE` 0x1CF) | 194 registros de 0x46 bytes (13580 / 70, exacto) | No (copia en caché de archivos) |
@@ -199,6 +199,14 @@ escribe nada. Se aplican en este orden: `field_enemies`, `field_encounters`, `ba
   puerto, tras el parche, vuelve a escribirlos como punteros. Se rechaza la fila entera si el primer enemigo queda vacío (el
   modelo y la barra de la batalla salen de él) y el encuentro 0 (el "ninguno" de las listas de batalla) no cambia. `labels` trae
   los enemigos de cada encuentro.
+  **Filas nuevas (T5b).** Una fila de `rows` con llave `"<mod>:<nombre>"` (la carpeta del mod propio) agrega un encuentro: `enemies` (1 a 3 objetos `enemy`, `level`, `hp`, `mp`,
+  `strength`, todos obligatorios; `enemy` es un id, `"dw3:digimon/<id>"` o `"<mod>:<clave>"`), `ambushChance`, `kind` (1 por defecto), los 12 bloqueos y `rewards` (`money`, `exp`,
+  `digimonExp`, la fila de `STFGTREP_rewards` de esa batalla). Lo lee `pc/shim/field_ext.c` del mismo archivo (la tabla salta esas llaves, `TmTable.ownKey`); el puerto las guarda en
+  un almacén propio (`sExtEncounter`, `sExtEnemy`, `sExtReward` de `pc/boot.c`) y el juego las lee por accesores `#ifdef DW3_PC`: `FIELDSTG_ENCOUNTER(n)`
+  (`field_mode.h`, usado en `FIELDSTG_startEncounter`) y `STFGTREP_REWARD(n)` (`report.h`, usado en `report.c:120-122,328-334` y `partner.c:206`); en la PS1 son
+  `FIELDSTG_encounters[n]` y `STFGTREP_rewards[n]` (`make compare`: 316 OK). Los números siguen a los 335 del disco (335, 336... en el orden de los mods y del archivo; hasta 1024 en
+  total). `BATTLE_SETUP.battle` es `s32` y `BATTLE_RESULT.battle` `s16`: caben. Los lectores por número (`normal_battle/menu.c:15-21`: 0x143, 0xB, 0x1E, 0x144; `enemy_turn.c:397`,
+  condición 12) comparan con números del disco y nunca coinciden con una fila nueva. El botín (`battle_loot`) es del enemigo, no del encuentro. Una fila inválida se registra y no existe.
 - `battle_rates` (6 filas, llave = índice 0-5): `rate` 0-2000, lo que cada paso resta a la cuenta hasta la próxima batalla. La
   cuenta se sortea entre 0 y 1279 (`FIELDSTG_rollBattleSteps`), así que 2000 (la tasa 0 del disco) es batalla en el paso
   siguiente y cualquier valor sobre 1279 hace lo mismo; 0 nunca la baja (sin batallas al azar con esa tasa).

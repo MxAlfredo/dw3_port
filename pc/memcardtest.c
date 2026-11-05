@@ -13,6 +13,7 @@
 #include "engine/game_state.h"
 #include "shim/ext_state.h"
 #include "shim/host_memcard.c"
+#include "shim/mod_stages.h"
 
 GameState GAME;
 TechData TECHS_CARD[443]; /* the game's technique table, which ext_state.c reaches */
@@ -977,6 +978,85 @@ static void playerImportTests(const char *pref) {
     unsetenv("DW3_EMU_DIRS");
 }
 
+
+/* new-stages T4: a game saved in a mod stage holds the stage's fallback in the block and the stage's name in EXTS; a load puts the stage
+   back when its mod is installed, and keeps the fallback when it is not */
+static int blockWord(const unsigned char *g, size_t off) {
+    int v;
+
+    memcpy(&v, g + off, 4);
+    return v;
+}
+
+static void putWord(unsigned char *g, size_t off, int v) {
+    memcpy(g + off, &v, 4);
+}
+
+static void modStageSaveTests(const char *pref) {
+    char saves[1100], p[1300];
+    unsigned char g[0x2700], out[0x2700], info[0x100];
+    SaveFile f;
+    const SaveSection *sec, *game;
+    unsigned char x = 0;
+    int i;
+    char why[100];
+    MsStage *st;
+
+    snprintf(saves, sizeof(saves), "%ssaves/default", pref);
+    msReset();
+    st = msRegister("zmod:hall", why, sizeof why);
+    expect(st != NULL && msSeal() == 1, "stage save: a stage is registered");
+    st->fallbackMode = 0x21D;
+    st->fallbackX = 111;
+    st->fallbackY = 222;
+    st->fallbackDir = 3;
+    makeGame(g, 5);
+    putWord(g, offsetof(GameState, fieldMode), 0x300);
+    putWord(g, offsetof(GameState, fieldPos), 7 << 8);
+    putWord(g, offsetof(GameState, fieldPos) + 4, 9 << 8);
+    putWord(g, offsetof(GameState, fieldDir), 5);
+    for (i = 4; i < 0x26C4; i++) x ^= g[i];
+    g[0] = x;
+    makeInfo(info, 0);
+    restart();
+    MemCardAccept(0);
+    syncResult();
+    expect(wrSection(NAME_EUR, info, INFO_OFS, 0x100) == ERR_NONE && wrSection(NAME_EUR, g, DATA_OFS(0), 0x2700) == ERR_NONE, "stage save: written");
+    snprintf(p, sizeof(p), "%s/slot0.dw3save", saves);
+    memset(&f, 0, sizeof f);
+    expect(saveFileRead(p, &f) == SAVEFILE_OK, "stage save: the file reads");
+    sec = saveFileFind(&f, "EXTS");
+    game = saveFileFind(&f, "GAME");
+    expect(sec != NULL && sec->size == 4 + 2 + 9 + 12, "stage save: the file holds an EXTS chunk with the key");
+    expect(game != NULL && blockWord(game->data, offsetof(GameState, fieldMode)) == 0x21D &&
+               blockWord(game->data, offsetof(GameState, fieldPos)) == 111 << 8 && blockWord(game->data, offsetof(GameState, fieldDir)) == 3,
+           "stage save: the block holds the fallback, never a session mode");
+    saveFileFree(&f);
+
+    /* a new process, the mod installed: the stage and the real position come back */
+    pcExtStateReset();
+    restart();
+    MemCardAccept(0);
+    syncResult();
+    expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE && blockWord(out, offsetof(GameState, fieldMode)) == 0x300 &&
+               blockWord(out, offsetof(GameState, fieldPos)) == 7 << 8 && blockWord(out, offsetof(GameState, fieldPos) + 4) == 9 << 8 &&
+               blockWord(out, offsetof(GameState, fieldDir)) == 5,
+           "stage load: the stage and the position are back");
+    x = 0;
+    for (i = 4; i < 0x26C4; i++) x ^= out[i];
+    expect(out[0] == x, "stage load: the checksum is the block's own");
+
+    /* the mod is gone: the block keeps the fallback */
+    msReset();
+    pcExtStateReset();
+    restart();
+    MemCardAccept(0);
+    syncResult();
+    expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE && blockWord(out, offsetof(GameState, fieldMode)) == 0x21D &&
+               blockWord(out, offsetof(GameState, fieldPos)) == 111 << 8,
+           "stage load: with the mod gone the game continues at the fallback");
+}
+
 int main(void) {
     char root[512], cmd[700];
     const char *tmp = getenv("TMPDIR");
@@ -996,6 +1076,7 @@ int main(void) {
     virtualCardTests(root, prefDir);
     importFolderTests(prefDir);
     playerImportTests(prefDir);
+    modStageSaveTests(prefDir);
 
     snprintf(cmd, sizeof(cmd), "rm -rf '%s'", root);
     system(cmd);

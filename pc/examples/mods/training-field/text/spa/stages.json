@@ -1,0 +1,33 @@
+{
+  "format": "stage-text-v1",
+  "about": "Las líneas de los personajes del Campo de Entrenamiento (español de España, texto propio de este mod; el es-419 tiene el suyo).",
+  "texts": {
+    "banner-area": "Campo de Entrenamiento",
+    "banner-lower": "Planta Baja",
+    "banner-upper": "Planta Alta",
+    "card-again": "¡Buena partida, Domador! ¿Quieres la revancha?",
+    "card-lost": "¡Me has ganado! Vuelve a por la revancha cuando quieras.",
+    "card-offer": "¿Una partida de cartas, Domador? ¡No voy a ser blando contigo!",
+    "card-rematch-go": "¡Allá vamos, entonces! ¡Cartas sobre la mesa!",
+    "card-rematch-no": "Vale. Aquí estaré cuando quieras.",
+    "card-won": "¡Ja! Esta vez he ganado yo. Inténtalo otra vez cuando quieras.",
+    "duel-after": "Ahora el campeón eres tú. ¿Quieres una revancha contra mis tres Digimon?",
+    "duel-fled": "¿Huyendo del anillo? Vuelve cuando estés listo para pelear.",
+    "duel-offer": "Soy el campeón de este anillo. Mis tres Digimon contra los tuyos, y nadie huye. ¿Listo?",
+    "duel-rematch-fled": "¿Te vas a media pelea? El anillo te esperará.",
+    "duel-rematch-go": "¡Ese es el espíritu! ¡Allá vamos!",
+    "duel-rematch-no": "Sin problema. Vuelve cuando quieras pelear otra vez.",
+    "duel-rematch-won": "¡Lo has hecho otra vez! El anillo sigue siendo tuyo, campeón.",
+    "duel-reward": "¡Has vencido a mis tres Digimon! ¡Qué pelea! Aquí tienes el dinero del premio. El anillo es tuyo, campeón.",
+    "locked": "¿Buscas un buen lugar para entrenar? Todavía no, Domador. Primero vence al Líder Seiryu y luego vuelve; yo te llevaré.",
+    "navi-hill": "{speaker-of:TALK04:19}Esta es la Cima de la Colina. Cuidado con los árboles de aquí: uno esconde un Digimon. ¡Pátealos para averiguarlo!",
+    "navi-lake": "{speaker-of:TALK04:19}Esta es la Pradera del Lago. Puedes pescar desde el muelle y desde las orillas. ¡Trae una caña de pescar!",
+    "navi-ring": "{speaker-of:TALK04:19}Este es el Anillo de Entrenamiento. Los Domadores que quieran una partida de cartas o un duelo pueden pedírselo a los que están por aquí.",
+    "offer": "¡Venciste al Líder Seiryu! Entonces ya estás listo para el Campo de Entrenamiento. ¡Sujétate fuerte, allá vamos!",
+    "ranger-complete": "¡Has leído todos los carteles y has ganado al jugador de cartas! Aquí tienes tu recompensa, Domador. ¡El campo es tuyo para entrenar!",
+    "ranger-done": "Gracias otra vez, Domador. Sigue entrenando y ten cuidado con la hierba alta.",
+    "ranger-offer": "¡Bienvenido, Domador! Soy el guarda de aquí. Lee los carteles del lago, de la colina y de la planta de arriba, y gana al jugador de cartas de allí. Luego vuelve conmigo.",
+    "ranger-offer-tools": "¡Bienvenido, Domador! Soy el guarda de aquí. Lee los carteles del lago, de la colina y de la planta de arriba, y gana al jugador de cartas de allí. Luego vuelve conmigo. ¡Toma estas herramientas, invita la casa!",
+    "ranger-progress": "¿Cómo va el recorrido? Lee los carteles del lago, de la colina y de la planta de arriba, y gana al jugador de cartas de allí."
+  }
+}

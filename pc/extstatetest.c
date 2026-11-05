@@ -1225,6 +1225,66 @@ static void testCardRegistry(void)
     CHECK(pcCardTotal() == 315);
 }
 
+/* the field battle results (pcFieldBattleBegin / End): per encounter key, a win sets both variables, a flight only "played", no begin records nothing,
+   a new game forgets a battle in progress */
+static void testFieldBattleResults(void)
+{
+    pcExtVarsReset();
+    pcFieldBattleEnd(1); /* no battle began: nothing */
+    CHECK(pcExtVarCount() == 0);
+    pcFieldBattleBegin("a/duel");
+    pcFieldBattleEnd(0); /* fled */
+    CHECK(pcExtVarGet("dw3:battle-played/a/duel") == 1 && pcExtVarGet("dw3:battle-won/a/duel") == 0);
+    pcFieldBattleEnd(1); /* closed already */
+    CHECK(pcExtVarGet("dw3:battle-won/a/duel") == 0);
+    pcFieldBattleBegin("a/duel");
+    pcFieldBattleEnd(1); /* won */
+    CHECK(pcExtVarGet("dw3:battle-won/a/duel") == 1);
+    pcFieldBattleBegin("a/duel");
+    pcFieldBattleEnd(0); /* a later flight keeps the win */
+    CHECK(pcExtVarGet("dw3:battle-won/a/duel") == 1);
+    pcFieldBattleBegin("1a");
+    pcExtVarsReset(); /* a new game or a loaded one */
+    pcFieldBattleEnd(1);
+    CHECK(pcExtVarCount() == 0);
+}
+
+/* the card battle results (pcCardBattleBegin / End): per opponent, set when the battle ends, a loss keeps an earlier win, an end without a begin records
+   nothing, and the variables are in the save chunk like any other (they outlive the temporary flags the game clears on a stage change) */
+static void testCardResults(void)
+{
+    unsigned char buf[512];
+    unsigned long n;
+
+    pcExtVarsReset();
+    pcCardBattleEnd(1); /* no battle began: nothing */
+    CHECK(pcExtVarCount() == 0);
+    pcCardBattleBegin(0x13);
+    pcCardBattleEnd(0); /* lost */
+    CHECK(pcExtVarGet("dw3:card-played/13") == 1 && pcExtVarGet("dw3:card-won/13") == 0 && pcExtVarGet("dw3:card-played/2") == 0);
+    pcCardBattleEnd(1); /* the battle was already closed: this end is not a battle */
+    CHECK(pcExtVarGet("dw3:card-won/13") == 0);
+    pcCardBattleBegin(0x13);
+    pcCardBattleEnd(1); /* won */
+    CHECK(pcExtVarGet("dw3:card-won/13") == 1);
+    pcCardBattleBegin(0x13);
+    pcCardBattleEnd(0); /* a later loss keeps the win */
+    CHECK(pcExtVarGet("dw3:card-won/13") == 1 && pcExtVarGet("dw3:card-played/13") == 1);
+    pcCardBattleBegin(2);
+    pcCardBattleEnd(1);
+    CHECK(pcExtVarGet("dw3:card-won/2") == 1 && pcExtVarGet("dw3:card-won/13") == 1); /* another opponent: its own variables */
+    pcCardBattleBegin(-1);
+    pcCardBattleEnd(1); /* an opponent that is not one: nothing */
+    pcCardBattleBegin(0x200);
+    pcCardBattleEnd(1);
+    CHECK(pcExtVarCount() == 4);
+    n = pcExtStateEncodeVars(buf, sizeof buf);
+    CHECK(n > 0 && n <= sizeof buf);
+    pcExtVarsReset();
+    CHECK(pcExtStateDecodeVars(buf, n) == 4 && pcExtVarGet("dw3:card-won/13") == 1 && pcExtVarGet("dw3:card-won/2") == 1);
+    pcExtVarsReset();
+}
+
 int main(void)
 {
     int i;
@@ -1315,6 +1375,8 @@ int main(void)
         testOriginalNames();
         testFitLine();
         testCardRegistry();
+        testCardResults();
+        testFieldBattleResults();
         snprintf(cmd, sizeof cmd, "rm -rf '%s'", gRoot);
         if (system(cmd)) {}
     }

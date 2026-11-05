@@ -76,6 +76,7 @@
 #include "card_image.h"
 #include "host_memcard.h"
 #include "ext_state.h"
+#include "mod_stages.h"
 #include "port_log.h"
 #include "save_file.h"
 #include "save_view.h"
@@ -144,6 +145,9 @@ typedef struct Slot {
     unsigned long cardsLen;
     unsigned char *vars; /* the slot's EXTV chunk (the named variables of content mods: stage flags and counters), NULL when it has none */
     unsigned long varsLen;
+    unsigned char *stage; /* the slot's EXTS chunk (the mod stage the game was saved in, with the real position), NULL when it has none */
+    unsigned long stageLen;
+    int stageDone; /* game[] already holds the mod stage of the chunk (set by the first read; a save by this run clears it) */
     int techsDone; /* game[] already holds this run's technique and Digimon ids (saved by this run, or remapped on the first read) */
 } Slot;
 
@@ -300,7 +304,7 @@ static uint32_t get32(const unsigned char *p) {
 /* One slot as a dw3save; 1 when written */
 static int writeSlotFile(int n, const unsigned char *game, const unsigned char *info, const unsigned char *ext, unsigned long extLen,
                          const unsigned char *techs, unsigned long techsLen, const unsigned char *digs, unsigned long digsLen,
-                         const unsigned char *ents, unsigned long entsLen, const unsigned char *cards, unsigned long cardsLen, const unsigned char *vars, unsigned long varsLen, uint32_t seq) {
+                         const unsigned char *ents, unsigned long entsLen, const unsigned char *cards, unsigned long cardsLen, const unsigned char *vars, unsigned long varsLen, const unsigned char *stage, unsigned long stageLen, uint32_t seq) {
     SaveFile f;
     unsigned char meta[12], mods[8];
     char path[1200];
@@ -330,6 +334,9 @@ static int writeSlotFile(int n, const unsigned char *game, const unsigned char *
     if (varsLen != 0) {
         saveFileAdd(&f, "EXTV", vars, varsLen); /* the named variables of content mods (stage flags and counters), unknown names kept */
     }
+    if (stageLen != 0) {
+        saveFileAdd(&f, "EXTS", stage, stageLen); /* the mod stage the game was saved in (the game block holds its fallback) */
+    }
     saveFileAdd(&f, "MODS", mods, sizeof(mods));
     slotPath(path, sizeof(path), n);
     return saveFileWrite(path, &f) == SAVEFILE_OK;
@@ -355,6 +362,7 @@ static void freeSlot(Slot *s) {
     free(s->ents);
     free(s->cards);
     free(s->vars);
+    free(s->stage);
     memset(s, 0, sizeof(*s));
 }
 
@@ -383,7 +391,7 @@ static void loadNative(void) {
         saveFileFree(&f);
     }
     for (i = 0; i < SLOTS; i++) {
-        const SaveSection *g, *in, *meta, *ext, *techs, *digs, *ents, *cards, *vars;
+        const SaveSection *g, *in, *meta, *ext, *techs, *digs, *ents, *cards, *vars, *stage;
 
         slotPath(path, sizeof(path), i);
         if (saveFileRead(path, &f) != SAVEFILE_OK) {
@@ -398,6 +406,7 @@ static void loadNative(void) {
         ents = saveFileFind(&f, "EXTP");
         cards = saveFileFind(&f, "EXTK");
         vars = saveFileFind(&f, "EXTV");
+        stage = saveFileFind(&f, "EXTS");
         if (g == NULL || g->size != GAME_SIZE || in == NULL || in->size != INFO_SIZE || meta == NULL || meta->size != 12) {
             plogLine("saves", "%s lacks the game block or info; the slot reads as empty\n", path);
         } else {
@@ -445,6 +454,13 @@ static void loadNative(void) {
                 if (slots[i].vars != NULL) {
                     memcpy(slots[i].vars, vars->data, vars->size);
                     slots[i].varsLen = vars->size;
+                }
+            }
+            if (stage != NULL && stage->size != 0) {
+                slots[i].stage = malloc(stage->size);
+                if (slots[i].stage != NULL) {
+                    memcpy(slots[i].stage, stage->data, stage->size);
+                    slots[i].stageLen = stage->size;
                 }
             }
             slots[i].valid = 1;
@@ -600,7 +616,7 @@ static int commitParsed(const char *cardPath, const char **what, int *mark) {
     memcpy(info, cardInfo, INFO_SIZE);
     for (i = 0; i < SLOTS; i++) {
         if (pok[i]) {
-            if (writeSlotFile(i, pdata[i], info, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, i == plast ? SLOTS + 1 : (uint32_t)(i + 1))) {
+            if (writeSlotFile(i, pdata[i], info, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, i == plast ? SLOTS + 1 : (uint32_t)(i + 1))) {
                 imported++;
             } else {
                 failed++;
@@ -936,10 +952,13 @@ static int commitSlot(int n) {
     unsigned char *cards = malloc(cardsLen + 1);
     unsigned long varsLen = pcExtStateEncodeVars(NULL, 0);
     unsigned char *vars = malloc(varsLen + 1);
+    unsigned long stageLen = msEncodeSaved(wbuf[n], GAME_SIZE, NULL, 0);
+    unsigned char *stage = malloc(stageLen + 1);
     unsigned char info[INFO_SIZE];
     uint32_t seq = maxSeq() + 1;
 
-    if (ext == NULL || techs == NULL || digs == NULL || ents == NULL || cards == NULL || vars == NULL) {
+    if (ext == NULL || techs == NULL || digs == NULL || ents == NULL || cards == NULL || vars == NULL || stage == NULL) {
+        free(stage);
         free(vars);
         free(cards);
         free(ext);
@@ -964,8 +983,12 @@ static int commitSlot(int n) {
     if (varsLen != 0) {
         pcExtStateEncodeVars(vars, varsLen); /* the mods' named variables */
     }
+    if (stageLen != 0) {
+        msEncodeSaved(wbuf[n], GAME_SIZE, stage, stageLen); /* records the stage and puts its fallback in the block (before the readable view) */
+    }
     memcpy(info, infoStaged ? stagedInfo : currentInfo(), INFO_SIZE);
-    if (!writeSlotFile(n, wbuf[n], info, ext, extLen, techs, techsLen, digs, digsLen, ents, entsLen, cards, cardsLen, vars, varsLen, seq)) {
+    if (!writeSlotFile(n, wbuf[n], info, ext, extLen, techs, techsLen, digs, digsLen, ents, entsLen, cards, cardsLen, vars, varsLen, stage, stageLen, seq)) {
+        free(stage);
         free(vars);
         free(cards);
         free(ext);
@@ -995,6 +1018,7 @@ static int commitSlot(int n) {
     free(slots[n].ents);
     free(slots[n].cards);
     free(slots[n].vars);
+    free(slots[n].stage);
     memset(slots[n].game, 0, sizeof(slots[n].game));
     memcpy(slots[n].game, wbuf[n], GAME_SIZE);
     memcpy(slots[n].info, info, INFO_SIZE);
@@ -1010,6 +1034,9 @@ static int commitSlot(int n) {
     slots[n].cardsLen = cardsLen;
     slots[n].vars = vars;
     slots[n].varsLen = varsLen;
+    slots[n].stage = stage;
+    slots[n].stageLen = stageLen;
+    slots[n].stageDone = 0;
     slots[n].techsDone = 1; /* wbuf holds this run's ids */
     slots[n].seq = seq;
     slots[n].valid = 1;
@@ -1097,6 +1124,11 @@ static int fileIo(int chan, const char *file, void *buf, int ofs, int bytes, int
                 pcExtStateRemapTechs(slots[slot].game, GAME_SIZE, slots[slot].techs, slots[slot].techsLen);
                 pcExtStateRemapDigimon(slots[slot].game, GAME_SIZE, slots[slot].digs, slots[slot].digsLen);
                 pcExtStateRemapCards(slots[slot].game, GAME_SIZE, slots[slot].cards, slots[slot].cardsLen);
+            }
+            if (slots[slot].valid && !slots[slot].stageDone) {
+                /* a game saved in a mod stage holds the stage's fallback; the stage comes back when its mod is installed */
+                slots[slot].stageDone = 1;
+                msRestoreSaved(slots[slot].game, GAME_SIZE, slots[slot].stage, slots[slot].stageLen);
             }
             if (slots[slot].valid) {
                 memcpy(buf, &slots[slot].game[within], bytes);

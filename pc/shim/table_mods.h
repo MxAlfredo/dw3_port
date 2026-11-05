@@ -97,6 +97,10 @@ typedef struct TmTable {
        enemy row names): written into buf (cap bytes), empty for none. The export lists the non-empty ones in a top-level
        "labels" object ({"<key>": "text"}); like "notes", it is only a help to read the file and no patch reads it. */
     void (*rowLabel)(int row, char *buf, size_t cap);
+    /* Optional, after the positional members. ownKey: a patch row key another module reads from the same file (the new encounters
+       the mods add, keyed by a name: shim/field_ext.c). A key it claims (returns nonzero) is skipped here without a log line, and
+       its value is not looked at; every other key is handled as before. */
+    int (*ownKey)(const char *key);
 } TmTable;
 
 /* The data folder of the reference exports (NULL: no export). Forgets every registered table. Call

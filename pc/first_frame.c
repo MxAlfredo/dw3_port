@@ -89,6 +89,14 @@ static void bannerDataNotCalled(const char *name) {
     exit(1);
 }
 
+/* the banner asks the port whether the mode is a stage of a mod; here no mode is */
+s32 pcFieldBannerEntries(s32 mode, s32 *area, s32 *place) {
+    (void)mode;
+    (void)area;
+    (void)place;
+    return 0;
+}
+
 void FIELDSTG_pickStage(void) {
     bannerDataNotCalled("pickStage");
 }

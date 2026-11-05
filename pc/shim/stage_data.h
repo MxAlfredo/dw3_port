@@ -102,6 +102,36 @@ typedef struct SdBattles {
     SdArea areas[SD_AREAS_MAX];
 } SdBattles;
 
+/* Port-only (fishing and hidden spots, new-stages T9): what a gauge game cell or a hidden spot's prize gives. A list of weighted results, one picked at random
+   (sdCatchPick). `set` 0: not given, the game's own result stands (an event battle of the fourth area). A set list with no results gives nothing. */
+enum { SD_CATCH_NOTHING, SD_CATCH_BATTLE, SD_CATCH_ITEM };
+typedef struct SdCatch {
+    int kind;      /* SD_CATCH_* */
+    int weight;    /* 1 to SD_CATCH_WEIGHT_MAX: its share of the list */
+    int encounter; /* SD_CATCH_BATTLE: a row of FIELDSTG_encounters, the fight stage (BATTLE_SETUP.stage) and the music (BATTLE_SETUP.music) */
+    int stage;
+    int music;
+    int item;      /* SD_CATCH_ITEM: an item id, one copy */
+} SdCatch;
+#define SD_CATCH_WEIGHT_MAX 1000
+#define SD_CATCH_MAX 16 /* results in one list */
+typedef struct SdCatchList {
+    SdCatch *v;
+    int n;
+    int set;
+} SdCatchList;
+
+/* The results of one gauge slot: its cells 1 and 2 (cell[0], cell[1]; 0 is a miss, and the rows of the game have no 3). `slot` is its index in SdStage.slots. */
+typedef struct SdFishSlot {
+    int slot;
+    SdCatchList cell[2];
+} SdFishSlot;
+
+/* A hidden spot a patch adds (a map object of animation 0xFF): where the player searches, in map pixels */
+typedef struct SdSpot {
+    int x, y;
+} SdSpot;
+
 typedef struct SdImage {
     int x, y, imageX, imageY, u, v, clutX, clutY;
 } SdImage;
@@ -133,12 +163,23 @@ typedef struct SdStage {
     SdEvent *events;
     int nevents;
     SdBattles battles;
+    /* port-only (T9): fishing results per gauge slot and a default for the others, the hidden spots a patch adds and the results of their prize
+       (prize[0] the common one, the game's event battle 3, prize[1] the rare one, battle 6) */
+    SdFishSlot *fishing;
+    int nfishing;
+    SdCatchList fishDefault[2];
+    SdSpot *spots;
+    int nspots;
+    SdCatchList prize[2];
     char **functions; /* what the stage's C code defines besides its setup and start */
     int nfunctions;
     char **notes;     /* what the stage does that this model does not hold */
     int nnotes;
 } SdStage;
 
+void sdCatchListFree(SdCatchList *l);
+/* The result of the list that r (any number) picks by weight: NULL when the list is empty. Nothing is read of `set`. */
+const SdCatch *sdCatchPick(const SdCatchList *l, unsigned r);
 void sdStageFree(SdStage *s); /* frees what it owns and zeroes it */
 void sdActorFree(SdActor *a); /* frees one actor's lists and talks and zeroes it (S9: the host drops an actor that has no slot) */
 int sdStageAddNote(SdStage *s, const char *note);

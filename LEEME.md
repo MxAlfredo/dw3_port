@@ -11,21 +11,21 @@ contenido nuevo, imágenes, audio, escenarios, modelos). *[Read in English](READ
 > todo de ella en tu equipo. Es un proyecto de fans, sin relación con Bandai Namco ni Sony ni
 > respaldo de ellas.
 
-**Jugadores:** [baja la versión 1.0.0](https://github.com/MxAlfredo/dw3_port/releases/latest), instálala y apúntala a tu propio disco.
+**Jugadores:** [baja la versión 1.1.0](https://github.com/MxAlfredo/dw3_port/releases/latest), instálala y apúntala a tu propio disco.
 **Modders:** empieza por la [guía de mods](docs/modding/README.md): un primer mod en 5 minutos, dónde van los mods en
 cada sistema (también Android), las herramientas y los formatos de archivo. Errores e ideas: [issues](https://github.com/MxAlfredo/dw3_port/issues).
 
 ## Descarga
 
-Baja la versión **1.0.0** desde **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (cada archivo está en
+Baja la versión **1.1.0** desde **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (cada archivo está en
 `SHA256SUMS`; las versiones anteriores están en la misma página):
 
 | Sistema | Archivo |
 |---|---|
-| Windows (recomendado) | `DW3Port-1.0.0-Setup.exe`: instalador; pide tu disco y, si quieres, una tarjeta de memoria de un emulador |
-| Windows, portátil | `DW3Port-1.0.0-windows-portable.zip`: descomprímelo donde quieras, pon tu disco en `game/` y abre `DW3.exe` |
-| Linux (x86_64, glibc 2.34+, de 2022 en adelante) | `DW3Port-1.0.0-x86_64.AppImage`: dale permiso de ejecución y ábrelo |
-| Android 10+ (arm64) | `DW3Port-1.0.0-android.apk`: cópialo al equipo, ábrelo y permite instalar desde ese origen; la app pide tu disco con el selector de archivos del sistema |
+| Windows (recomendado) | `DW3Port-1.1.0-Setup.exe`: instalador; pide tu disco y, si quieres, una tarjeta de memoria de un emulador |
+| Windows, portátil | `DW3Port-1.1.0-windows-portable.zip`: descomprímelo donde quieras, pon tu disco en `game/` y abre `DW3.exe` |
+| Linux (x86_64, glibc 2.34+, de 2022 en adelante) | `DW3Port-1.1.0-x86_64.AppImage`: dale permiso de ejecución y ábrelo |
+| Android 10+ (arm64) | `DW3Port-1.1.0-android.apk`: cópialo al equipo, ábrelo y permite instalar desde ese origen; la app pide tu disco con el selector de archivos del sistema |
 
 Cada descarga trae un `LEEME.txt` / `README.txt` con los controles, dónde quedan tus partidas y qué
 hacer si algo falla.
@@ -40,7 +40,7 @@ hacer si algo falla.
 
 ## Estado
 
-La versión 1.0.0 es la primera estable. Los errores son bienvenidos como *issues*: en [CONTRIBUTING.md](CONTRIBUTING.md) está qué incluir.
+La versión 1.1.0 agrega escenarios nuevos desde mods (ver las notas de la versión). Los errores son bienvenidos como *issues*: en [CONTRIBUTING.md](CONTRIBUTING.md) está qué incluir.
 
 ## Mods
 
@@ -111,7 +111,7 @@ Las versiones se arman en una máquina Linux con MinGW-w64, NSIS (`makensis`), D
 desde un checkout limpio después de `scripts/fetch_deps.sh`:
 
 ```sh
-pc/make_release.sh <versión>      # por ejemplo 1.0.0
+pc/make_release.sh <versión>      # por ejemplo 1.1.0
 ```
 
 Escribe `pc/build-release/<versión>/`: el instalador y el zip portátil de Windows, el AppImage de Linux

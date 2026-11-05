@@ -37,6 +37,7 @@ enum { TD_ENG, TD_FRA, TD_ITA, TD_GER, TD_SPA, TD_ES419, TD_LANGS };
 const char *tdLangDir(int lang);   /* folder name: eng fra ita ger spa es-419 */
 const char *tdDiscDir(int lang);   /* the disc folder under AAA/DAT/COUNTRY (es-419: SPN) */
 const char *tdFileBase(int k);     /* "AMTMAP" */
+int tdFileFromBase(const char *base); /* the inverse; -1 for an unknown name */
 /* "ESAMTMAP.BIN": language letter + "S" + base (es-419 uses the Spanish names) */
 int tdFileName(int lang, int k, char *buf, size_t cap);
 int tdIndexOf(int lang, int k);    /* file table index; es-419 has the Spanish one */

@@ -31,8 +31,40 @@ void sdActorFree(SdActor *a) {
     memset(a, 0, sizeof *a);
 }
 
+void sdCatchListFree(SdCatchList *l) {
+    free(l->v);
+    memset(l, 0, sizeof *l);
+}
+
+const SdCatch *sdCatchPick(const SdCatchList *l, unsigned r) {
+    unsigned total = 0;
+    int i;
+
+    for (i = 0; i < l->n; i++) total += (unsigned)(l->v[i].weight > 0 ? l->v[i].weight : 1);
+    if (total == 0) return NULL;
+    r %= total;
+    for (i = 0; i < l->n; i++) {
+        unsigned w = (unsigned)(l->v[i].weight > 0 ? l->v[i].weight : 1);
+
+        if (r < w) return &l->v[i];
+        r -= w;
+    }
+    return NULL;
+}
+
 void sdStageFree(SdStage *s) {
     int i, j;
+
+    for (i = 0; i < s->nfishing; i++) {
+        sdCatchListFree(&s->fishing[i].cell[0]);
+        sdCatchListFree(&s->fishing[i].cell[1]);
+    }
+    free(s->fishing);
+    sdCatchListFree(&s->fishDefault[0]);
+    sdCatchListFree(&s->fishDefault[1]);
+    free(s->spots);
+    sdCatchListFree(&s->prize[0]);
+    sdCatchListFree(&s->prize[1]);
 
     for (i = 0; i < s->nactors; i++) sdActorFree(&s->actors[i]);
     free(s->actors);

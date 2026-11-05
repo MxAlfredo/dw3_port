@@ -576,6 +576,54 @@ char *tcEntryText(const TcLang *lang, int index)
     return tcDecode(lang->entries[index].body, lang->entries[index].bodyLen);
 }
 
+int tcSpeakerRef(const char *text, char *file, size_t cap, int *entry, const char **rest, int *bad)
+{
+    static const char tag[] = "{speaker-of:";
+    const char *p = text + sizeof tag - 1, *colon, *end;
+    size_t n;
+    long v = 0;
+
+    if (bad) *bad = 0;
+    if (strncmp(text, tag, sizeof tag - 1)) return 0;
+    if (bad) *bad = 1;
+    colon = strchr(p, ':');
+    end = strchr(p, '}');
+    if (!colon || !end || colon > end) return 0;
+    n = (size_t)(colon - p);
+    if (n == 0 || n >= cap) return 0;
+    memcpy(file, p, n);
+    file[n] = 0;
+    if (colon + 1 == end || end - colon > 7) return 0;
+    for (p = colon + 1; p < end; p++) {
+        if (*p < '0' || *p > '9') return 0;
+        v = v * 10 + (*p - '0');
+    }
+    *entry = (int)v;
+    *rest = end + 1;
+    if (bad) *bad = 0;
+    return 1;
+}
+
+char *tcSpeakerLabel(const TcLang *lang, int index)
+{
+    char *t = tcEntryText(lang, index), *a, *b, *out;
+
+    if (!t) return NULL;
+    a = strstr(t, "{0207}");
+    b = a ? strstr(a + 6, "{0207}") : NULL;
+    if (!b || a != t) {
+        free(t);
+        return NULL;
+    }
+    out = (char *)malloc((size_t)(b - a - 6) + 1);
+    if (out) {
+        memcpy(out, a + 6, (size_t)(b - a - 6));
+        out[b - a - 6] = 0;
+    }
+    free(t);
+    return out;
+}
+
 int tcSetText(TcLang *lang, int index, const char *text, char *err, size_t errSize)
 {
     uint8_t *body;
