@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port sprites/<name>/sprite.json (sprites-sprite-v1, also sprite-v1)",
+  "description": "A sprite: PNG frames, animations and animation sets (data/sprites/<name>/sprite.json with NNN.png, or the same folder in a mod's sprites/<name>/). Two uses with one format. The EXPORT (pc/shim/sprite_data.c, process; pc/shim/sprite_export.c) is written from the disc with \"source\", \"set_table\", \"directions\" and \"notes\" and is read back (imgSpriteOverridesBuild) to replace the original's frames. A mod's NEW sprite is read by sprBankAdd in the same file, which needs format, frames, animations and sets (each a list of at least one) and takes an optional actor_width; it ignores the other members. The reader accepts format sprites-sprite-v1 and also sprite-v1, the name a partner's field/ folder writes (partners/<name>/field/sprite.json). A frame is a 4-bit PNG of 16 colours at most (index 0 transparent), at most the slot size of the sprite bank.",
+  "type": "object",
+  "required": [
+    "format",
+    "frames",
+    "animations",
+    "sets"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "sprites-sprite-v1",
+        "sprite-v1"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "description": "Export only: the disc file the sprite comes from, without DAT/ (FIELD/SPRT/P001PLAY.BIN). Informational."
+    },
+    "set_table": {
+      "type": "integer",
+      "description": "Export only: the archive entry that holds the set table, or -1 when the file has none (then animations and sets are empty). Informational."
+    },
+    "actor_width": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 256,
+      "description": "Mod sprite: the width of the actor in pixels (how far apart it stands from others). When absent it is the width of the widest frame an animation uses."
+    },
+    "frames": {
+      "type": "array",
+      "maxItems": 2048,
+      "description": "One PNG each. A mod sprite needs at least one.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "image"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "description": "Unique among frames and animations (they share one list of ids). In an export it is the entry's index in the disc archive."
+          },
+          "image": {
+            "type": "string",
+            "pattern": "^[^/\\\\.][^/\\\\]*\\.png$",
+            "description": "A plain .png file name in the sprite's folder (export: NNN.png with the id)."
+          },
+          "w": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Export only: the PNG's width in pixels."
+          },
+          "h": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Export only: the PNG's height."
+          },
+          "used": {
+            "const": false,
+            "description": "Export only, written when false: no animation of this file uses the frame."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "animations": {
+      "type": "array",
+      "maxItems": 2048,
+      "description": "A mod sprite needs at least one.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "steps"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "description": "Unique among animations and frames."
+          },
+          "loop": {
+            "type": "boolean",
+            "description": "true (the default when absent) repeats from the first step; false stops on the last frame."
+          },
+          "ticks": {
+            "type": "integer",
+            "description": "Export only: the total length in game ticks."
+          },
+          "error": {
+            "type": "string",
+            "description": "Export only: the disc's animation has no end marker."
+          },
+          "steps": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "type": "object",
+              "required": [
+                "frame",
+                "time",
+                "x",
+                "y"
+              ],
+              "properties": {
+                "frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "A frame id."
+                },
+                "time": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8388607,
+                  "description": "How long the frame shows, in game ticks (1 or more in a mod)."
+                },
+                "x": {
+                  "type": "integer"
+                },
+                "y": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "sets": {
+      "type": "array",
+      "maxItems": 255,
+      "description": "Animation sets the game asks for by id. A mod sprite needs at least one.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "animations"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 32767,
+            "description": "The set id the game requests."
+          },
+          "name": {
+            "type": "string",
+            "description": "Export only: the decompilation's ACTOR_ANIM_* identifier."
+          },
+          "animations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "Animation ids: five (one per facing slot) or a single one used for all five.",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "directions": {
+      "type": "array",
+      "description": "Export only, fixed: which slot each of the 8 facings uses and which are mirrored (a mirrored frame is drawn flipped; its x becomes -(w + x)).",
+      "items": {
+        "type": "object",
+        "required": [
+          "dir",
+          "slot",
+          "flip",
+          "step"
+        ],
+        "properties": {
+          "dir": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "flip": {
+            "type": "boolean"
+          },
+          "step": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Export only: fixed explanation."
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,20 @@
+spritekiln: 1
+# The field follower: five facings (down, down-left, left, up-left, up; the right side is mirrored by the game).
+# Rendered into a 64 px frame at a smaller scale than the model's (the follower must not look bigger than the original ones);
+# make_art.py trims every frame to its box and places it from the feet (the pivot).
+name: betamon_field
+extends: betamon.yaml
+kind: character
+view: topdown
+size: 64
+directions: [s, sw, w, nw, n]
+camera: {pitch: 38, scale: 0.046, center: [0, 0.43, 0]}
+
+animations:
+  # stand and walk come from the model (betamon.yaml); only the stop is made here
+  stop:            # skid and settle
+    loop: false
+    keys:
+      - {ms: 60, set: {lean: -0.12, bob: -0.02, fl_L: 0.5, fb_L: 0.3, crest: 0.5, tail_pitch: 0.3}}
+      - {ms: 120, set: {lean: -0.05, bob: -0.04, squash: 0.94, fl_L: 0.25, fb_L: 0.15, crest: 0.4}}
+      - {ms: 120, set: {bob: -0.01, crest: 0.1}}

@@ -120,7 +120,7 @@ banco de sonido son los existentes (`soundBank`, `music` por número del juego).
 
 #### 5.1 Contenedor
 
-Un `stage-new-v1` es una extensión de `SdStage` (no un tercer esquema): `mods/<mod>/new-stages/<nombre>/stage.json` (T5: la carpeta es `new-stages/`, para no mezclarla con los parches `stages/<nnn>.json`; el nombre de la carpeta es la llave, sin miembro `"key"`) con
+Un `stage-new-v1` es una extensión de `SdStage` (no un tercer esquema): `mods/<mod>/new-stages/<nombre>/stage.json` (T5: la carpeta es `new-stages/`, para no mezclarla con los parches `stages/s<nnn>/stage.json`; el nombre de la carpeta es la llave, sin miembro `"key"`) con
 
 - `"format": "stage-new-v1"`, `"key"`, `"fallback"`;
 - `"text"` (archivo de texto por nombre del mod), `"music"`, `"soundBank"`, `"start"` (`x`, `y`, `dir`);

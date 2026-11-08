@@ -52,8 +52,10 @@ static const ContentType kCard = {
     pcExtStateSetCardHooks, tdSetCardTextHook,
     "color 1..6, price 0..32767 (the card shop; default 1), ap and hp 0..99, kind 0..16 (1..14 option cards, 16 Digimon), points 0..99, level 0..9, rank 0..999, comboCard 0..314; "
     "effect {like 1..60, condition, playCondition, message, target 0..255, script [steps 1..174, at most 39]} for an option card; "
-    "art in card/<key>.png (32x32, 256 colours at most); name and description per language (eng, fra, ita, ger, spa, es-419)",
+    "art in cards/<key>/face.png next to the card.json (32x32, 256 colours at most; a folder c<nnn> is an original card's art, not a new card); title and description per language (eng, fra, ita, ger, spa, es-419)",
     describe,
+    NULL, 0,
+    "cards", "card.json", "cards-card-v1", cardExtKeyIsOriginal,
 };
 
 static ContentSet sSet = {&kCard, NULL, 0};
@@ -226,21 +228,32 @@ static int timFromPng(const PngImage *pi, unsigned char *tim) {
     return 0;
 }
 
-/* mods/<mod>/card/<key>.png, from the cards.json path "<dir>/content/cards.json" */
+int cardExtKeyIsOriginal(const char *key) {
+    int i;
+
+    if (key[0] != 'c' || strlen(key) != 4) return 0;
+    for (i = 1; i < 4; i++) {
+        if (key[i] < '0' || key[i] > '9') return 0;
+    }
+    return 1;
+}
+
+/* mods/<mod>/cards/<key>/face.png, next to the card's card.json (a key c<nnn> is never a card: that folder is original card <nnn>'s art, so cardExtKeyIsOriginal
+   keeps it from being read as one). */
+
 static void loadArt(ContentEntry *e) {
     CardRec *c = e->rec;
-    char dir[1200], png[1300];
+    char png[1300];
     const char *key = strchr(e->name, ':');
-    size_t n = strlen(e->path), tail = strlen("/content/cards.json");
+    size_t n = strlen(e->path), tail = strlen("card.json");
     unsigned char *data = NULL;
     size_t len = 0;
     PngImage pi;
     char why[160];
 
-    if (key == NULL || n <= tail || n - tail >= sizeof dir) return;
-    memcpy(dir, e->path, n - tail);
-    dir[n - tail] = '\0';
-    snprintf(png, sizeof png, "%s/card/%s.png", dir, key + 1);
+    if (key == NULL || n < tail || n - tail + strlen("face.png") >= sizeof png) return;
+    memcpy(png, e->path, n - tail);
+    strcpy(png + n - tail, "face.png");
     if (tdReadFile(png, &data, &len) != 0) return; /* no art: the base's */
     if (pngReadIndexed(data, len, &pi, why, sizeof why) != 0) {
         plogLine("cards", "%s card \"%s\" art rejected: %s (the base's art is used)\n", png, e->name, why);

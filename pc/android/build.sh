@@ -72,6 +72,32 @@ stage_l10n() {
     } > index.txt)
 }
 
+# The unstripped libmain.so and libopenal.so of this build stay outside the APK (which carries the stripped ones), next to a BUILD-ID.txt with
+# their build ids: the fatal-signal report prints "module <lib> build-id <hex>" and `llvm-addr2line -f -e <dir>/<lib> 0x<offset>` names the
+# line (pc/README.md, "Reportes de crash"). Debug builds go to pc/build-android-symbols/debug, releases to .../<version>.
+keep_symbols() { # dir
+    sym="$1"
+    rm -rf "$sym" && mkdir -p "$sym"
+    unstripped=$(find pc/android/app/build/intermediates/cxx -path '*obj/arm64-v8a/libmain.so' -printf '%T@ %p\n' | sort -rn | head -n 1 | cut -d' ' -f2-)
+    [ -n "$unstripped" ] || { echo "build.sh: no unstripped libmain.so found" >&2; exit 1; }
+    cp "$unstripped" "$sym/libmain.so"
+    cp "$cache/prefix/arm64-v8a/lib/libopenal.so" "$sym/libopenal.so"
+}
+symbol_ids() { # dir apk: the build ids of the kept libraries and of the ones inside the APK (they must match)
+    docker_run sh -c '
+        set -e
+        rb=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+        rm -rf /tmp/apkx && mkdir /tmp/apkx && unzip -q "$2" "lib/*" -d /tmp/apkx
+        for lib in libmain.so libopenal.so; do
+            a=$($rb/llvm-readelf -n /tmp/apkx/lib/arm64-v8a/$lib | awk "/Build ID/ { print \$3 }")
+            b=$($rb/llvm-readelf -n "$1/$lib" | awk "/Build ID/ { print \$3 }")
+            echo "$lib (APK) build id: $a"
+            echo "$lib (symbols) build id: $b"
+            [ -n "$a" ] && [ "$a" = "$b" ] || { echo "build.sh: $lib build ids differ or are missing" >&2; exit 1; }
+        done
+    ' sh "$1" "$2"
+}
+
 docker build -q -t "$image" pc/android >/dev/null
 
 # The CMake cache lists the game's objects at configure time; when pc/Makefile's list (or the flags) change, a stale cache fails
@@ -135,6 +161,9 @@ apk)
     docker_run env GRADLE_USER_HOME=/deps/gradle ANDROID_USER_HOME=/deps/android-home DW3_ANDROID_OPT="${DW3_ANDROID_OPT:-}" sh -c 'cd pc/android && ./gradlew --no-daemon assembleDebug'
     apk=pc/android/app/build/outputs/apk/debug/app-debug.apk
     ls -l "$apk"
+    keep_symbols pc/build-android-symbols/debug
+    symbol_ids pc/build-android-symbols/debug "$apk" | tee pc/build-android-symbols/debug/BUILD-ID.txt
+    echo "unstripped libmain.so and libopenal.so kept in pc/build-android-symbols/debug/"
     ;;
 release)
     version="${2:-0.0.1-dev}"
@@ -151,12 +180,9 @@ release)
         -e DW3_KEYSTORE=/keys/android-release.keystore -e DW3_KEYSTORE_PASS="$(cat "$keydir/android-release.pass")" "$image" \
         sh -c "cd pc/android && ./gradlew --no-daemon -Pdw3.versionName=$version -Pdw3.versionCode=$code assembleRelease"
     apk=pc/android/app/build/outputs/apk/release/app-release.apk
-    # the unstripped libmain.so (crash symbolization) stays out of the APK, which carries the stripped one
+    # the unstripped libmain.so and libopenal.so (crash symbolization) stay out of the APK, which carries the stripped ones
     sym="pc/build-android-symbols/$version"
-    rm -rf "$sym" && mkdir -p "$sym"
-    unstripped=$(find pc/android/app/build/intermediates/cxx -path '*obj/arm64-v8a/libmain.so' -printf '%T@ %p\n' | sort -rn | head -n 1 | cut -d' ' -f2-)
-    [ -n "$unstripped" ] || { echo "build.sh: no unstripped libmain.so found" >&2; exit 1; }
-    cp "$unstripped" "$sym/libmain.so"
+    keep_symbols "$sym"
     docker_run sh -c '
         set -e
         bt=/opt/android-sdk/build-tools/35.0.0
@@ -170,11 +196,10 @@ release)
             echo "$(basename "$so"): LOAD align $a"
             [ "$a" = "0x4000 " ] || { echo "build.sh: $so is not 16 KB aligned" >&2; exit 1; }
         done
-        echo "libmain.so (APK) build id: $($rb/llvm-readelf -n /tmp/apkx/lib/arm64-v8a/libmain.so | awk "/Build ID/ { print \$3 }")"
-        echo "libmain.so (symbols) build id: $($rb/llvm-readelf -n pc/build-android-symbols/'"$version"'/libmain.so | awk "/Build ID/ { print \$3 }")"
     ' | tee "$sym/BUILD-ID.txt"
+    symbol_ids "$sym" "$apk" | tee -a "$sym/BUILD-ID.txt"
     ls -l "$apk"
-    echo "versionName $version, versionCode $code; unstripped libmain.so kept in $sym/"
+    echo "versionName $version, versionCode $code; unstripped libmain.so and libopenal.so kept in $sym/"
     ;;
 *) echo "usage: pc/android/build.sh deps|apk|release [version]" >&2; exit 2 ;;
 esac

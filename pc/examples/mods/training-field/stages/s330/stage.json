@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../../docs/modding/schema/stage-patch.schema.json",
+  "format": "stage-patch-v1",
+  "about": "Central Park, next to Leomon's training spot (the characters at index 0 and 1, both at (923, 374): the floor there is flat, data/stages/s330/stage.json). Adds the Training Field guide at (955, 390) on the same flat floor, facing Leomon (dir 3: up and to the left). The guide reuses character 44 and actor image 7, the ones the stage's own characters at indexes 7 to 10 use. Talks: with the Seiryu Badge (dw3:item/9, which endEvent71 of stage 420 gives) it says its offer, plays the teleport sound and warps to the lower floor (the action \"warp\", docs/stages.md section 9); without it, it asks you to come back after beating the Seiryu Leader. The lines are named texts of this mod (text/<lang>/stages.json).",
+  "actors": {
+    "add": [
+      {
+        "key": "guide",
+        "character": 44,
+        "image": 7,
+        "x": 955,
+        "y": 390,
+        "dir": 3,
+        "talks": [
+          {
+            "text": "training-field:offer",
+            "conditions": [["item", "dw3:item/9", 1]],
+            "actions": [
+              ["sound", "teleport"],
+              ["warp", "training-field:lower", 512, 656, 4]
+            ]
+          },
+          {
+            "text": "training-field:locked"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mods.h"
 #include "port_log.h"
 #include "snd_internal.h"
 #include "vag_encode.h"
@@ -50,14 +51,6 @@ const char *audioModBankOf(int slot) {
 
 /* --- the mod files ---------------------------------------------------------- */
 
-static int fileExists(const char *path) {
-    FILE *f = fopen(path, "rb");
-
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
-}
-
 /* A refused file is logged once per run (a song replayed at every map change would repeat it otherwise) */
 static int firstRejection(const char *path) {
     unsigned long h = 5381;
@@ -76,12 +69,21 @@ static void reject(const char *mod, const char *path, const char *file, const ch
     if (firstRejection(path)) plogLine("audio", "%s: %s rejected: %s\n", mod != NULL ? mod : "?", file, why[0] ? why : "unusable file");
 }
 
+/* The mods that may replace a sound, the winner first (mods.h asset layers: data/audio is the export of the originals, never a
+   replacement). Layer i is a candidate unless a --validate-mod run looks at one mod alone. */
+static const char *amOnlyDir;
+
+static int modLayer(int i, AssetLayer *l) {
+    return i < modsCount() && assetLayerAt(i, l) && (amOnlyDir == NULL || strcmp(l->root, amOnlyDir) == 0);
+}
+
 int audioModVagReplacement(const char *bank, int vag, AudioModVag *out) {
     int m;
 
-    if (!amHaveIo || amIo.modCount == NULL || bank == NULL || bank[0] == '\0' || vag < 1 || vag > 255) return 0;
-    for (m = amIo.modCount(amIo.ud) - 1; m >= 0; m--) {
-        const char *dir = amIo.modDir(amIo.ud, m), *mod = amIo.modName(amIo.ud, m);
+    if (!amHaveIo || bank == NULL || bank[0] == '\0' || vag < 1 || vag > 255) return 0;
+    for (m = 0; m < modsCount(); m++) {
+        AssetLayer layer;
+        const char *mod;
         char path[1024], file[64], err[160];
         WavInfo info;
         int16_t *pcm, *mono;
@@ -89,10 +91,10 @@ int audioModVagReplacement(const char *bank, int vag, AudioModVag *out) {
         long loopStart = -1;
         uint8_t *adpcm;
 
-        if (dir == NULL) continue;
+        if (!modLayer(m, &layer)) continue;
+        mod = modsNameOf(layer.mod);
         snprintf(file, sizeof file, "%s/vag_%03d.wav", bank, vag);
-        snprintf(path, sizeof path, "%s/audio/%s", dir, file);
-        if (!fileExists(path)) continue;
+        if (!assetLayerFile(&layer, "audio", file, path, sizeof path)) continue;
         err[0] = '\0';
         pcm = wavLoad(path, &info, err, sizeof err);
         if (pcm == NULL) {
@@ -723,9 +725,10 @@ static void trackPump(AmTrack *t) {
 static int trackStartLocked(const char *bank, int pkg, int rec, int loopForever, int music, int permille) {
     int m;
 
-    if (!amHaveIo || amIo.modCount == NULL || bank == NULL || bank[0] == '\0' || pkg < 0 || rec < 0) return 0;
-    for (m = amIo.modCount(amIo.ud) - 1; m >= 0; m--) {
-        const char *dir = amIo.modDir(amIo.ud, m), *mod = amIo.modName(amIo.ud, m);
+    if (!amHaveIo || bank == NULL || bank[0] == '\0' || pkg < 0 || rec < 0) return 0;
+    for (m = 0; m < modsCount(); m++) {
+        AssetLayer layer;
+        const char *mod;
         char path[1024], file[96], jpath[1024], jfile[96], err[200];
         const char *shown = NULL;
         AmReader rd;
@@ -735,12 +738,12 @@ static int trackStartLocked(const char *bank, int pkg, int rec, int loopForever,
         unsigned long bytes;
         const AudioModSink *sk;
 
-        if (dir == NULL) continue;
+        if (!modLayer(m, &layer)) continue;
+        mod = modsNameOf(layer.mod);
         for (k = 0; k < 2 && shown == NULL; k++) {
             if (k == 0) snprintf(file, sizeof file, "%s/seq_%d_%02d.wav", bank, pkg, rec);
             else snprintf(file, sizeof file, "%s/seq_%d_%d.wav", bank, pkg, rec);
-            snprintf(path, sizeof path, "%s/audio/%s", dir, file);
-            if (fileExists(path)) shown = file;
+            if (assetLayerFile(&layer, "audio", file, path, sizeof path)) shown = file;
         }
         if (shown == NULL) continue;
         f = fopen(path, "rb");
@@ -771,7 +774,7 @@ static int trackStartLocked(const char *bank, int pkg, int rec, int loopForever,
             loopSrc = 1;
         } else {
             snprintf(jfile, sizeof jfile, "%.*s.json", (int)strlen(file) - 4, file);
-            snprintf(jpath, sizeof jpath, "%s/audio/%s", dir, jfile);
+            snprintf(jpath, sizeof jpath, "%.*s.json", (int)strlen(path) - 4, path); /* the sidecar next to the WAV */
             if (sidecarLoop(&rd, mod, jpath, jfile)) loopSrc = 2;
         }
         if (!rd.loop && loopForever) {
@@ -887,9 +890,6 @@ void audioModPump(void) {
 
 /* --- --validate-mod (U5) ----------------------------------------------------- */
 
-static int vOneCount(void *ud) { (void)ud; return 1; }
-static const char *vOneName(void *ud, int i) { (void)i; return ((const char *const *)ud)[0]; }
-static const char *vOneDir(void *ud, int i) { (void)i; return ((const char *const *)ud)[1]; }
 static int vSinkOpen(void *c, int ch, int rate) { (void)c; (void)ch; (void)rate; return 1; }
 static int vSinkRoom(void *c, int id) { (void)c; (void)id; return 0; }
 static void vSinkQueue(void *c, int id, const short *p, int n) { (void)c; (void)id; (void)p; (void)n; }
@@ -902,9 +902,8 @@ static void vSinkClose(void *c, int id) { (void)c; (void)id; }
    the list so a good file of a later mod never hides a bad one. A refusal is the usual `[audio] <mod>: <file> rejected: <why>` line.
    Returns how many files were looked at. */
 int audioModValidate(const char *modDir, const char *modName) {
-    AudioModIo saved = amIo, one;
+    AudioModIo saved = amIo;
     int savedHave = amHaveIo, n = 0;
-    const char *ud[2];
     char root[1100];
     DIR *d;
     struct dirent *e;
@@ -913,14 +912,7 @@ int audioModValidate(const char *modDir, const char *modName) {
     snprintf(root, sizeof root, "%s/audio", modDir);
     d = opendir(root);
     if (d == NULL) return 0;
-    ud[0] = modName;
-    ud[1] = modDir;
-    memset(&one, 0, sizeof one);
-    one.modCount = vOneCount;
-    one.modName = vOneName;
-    one.modDir = vOneDir;
-    one.ud = (void *)ud;
-    amIo = one;
+    amOnlyDir = modDir; /* the mod alone, so a good file of a later mod never hides a bad one */
     amHaveIo = 1;
     audioModSetSink(&nullSink, NULL);
     while ((e = readdir(d)) != NULL) {
@@ -958,6 +950,7 @@ int audioModValidate(const char *modDir, const char *modName) {
     }
     closedir(d);
     audioModSetSink(NULL, NULL);
+    amOnlyDir = NULL;
     amIo = saved;
     amHaveIo = savedHave;
     return n;

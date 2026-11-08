@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "DW3 port new-stages/<name>/stage.json (a stage a mod adds, stage-new-v1)",
+  "title": "DW3 port stages/<name>/stage.json (a stage a mod adds, stage-new-v1)",
   "description": "A field stage that a mod adds (docs/stages.md section 13, ADR-012). The folder name is the stage's name: the stage is \"<mod>:<name>\". Next to this file: background.png (indexed PNG, the size a multiple of 128 px, at most 255 tiles of 128 x 128 px), floor.png (required), triggers.png and areas.png (optional): indexed PNGs of the same size, one pixel per pixel of the map, whose index is the cell's value. The sections \"actors\", \"slots\", \"events\" and \"battles\" are the ones of stage-patch-v1 (stage-patch.schema.json) with only \"add\": a new stage has nothing to patch or remove.",
   "type": "object",
   "required": [

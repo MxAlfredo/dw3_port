@@ -348,7 +348,7 @@ static void testExportFile(void)
     CHECK(ref != NULL && strstr(ref, "\"v\": 1") != NULL);
     free(ref);
     man = slurp("data/content/manifest.json");
-    CHECK(man != NULL && strstr(man, "content-v1") != NULL && strstr(man, "items.json") != NULL);
+    CHECK(man != NULL && strstr(man, "\"topic\": \"content\"") != NULL && strstr(man, "items.json") != NULL);
     free(man);
     /* a changed version replaces an unedited copy */
     tmExportFile("content", "items.json", "{\"v\": 2}\n");
@@ -1991,7 +1991,7 @@ static void testCardTables(void)
     CHECK(!memcmp(eff0, CARDGAME_cardEffects, sizeof eff0));
 
     /* U8c: a card a mod added (m:card = 317, m:other = 318) by name or id in the stock, the pack slots and the deck; a name nobody defines and 315-316 are
-       refused; a price row for a mod card does not exist (its price is its cards.json's) */
+       refused; a price row for a mod card does not exist (its price is its card.json's) */
     log = cardStart(0,
         "{\"format\":\"card_prices-v1\",\"rows\":{\"10\":{\"price\":7},\"317\":{\"price\":9},\"m:card\":{\"price\":9}}}",
         "{\"format\":\"card_shop_stock-v1\",\"rows\":{\"49\":{\"cards\":[\"m:card\",\"dw3:card/7\",318,12]},\"50\":{\"cards\":[\"m:bad\",3]},"
@@ -2322,6 +2322,19 @@ static void eventsReset(void)
     for (i = 0; i < 15; i++) PARTY_STAT_THRESHOLDS[i] = 30 * (i + 1);
 }
 
+static int findPartner(const char *name)
+{
+    if (!strcmp(name, "m:bee")) return 8;
+    if (!strcmp(name, "m:cat")) return 9;
+    if (!strncmp(name, "dw3:partner/", 12)) return atoi(name + 12);
+    return -1;
+}
+
+static int tenPartners(void)
+{
+    return 10;
+}
+
 /* the patches of the six tables in the order special_conditions, money_required, money_gains, money_losses, progress_ranges, party_stat_thresholds;
    a second mod "b" with the same table files in q (NULL: none) */
 static char *eventsStart(int withData, const char *const *p, const char *const *q)
@@ -2458,6 +2471,63 @@ static void testEventTables(void)
     free(eventsStart(0, NULL, NULL));
     CHECK(gameSpecialIdOf("a:greeting") == -1 && gameSpecialNameOf(0x100) == NULL);
     CHECK(!memcmp(SPECIAL_CONDITIONS, sp0, sizeof sp0) && !memcmp(MONEY_REQUIRED, req0, sizeof req0) && !memcmp(PROGRESS_RANGES, range0, sizeof range0));
+
+    /* partners a mod adds (P4): the partner ops read partner `arg`, which must exist; the host says how many there are */
+    memset(p, 0, sizeof p);
+    p[0] = "{\"format\":\"special_conditions-v1\",\"rows\":{"
+           "\"0\":{\"op\":1,\"arg\":9},"                           /* partner 9 exists (ten partners): fine */
+           "\"1\":{\"op\":3,\"arg\":10}}}";                        /* partner 10 does not: refused */
+    gameTablesSetPartnerCount(tenPartners);
+    log = eventsStart(0, p, NULL);
+    CHECK(SPECIAL_CONDITIONS[0].check == 0x11 && SPECIAL_CONDITIONS[0].arg == 9);
+    CHECK(strstr(log, "special_conditions row 1 rejected: this partner op reads partner `arg`") && !strstr(log, "special_conditions row 0 rejected"));
+    free(log);
+    gameTablesSetPartnerCount(NULL);
+    log = eventsStart(0, p, NULL);
+    CHECK(strstr(log, "special_conditions row 0 rejected: this partner op reads partner `arg`")); /* without the hook: the original eight */
+    free(log);
+    free(eventsStart(0, NULL, NULL));
+
+    /* P11: a partner op names its partner (`arg` as "<mod>:<key>", "dw3:partner/<n>"): resolved when the table loads, the numbers keep working */
+    memset(p, 0, sizeof p);
+    p[0] = "{\"format\":\"special_conditions-v1\",\"rows\":{"
+           "\"m:unlock-bee\":{\"primitive\":1,\"op\":3,\"arg\":\"m:bee\"},"      /* UNLOCK partner 8 by name */
+           "\"m:bee-locked\":{\"primitive\":1,\"op\":6,\"arg\":\"m:bee\"},"      /* "still locked" */
+           "\"m:unlock-orig\":{\"primitive\":1,\"op\":3,\"arg\":\"dw3:partner/4\"},"
+           "\"m:unlock-num\":{\"primitive\":1,\"op\":3,\"arg\":9},"
+           "\"m:unlock-ghost\":{\"primitive\":1,\"op\":3,\"arg\":\"m:ghost\"},"
+           "\"1\":{\"arg\":\"m:cat\"}}}";                                            /* an original row can be pointed at a name too */
+    gameTablesSetPartnerCount(tenPartners);
+    gameTablesSetPartnerFind(findPartner);
+    log = eventsStart(0, p, NULL);
+    CHECK(pcSpecialExtRow(0x100, &check, &arg) == 1 && check == 0x13 && arg == 8);
+    CHECK(pcSpecialExtRow(0x101, &check, &arg) == 1 && check == 0x16 && arg == 8);
+    CHECK(pcSpecialExtRow(0x102, &check, &arg) == 1 && check == 0x13 && arg == 4);
+    CHECK(pcSpecialExtRow(0x103, &check, &arg) == 1 && check == 0x13 && arg == 9);
+    CHECK(SPECIAL_CONDITIONS[1].arg == 9 && SPECIAL_CONDITIONS[1].check == sp0[1].check);
+    CHECK(strstr(log, "row \"m:unlock-ghost\" field \"arg\" rejected: no installed mod defines \"m:ghost\""));
+    CHECK(!strstr(log, "m:bee") && !strstr(log, "dw3:partner/4"));
+    free(log);
+    gameTablesSetPartnerFind(NULL); /* no registry: a name resolves to nothing, the row refuses it */
+    log = eventsStart(0, p, NULL);
+    CHECK(strstr(log, "row \"m:unlock-bee\" field \"arg\" rejected: no installed mod defines \"m:bee\""));
+    free(log);
+
+    /* a rejected `arg` never runs as a substitute: a mod's row with an unknown name is no row (it would unlock partner 0), an original row keeps its arg */
+    memset(p, 0, sizeof p);
+    p[0] = "{\"format\":\"special_conditions-v1\",\"rows\":{"
+           "\"a:unlockghost\":{\"primitive\":1,\"op\":3,\"arg\":\"a:nobody\"},"
+           "\"a:fine\":{\"primitive\":1,\"op\":3,\"arg\":2},"
+           "\"1\":{\"arg\":\"a:nobody\"}}}";
+    log = eventsStart(0, p, NULL);
+    CHECK(gameSpecialIdOf("a:unlockghost") == -1 && gameSpecialIdOf("a:fine") != -1);
+    CHECK(pcSpecialExtRow(0x100, &check, &arg) == 0 && pcSpecialExtRow(0x101, &check, &arg) == 1 && arg == 2);
+    CHECK(SPECIAL_CONDITIONS[1].arg == sp0[1].arg && SPECIAL_CONDITIONS[1].check == sp0[1].check);
+    CHECK(strstr(log, "row \"a:unlockghost\" field \"arg\" rejected: no installed mod defines \"a:nobody\"") && strstr(log, "row \"1\" field \"arg\" rejected: no installed mod defines \"a:nobody\""));
+    free(log);
+    gameTablesSetPartnerCount(NULL);
+    free(eventsStart(0, NULL, NULL));
+    CHECK(!memcmp(SPECIAL_CONDITIONS, sp0, sizeof sp0)); /* the original numeric rows are as the disc has them */
 
     /* up to 256 new rows, the rest refused (the id is 9 bits and the game's own ids stop below 0xFF) */
     {

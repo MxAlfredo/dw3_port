@@ -1,8 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Sample tech",
-  "version": "1.0.0",
-  "kind": "content",
-  "author": "DW3 port",
-  "description": "Adds two new techniques (an attack and a field-usable healing one), learned by a starter partner form (content mod: content/techs.json)."
-}

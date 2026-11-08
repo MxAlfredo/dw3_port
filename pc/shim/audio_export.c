@@ -9,8 +9,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <SDL2/SDL.h>
-
+#include "exp_core.h"
+#include "exp_job.h"
 #include "midi_write.h"
 #include "port_log.h"
 #include "snd_internal.h"
@@ -669,144 +669,63 @@ static char sDataDir[1024];
 static AudioExportIo sIo;
 static AudioExportBank *sAll; /* every bank the reader knows, filled by a request */
 static int sAllCount;
-static int *sQueue;
-static int sCount, sNext, sDone, sFailed, sBuilt;
-static int sForce;
 static AudioExportStats sTotals;
-static TdManifest sMan;
-static int sManLoaded, sManDirty;
-static char sStatus[96], sStatusOut[96];
-static SDL_mutex *sMu;
-static SDL_Thread *sThread;
-static volatile int sStop;
-static int sWorkerDone;
-
-static void lockMu(void) {
-    if (sMu != NULL) SDL_LockMutex(sMu);
-}
-
-static void unlockMu(void) {
-    if (sMu != NULL) SDL_UnlockMutex(sMu);
-}
+static ExpManifest sMan;
+static ExpJob sJob; /* the queue holds indexes into sAll */
 
 static void manifestPath(char *out, size_t cap) { snprintf(out, cap, "%s/audio/manifest.json", sDataDir); }
 
 static void manifestLoad(void) {
     char mp[1200];
-    uint8_t *mt;
-    size_t ml;
 
-    if (sManLoaded) return;
-    memset(&sMan, 0, sizeof sMan);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "audio-v1");
+    if (sMan.loaded) return;
     manifestPath(mp, sizeof mp);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
-    sManLoaded = 1;
-    sManDirty = 0;
+    expManOpen(&sMan, "audio", mp, "audio");
 }
 
-static void manifestSave(void) {
-    char mp[1200], dir[1200];
-    char *text;
+static void manifestSave(void) { expManSave(&sMan, 1); }
 
-    if (!sManLoaded || !sManDirty) return;
-    snprintf(dir, sizeof dir, "%s/audio", sDataDir);
-    manifestPath(mp, sizeof mp);
-    text = tdManifestFormat(&sMan);
-    if (text == NULL || tdMakeDirs(dir) || tdWriteFileAtomic(mp, text, strlen(text))) plogLine("audio", "cannot write %s\n", mp);
-    else sManDirty = 0;
-    free(text);
-}
-
-static int fileExists(const char *p) {
-    FILE *f = fopen(p, "rb");
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
-}
-
-static void versionKey(const char *name, char *rel, size_t cap) { snprintf(rel, cap, "%s/exporter", name); }
-
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)AUDIO_EXPORT_VERSION); }
+/* the exporter version of a bank is kept in the manifest header under the bank's name */
+static void versionKey(const char *name, char *rel, size_t cap) { snprintf(rel, cap, "%s", name); }
 
 /* written by this version and its bank.json is there (an edited file still counts): nothing to build */
 static int upToDate(const char *name) {
-    char rel[96], path[1300], hex[17];
-    const char *have;
+    char rel[96], path[1300];
 
     manifestLoad();
     versionKey(name, rel, sizeof rel);
-    have = tdManifestFind(&sMan, rel);
-    versionHex(hex);
-    if (have == NULL || strcmp(have, hex)) return 0;
+    if (!expManIsCurrent(&sMan, rel, AUDIO_EXPORT_VERSION)) return 0;
     snprintf(path, sizeof path, "%s/audio/%s/bank.json", sDataDir, name);
-    return fileExists(path);
+    return expFileExists(path);
 }
 
 typedef struct PlaceCtx {
     const char *bank;
 } PlaceCtx;
 
-/* One file of a bank under the manifest rule of ADR-005: an unedited copy is replaced, an edited one stays and the new version goes
-   beside it as <file>.new. 0 to go on. */
+/* One file of a bank under the manifest rule of ADR-005 (exp_core.h). 0 to go on. */
 static int place(void *ud, const char *file, const void *data, size_t len) {
     const PlaceCtx *pc = (const PlaceCtx *)ud;
-    char rel[160], path[1400], np[1500], hex[17], curHex[17];
-    uint8_t *cur = NULL;
-    size_t curLen = 0;
-    int edited = 0;
+    char rel[160], dir[1200];
+    ExpSink sink;
 
-    if (sStop) return 1;
+    if (*expJobStopping(&sJob)) return 1;
     snprintf(rel, sizeof rel, "%s/%s", pc->bank, file);
-    snprintf(path, sizeof path, "%s/audio/%s", sDataDir, rel);
-    tdHashHex(tdHash(data, len), hex);
-    if (tdReadFile(path, &cur, &curLen) == 0) {
-        tdHashHex(tdHash(cur, curLen), curHex);
-        free(cur);
-        if (!strcmp(hex, curHex)) {
-            if (!tdManifestFind(&sMan, rel)) {
-                tdManifestSet(&sMan, rel, hex);
-                sManDirty = 1;
-            }
-            return 0;
-        }
-        edited = tdFileState(1, tdManifestFind(&sMan, rel), curHex) == TD_FILE_EDITED;
-    }
-    if (edited) {
-        snprintf(np, sizeof np, "%s.new", path);
-        if (tdWriteFileAtomic(np, data, len) != 0) {
-            plogLine("audio", "cannot write %s\n", np);
-            return 1;
-        }
-        plogLine("audio", "%s was edited, kept; the new version is %s.new\n", rel, rel);
-        return 0;
-    }
-    if (tdWriteFileAtomic(path, data, len) != 0) {
-        plogLine("audio", "cannot write %s\n", path);
-        return 1;
-    }
-    tdManifestSet(&sMan, rel, hex);
-    sManDirty = 1;
-    return 0;
+    snprintf(dir, sizeof dir, "%s/audio", sDataDir);
+    expSinkInPlace(&sink, "audio", dir, &sMan, NULL);
+    return expPut(&sink, rel, data, len) ? 1 : 0;
 }
 
-/* 0: built (or already up to date), -1: failed */
-static int exportOne(int index, int force) {
+/* 1: built, 0: already up to date, -1: failed */
+static int exportOne(void *ud, int pos, int index, int force) {
     const AudioExportBank *bk = &sAll[index];
-    char dir[1300], err[256], rel[96], hex[17];
+    char dir[1300], err[256], rel[96];
     AudioExportStats st;
     PlaceCtx pc;
     clock_t t0 = clock();
 
+    (void)ud;
+    (void)pos;
     manifestLoad();
     if (!force && upToDate(bk->name)) return 0;
     snprintf(dir, sizeof dir, "%s/audio/%s", sDataDir, bk->name);
@@ -821,11 +740,9 @@ static int exportOne(int index, int force) {
         return -1;
     }
     versionKey(bk->name, rel, sizeof rel);
-    versionHex(hex);
-    if (tdManifestSet(&sMan, rel, hex) == 0) sManDirty = 1;
+    expManMark(&sMan, rel, AUDIO_EXPORT_VERSION);
     manifestSave();
-    lockMu();
-    sBuilt++;
+    expJobLock(&sJob);
     sTotals.vags += st.vags;
     sTotals.programs += st.programs;
     sTotals.tones += st.tones;
@@ -834,70 +751,30 @@ static int exportOne(int index, int force) {
     sTotals.loopingSequences += st.loopingSequences;
     sTotals.loopingVags += st.loopingVags;
     sTotals.bytes += st.bytes;
-    unlockMu();
+    expJobUnlock(&sJob);
     plogLine("audio", "%s: %d samples, %d programs, %d sequences, %ld bytes, %.1f s\n", bk->name, st.vags, st.programs, st.sequences, st.bytes,
              (double)(clock() - t0) / CLOCKS_PER_SEC);
-    return 0;
+    return 1;
 }
 
-static void finishStatus(void) {
-    if (sFailed) snprintf(sStatus, sizeof sStatus, "Done, %d failed", sFailed);
-    else snprintf(sStatus, sizeof sStatus, "Done (%d)", sDone);
-    plogLine("audio", "Done: %d banks in %s/audio, %d failed\n", sDone, sDataDir, sFailed);
-}
-
-static int workerMain(void *arg) {
-    int j;
-    (void)arg;
-    for (j = 0; j < sCount && !sStop; j++) {
-        int r = exportOne(sQueue[j], sForce);
-        SDL_LockMutex(sMu);
-        if (r == 0) sDone++;
-        else if (!sStop) sFailed++;
-        sNext = j + 1;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-        SDL_UnlockMutex(sMu);
-    }
+static void flushManifest(void *ud) {
+    (void)ud;
     manifestSave();
-    SDL_LockMutex(sMu);
-    if (j >= sCount) finishStatus();
-    sWorkerDone = 1;
-    SDL_UnlockMutex(sMu);
-    return 0;
 }
 
-static int workerBusy(void) {
-    int busy;
-    if (sThread == NULL) return 0;
-    lockMu();
-    busy = !sWorkerDone;
-    unlockMu();
-    return busy;
+static void logDone(void *ud, int done, int failed) {
+    (void)ud;
+    plogLine("audio", "Done: %d banks in %s/audio, %d failed\n", done, sDataDir, failed);
 }
 
-static void reap(void) {
-    if (sThread == NULL) return;
-    SDL_WaitThread(sThread, NULL);
-    sThread = NULL;
-    free(sQueue);
-    sQueue = NULL;
-}
-
-static void dropJob(void) {
-    free(sQueue);
-    sQueue = NULL;
-    sCount = sNext = 0;
-}
+static const ExpJobKind kKind = {"audio", "dw3-audio-export", 1, 0, NULL, exportOne, NULL, flushManifest, logDone, NULL, NULL, NULL, NULL};
 
 void audioExportSetup(const char *dataDir, const AudioExportIo *io) {
-    audioExportShutdown();
-    dropJob();
-    if (sManLoaded) tdManifestFree(&sMan);
-    sManLoaded = 0;
+    expJobSetup(&sJob, &kKind);
+    expManFree(&sMan);
     free(sAll);
     sAll = NULL;
     sAllCount = 0;
-    sStatus[0] = '\0';
     snprintf(sDataDir, sizeof sDataDir, "%s", dataDir != NULL ? dataDir : "");
     if (io != NULL) sIo = *io;
     else memset(&sIo, 0, sizeof sIo);
@@ -932,13 +809,8 @@ int audioExportRequestEx(const char *spec, int force) {
     int *q, n = 0, i;
     const char *p;
 
-    if (workerBusy()) return -1; /* one job at a time: a press while one runs changes nothing */
-    reap();
-    dropJob();
-    sDone = sFailed = sBuilt = 0;
+    if (expJobBegin(&sJob, force) < 0) return -1; /* one job at a time: a press while one runs changes nothing */
     memset(&sTotals, 0, sizeof sTotals);
-    sForce = force;
-    sStatus[0] = '\0';
     if (!sDataDir[0] || sIo.bank == NULL || sIo.file == NULL || spec == NULL) return -1;
     loadBanks();
     if (sAllCount == 0) return -1;
@@ -976,92 +848,33 @@ int audioExportRequestEx(const char *spec, int force) {
         free(q);
         return -1;
     }
-    sQueue = q;
-    sCount = n;
-    sNext = 0;
-    snprintf(sStatus, sizeof sStatus, "Exporting 1/%d", n);
+    return expJobQueue(&sJob, q, n);
+}
+
+int audioExportRun(const char *spec) {
+    int n = audioExportRequest(spec);
+
+    if (n > 0) expJobRun(&sJob);
     return n;
 }
 
 int audioExportStart(const char *spec, int force) {
     int n = audioExportRequestEx(spec, force);
 
-    if (n <= 0) return -1;
-    if (sMu == NULL) sMu = SDL_CreateMutex();
-    if (sMu != NULL) {
-        sStop = 0;
-        sWorkerDone = 0;
-        sThread = SDL_CreateThread(workerMain, "dw3-audio-export", NULL);
-    }
-    if (sThread == NULL) {
-        plogLine("audio", "the export thread cannot start: %s\n", SDL_GetError());
-        dropJob();
-        return -1;
-    }
+    if (n <= 0 || expJobStart(&sJob) < 0) return -1;
     return n;
 }
 
-void audioExportShutdown(void) {
-    if (sThread == NULL) return;
-    sStop = 1;
-    reap();
-    sStop = 0;
-}
-
-int audioExportActive(void) {
-    if (sThread != NULL) return workerBusy();
-    return sQueue != NULL && sNext < sCount;
-}
-
-void audioExportCounts(int *done, int *failed, int *total) {
-    lockMu();
-    if (done) *done = sDone;
-    if (failed) *failed = sFailed;
-    if (total) *total = sCount;
-    unlockMu();
-}
-
-int audioExportBuilt(void) {
-    int n;
-    lockMu();
-    n = sBuilt;
-    unlockMu();
-    return n;
-}
+void audioExportShutdown(void) { expJobShutdown(&sJob); }
+int audioExportActive(void) { return expJobActive(&sJob); }
+void audioExportCounts(int *done, int *failed, int *total) { expJobCounts(&sJob, done, failed, total); }
+int audioExportBuilt(void) { return expJobBuilt(&sJob); }
+const char *audioExportStatus(void) { return expJobStatus(&sJob); }
+int audioExportPump(unsigned budgetMs) { return expJobPump(&sJob, budgetMs); }
 
 void audioExportTotals(AudioExportStats *st) {
     if (st == NULL) return;
-    lockMu();
+    expJobLock(&sJob);
     *st = sTotals;
-    unlockMu();
-}
-
-const char *audioExportStatus(void) {
-    lockMu();
-    snprintf(sStatusOut, sizeof sStatusOut, "%s", sStatus);
-    unlockMu();
-    return sStatusOut;
-}
-
-int audioExportPump(unsigned budgetMs) {
-    clock_t start = clock();
-
-    if (sThread != NULL) {
-        if (workerBusy()) return 1;
-        reap();
-        return 0;
-    }
-    if (!audioExportActive()) return 0;
-    do {
-        if (exportOne(sQueue[sNext], sForce) == 0) sDone++;
-        else sFailed++;
-        sNext++;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-    } while (sNext < sCount && (unsigned)((clock() - start) * 1000 / CLOCKS_PER_SEC) < budgetMs);
-    if (sNext < sCount) return 1;
-    manifestSave();
-    finishStatus();
-    free(sQueue);
-    sQueue = NULL;
-    return 0;
+    expJobUnlock(&sJob);
 }

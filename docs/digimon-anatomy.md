@@ -30,7 +30,8 @@ Un Digimon no es una fila de una tabla: son hasta tres registros, unidos solo po
 `FighterInfo` (`model.h:225`) guarda tres referencias de archivo del disco, cada una `(archivo << 16) | entrada`:
 
 - `model`: el modelo 3D (huesos, mallas, texturas). Estructura visible en el código pero formato en investigación: `docs/formats.md` §4.6.
-- `motions`: el archivo de movimientos (animaciones por huesos, claves por cuadro).
+- `motions`: el archivo de movimientos (animaciones por huesos, claves por cuadro): 62 ranuras. Cuál ranura pide el código y cuáles los scripts de efectos, la
+  diferencia entre compañero y enemigo y las 12 / 3 cámaras: `docs/formats.md` §4.6 punto 5b; cómo darle a un compañero nuevo su modelo: guía §8.2c.
 - `effects`: el archivo de **animaciones de técnicas**: una tabla de 18 ranuras de bytecode (guía §6.8). Un luchador tiene las
   ranuras que tiene; `TechData.script` elige cuál se reproduce.
 

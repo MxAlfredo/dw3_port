@@ -86,7 +86,7 @@ size_t saveFileEncode(const SaveFile *f, uint8_t *out, size_t cap) {
     if (out == NULL || cap < total) return total;
     memset(out, 0, 8);
     memcpy(out, MAGIC, 7);
-    put32(out + 8, SAVEFILE_FORMAT_VERSION);
+    put32(out + 8, f->formatVersion != 0 ? f->formatVersion : 1);
     put32(out + 12, f->portVersion != 0 ? f->portVersion : SAVEFILE_PORT_VERSION);
     put32(out + 16, (uint32_t)f->count);
     put32(out + 20, (uint32_t)total);

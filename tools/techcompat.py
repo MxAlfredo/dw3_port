@@ -127,7 +127,8 @@ def fighter_rows(fighters, scripts):
     return rows
 
 
-def load_disc(disc, repo):
+def open_disc(disc, repo):
+    """(get_file, exe): get_file(n) is the bytes of file n of the EU disc, exe those of its main executable."""
     spec = importlib.util.spec_from_file_location("file_names", str(repo / "tools" / "file_names.py"))
     fn = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(fn)
@@ -139,10 +140,19 @@ def load_disc(disc, repo):
 
     exe = fn.read_sector(f, EXE_LBA, (EXE_SIZE + 2047) // 2048)
     if exe[:8] != b"PS-X EXE":
-        sys.exit("techcompat: the executable was not found where the EU disc has it; is this the European disc?")
-    base = u32(exe, 0x18)  # load address of the text segment; the file's data starts after the 0x800 header
-    at = TECHS_ADDR - base + 0x800
-    techs = exe[at:at + TECH_COUNT * TECH_SIZE]
+        sys.exit("the executable was not found where the EU disc has it; is this the European disc?")
+    return get_file, exe
+
+
+def exe_bytes(exe, addr, size):
+    """`size` bytes of the executable at the memory address `addr` (the file's data starts after the 0x800 header)."""
+    at = addr - u32(exe, 0x18) + 0x800  # u32 at 0x18: load address of the text segment
+    return exe[at:at + size]
+
+
+def load_disc(disc, repo):
+    get_file, exe = open_disc(disc, repo)
+    techs = exe_bytes(exe, TECHS_ADDR, TECH_COUNT * TECH_SIZE)
     scripts = [techs[i * TECH_SIZE + TECH_SCRIPT_AT] for i in range(TECH_COUNT)]
     return get_file(FILE_FIGHTERS), get_file, scripts
 

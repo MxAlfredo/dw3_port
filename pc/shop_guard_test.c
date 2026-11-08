@@ -21,9 +21,10 @@ ItemInfo ITEMS[1];
 GameState GAME;
 ShopList STITSHOP_shops[31];
 
-/* equip.c's other functions reference these; the test never calls them */
-s8 *pcItemEquippedRef(int id) { return 0; }
-s8 *pcItemCountRef(int id) { return 0; }
+/* the port's extended state (ext_state.c: the equipment rule of a partner a mod adds) needs the game's tables */
+TechData TECHS_CARD[443];
+DigimonData DIGIMON_DATA_CARD[55];
+
 
 int main(void) {
     static ItemData weapon;
@@ -43,6 +44,15 @@ int main(void) {
     CHECK(STITSHOP_canEquip(1, 2) == 0);
     CHECK(STITSHOP_canEquip(2, 2) == 1);
     CHECK(STITSHOP_canEquip(0, 3) == 0);
+    /* a partner a mod adds (P4): it reads the bit of the original partner it is like (0 here), unless an item is allowed or refused by name */
+    CHECK(pcPartnerRegister("shop:new", 55) == 8);
+    CHECK(STITSHOP_canEquip(8, 2) == 1 && STITSHOP_canEquip(8, 1) == 0);
+    pcPartnerSetEquipLike(8, 1);
+    CHECK(STITSHOP_canEquip(8, 2) == 0);
+    pcPartnerEquipRule(8, 2, 1);
+    CHECK(STITSHOP_canEquip(8, 2) == 1);
+    pcPartnerEquipRule(8, 2, 0);
+    CHECK(STITSHOP_canEquip(8, 2) == 0);
     printf(failures ? "shop_guard_test: %d FAILED\n" : "shop_guard_test: ok\n", failures);
     return failures != 0;
 }

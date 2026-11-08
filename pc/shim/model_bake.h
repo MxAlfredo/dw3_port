@@ -5,7 +5,7 @@
  * Models from a neutral source (model-import I5, ADR-011): a folder with model.json ("model-src-v1"), a glTF 2.0 file and its PNG
  * becomes the game's battle model archive when the game loads, in portable C (ADR-009 section 7).
  *
- *   mods/<mod>/content/models/<key>/model.json   registered as "<mod>:<key>"
+ *   mods/<mod>/digimon/<key>/model/model.json    registered as "<mod>:<key>" (the model/ of the Digimon folder <key>; a folder d<nnn> is never read)
  *
  * The converter (modelBake) is a port of tools/model_import.py and gives the same bytes; the registry (modelsFile) bakes a
  * registered source on first use, keeps the blob in <user>/cache/models/ under a hash of the sources and the baker's version
@@ -13,7 +13,7 @@
  * baked is logged as "[models] <name> rejected: <why>" and its Digimon keeps the template model. Nothing here reads the disc.
  *
  * "from" (model-polish P3): a model.json may say "from": "dw3:model/<fighter id>" and then ship only what it changes. The original
- * fighter is exported in memory (model_export.h, the same files as data/models/<id>/) through the ModelOriginals callback, the
+ * fighter is exported in memory (model_export.h, the same files as data/digimon/d<nnn>/model/) through the ModelOriginals callback, the
  * original's model.json is the base and the mod's keys replace its top-level keys (shallow; "motions" is merged slot by slot, the
  * mod's slot winning), and a file the mod's folder lacks (model.gltf, model.bin, model.png) is the original's. A file the mod
  * ships wins, so a model.png of its own must keep the original's UV layout (the exported glTF names "model.png"). The cache key
@@ -73,10 +73,20 @@ int modelSourceInfo(const char *dir, const char *metaFile, ModelSrcInfo *out, ch
 /* The same through "from": what the mod's model.json lacks comes from the original's (built only when something is missing) */
 int modelSourceInfoFrom(const char *dir, const char *metaFile, const ModelOriginals *orig, ModelSrcInfo *out, char *err, size_t errCap);
 
-/* ---- the registry of the active mods: "<mod>:<key>" is mods/<mod>/content/models/<key>/model.json ---- */
+/* The motion slots the battle code plays on every fighter of a facet (docs/formats.md 4.6, "Ranuras de movimiento"): slot, a short name,
+   and who plays it. A model that leaves one empty gets one line each (digimon_ext.c); tools/model_import.py has the same table. */
+typedef struct ModelSlotNeed {
+    int slot;
+    const char *label, *why;
+} ModelSlotNeed;
+int modelSlotNeeds(int partner, const ModelSlotNeed **out);   /* how many, and the table (partner: a partner form's; else an enemy's) */
+uint64_t modelBlobSlots(const uint8_t *blob, size_t len);     /* bit n: slot n of a baked archive has a motion (0: not an archive) */
+
+/* ---- the registry of the active mods: "<mod>:<key>" is mods/<mod>/digimon/<key>/model/model.json ---- */
 int modelsHas(const char *name);                          /* 1 when a source of that name exists */
 int modelsInfo(const char *name, ModelSrcInfo *out);      /* 1 and the info; 0 (logged) when it cannot be read */
 int modelsFile(const char *name);                         /* the virtual file number of the baked archive, -1 (logged) when it is rejected */
+int modelsSlots(const char *name, uint64_t *mask);        /* 1 and the slots with a motion of a source that modelsFile baked; 0 when it was not or was rejected */
 void modelsSetOriginals(const ModelOriginals *orig);      /* the originals for "from" (copied; NULL: none), set once at start */
 void modelsReset(void);                                   /* forget the baked files (after pfsClearVirtualFiles) */
 

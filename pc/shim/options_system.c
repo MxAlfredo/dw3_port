@@ -22,6 +22,7 @@
 #endif
 
 #include "controls_screen.h"
+#include "exp_types.h"
 #include "input_cfg.h"
 #include "options_system.h"
 #include "options_mods.h"
@@ -415,26 +416,7 @@ static const char *textQuit(void) { return textRow(OPT_SYS_QUIT); }
    after the other (each on its own worker thread, so the game keeps its frame rate), skips what is already up to date, and shows the
    step that is running ("Videos 3/14"). The command line's --export-all drives the same job without a window. */
 
-enum { PREP_VIDEOS, PREP_AUDIO, PREP_MODELS, PREP_STAGES, PREP_N }; /* the order they run in */
-
-static const char *const prepName[PREP_N] = {"Videos", "Audio", "Models", "Stages"};
-static OptSysExport sEx[PREP_N];
-static int sExSet[PREP_N];
-
-static void setEx(int i, const OptSysExport *e) {
-    if (e != NULL) {
-        sEx[i] = *e;
-        sExSet[i] = 1;
-    } else {
-        sExSet[i] = 0;
-    }
-}
-
-void optionsSystemSetExport(const OptSysExport *e) { setEx(PREP_MODELS, e); }
-void optionsSystemSetExportVideos(const OptSysExport *e) { setEx(PREP_VIDEOS, e); }
-void optionsSystemSetExportAudio(const OptSysExport *e) { setEx(PREP_AUDIO, e); }
-void optionsSystemSetExportStages(const OptSysExport *e) { setEx(PREP_STAGES, e); }
-
+/* the steps are the exporter types that have an on-demand job (shim/exp_types.h), in table order; a type's name is the step's */
 static struct {
     int running;
     int cur;        /* the step in progress, -1 before the first and after the last */
@@ -445,41 +427,36 @@ static struct {
 
 static void prepAdvance(void) {
     while (sPrep.running) {
+        const ExpType *cur = expTypeAt(sPrep.cur);
         int next;
 
         if (sPrep.cur >= 0 && sPrep.curStarted) {
-            if (sEx[sPrep.cur].active != NULL && sEx[sPrep.cur].active()) {
+            if (cur->active != NULL && cur->active()) {
                 return;
             }
-            if (sEx[sPrep.cur].failed != NULL) {
-                sPrep.failed += sEx[sPrep.cur].failed();
+            if (cur->counts != NULL) {
+                int done, failed, total;
+
+                cur->counts(&done, &failed, &total);
+                sPrep.failed += failed;
             }
             sPrep.curStarted = 0;
         }
-        for (next = sPrep.cur + 1; next < PREP_N && !sExSet[next]; next++) {
+        for (next = sPrep.cur + 1; next < expTypeCount() && !expTypeIsJob(expTypeAt(next)); next++) {
         }
-        if (next >= PREP_N) {
+        if (next >= expTypeCount()) {
             sPrep.running = 0;
             sPrep.cur = -1;
             sPrep.finished = 1;
             return;
         }
         sPrep.cur = next;
-        if (sEx[next].startIfNeeded != NULL) {
-            sPrep.curStarted = sEx[next].startIfNeeded() > 0;
-        } else if (sEx[next].start != NULL) {
-            sPrep.curStarted = sEx[next].start() > 0;
-        }
+        sPrep.curStarted = expTypeAt(next)->start("all", 0) > 0; /* skips what is up to date: a second press is quick */
     }
 }
 
 int optionsSystemPrepStart(void) {
-    int i, any = 0;
-
-    for (i = 0; i < PREP_N; i++) {
-        any |= sExSet[i];
-    }
-    if (!any || sPrep.running) {
+    if (expTypesJobCount() == 0 || sPrep.running) {
         return 0;
     }
     sPrep.running = 1;
@@ -498,12 +475,13 @@ const char *optionsSystemPrepStatus(void) {
     static char text[96];
 
     if (sPrep.running && sPrep.cur >= 0) {
-        const char *st = sPrep.curStarted && sEx[sPrep.cur].status != NULL ? sEx[sPrep.cur].status() : "";
+        const ExpType *cur = expTypeAt(sPrep.cur);
+        const char *st = sPrep.curStarted && cur->status != NULL ? cur->status() : "";
 
         if (strncmp(st, "Exporting ", 10) == 0) {
             st += 10; /* "Exporting 3/14" -> "Videos 3/14" */
         }
-        snprintf(text, sizeof(text), "%s%s%s", prepName[sPrep.cur], st[0] != '\0' ? " " : "", st);
+        snprintf(text, sizeof(text), "%s%s%s", cur->name, st[0] != '\0' ? " " : "", st);
         return text;
     }
     if (sPrep.finished) {
@@ -519,9 +497,11 @@ const char *optionsSystemPrepStatus(void) {
 void optionsSystemFrame(void) {
     int i;
 
-    for (i = 0; i < PREP_N; i++) {
-        if (sExSet[i] && sEx[i].pump != NULL) {
-            sEx[i].pump();
+    for (i = 0; i < expTypeCount(); i++) {
+        const ExpType *t = expTypeAt(i);
+
+        if (expTypeIsJob(t) && t->pump != NULL) {
+            t->pump(8); /* with a worker job running it only joins the worker once it is done */
         }
     }
     prepAdvance();
@@ -625,7 +605,7 @@ void optionsSystemInit(void) {
                    .apply = applyLog,
                    .desc = "Mods: what mods change. Trace: all detail."};
     csWidgetAdd(CS_TAB_SYSTEM, &w);
-    if (sExSet[PREP_VIDEOS] || sExSet[PREP_AUDIO] || sExSet[PREP_MODELS] || sExSet[PREP_STAGES]) {
+    if (expTypesJobCount() > 0) {
         w = (CsWidget){.kind = CS_ROW_ACTION, .label = "Prepare modding files", .apply = applyPrepare, .text = textPrepare,
                        .desc = "Exports the heavy files for mods. About 700 MB."};
         csWidgetAdd(CS_TAB_SYSTEM, &w);

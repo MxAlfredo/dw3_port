@@ -22,6 +22,8 @@ void csWidgetAdd(int tab, int row, const void *w) { (void)tab; (void)row; (void)
 void inputCapFrame(void) {}
 int inputCfgLogLevel(void) { return 0; }
 void inputCfgSetLogLevel(int l) { (void)l; }
+void inputCfgRegisterExport(const char *k, const char *n) { (void)k; (void)n; }
+int inputCfgReadExport(const char *k, char *o, int c) { (void)k; (void)o; (void)c; return 0; }
 void optionsModsInit(void) {}
 
 static const char *outPath;

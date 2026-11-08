@@ -1,28 +1,25 @@
 #!/bin/sh
-# Installs the example mods of pc/examples/mods/ into a user folder, makes the files that cannot
-# live in the repository (ADR-001: no game data) from YOUR exported data/, and turns every
-# installed example OFF in settings.ini, so nothing changes until you enable one (Options > Mods).
+# Installs the example mods of pc/examples/mods/ into a user folder and turns every installed
+# example OFF in settings.ini, so nothing changes until you enable one (Options > Mods).
 #
-#   pc/examples/install_examples.sh [--only a,b,tables] [--list] [USER_DIR]
+#   pc/examples/install_examples.sh [--only a,b] [--list] [USER_DIR]
 #
 # USER_DIR defaults to $DW3_USER_DIR, else $HOME/.local/share/dw3port/dw3 (the folder with data/,
 # mods/, saves/ and settings.ini). The script writes only <USER_DIR>/mods/ and
 # <USER_DIR>/settings.ini (a copy of the old one goes to settings.ini.bak). It never touches saves/.
 #
-# --only takes example names or groups, separated by commas:
-#   tables  (10 mods: data-table patches)   content (6: new items, techs, Digimon, cards, a model)
-#   media   (10: text, images, sound, song, movie, stage art, stage characters, new stages)
-# The Mods tab of the options menu scrolls through every installed mod. Run it again after "Prepare modding files" to add the ones it skipped.
-# Needs python3 (and Pillow for the movie) for the generated examples; the others need nothing.
+# --only takes example names, separated by commas (default: all):
+#   training-field  (two new field stages with their own art, an NPC, a sprite, tables and texts)
+#   sample-model    (a new enemy Digimon with a 3D model made from a glTF)
+#   betamon-pack   (a new partner with three forms, a fourth starter team and an unlock talk)
+# All are complete and ship their own (original) files: nothing is generated from your disc.
+# The Mods tab of the options menu scrolls through every installed mod.
 set -e
 
 here=$(cd "$(dirname "$0")" && pwd)
-root=$(cd "$here/../.." && pwd)
 src="$here/mods"
 
-G_TABLES="cheap-shops double-rewards generous-loot shop-extra-item field-encounters fast-growth gym-inn-prices card-rival-deck strong-weapons"
-G_CONTENT="sample-card sample-digimon sample-enemy sample-item sample-model sample-tech"
-G_MEDIA="menu-frames-gold player-recolor text-upper-items sfx-beep song-title-chime video-bars stage-tiles stage-objects stage-npc training-field"
+ALL="training-field sample-model betamon-pack"
 
 only=""
 list=0
@@ -32,7 +29,7 @@ while [ $# -gt 0 ]; do
     --only) only="$2"; shift 2 ;;
     --only=*) only="${1#--only=}"; shift ;;
     --list) list=1; shift ;;
-    -h|--help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "install_examples: unknown option $1" >&2; exit 2 ;;
     *) user="$1"; shift ;;
     esac
@@ -42,13 +39,10 @@ user="${user:-${DW3_USER_DIR:-$HOME/.local/share/dw3port/dw3}}"
 # the names to install
 names=""
 if [ -z "$only" ]; then
-    names="$G_TABLES $G_CONTENT $G_MEDIA"
+    names="$ALL"
 else
     for n in $(echo "$only" | tr ',' ' '); do
         case "$n" in
-        tables) names="$names $G_TABLES" ;;
-        content) names="$names $G_CONTENT" ;;
-        media) names="$names $G_MEDIA" ;;
         *) names="$names $n" ;;
         esac
     done
@@ -71,45 +65,10 @@ fi
 mods="$user/mods"
 mkdir -p "$mods"
 
-has() { case " $names " in *" $1 "*) return 0 ;; esac; return 1; }
-py=$(command -v python3 || true)
-installed=""
-skipped=""
-
 for n in $names; do
+    rm -rf "$mods/$n"
     cp -R "$src/$n" "$mods/"
 done
-
-# gen <mod> <file that proves it was made> <command...>: runs a generator; a mod whose file is
-# missing afterwards is removed again, so a half-made example is never installed.
-gen() {
-    mod="$1"; proof="$2"; shift 2
-    has "$mod" || return 0
-    if [ -z "$py" ]; then
-        echo "install_examples: $mod skipped: python3 not found"
-    else
-        "$@" || true
-    fi
-    if [ -e "$mods/$mod/$proof" ]; then
-        return 0
-    fi
-    rm -rf "$mods/$mod"
-    skipped="$skipped $mod"
-    names=$(echo " $names " | sed "s/ $mod / /")
-}
-
-gen menu-frames-gold images/screen/stshoptm/00_00.png \
-    python3 "$root/tools/image_mod_palette.py" --data "$user/data" --mod "$mods/menu-frames-gold"
-gen player-recolor images/field/sprt/p001play \
-    python3 "$root/tools/image_mod_palette.py" --data "$user/data" --mod "$mods/player-recolor" \
-    --sprite p001play --sprite p002play --sprite p002plyd --sprite p002plyf --sprite p002plyk --sprite p002plyl --to 0
-gen text-upper-items text python3 "$here/tools/gen_text.py" "$user"
-gen stage-tiles z_stage/s330pack python3 "$here/tools/gen_art.py" "$user" stage-tiles
-gen stage-objects images/field/stage/s233mask python3 "$here/tools/gen_art.py" "$user" stage-objects
-gen stage-npc sprites/rival/sprite.json python3 "$here/tools/gen_art.py" "$user" stage-npc
-gen sfx-beep audio/COMMON/vag_050.wav python3 "$here/tools/gen_media.py" "$user" sfx-beep
-gen song-title-chime audio/TTLBGM/seq_0_00.wav python3 "$here/tools/gen_media.py" "$user" song-title-chime
-gen video-bars video/MOVIEOPN.avi python3 "$here/tools/gen_media.py" "$user" video-bars
 
 # every installed example goes into [mods] disabled
 list=$(echo $names | tr ' ' ',' | sed 's/,/, /g')
@@ -153,7 +112,6 @@ mv "$ini.new" "$ini"
 
 len=$(grep '^disabled *=' "$ini" | awk '{ print length($0) }' | sort -n | tail -1)
 echo "install_examples: installed:$(for n in $names; do printf ' %s' "$n"; done)"
-[ -n "$skipped" ] && echo "install_examples: skipped:$skipped (see the messages above; run again after exporting the data)"
 echo "install_examples: every installed example is OFF ([mods] disabled in $ini; old file: $ini.bak)."
 echo "Enable one in the game (Options > Mods) or delete its name from that line, then restart."
 n=$(echo $names | wc -w)

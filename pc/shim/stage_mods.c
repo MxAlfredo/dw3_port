@@ -15,6 +15,7 @@
 #include "mod_stages.h"
 #include "mods.h"
 #include "port_log.h"
+#include "stage_new.h"
 #include "text_codec.h"
 #include "text_data.h"
 
@@ -416,7 +417,7 @@ static int textAdd(const char *name) {
 
 /* mods/<mod>/text/<lang>/stages.json, one language of one mod; a file with a bad line is refused whole */
 static void textsLoadFile(int m, int lang) {
-    char path[1500], full[200], why[200] = "";
+    char path[1500], rel[48], full[200], why[200] = "";
     uint8_t *data = NULL;
     size_t len = 0;
     ExtJson root;
@@ -424,8 +425,8 @@ static void textsLoadFile(int m, int lang) {
     static const char *const top[] = {"$schema", "format", "about", "texts"};
     int i;
 
-    snprintf(path, sizeof path, "%s/text/%s/stages.json", modsDirOf(m), EXT_LANGS[lang]);
-    if (tdReadFile(path, &data, &len)) return; /* the mod has no text in this language */
+    snprintf(rel, sizeof rel, "%s/stages.json", EXT_LANGS[lang]);
+    if (!assetModFile(m, "text", rel, path, sizeof path) || tdReadFile(path, &data, &len)) return; /* the mod has no text in this language */
     if (extJsonParse(data, len, &root)) {
         plogLine("stages", "%s rejected: not a JSON object\n", path);
         free(data);
@@ -557,6 +558,57 @@ static int cmpName(const void *a, const void *b) {
     return strcmp(*(char *const *)a, *(char *const *)b);
 }
 
+/* The follower sprites of the partners the mods bring (readable-assets A4a): every partners/<key>/field/ of the active mods is a sprite named
+   ASSET_PARTNER_FIELD_PREFIX + <key>, built whole from the folder the asset layers resolve for sprite.json (the last layer that has one wins). */
+static void partnerFieldSprites(void) {
+    int m;
+
+    for (m = 0; m < modsCount(); m++) {
+        char dirPath[1400];
+        DIR *d;
+        struct dirent *e;
+
+        if (!assetModDir(m, NULL, "partners", dirPath, sizeof dirPath)) continue;
+        d = opendir(dirPath);
+        if (!d) continue;
+        while ((e = readdir(d)) != NULL) {
+            char rel[200], json[1500], label[400], why[240], *slash;
+            SmSprite info;
+            SprReg *grown;
+            int k;
+
+            if (e->d_name[0] == '.' || !extValidKey(e->d_name)) continue;
+            snprintf(label, sizeof label, "%s%s", ASSET_PARTNER_FIELD_PREFIX, e->d_name);
+            for (k = 0; k < sSpriteCount && strcmp(sSprites[k].name, label) != 0; k++) {
+            }
+            if (k < sSpriteCount) continue; /* an earlier mod already brought this key */
+            snprintf(rel, sizeof rel, "%s/field/sprite.json", e->d_name);
+            if (!assetResolve("partners", rel, json, sizeof json, NULL)) continue;
+            slash = strrchr(json, '/');
+            if (slash == NULL) continue;
+            *slash = '\0'; /* the folder that holds sprite.json */
+            if (sSpriteCount >= SM_SPRITES_MAX) {
+                plogLine("stages", "%s: partner sprite \"%s\" skipped: the port holds %d mod sprites\n", modsNameOf(m), label, SM_SPRITES_MAX);
+                continue;
+            }
+            why[0] = '\0';
+            if (sHost.spriteAdd(json, label, &info, why, sizeof why)) {
+                plogLine("stages", "%s rejected: %s\n", json, why[0] ? why : "the sprite could not be built");
+                continue;
+            }
+            grown = (SprReg *)realloc(sSprites, (size_t)(sSpriteCount + 1) * sizeof *sSprites);
+            if (!grown) continue;
+            sSprites = grown;
+            sSprites[sSpriteCount].name = smDup(label);
+            sSprites[sSpriteCount].info = info;
+            if (!sSprites[sSpriteCount].name) continue;
+            plogLine("stages", "sprite %s is character %d (frames up to %dx%d)\n", label, SM_SPRITE_CHAR_BASE + sSpriteCount, info.w, info.h);
+            sSpriteCount++;
+        }
+        closedir(d);
+    }
+}
+
 /* the folders of mods/<mod>/sprites, each built by the host and given the next character id (a mod's folders in name order, so the ids do not depend on
    the file system) */
 static void spritesLoad(void) {
@@ -571,7 +623,7 @@ static void spritesLoad(void) {
         char **names = NULL;
         int nn = 0, i;
 
-        snprintf(dirPath, sizeof dirPath, "%s/sprites", modsDirOf(m));
+        if (!assetModDir(m, NULL, "sprites", dirPath, sizeof dirPath)) continue;
         d = opendir(dirPath);
         if (!d) continue;
         while ((e = readdir(d)) != NULL) {
@@ -594,6 +646,7 @@ static void spritesLoad(void) {
             char sub[1700], label[400], why[240];
             SmSprite info;
             SprReg *grown;
+            int rc;
 
             if (!extValidKey(names[i])) {
                 plogLine("stages", "%s: the sprite folder \"%s\" is skipped: its name must be 1 to 48 characters of a-z, 0-9, - and _\n", modsNameOf(m), names[i]);
@@ -606,7 +659,9 @@ static void spritesLoad(void) {
                 continue;
             }
             why[0] = '\0';
-            if (sHost.spriteAdd(sub, label, &info, why, sizeof why)) {
+            rc = sHost.spriteAdd(sub, label, &info, why, sizeof why);
+            if (rc > 0) continue; /* not a new sprite: the folder is an original's (its frames are read by the images loader) */
+            if (rc) {
                 plogLine("stages", "%s rejected: %s\n", sub, why[0] ? why : "the sprite could not be built");
                 continue;
             }
@@ -622,6 +677,7 @@ static void spritesLoad(void) {
         for (i = 0; i < nn; i++) free(names[i]);
         free(names);
     }
+    partnerFieldSprites();
     if (sHost.spritesDone) sHost.spritesDone();
 }
 
@@ -640,6 +696,15 @@ const char *smSpriteName(int character) {
     int k = character - SM_SPRITE_CHAR_BASE;
 
     return k >= 0 && k < sSpriteCount ? sSprites[k].name : NULL;
+}
+
+int smSpriteFind(const char *label) {
+    int k;
+
+    for (k = 0; label != NULL && k < sSpriteCount; k++) {
+        if (strcmp(sSprites[k].name, label) == 0) return SM_SPRITE_CHAR_BASE + k;
+    }
+    return -1;
 }
 
 int smSpriteInfo(int character, SmSprite *out) {
@@ -2103,17 +2168,16 @@ done:
     return ok;
 }
 
-/* "<digits>.json" -> the stage number, else -1 */
-static int stageOfFile(const char *name) {
-    size_t n = strlen(name), i;
-    long v = 0;
+/* "s330" (any case) -> the stage number 330, else -1 */
+static int stageOfFolder(const char *name) {
+    int i, v = 0;
 
-    if (n < 6 || n > 9 || strcmp(name + n - 5, ".json")) return -1;
-    for (i = 0; i < n - 5; i++) {
+    if (strlen(name) != 4 || tolower((unsigned char)name[0]) != 's') return -1;
+    for (i = 1; i < 4; i++) {
         if (!isdigit((unsigned char)name[i])) return -1;
         v = v * 10 + (name[i] - '0');
     }
-    return (int)v;
+    return v;
 }
 
 /* ---- stages a mod adds (new-stages T5) ---- */
@@ -2131,7 +2195,7 @@ static void dropNewFiles(void) {
     sFileCount = k;
 }
 
-/* One pass over every mods/<mod>/new-stages/<name>/stage.json whose stage the host knows. Returns how many stages it refused (the host was told: the names
+/* One pass over every mods/<mod>/stages/<name>/stage.json whose stage the host knows. Returns how many stages it refused (the host was told: the names
    they had stop resolving, so another pass reads the files that named them again). */
 static int newStagesPass(const SmHost *host, const StageCodeEnv *env) {
     int m, refused = 0;
@@ -2141,7 +2205,7 @@ static int newStagesPass(const SmHost *host, const StageCodeEnv *env) {
         DIR *d;
         struct dirent *e;
 
-        snprintf(dirPath, sizeof dirPath, "%s/new-stages", modsDirOf(m));
+        if (!assetModDir(m, NULL, NS_DIR, dirPath, sizeof dirPath)) continue;
         d = opendir(dirPath);
         if (!d) continue;
         while ((e = readdir(d)) != NULL) {
@@ -2153,7 +2217,7 @@ static int newStagesPass(const SmHost *host, const StageCodeEnv *env) {
             SmNewInfo info;
             int i;
 
-            if (e->d_name[0] == '.' || !extValidKey(e->d_name)) continue;
+            if (e->d_name[0] == '.' || stageOfFolder(e->d_name) >= 0 || !extValidKey(e->d_name)) continue; /* s<nnn> is an original stage */
             snprintf(key, sizeof key, "%s:%s", modsNameOf(m), e->d_name);
             number = host && host->stageByName ? host->stageByName(key) : -1;
             if (number < 0) continue; /* not registered: the scan said why, or it is not a stage folder */
@@ -2259,6 +2323,12 @@ static void loadNewStages(const SmHost *host, const StageCodeEnv *env) {
     }
 }
 
+/* "s330/stage.json": the stage patch inside the mod's stages/ folder */
+static const char *patchRel(const char *folder, char *out, size_t cap) {
+    snprintf(out, cap, "%s/stage.json", folder);
+    return out;
+}
+
 int smLoad(const SmHost *host) {
     StageCodeEnv env;
     int m;
@@ -2274,11 +2344,11 @@ int smLoad(const SmHost *host) {
         DIR *d;
         struct dirent *e;
 
-        snprintf(dirPath, sizeof dirPath, "%s/stages", modsDirOf(m));
+        if (!assetModDir(m, NULL, "stages", dirPath, sizeof dirPath)) continue;
         d = opendir(dirPath);
         if (!d) continue;
         for (;;) {
-            char path[1700], err[300];
+            char path[1700], err[300], folderRel[40];
             uint8_t *data = NULL;
             size_t len = 0;
             int stage;
@@ -2286,9 +2356,8 @@ int smLoad(const SmHost *host) {
 
             e = readdir(d);
             if (!e) break;
-            stage = stageOfFile(e->d_name);
-            if (stage < 0) continue;
-            snprintf(path, sizeof path, "%s/%s", dirPath, e->d_name);
+            stage = stageOfFolder(e->d_name);
+            if (stage < 0 || !assetModFile(m, "stages", patchRel(e->d_name, folderRel, sizeof folderRel), path, sizeof path)) continue; /* mods/<mod>/stages/s<nnn>/stage.json */
             if (tdReadFile(path, &data, &len)) {
                 plogLine("stages", "%s rejected: the file could not be read\n", path);
                 continue;

@@ -292,8 +292,8 @@ static void testExport(void) {
     CHECK(js != NULL && strstr(js, "mpbgm001") == NULL); /* the covered files are not listed */
     free(js);
     d = slurp("manifest.json", &n);
-    CHECK(d != NULL && tdManifestParse((char *)d, n, &man, err, sizeof err) == 0 && !strcmp(man.stamp, "raw-v1"));
-    CHECK(tdManifestFind(&man, "kind/stage-map") != NULL && tdManifestFind(&man, stageMapPath) != NULL);
+    CHECK(d != NULL && tdManifestParse((char *)d, n, &man, err, sizeof err) == 0 && !strcmp(man.topic, "raw") && man.exporter.count >= 1 && man.exporter.count == countKinds());
+    CHECK(tdKvFind(&man.exporter, "stage-map") != NULL && tdManifestFind(&man, "kind/stage-map") == NULL && tdManifestFind(&man, stageMapPath) != NULL);
     tdManifestFree(&man);
     free(d);
 
@@ -336,7 +336,7 @@ static void testExport(void) {
         snprintf(mp, sizeof mp, "%s/raw/manifest.json", dd);
         CHECK(tdReadFile(mp, &mt, &ml) == 0 && tdManifestParse((char *)mt, ml, &m2, err, sizeof err) == 0);
         free(mt);
-        CHECK(tdManifestSet(&m2, "kind/battle-effect", "0000000000000000") == 0);
+        CHECK(tdKvSet(&m2.exporter, "battle-effect", "0") == 0);
         text = tdManifestFormat(&m2);
         CHECK(text != NULL && tdWriteFileAtomic(mp, text, strlen(text)) == 0);
         free(text);

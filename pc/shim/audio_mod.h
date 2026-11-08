@@ -32,13 +32,10 @@
 typedef struct AudioModIo {
     /* the folder name ("BGM001") of the bank being loaded into the game's sound slot 0..2, 1 when known */
     int (*slotBank)(void *ud, int slot, char *name, int cap);
-    int (*modCount)(void *ud);
-    const char *(*modName)(void *ud, int i);
-    const char *(*modDir)(void *ud, int i); /* no trailing slash */
     void *ud;
 } AudioModIo;
 
-/* Where the banks and the mods are. NULL turns replacement off. Safe to call again. */
+/* Where the banks are (the mods are the asset layers of mods.h). NULL turns replacement off. Safe to call again. */
 void audioModSetup(const AudioModIo *io);
 
 /* The bank of a sound slot is read when snd_spu.c opens it and forgotten when it closes; "" when unknown. */

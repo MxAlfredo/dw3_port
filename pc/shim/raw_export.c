@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "exp_core.h"
 #include "image_data.h"
 #include "port_log.h"
 #include "sprite_data.h"
@@ -71,7 +72,7 @@ static const RawKind KINDS[] = {
      "316 contiguous CardImage records of 0x62C bytes (12 header bytes and a 32x32 8-bit TIM); almost the same series as CARDPAK0-4, which are "
      "exported as PNG (docs/formats.md 4.9).",
      "Nothing found: no code reads it by file number.",
-     "Nothing to replace: the game does not read it. Edit the card art through the PNG of dat/card/cardpak0-4.", "no"},
+     "Nothing to replace: the game does not read it. Edit the card art through cards/c<nnn>/face.png (dat/card/cardpak0-4).", "no"},
     {"text-unused", "dat/country/jpn/*.bin and dat/country/usa/*.bin (100 files)",
      "The 50 text files of the Japanese and the American versions, same format as the other languages (the text exporter writes JSON for those).",
      "Nothing: the EU build reads only the English, French, Italian, German and Spanish folders (TEXT_FILE).",
@@ -194,115 +195,23 @@ typedef struct Entry {
 static char sDataDir[1024];
 static RawExportIo sIo;
 static RawExportStats sTotals;
-static TdManifest sMan;
-static int sManLoaded;
+static ExpManifest sMan;
 
-static void manifestFree(void) {
-    if (sManLoaded) tdManifestFree(&sMan);
-    sManLoaded = 0;
-}
+static void manifestFree(void) { expManFree(&sMan); }
 
 static void rawDir(char *out, size_t cap) { snprintf(out, cap, "%s/raw", sDataDir); }
 
 static void manifestLoad(void) {
     char mp[1100], dir[1100];
-    uint8_t *mt;
-    size_t ml;
 
     manifestFree();
-    memset(&sMan, 0, sizeof sMan);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "%s", SCHEMA);
     rawDir(dir, sizeof dir);
     snprintf(mp, sizeof mp, "%s/manifest.json", dir);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
-    sManLoaded = 1;
+    expManOpen(&sMan, "raw", mp, "raw");
 }
 
-static int manifestSave(void) {
-    char mp[1100], dir[1100];
-    char *text;
-    int rc;
-
-    rawDir(dir, sizeof dir);
-    snprintf(mp, sizeof mp, "%s/manifest.json", dir);
-    text = tdManifestFormat(&sMan);
-    rc = (text == NULL || tdMakeDirs(dir) || tdWriteFileAtomic(mp, text, strlen(text))) ? -1 : 0;
-    if (rc) plogLine("raw", "cannot write %s\n", mp);
-    free(text);
-    return rc;
-}
-
-static int fileExists(const char *p) {
-    FILE *f = fopen(p, "rb");
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
-}
-
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)RAW_EXPORT_VERSION); }
-
-/* the manifest key of a kind's version mark */
-static void markKey(const RawKind *k, char *out, size_t cap) { snprintf(out, cap, "kind/%s", k->id); }
-
-/* One file under the manifest rule of ADR-005: an unedited copy is replaced, an edited one stays and the new version goes beside it as
-   <file>.new. `rel` is also the manifest key. 0 when handled, -1 on a write failure. */
-static int placeFile(const char *rel, const uint8_t *bytes, size_t len, RawExportStats *st) {
-    char dir[1100], path[1250], np[1300], hex[17], curHex[17] = "", *slash;
-    uint8_t *cur = NULL;
-    size_t curLen = 0;
-    int exists = 0;
-    const char *man = tdManifestFind(&sMan, rel);
-
-    rawDir(dir, sizeof dir);
-    snprintf(path, sizeof path, "%s/%s", dir, rel);
-    tdHashHex(tdHash(bytes, len), hex);
-    if (tdReadFile(path, &cur, &curLen) == 0) {
-        exists = 1;
-        tdHashHex(tdHash(cur, curLen), curHex);
-        free(cur);
-    }
-    if (exists && !strcmp(curHex, hex)) {
-        st->kept++;
-        tdManifestSet(&sMan, rel, hex);
-        return 0;
-    }
-    if (exists && tdFileState(1, man, curHex) == TD_FILE_EDITED) {
-        snprintf(np, sizeof np, "%s.new", path);
-        if (tdWriteFileAtomic(np, bytes, len)) {
-            plogLine("raw", "cannot write %s\n", np);
-            return -1;
-        }
-        st->newFiles++;
-        plogLine("raw", "%s was edited, kept; the new version is %s.new\n", rel, rel);
-        return 0;
-    }
-    snprintf(np, sizeof np, "%s", path);
-    slash = strrchr(np, '/');
-    if (slash != NULL) {
-        *slash = '\0';
-        if (tdMakeDirs(np)) {
-            plogLine("raw", "cannot make %s\n", np);
-            return -1;
-        }
-    }
-    if (tdWriteFileAtomic(path, bytes, len)) {
-        plogLine("raw", "cannot write %s\n", path);
-        return -1;
-    }
-    tdManifestSet(&sMan, rel, hex);
-    st->written++;
-    st->bytes += (long)len;
-    return 0;
-}
+/* the key of a kind's version in the manifest header */
+static void markKey(const RawKind *k, char *out, size_t cap) { snprintf(out, cap, "%s", k->id); }
 
 /* The file's bytes from the disc through the reader (malloc'ed, exactly `size`); NULL when a sector cannot be read */
 static uint8_t *readFile(long lba, long size) {
@@ -485,19 +394,16 @@ void rawExportTotals(RawExportStats *out) { *out = sTotals; }
 
 /* a kind of the current version whose files are all there: nothing to build */
 static int kindUpToDate(int k, const Entry *e, int n) {
-    char key[40], hex[17], dir[1100], path[1250];
-    const char *have;
+    char key[40], dir[1100], path[1250];
     int i;
 
     markKey(&KINDS[k], key, sizeof key);
-    have = tdManifestFind(&sMan, key);
-    versionHex(hex);
-    if (have == NULL || strcmp(have, hex)) return 0;
+    if (!expManIsCurrent(&sMan, key, RAW_EXPORT_VERSION)) return 0;
     rawDir(dir, sizeof dir);
     for (i = 0; i < n; i++) {
         if (e[i].kind != k) continue;
         snprintf(path, sizeof path, "%s/%s", dir, e[i].rel);
-        if (!fileExists(path)) return 0;
+        if (!expFileExists(path)) return 0;
     }
     return 1;
 }
@@ -507,8 +413,10 @@ int rawExportRun(const char *spec) {
     int want[MAX_KINDS], count[MAX_KINDS], failedKind[MAX_KINDS];
     long bytes[MAX_KINDS];
     int n = 0, i, k, nKinds = 0, rc = -1, notesOk = 1;
-    char hex[17];
+    char dir[1100];
     char *readme, *json;
+    ExpStats es;
+    ExpSink sink;
 
     memset(&sTotals, 0, sizeof sTotals);
     if (!sDataDir[0] || sIo.list == NULL || sIo.read == NULL || spec == NULL) return -1;
@@ -529,7 +437,9 @@ int rawExportRun(const char *spec) {
         n++;
     }
     manifestLoad();
-    versionHex(hex);
+    memset(&es, 0, sizeof es);
+    rawDir(dir, sizeof dir);
+    expSinkInPlace(&sink, "raw", dir, &sMan, &es);
     for (k = 0; k < N_KINDS; k++) {
         if (!want[k] || count[k] == 0) continue;
         nKinds++;
@@ -549,7 +459,7 @@ int rawExportRun(const char *spec) {
                 failedKind[k] = 1;
                 continue;
             }
-            if (placeFile(e[i].rel, data, (size_t)e[i].size, &sTotals)) {
+            if (expPut(&sink, e[i].rel, data, (size_t)e[i].size)) {
                 sTotals.failed++;
                 failedKind[k] = 1;
             }
@@ -558,7 +468,7 @@ int rawExportRun(const char *spec) {
         if (!failedKind[k]) {
             char key[40];
             markKey(&KINDS[k], key, sizeof key);
-            tdManifestSet(&sMan, key, hex);
+            expManMark(&sMan, key, RAW_EXPORT_VERSION);
         }
     }
     sTotals.kinds = nKinds;
@@ -569,14 +479,18 @@ int rawExportRun(const char *spec) {
     /* the notes describe the whole disc, whichever kinds this request named */
     readme = buildReadme(count, bytes);
     json = buildJson(e, n, count, bytes);
-    if (readme == NULL || json == NULL || placeFile("README.txt", (const uint8_t *)readme, strlen(readme), &sTotals) ||
-        placeFile("raw.json", (const uint8_t *)json, strlen(json), &sTotals)) {
+    if (readme == NULL || json == NULL || expPut(&sink, "README.txt", readme, strlen(readme)) ||
+        expPut(&sink, "raw.json", json, strlen(json))) {
         plogLine("raw", "cannot write the notes of %s/raw\n", sDataDir);
         notesOk = 0;
     }
     free(readme);
     free(json);
-    if (manifestSave() || !notesOk) sTotals.failed++;
+    sTotals.written = es.written;
+    sTotals.kept = es.kept;
+    sTotals.newFiles = es.newFiles;
+    sTotals.bytes = es.bytes;
+    if (expManSave(&sMan, 0) || !notesOk) sTotals.failed++;
     plogLine("raw", "Done: %d kinds (%d up to date) in %s/raw, %d files looked at, %d written, %d kept, %d new beside edited, %d failed, %ld bytes\n",
              sTotals.kinds, sTotals.skipped, sDataDir, sTotals.files, sTotals.written, sTotals.kept, sTotals.newFiles, sTotals.failed, sTotals.bytes);
     rc = nKinds;

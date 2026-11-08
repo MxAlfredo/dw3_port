@@ -46,8 +46,8 @@ Para quitarlo, borra la carpeta: una partida guardada dentro de un piso carga en
 ```
 training-field/
   mod.json                      manifiesto (mod-v1)
-  stages/330.json               parche: el guía en el Parque Central (stage-patch-v1)
-  new-stages/lower, upper/      un escenario nuevo cada uno (stage-new-v1)
+  stages/s330/stage.json        parche: el guía en el Parque Central (stage-patch-v1)
+  stages/lower, upper/          un escenario nuevo cada uno (stage-new-v1)
       stage.json  background.png  floor.png  areas.png
   tables/field_encounters.json  encuentros nuevos
   text/{eng,es-419,spa}/stages.json   textos con nombre
@@ -65,7 +65,7 @@ training-field/
 
 ### Un escenario nuevo: `stage.json` y las capas PNG
 
-`new-stages/<nombre>/` se registra como `"<mod>:<nombre>"` (aquí `training-field:lower`). Las capas tienen el mismo tamaño y **un valor por píxel del mapa**:
+`stages/<nombre>/` se registra como `"<mod>:<nombre>"` (aquí `training-field:lower`). Las capas tienen el mismo tamaño y **un valor por píxel del mapa**:
 
 | Archivo | Qué guarda |
 |---|---|
@@ -91,7 +91,7 @@ Las salidas son `slots` con un rectángulo (`area`): se disparan estando dentro 
 { "key": "park", "stage": 330, "x": 952, "y": 412, "dir": 0, "area": { "x": 464, "y": 720, "w": 96, "h": 32 } }
 ```
 
-El guía es un personaje agregado a un escenario del juego (`stages/330.json`, `stage-patch-v1`) con una charla condicionada y la acción `warp`:
+El guía es un personaje agregado a un escenario del juego (`stages/s330/stage.json`, `stage-patch-v1`) con una charla condicionada y la acción `warp`:
 
 ```json
 { "text": "training-field:offer", "conditions": [["item", "dw3:item/9", 1]],
@@ -196,7 +196,7 @@ Corre los lectores reales sobre el mod y dice un problema por línea; el resulta
 1. Copia la carpeta con otro nombre y cambia `name` en `mod.json` (y cambia `training-field:` por tu prefijo en los textos, los encuentros y los `stage.json`).
 2. Cambia el dibujo en `tools/make_art.py` (o pinta tus propios `background.png`, `floor.png` y `areas.png` del mismo tamaño) y vuelve a generar.
 3. Reubica `start`, las salidas (`slots`), los combates (`battles`) y, si quieres, quita árboles, pesca, duelo o cartas: cada parte es independiente.
-4. Cambia el punto de entrada en `stages/330.json` o apunta otro escenario del juego con un nuevo parche.
+4. Cambia el punto de entrada en `stages/s330/stage.json` o apunta otro escenario del juego con un nuevo parche.
 5. Escribe tus textos en `text/<idioma>/stages.json` y valida con `--validate-mod`.
 
 Detalles de cada formato: `docs/modding/README.md` (§6.11b, la guía "Tu primer escenario nuevo") y `docs/stages.md` (§12 a 17).

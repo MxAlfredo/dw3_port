@@ -4,5 +4,5 @@
   "version": "1.0.0",
   "kind": "content",
   "author": "DW3 port",
-  "description": "Adds a new enemy Digimon with its own 3D model, made from a neutral source (glTF + PNG + model.json) that the port bakes when the game loads (content mod: content/models/robot/ and content/digimon.json)."
+  "description": "Adds an enemy Digimon and a partner form, each with its own 3D model made from a neutral source (glTF + PNG + model.json) that the port bakes at load (digimon/boxbot/ and digimon/boxpal/, plus content/encounters.json)."
 }

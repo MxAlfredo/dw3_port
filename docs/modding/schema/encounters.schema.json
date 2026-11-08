@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port content/encounters.json (encounters-v1)",
+  "description": "Where enemies appear: the placements of a content mod in the game's encounters. Derived from pc/shim/digimon_ext.c (takePlacements, takePlace).",
+  "type": "object",
+  "required": [
+    "format"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "encounters-v1"
+    },
+    "encounters": {
+      "type": "object",
+      "description": "Encounter number -> slot (1..3) -> the enemy placed there.",
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "pattern": "^[1-3]$"
+        },
+        "additionalProperties": {
+          "type": "object",
+          "required": [
+            "enemy"
+          ],
+          "properties": {
+            "enemy": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "hp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mp": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "strength": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -145,6 +145,13 @@ typedef struct Slot {
     unsigned long cardsLen;
     unsigned char *vars; /* the slot's EXTV chunk (the named variables of content mods: stage flags and counters), NULL when it has none */
     unsigned long varsLen;
+    unsigned char *ptnr; /* the slot's PTNR chunk (every partner by name, the party; ADR-014), NULL when it has none */
+    unsigned long ptnrLen;
+    unsigned char *icon; /* the slot's ICON chunk (the partners of the card screen's summaries by name), NULL when it has none */
+    unsigned long iconLen;
+    unsigned char *team; /* the slot's TEAM chunk (the mod starter team the game began with, by name; ADR-015), NULL when it has none */
+    unsigned long teamLen;
+    int infoDone; /* info[] holds this run's partner indices (saved by this run, or remapped when first served) */
     unsigned char *stage; /* the slot's EXTS chunk (the mod stage the game was saved in, with the real position), NULL when it has none */
     unsigned long stageLen;
     int stageDone; /* game[] already holds the mod stage of the chunk (set by the first read; a save by this run clears it) */
@@ -287,6 +294,11 @@ static const unsigned char *currentInfo(void) {
             best = i;
         }
     }
+    if (best >= 0 && !slots[best].infoDone) {
+        /* a file read from disk names its partners above the eight by index of the run that saved it: the indices now */
+        slots[best].infoDone = 1;
+        pcExtStateRemapIcons(slots[best].info, INFO_SIZE, slots[best].icon, slots[best].iconLen);
+    }
     return best >= 0 ? slots[best].info : cardInfo;
 }
 
@@ -304,7 +316,9 @@ static uint32_t get32(const unsigned char *p) {
 /* One slot as a dw3save; 1 when written */
 static int writeSlotFile(int n, const unsigned char *game, const unsigned char *info, const unsigned char *ext, unsigned long extLen,
                          const unsigned char *techs, unsigned long techsLen, const unsigned char *digs, unsigned long digsLen,
-                         const unsigned char *ents, unsigned long entsLen, const unsigned char *cards, unsigned long cardsLen, const unsigned char *vars, unsigned long varsLen, const unsigned char *stage, unsigned long stageLen, uint32_t seq) {
+                         const unsigned char *ents, unsigned long entsLen, const unsigned char *cards, unsigned long cardsLen, const unsigned char *vars, unsigned long varsLen, const unsigned char *stage, unsigned long stageLen,
+                         const unsigned char *ptnr, unsigned long ptnrLen, const unsigned char *icon, unsigned long iconLen,
+                         const unsigned char *team, unsigned long teamLen, uint32_t seq) {
     SaveFile f;
     unsigned char meta[12], mods[8];
     char path[1200];
@@ -337,6 +351,16 @@ static int writeSlotFile(int n, const unsigned char *game, const unsigned char *
     if (stageLen != 0) {
         saveFileAdd(&f, "EXTS", stage, stageLen); /* the mod stage the game was saved in (the game block holds its fallback) */
     }
+    if (ptnrLen != 0) {
+        saveFileAdd(&f, "PTNR", ptnr, ptnrLen); /* every partner by name and the party (ADR-014) */
+        f.formatVersion = SAVEFILE_FORMAT_PARTNERS; /* an earlier release must refuse this file, not read its party as indices of eight */
+    }
+    if (iconLen != 0) {
+        saveFileAdd(&f, "ICON", icon, iconLen); /* the partners above the eight of the card screen's summaries, by name */
+    }
+    if (teamLen != 0) {
+        saveFileAdd(&f, "TEAM", team, teamLen); /* the mod starter team by name: its number changes with the mods installed (ADR-015) */
+    }
     saveFileAdd(&f, "MODS", mods, sizeof(mods));
     slotPath(path, sizeof(path), n);
     return saveFileWrite(path, &f) == SAVEFILE_OK;
@@ -363,6 +387,9 @@ static void freeSlot(Slot *s) {
     free(s->cards);
     free(s->vars);
     free(s->stage);
+    free(s->ptnr);
+    free(s->icon);
+    free(s->team);
     memset(s, 0, sizeof(*s));
 }
 
@@ -391,7 +418,7 @@ static void loadNative(void) {
         saveFileFree(&f);
     }
     for (i = 0; i < SLOTS; i++) {
-        const SaveSection *g, *in, *meta, *ext, *techs, *digs, *ents, *cards, *vars, *stage;
+        const SaveSection *g, *in, *meta, *ext, *techs, *digs, *ents, *cards, *vars, *stage, *ptnr, *icon, *team;
 
         slotPath(path, sizeof(path), i);
         if (saveFileRead(path, &f) != SAVEFILE_OK) {
@@ -407,6 +434,9 @@ static void loadNative(void) {
         cards = saveFileFind(&f, "EXTK");
         vars = saveFileFind(&f, "EXTV");
         stage = saveFileFind(&f, "EXTS");
+        ptnr = saveFileFind(&f, "PTNR");
+        icon = saveFileFind(&f, "ICON");
+        team = saveFileFind(&f, "TEAM");
         if (g == NULL || g->size != GAME_SIZE || in == NULL || in->size != INFO_SIZE || meta == NULL || meta->size != 12) {
             plogLine("saves", "%s lacks the game block or info; the slot reads as empty\n", path);
         } else {
@@ -454,6 +484,27 @@ static void loadNative(void) {
                 if (slots[i].vars != NULL) {
                     memcpy(slots[i].vars, vars->data, vars->size);
                     slots[i].varsLen = vars->size;
+                }
+            }
+            if (ptnr != NULL && ptnr->size != 0) {
+                slots[i].ptnr = malloc(ptnr->size);
+                if (slots[i].ptnr != NULL) {
+                    memcpy(slots[i].ptnr, ptnr->data, ptnr->size);
+                    slots[i].ptnrLen = ptnr->size;
+                }
+            }
+            if (icon != NULL && icon->size != 0) {
+                slots[i].icon = malloc(icon->size);
+                if (slots[i].icon != NULL) {
+                    memcpy(slots[i].icon, icon->data, icon->size);
+                    slots[i].iconLen = icon->size;
+                }
+            }
+            if (team != NULL && team->size != 0) {
+                slots[i].team = malloc(team->size);
+                if (slots[i].team != NULL) {
+                    memcpy(slots[i].team, team->data, team->size);
+                    slots[i].teamLen = team->size;
                 }
             }
             if (stage != NULL && stage->size != 0) {
@@ -616,7 +667,7 @@ static int commitParsed(const char *cardPath, const char **what, int *mark) {
     memcpy(info, cardInfo, INFO_SIZE);
     for (i = 0; i < SLOTS; i++) {
         if (pok[i]) {
-            if (writeSlotFile(i, pdata[i], info, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, i == plast ? SLOTS + 1 : (uint32_t)(i + 1))) {
+            if (writeSlotFile(i, pdata[i], info, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0, i == plast ? SLOTS + 1 : (uint32_t)(i + 1))) {
                 imported++;
             } else {
                 failed++;
@@ -946,7 +997,9 @@ static int commitSlot(int n) {
     unsigned char *techs = malloc(techsLen + 1);
     unsigned long digsLen = pcExtStateEncodeDigimon(wbuf[n], GAME_SIZE, NULL, 0);
     unsigned char *digs = malloc(digsLen + 1);
-    unsigned long entsLen = pcExtStateEncodeEntries(NULL, 0);
+    unsigned long ptnrLen = pcExtStateEncodePartners(wbuf[n], GAME_SIZE, NULL, 0);
+    unsigned char *ptnr = malloc(ptnrLen + 1);
+    unsigned long entsLen = ptnrLen != 0 ? 0 : pcExtStateEncodeEntries(NULL, 0); /* the PTNR section carries the stored entries when it is written */
     unsigned char *ents = malloc(entsLen + 1);
     unsigned long cardsLen = pcExtStateEncodeCards(wbuf[n], GAME_SIZE, NULL, 0);
     unsigned char *cards = malloc(cardsLen + 1);
@@ -955,9 +1008,32 @@ static int commitSlot(int n) {
     unsigned long stageLen = msEncodeSaved(wbuf[n], GAME_SIZE, NULL, 0);
     unsigned char *stage = malloc(stageLen + 1);
     unsigned char info[INFO_SIZE];
+    unsigned long iconLen;
+    unsigned char *icon;
+    unsigned long teamLen = pcExtStateEncodeTeam(wbuf[n], GAME_SIZE, NULL, 0);
+    unsigned char *team = malloc(teamLen + 1);
     uint32_t seq = maxSeq() + 1;
 
+    memcpy(info, infoStaged ? stagedInfo : currentInfo(), INFO_SIZE);
+    iconLen = pcExtStateEncodeIcons(info, INFO_SIZE, NULL, 0);
+    icon = malloc(iconLen + 1);
+    if (icon == NULL || ptnr == NULL || team == NULL) {
+        free(team);
+        free(icon);
+        free(ptnr);
+        free(stage);
+        free(vars);
+        free(cards);
+        free(ext);
+        free(techs);
+        free(digs);
+        free(ents);
+        return 0;
+    }
     if (ext == NULL || techs == NULL || digs == NULL || ents == NULL || cards == NULL || vars == NULL || stage == NULL) {
+        free(team);
+        free(icon);
+        free(ptnr);
         free(stage);
         free(vars);
         free(cards);
@@ -974,6 +1050,15 @@ static int commitSlot(int n) {
     if (digsLen != 0) {
         pcExtStateEncodeDigimon(wbuf[n], GAME_SIZE, digs, digsLen);
     }
+    if (ptnrLen != 0) {
+        pcExtStateEncodePartners(wbuf[n], GAME_SIZE, ptnr, ptnrLen); /* every partner by name */
+    }
+    if (iconLen != 0) {
+        pcExtStateEncodeIcons(info, INFO_SIZE, icon, iconLen);
+    }
+    if (teamLen != 0) {
+        pcExtStateEncodeTeam(wbuf[n], GAME_SIZE, team, teamLen); /* the mod starter team by name */
+    }
     if (entsLen != 0) {
         pcExtStateEncodeEntries(ents, entsLen); /* the partner entries beyond the original 44 */
     }
@@ -986,8 +1071,11 @@ static int commitSlot(int n) {
     if (stageLen != 0) {
         msEncodeSaved(wbuf[n], GAME_SIZE, stage, stageLen); /* records the stage and puts its fallback in the block (before the readable view) */
     }
-    memcpy(info, infoStaged ? stagedInfo : currentInfo(), INFO_SIZE);
-    if (!writeSlotFile(n, wbuf[n], info, ext, extLen, techs, techsLen, digs, digsLen, ents, entsLen, cards, cardsLen, vars, varsLen, stage, stageLen, seq)) {
+    if (!writeSlotFile(n, wbuf[n], info, ext, extLen, techs, techsLen, digs, digsLen, ents, entsLen, cards, cardsLen, vars, varsLen, stage, stageLen,
+                       ptnr, ptnrLen, icon, iconLen, team, teamLen, seq)) {
+        free(team);
+        free(ptnr);
+        free(icon);
         free(stage);
         free(vars);
         free(cards);
@@ -1019,6 +1107,9 @@ static int commitSlot(int n) {
     free(slots[n].cards);
     free(slots[n].vars);
     free(slots[n].stage);
+    free(slots[n].ptnr);
+    free(slots[n].icon);
+    free(slots[n].team);
     memset(slots[n].game, 0, sizeof(slots[n].game));
     memcpy(slots[n].game, wbuf[n], GAME_SIZE);
     memcpy(slots[n].info, info, INFO_SIZE);
@@ -1036,6 +1127,13 @@ static int commitSlot(int n) {
     slots[n].varsLen = varsLen;
     slots[n].stage = stage;
     slots[n].stageLen = stageLen;
+    slots[n].ptnr = ptnrLen != 0 ? ptnr : (free(ptnr), NULL);
+    slots[n].ptnrLen = ptnrLen;
+    slots[n].icon = iconLen != 0 ? icon : (free(icon), NULL);
+    slots[n].iconLen = iconLen;
+    slots[n].team = teamLen != 0 ? team : (free(team), NULL);
+    slots[n].teamLen = teamLen;
+    slots[n].infoDone = 1; /* info[] was served this run, so it holds this run's indices */
     slots[n].stageDone = 0;
     slots[n].techsDone = 1; /* wbuf holds this run's ids */
     slots[n].seq = seq;
@@ -1124,6 +1222,8 @@ static int fileIo(int chan, const char *file, void *buf, int ofs, int bytes, int
                 pcExtStateRemapTechs(slots[slot].game, GAME_SIZE, slots[slot].techs, slots[slot].techsLen);
                 pcExtStateRemapDigimon(slots[slot].game, GAME_SIZE, slots[slot].digs, slots[slot].digsLen);
                 pcExtStateRemapCards(slots[slot].game, GAME_SIZE, slots[slot].cards, slots[slot].cardsLen);
+                pcExtStateRemapParty(slots[slot].game, GAME_SIZE, slots[slot].ptnr, slots[slot].ptnrLen); /* the party by name, then valid */
+                pcExtStateRemapTeam(slots[slot].game, GAME_SIZE, slots[slot].team, slots[slot].teamLen); /* the starter team by name */
             }
             if (slots[slot].valid && !slots[slot].stageDone) {
                 /* a game saved in a mod stage holds the stage's fallback; the stage comes back when its mod is installed */
@@ -1139,6 +1239,7 @@ static int fileIo(int chan, const char *file, void *buf, int ofs, int bytes, int
                 /* the slot's extra state arrives with its data (an original-only save has none: empty) */
                 pcExtStateDecode(slots[slot].ext, slots[slot].extLen);
                 pcExtStateDecodeEntries(slots[slot].ents, slots[slot].entsLen);
+                pcExtStateDecodePartners(slots[slot].ptnr, slots[slot].ptnrLen); /* after DecodeEntries (it forgets the stores): every partner by name, for the import that follows */
                 pcExtStateDecodeCards(slots[slot].cards, slots[slot].cardsLen);
                 pcExtStateDecodeVars(slots[slot].vars, slots[slot].varsLen); /* last: DecodeEntries (and a new game) forget the variables too */
             }

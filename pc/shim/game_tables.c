@@ -345,9 +345,9 @@ static TmTable sEvolutionTable = {
     "evolutions", NULL, sizeof(PcEvolution), GT_PARTNERS * GT_EVO_PER_PARTNER, 0,
     "partner * 100 + entry: partner 0-7 (the eight partners in the game's order), entry 0-43 (the order the game checks them in: after a "
     "battle a partner learns the first entry it qualifies for and has not learned yet, one per report). 203 is partner 2, entry 3. "
-    "Entries 44 and up of a list are the ones content mods add with \"evolution\" in digimon.json: they are not rows of this table.",
+    "Entries 44 and up of a list are the ones content mods add with \"evolution\" in a digimon/<key>/digimon.json: they are not rows of this table.",
     "The report reads a partner's list after every battle, so a change shows in the next report. The table patches the 44 original "
-    "entries every time the report opens; the entries of digimon.json come after them in the list, so on a tie the originals win "
+    "entries every time the report opens; the entries of the Digimon folders come after them in the list, so on a tie the originals win "
     "(the first entry that qualifies is learned).",
     kEvolutionFields, (int)(sizeof(kEvolutionFields) / sizeof(kEvolutionFields[0])), 0, 0, TM_S32, NULL, NULL, sEvolutionKeys};
 
@@ -406,7 +406,7 @@ static void *blastRowAt(int row) {
 static TmTable sBlastTable = {
     "blast_forms", NULL, sizeof(BlastRow), GT_REAL_DIGIMON, 0,
     "The Digimon id of the form that blasts (the number after \"dw3:digimon/\"; not the table row). Only the original forms are rows: "
-    "a partner form of a mod sets its own with \"blastForms\" in digimon.json (and copies its base's without it).",
+    "a partner form of a mod sets its own with \"blastForms\" in its digimon.json (and copies its base's without it).",
     "Set once when the game starts; a blast reads the row of the partner's current form when it starts.",
     kBlastFields, (int)(sizeof(kBlastFields) / sizeof(kBlastFields[0])), 0, 0, TM_S32, NULL, NULL, sBlastKeys, blastRowAt, blastRowCheck};
 
@@ -782,9 +782,9 @@ static int fieldEncounterOwnKey(const char *key) {
 static TmTable sFieldEncounterTable = {
     "field_encounters", NULL, sizeof(FieldEncRow), GT_FIELD_ENCOUNTERS, 0,
     "The index of FIELDSTG_encounters (0-334; 0 is the empty encounter and cannot change): the \"encounter\" of the battles in a stage's battle lists "
-    "and the number of the \"encounters\" of digimon.json. \"labels\" gives each encounter's enemies.",
+    "and the number of the \"encounters\" of content/encounters.json. \"labels\" gives each encounter's enemies.",
     "Set on every entry to the field (after the field's data is restored); a change shows in the next battle that uses the encounter. "
-    "The \"encounters\" placements of digimon.json go on after this table, over the patched slots.",
+    "The \"encounters\" placements of content/encounters.json go on after this table, over the patched slots.",
     kFieldEncounterFields, (int)(sizeof(kFieldEncounterFields) / sizeof(kFieldEncounterFields[0])), 0, 0, TM_S32, NULL, NULL, NULL, NULL,
     fieldEncounterCheck, fieldEncounterLabel, fieldEncounterOwnKey};
 
@@ -936,7 +936,7 @@ static int cardIdOrZeroOk(long long v) {
 static const TmField kCardPriceFields[] = {
     {"price", TM_S16, offsetof(GameCardPrice, price), 0, 32767,
      "What the card shop charges for one copy (the list, the money check and the payment read it; 0 is free). A disc card the shops sell that has no "
-     "row here costs 1: the 44 rows of the disc cannot grow. The price of a card a mod adds is its own \"price\" in the mod's cards.json "
+     "row here costs 1: the 44 rows of the disc cannot grow. The price of a card a mod adds is its own \"price\" in the mod's card.json "
      "(default 1), not a row here."},
 };
 
@@ -946,7 +946,7 @@ static void cardPriceLabel(int row, char *buf, size_t cap) {
 
 static const TmTable kCardPriceTable = {
     "card_prices", STCRDSHP_prices, sizeof(GameCardPrice), GT_CARD_PRICES, 0,
-    "The card id (1-314), one of the 44 cards the disc prices (a card from a mod is priced in its cards.json, not here). \"labels\" gives each card's name. The shop looks the price up by card id (the first "
+    "The card id (1-314), one of the 44 cards the disc prices (a card from a mod is priced in its card.json, not here). \"labels\" gives each card's name. The shop looks the price up by card id (the first "
     "row with that id), so it is the same in every shop.",
     "Set on every entry to the card shop (the shop's data is restored each time and the patch goes on after it); the shop reads the price when it "
     "lists a card and when it is bought.",
@@ -960,7 +960,7 @@ const TmTable *gameTableCardPrices(void) {
 static const TmField kCardStockFields[] = {
     {"cards", TM_S16, offsetof(GameCardStock, cards), 1, GT_CARD_ID_MAX,
      "The card ids the shop sells, in the order it lists them (six a page; the disc's shops sell five or six): a disc card id 1-314, or "
-     "\"<mod>:<name>\" for a card a content mod adds. A disc card with no row in card_prices costs 1; a mod's card costs its cards.json price.",
+     "\"<mod>:<name>\" for a card a content mod adds. A disc card with no row in card_prices costs 1; a mod's card costs its card.json price.",
      GT_STOCK_LIST_MAX, TM_NO_COUNT, cardExtByName, cardExtIdOk},
 };
 
@@ -1628,6 +1628,29 @@ int gameTablesRegisterInns(void) {
 #define GT_SPECIAL_PRIMITIVES 6
 #define GT_SPECIAL_INVALID_CHECK 0xFF /* a new row before a mod gives it a primitive and an op: primitive 15 is none */
 
+/* how many partners exist when a special condition is checked: the original eight until the host says more (partner.json, P4). The count is
+   settled by the registry before the tables load, and this unit does not link the registry (tabletest does not link ext_state.c). */
+static int (*sPartnerCount)(void);
+
+void gameTablesSetPartnerCount(int (*count)(void)) {
+    sPartnerCount = count;
+}
+
+static int (*sPartnerFind)(const char *name);
+
+void gameTablesSetPartnerFind(int (*find)(const char *name)) {
+    sPartnerFind = find;
+}
+
+/* `arg` given as a name (the table engine passes only strings holding a ':'): the partner's number, or -1 */
+static long long specialArgByName(const char *name) {
+    return sPartnerFind != NULL ? sPartnerFind(name) : -1;
+}
+
+static int partnerLimit(void) {
+    return sPartnerCount != NULL ? sPartnerCount() : PARTNER_COUNT;
+}
+
 /* Why a (check, arg) pair is not a row the game can run, or NULL. Only what keeps the game inside its arrays (and the known primitives and
    ops): the original rows all pass, quirks included (a flag-count row of mode 3 never holds). */
 static const char *specialProblem(int check, int arg) {
@@ -1640,8 +1663,8 @@ static const char *specialProblem(int check, int arg) {
         if (op > 9) {
             return "a partner row's op is 0-9";
         }
-        if ((op == 1 || op == 3 || op == 4 || op == 6) && arg >= PARTNER_COUNT) {
-            return "this partner op reads partner `arg`, which must be 0-7";
+        if ((op == 1 || op == 3 || op == 4 || op == 6) && arg >= partnerLimit()) {
+            return "this partner op reads partner `arg`, which must be a partner that exists (0-7, and the number of each partner a mod adds)";
         }
         return NULL;
     case 2:
@@ -1681,6 +1704,8 @@ static void specialLabel(int row, char *buf, size_t cap) {
 static SpecialCondition sSpecialExt[GT_SPECIAL_EXT_MAX];
 static char *sSpecialExtName[GT_SPECIAL_EXT_MAX];
 static int sSpecialExtCount;
+/* a field of the row was given and rejected (a partner name nobody defines...): the row would run with a substitute value, so it is no row */
+static unsigned char sSpecialExtBad[GT_SPECIAL_EXT_MAX];
 
 static void specialExtReset(void) {
     int i;
@@ -1690,6 +1715,7 @@ static void specialExtReset(void) {
         sSpecialExtName[i] = NULL;
     }
     sSpecialExtCount = 0;
+    memset(sSpecialExtBad, 0, sizeof sSpecialExtBad);
 }
 
 /* "<mod>:<name>": the mod's folder (letters, digits, . _ -), a colon and a lowercase name (a-z 0-9 _ - /), at most 120 bytes */
@@ -1733,6 +1759,7 @@ static long long specialExtByName(const char *name) {
     sSpecialExt[sSpecialExtCount].id = 0;
     sSpecialExt[sSpecialExtCount].check = GT_SPECIAL_INVALID_CHECK;
     sSpecialExt[sSpecialExtCount].arg = 0;
+    sSpecialExtBad[sSpecialExtCount] = 0;
     return GT_SPECIAL_EXT_FIRST + sSpecialExtCount++;
 }
 
@@ -1740,10 +1767,16 @@ static void *specialExtRow(long long id) {
     return id >= GT_SPECIAL_EXT_FIRST && id < GT_SPECIAL_EXT_FIRST + sSpecialExtCount ? (void *)&sSpecialExt[id - GT_SPECIAL_EXT_FIRST] : NULL;
 }
 
+static void specialExtRejected(long long id) {
+    if (id >= GT_SPECIAL_EXT_FIRST && id < GT_SPECIAL_EXT_FIRST + sSpecialExtCount) {
+        sSpecialExtBad[id - GT_SPECIAL_EXT_FIRST] = 1;
+    }
+}
+
 int pcSpecialExtRow(int id, unsigned char *check, unsigned char *arg) {
     const SpecialCondition *c = (const SpecialCondition *)specialExtRow(id);
 
-    if (c == NULL || specialProblem(c->check, c->arg) != NULL) {
+    if (c == NULL || sSpecialExtBad[id - GT_SPECIAL_EXT_FIRST] || specialProblem(c->check, c->arg) != NULL) {
         return 0;
     }
     *check = c->check;
@@ -1756,7 +1789,7 @@ int gameSpecialIdOf(const char *name) {
 
     for (i = 0; name != NULL && i < sSpecialExtCount; i++) {
         if (strcmp(sSpecialExtName[i], name) == 0) {
-            return specialProblem(sSpecialExt[i].check, sSpecialExt[i].arg) == NULL ? GT_SPECIAL_EXT_FIRST + i : -1;
+            return !sSpecialExtBad[i] && specialProblem(sSpecialExt[i].check, sSpecialExt[i].arg) == NULL ? GT_SPECIAL_EXT_FIRST + i : -1;
         }
     }
     return -1;
@@ -1801,7 +1834,10 @@ static const TmField kSpecialFields[] = {
      "or more are clear, 2 exactly one is clear), 1 four flags of group 10 are all set. Actor icon: ignored.",
      0, 0, NULL, NULL, 0x0F},
     {"arg", TM_U8, offsetof(SpecialCondition, arg), 0, 255,
-     "The index or number the op reads (see `op`): a partner, an index of money_required, money_gains or money_losses, a progress_ranges row, a mode."},
+     "The index or number the op reads (see `op`): a partner, an index of money_required, money_gains or money_losses, a progress_ranges row, a mode. "
+     "A partner op also takes the partner's NAME (\"<mod>:<key>\" for a partner a mod adds, \"dw3:partner/<n>\" for an original one), which does not "
+     "move when mods are added or removed; an unknown name is rejected with a log line (a mod's own row with that `arg` then does not exist).",
+     0, 0, specialArgByName, NULL},
 };
 
 static TmTable sSpecialTable = {
@@ -1809,7 +1845,7 @@ static TmTable sSpecialTable = {
     "The row id the `special` code names (0-254, in decimal; 255 ends the array and is no row), or \"<mod>:<name>\" for a condition a mod adds: its first "
     "patch row with that name creates it (ids 0x100 and up, up to 256) and it needs `primitive`, `op` and, where the op reads it, `arg`. \"labels\" says what each original row does.",
     "Set once when the port starts (the executable's data is never reset); the events read a row when a talk's or an event's code names it.",
-    kSpecialFields, 3, 1, offsetof(SpecialCondition, id), TM_U8, specialExtByName, specialExtRow, NULL, NULL, specialRowCheck, specialLabel};
+    kSpecialFields, 3, 1, offsetof(SpecialCondition, id), TM_U8, specialExtByName, specialExtRow, NULL, NULL, specialRowCheck, specialLabel, NULL, specialExtRejected};
 
 const TmTable *gameTableSpecialConditions(void) {
     const SpecialCondition *c;

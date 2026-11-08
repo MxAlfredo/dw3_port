@@ -17,12 +17,12 @@
  * number, then the animation entry of each of the five direction slots; a set number of 0 ends it).
  * FIELDSTG_animateActor (src/field/field_mode/actor_control.c) is the reader.
  *
- * The extraction writes, for each file:
+ * The extraction (sprExtractAs) hands, for each file, the frames and the description to a callback; sprite_export.h writes them as
  *
- *     <data>/images/FIELD/SPRT/<NAME>/<EEE>.png    one indexed PNG per frame (EEE = the entry's index, 3 digits)
- *     <data>/images/FIELD/SPRT/<NAME>/sprite.json  the frames, animations and sets ("sprite-v1")
+ *     <data>/sprites/<name>/<EEE>.png     one indexed PNG per frame (EEE = the entry's index, 3 digits)
+ *     <data>/sprites/<name>/sprite.json   the frames, animations and sets ("sprites-sprite-v1")
  *
- * and they go through the same manifest as the menu art (pristine, edited -> .new).
+ * and partner_export.c writes the same into partners/<name>/field/ ("sprite-v1").
  */
 
 typedef struct SprStats {
@@ -37,8 +37,21 @@ typedef struct SprStats {
 /* "AAA/DAT/FIELD/SPRT/P001PLAY.BIN" */
 int sprIsSpriteFile(const char *discPath);
 
-/* "FIELD/SPRT/P001PLAY/004.png" or ".../sprite.json" (what = NULL: the PNG of `entry`; else the file name).
-   0 on success. */
+/* The follower sprites of the eight original partners (readable-assets A4a): FIELD/SPRT/P003PKEN ... P010PATA, the character `partner + 3`
+   (pcPartnerFieldCharacter). They are part of the partner bundle (partners/<name>/field/), not of sprites/: the exporter skips them and the importer
+   reads the bundle. sprPartnerFile(p) is the disc name ("P003PKEN", no folder or extension), NULL out of 0..7; sprPartnerOf takes a disc path
+   ("AAA/DAT/FIELD/SPRT/P003PKEN.BIN") or the name of a frame ("sprites/p003pken/004.png") and gives the partner, -1 for any other file. */
+const char *sprPartnerFile(int partner);
+int sprPartnerOf(const char *discPathOrName);
+
+/* The folder of a sprite file under sprites/: the lower case of the disc file's name ("AAA/DAT/FIELD/SPRT/P001PLAY.BIN" -> "p001play"). 0 on success. */
+int sprFolder(const char *discPath, char *out, size_t cap);
+/* The disc file of a sprites/ folder name ("p001play" or "P001PLAY" -> "AAA/DAT/FIELD/SPRT/P001PLAY.BIN"): only a name made of letters, digits and _ is a file name.
+   It says nothing about the disc having it (ask the disc). 0 on success. */
+int sprDiscOf(const char *folder, char *out, size_t cap);
+
+/* "sprites/p001play/004.png" or "sprites/p001play/sprite.json" (what = NULL: the PNG of `entry`; else the file name): the name of a frame in an override and in
+   sprites/manifest.json. 0 on success. */
 int sprName(const char *discPath, int entry, const char *what, char *out, size_t cap);
 
 /* The entries of the archive table (the first word is the table's size; entries run to the next offset). Returns how many
@@ -48,15 +61,19 @@ typedef struct SprEntry {
 } SprEntry;
 int sprTable(const uint8_t *file, size_t len, SprEntry *out, int max);
 
-/* The sprite-v1 text of one file and how many frames/animations it lists; malloc'ed, NULL on failure. */
+/* The "sprite-v1" text of one file and how many frames/animations it lists; malloc'ed, NULL on failure. */
 char *sprJson(const char *discPath, const uint8_t *file, size_t len, size_t *outLen, SprStats *st);
 
-/* Extract one disc file (frames, then sprite.json). Returns the number of PNGs; stats are added to *st. */
-int sprExtractFile(ImgRun *run, const char *discPath, const uint8_t *file, size_t len, SprStats *st);
+/* Extracts one disc file, handing each file to `emit` (name relative to the sprite's own folder: "004.png", "sprite.json"; the bytes are the caller's to
+   copy; return 0, or non-zero to count a failure). Returns the number of PNGs; stats are added to *st. `format` is the format name of the sprite.json:
+   "sprites-sprite-v1" for sprites/, "sprite-v1" (sprExtractTo) for a partner's field/ folder. */
+typedef int (*SprEmitFn)(void *ctx, const char *rel, const uint8_t *data, size_t len);
+int sprExtractAs(const char *format, SprEmitFn emit, void *ctx, const char *discPath, const uint8_t *file, size_t len, SprStats *st);
+int sprExtractTo(SprEmitFn emit, void *ctx, const char *discPath, const uint8_t *file, size_t len, SprStats *st);
 
 /* ---- sprites a mod brings (port-close S9, docs/stages.md section 11) ----
  *
- * mods/<mod>/sprites/<name>/sprite.json is the sprite-v1 file the exporter writes (frames, animations, sets; the ids are labels of the
+ * mods/<mod>/sprites/<name>/sprite.json is the sprite file the exporter writes ("sprites-sprite-v1", or "sprite-v1" as in partners/<name>/field/) (frames, animations, sets; the ids are labels of the
  * file, not archive entries) with one PNG per frame: an indexed image of at most 16 colours (index 0 transparent through tRNS), at most
  * SPR_SLOT_MAX_W x SPR_SLOT_MAX_H pixels. A sprite is built into an entry range of a shared archive (the "bank") in the layout of the
  * game's own sprite files, so FIELDSTG_animateActor plays it unchanged; the whole bank is ONE file of the port (a virtual file), so any

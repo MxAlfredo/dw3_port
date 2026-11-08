@@ -1,0 +1,44 @@
+{
+  "format": "techs-v1",
+  "new": {
+    "spark-bubble": {
+      "base": "dw3:tech/225",
+      "mp": 24,
+      "power": 100,
+      "name": {
+        "eng": "Spark Bubble",
+        "es-419": "Spark Bubble"
+      },
+      "description": {
+        "eng": "A crackling bubble of electricity.",
+        "es-419": "Una burbuja que chisporrotea."
+      }
+    },
+    "tidal-arrow": {
+      "base": "dw3:tech/252",
+      "mp": 26,
+      "power": 130,
+      "name": {
+        "eng": "Tidal Arrow",
+        "es-419": "Tidal Arrow"
+      },
+      "description": {
+        "eng": "A spear of water shot at the foe.",
+        "es-419": "Una lanza de agua contra el rival."
+      }
+    },
+    "thunder-justice": {
+      "base": "dw3:tech/291",
+      "mp": 50,
+      "power": 300,
+      "name": {
+        "eng": "Thunder Justice",
+        "es-419": "Thunder Justice"
+      },
+      "description": {
+        "eng": "Lightning from the horn.",
+        "es-419": "Un rayo desde el cuerno."
+      }
+    }
+  }
+}

@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 
-#include <SDL.h>
 
+#include "exp_core.h"
+#include "exp_job.h"
 #include "port_log.h"
 #include "text_data.h"
 
@@ -1893,140 +1895,68 @@ int modelExportBuild(const ModelExportIo *io, int fighterId, double us, ModelExp
 
 static char sDataDir[1024];
 static ModelExportIo sIo;
-static int *sQueue;
-static int sCount, sNext, sDone, sFailed, sSince;
-static int sRan, sForce, sBuilt;
-static TdManifest sMan;
-static int sManLoaded, sManDirty;
-static char sStatus[96];
+static ExpManifest sMan;
+static ExpJob sJob; /* the queue holds fighter ids */
 
-void modelExportFolder(int fighterId, char *out, size_t cap) { snprintf(out, cap, "models/%d/", fighterId); }
+/* digimon/d<nnn>/: the fighter id zero-padded to three digits (the ids are 3..470), the same <nnn> as the s<nnn> and c<nnn> folders of the other topics */
+static void fighterKey(int id, char *out, size_t cap) { snprintf(out, cap, "d%03d", id); }
 
-static void manifestPath(char *out, size_t cap) { snprintf(out, cap, "%s/models/manifest.json", sDataDir); }
+void modelExportFolder(int fighterId, char *out, size_t cap) { snprintf(out, cap, "digimon/d%03d/model/", fighterId); }
+
+static void manifestPath(char *out, size_t cap) { snprintf(out, cap, "%s/digimon/manifest.json", sDataDir); }
 
 static void manifestLoad(void) {
     char mp[1200];
-    uint8_t *mt;
-    size_t ml;
 
-    if (sManLoaded) return;
-    memset(&sMan, 0, sizeof sMan);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "models-v1");
+    if (sMan.loaded) return;
     manifestPath(mp, sizeof mp);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
-    sManLoaded = 1;
-    sManDirty = 0;
+    expManOpen(&sMan, "models", mp, "digimon");
 }
 
-static void manifestSave(void) {
-    char mp[1200], dir[1200];
-    char *text;
+static void manifestSave(void) { expManSave(&sMan, 1); }
 
-    if (!sManLoaded || !sManDirty) return;
-    snprintf(dir, sizeof dir, "%s/models", sDataDir);
-    manifestPath(mp, sizeof mp);
-    text = tdManifestFormat(&sMan);
-    if (text == NULL || tdMakeDirs(dir) || tdWriteFileAtomic(mp, text, strlen(text))) plogLine("models", "cannot write %s\n", mp);
-    else sManDirty = 0;
-    free(text);
-}
-
-/* one generated file of <data>/models/ under the manifest rule of ADR-005: an unedited copy is replaced, an edited one stays and
-   the new version goes beside it as <rel>.new */
+/* one generated file of <data>/digimon/ under the manifest rule of ADR-005 (exp_core.h) */
 static void writeGenerated(const char *rel, const void *want, size_t len) {
-    char path[1300], dir[1300], hex[17], wantHex[17], *slash;
-    uint8_t *cur = NULL;
-    size_t curLen = 0;
-    int edited = 0;
+    char dir[1200];
+    ExpSink sink;
 
-    snprintf(path, sizeof path, "%s/models/%s", sDataDir, rel);
-    snprintf(dir, sizeof dir, "%s", path);
-    slash = strrchr(dir, '/');
-    if (slash != NULL) *slash = '\0';
-    tdHashHex(tdHash(want, len), wantHex);
-    if (tdReadFile(path, &cur, &curLen) == 0) {
-        tdHashHex(tdHash(cur, curLen), hex);
-        free(cur);
-        if (!strcmp(hex, wantHex)) {
-            if (!tdManifestFind(&sMan, rel)) {
-                tdManifestSet(&sMan, rel, hex);
-                sManDirty = 1;
-            }
-            return;
-        }
-        edited = tdFileState(1, tdManifestFind(&sMan, rel), hex) == TD_FILE_EDITED;
-    }
-    if (edited) {
-        char np[1400];
-        snprintf(np, sizeof np, "%s.new", path);
-        if (tdMakeDirs(dir) || tdWriteFileAtomic(np, want, len)) plogLine("models", "cannot write %s\n", np);
-        else plogLine("models", "%s was edited, kept; the new version is %s.new\n", rel, rel);
-    } else if (tdMakeDirs(dir) || tdWriteFileAtomic(path, want, len)) {
-        plogLine("models", "cannot write %s\n", path);
-    } else {
-        tdManifestSet(&sMan, rel, wantHex);
-        sManDirty = 1;
-    }
+    snprintf(dir, sizeof dir, "%s/digimon", sDataDir);
+    expSinkInPlace(&sink, "models", dir, &sMan, NULL);
+    expPut(&sink, rel, want, len);
 }
 
 static const char *const kModelFiles[4] = {"model.gltf", "model.bin", "model.png", "model.json"};
 
-/* "<id>/exporter" in the manifest holds the version that wrote the fighter's files (a manifest without it: old, rebuild) */
-static void versionKey(int id, char *rel, size_t cap) { snprintf(rel, cap, "%d/exporter", id); }
-
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)MODEL_EXPORT_VERSION); }
+/* the manifest header's `exporter` holds, under "<id>", the version that wrote the fighter's files (a manifest without it: old, rebuild) */
+static void versionKey(int id, char *rel, size_t cap) { fighterKey(id, rel, cap); }
 
 /* written by this version and all four files there: nothing to build. An edited file still counts as present */
 static int upToDate(int id) {
-    char rel[96], path[1300], hex[17];
-    const char *have;
+    char rel[96], path[1300];
     int i;
 
     manifestLoad();
     versionKey(id, rel, sizeof rel);
-    have = tdManifestFind(&sMan, rel);
-    versionHex(hex);
-    if (have == NULL || strcmp(have, hex)) return 0;
+    if (!expManIsCurrent(&sMan, rel, MODEL_EXPORT_VERSION)) return 0;
     for (i = 0; i < 4; i++) {
-        FILE *f;
-        snprintf(path, sizeof path, "%s/models/%d/%s", sDataDir, id, kModelFiles[i]);
-        f = fopen(path, "rb");
-        if (f == NULL) return 0;
-        fclose(f);
+        snprintf(path, sizeof path, "%s/digimon/%s/model/%s", sDataDir, rel, kModelFiles[i]);
+        if (!expFileExists(path)) return 0;
     }
     return 1;
 }
 
-static SDL_mutex *sMu; /* guards the counters, the status and the slots of a worker job (NULL until the first one) */
-
-static void lockMu(void) {
-    if (sMu != NULL) SDL_LockMutex(sMu);
-}
-
-static void unlockMu(void) {
-    if (sMu != NULL) SDL_UnlockMutex(sMu);
-}
-
+/* an EXP_JOB_ value */
 static int exportOneIo(const ModelExportIo *io, int id, int force) {
     ModelExportOut o;
-    char err[256], rel[96], hex[17];
+    char err[256], rel[96], ident[48];
     int i;
     const uint8_t *data[4];
     size_t len[4];
 
-    if (!force && sDataDir[0] && upToDate(id)) return 0;
+    if (!force && sDataDir[0] && upToDate(id)) return EXP_JOB_SKIPPED;
     if (modelExportBuild(io, id, MODEL_EXPORT_UNIT_SCALE, &o, err, sizeof err) != 0) {
         plogLine("models", "fighter %d not exported: %s\n", id, err);
-        return -1;
+        return EXP_JOB_FAILED;
     }
     manifestLoad();
     data[0] = o.gltf; len[0] = o.gltfLen;
@@ -2034,26 +1964,29 @@ static int exportOneIo(const ModelExportIo *io, int id, int force) {
     data[2] = o.png; len[2] = o.pngLen;
     data[3] = o.json; len[3] = o.jsonLen;
     for (i = 0; i < 4; i++) {
-        snprintf(rel, sizeof rel, "%d/%s", id, kModelFiles[i]);
+        snprintf(rel, sizeof rel, "d%03d/model/%s", id, kModelFiles[i]);
         writeGenerated(rel, data[i], len[i]);
     }
     modelExportFree(&o);
     versionKey(id, rel, sizeof rel);
-    versionHex(hex);
-    if (tdManifestSet(&sMan, rel, hex) == 0) sManDirty = 1;
-    lockMu();
-    sBuilt++;
-    unlockMu();
-    return 0;
+    snprintf(ident, sizeof ident, "dw3:digimon/%d", id);
+    tdKvSet(&sMan.m.names, rel, ident); /* the name the folder stands for (ADR-016): saved with the mark just below */
+    expManMark(&sMan, rel, MODEL_EXPORT_VERSION);
+    return EXP_JOB_BUILT;
 }
 
-static int exportOne(int id, int force) { return exportOneIo(&sIo, id, force); }
+/* the job's build on the pumping thread: the files come from the disc reader */
+static int exportOne(void *ud, int pos, int id, int force) {
+    (void)ud;
+    (void)pos;
+    return exportOneIo(&sIo, id, force);
+}
 
 /* ---- the worker thread of the menu's job ----
  * The disc reader (host_cd.c) shares one FILE* with the game, so the worker never calls it: the main thread (modelExportPump,
  * once per frame) reads the files of the next few fighters into a small ring and the worker builds and writes from that memory.
- * The manifest, the files and the counters of a running job belong to the worker; the counters and the status text are read
- * under sMu. The job is joined by the pump when it is over and by modelExportShutdown at exit. */
+ * The manifest and the files of a running job belong to the worker; the slots are read and written under the job's lock
+ * (expJobLock). The job is joined by the pump when it is over and by modelExportShutdown at exit. */
 
 #define PF_SLOTS 4
 
@@ -2064,13 +1997,10 @@ typedef struct Slot {
     size_t len[2];
 } Slot;
 
-static SDL_Thread *sThread;
-static SDL_cond *sCv;
-static int sStop, sWorkerDone, sFed;
+static int sFed;
 static Slot sSlots[PF_SLOTS];
 static uint8_t *sFightersCopy;
 static size_t sFightersLen;
-static char sStatusOut[96];
 
 static void slotClear(Slot *s) {
     int i;
@@ -2083,28 +2013,15 @@ static void slotClear(Slot *s) {
     s->job = -1;
 }
 
-/* a running job (the worker has not finished) */
-static int workerBusy(void) {
-    int busy;
-    if (sThread == NULL) return 0;
-    lockMu();
-    busy = !sWorkerDone;
-    unlockMu();
-    return busy;
-}
-
-/* join a finished (or stopped) worker and free what the job held */
-static void reap(void) {
+/* the job's release hook: what the threaded job held (after the worker is joined, or could not start) */
+static void releaseSlots(void *ud) {
     int i;
-    if (sThread == NULL) return;
-    SDL_WaitThread(sThread, NULL);
-    sThread = NULL;
+
+    (void)ud;
     for (i = 0; i < PF_SLOTS; i++) slotClear(&sSlots[i]);
     free(sFightersCopy);
     sFightersCopy = NULL;
     sFightersLen = 0;
-    free(sQueue);
-    sQueue = NULL;
 }
 
 static const uint8_t *slotFile(void *ud, int file, size_t *len) {
@@ -2123,46 +2040,24 @@ static const uint8_t *slotFile(void *ud, int file, size_t *len) {
     return NULL;
 }
 
-static void finishStatus(void) {
-    if (sFailed) snprintf(sStatus, sizeof sStatus, "Done, %d failed", sFailed);
-    else snprintf(sStatus, sizeof sStatus, "Done (%d)", sDone);
-    plogLine("models", "Done: %d models in %s/models, %d failed\n", sDone, sDataDir, sFailed);
+/* the worker's build: the files come from the slot that main thread filled */
+static int exportOneSlot(void *ud, int pos, int id, int force) {
+    ModelExportIo io;
+
+    (void)ud;
+    io.file = slotFile;
+    io.ud = &sSlots[pos % PF_SLOTS];
+    return exportOneIo(&io, id, force);
 }
 
-static int workerMain(void *arg) {
-    int j, since = 0;
-    (void)arg;
-    for (j = 0; j < sCount; j++) {
-        Slot *s = &sSlots[j % PF_SLOTS];
-        ModelExportIo io;
-        int r;
+static int slotReady(void *ud, int pos) {
+    (void)ud;
+    return sSlots[pos % PF_SLOTS].job == pos;
+}
 
-        SDL_LockMutex(sMu);
-        while (!sStop && s->job != j) SDL_CondWait(sCv, sMu);
-        SDL_UnlockMutex(sMu);
-        if (sStop) break;
-        io.file = slotFile;
-        io.ud = s;
-        r = exportOneIo(&io, sQueue[j], sForce);
-        SDL_LockMutex(sMu);
-        slotClear(s);
-        if (r == 0) sDone++;
-        else sFailed++;
-        sNext = j + 1;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext, sCount);
-        SDL_CondBroadcast(sCv);
-        SDL_UnlockMutex(sMu);
-        if (++since >= 16) {
-            manifestSave();
-            since = 0;
-        }
-    }
-    manifestSave();
-    SDL_LockMutex(sMu);
-    if (j >= sCount) finishStatus();
-    sWorkerDone = 1;
-    SDL_UnlockMutex(sMu);
-    return 0;
+static void slotRetire(void *ud, int pos) {
+    (void)ud;
+    slotClear(&sSlots[pos % PF_SLOTS]);
 }
 
 /* the model file and the motions file numbers of a fighter, 0 when it is not in the fighters file */
@@ -2188,16 +2083,16 @@ static void fighterFiles(int id, int *num) {
 }
 
 /* main thread: read the files of up to maxN of the next fighters into free slots */
-static void feed(int maxN) {
-    while (maxN-- > 0 && sFed < sCount) {
+static void feedSlots(int maxN) {
+    while (maxN-- > 0 && sFed < expJobSize(&sJob)) {
         Slot *s = &sSlots[sFed % PF_SLOTS];
         int fn[2], i, isFree;
 
-        lockMu();
+        expJobLock(&sJob);
         isFree = s->job == -1;
-        unlockMu();
+        expJobUnlock(&sJob);
         if (!isFree) return;
-        fighterFiles(sQueue[sFed], fn);
+        fighterFiles(expJobItem(&sJob, sFed), fn);
         for (i = 0; i < 2; i++) {
             const uint8_t *p;
             size_t len = 0;
@@ -2210,27 +2105,36 @@ static void feed(int maxN) {
             s->len[i] = len;
             s->num[i] = fn[i];
         }
-        lockMu();
+        expJobLock(&sJob);
         s->job = sFed;
-        SDL_CondBroadcast(sCv);
-        unlockMu();
+        expJobWake(&sJob);
+        expJobUnlock(&sJob);
         sFed++;
     }
 }
 
-static void dropJob(void) {
-    free(sQueue);
-    sQueue = NULL;
-    sCount = sNext = 0;
+static void feed(void *ud) {
+    (void)ud;
+    feedSlots(2);
 }
 
+static void flushManifest(void *ud) {
+    (void)ud;
+    manifestSave();
+}
+
+static void logDone(void *ud, int done, int failed) {
+    (void)ud;
+    plogLine("models", "Done: %d models in %s/digimon, %d failed\n", done, sDataDir, failed);
+}
+
+/* the status counts the fighters done ("Exporting 0/383"), the manifest is written every 16 */
+static const ExpJobKind kKind = {"models",      "dw3-model-export", 0,         16,          NULL,      exportOne,  exportOneSlot,
+                                 flushManifest, logDone,            slotReady, slotRetire, feed, releaseSlots};
+
 void modelExportSetup(const char *dataDir, const ModelExportIo *io) {
-    modelExportShutdown();
-    dropJob();
-    if (sManLoaded) tdManifestFree(&sMan);
-    sManLoaded = 0;
-    sRan = 0;
-    sStatus[0] = '\0';
+    expJobSetup(&sJob, &kKind);
+    expManFree(&sMan);
     snprintf(sDataDir, sizeof sDataDir, "%s", dataDir != NULL ? dataDir : "");
     if (io != NULL) sIo = *io;
     else memset(&sIo, 0, sizeof sIo);
@@ -2242,14 +2146,16 @@ int modelExportRequestEx(const char *spec, int force) {
     int all[1024], nAll, n = 0, i;
     int *q;
 
-    if (workerBusy()) return -1; /* one job at a time: a press while one runs changes nothing */
-    reap();
-    dropJob();
-    sDone = sFailed = sBuilt = 0;
-    sForce = force;
-    sRan = 0;
-    sStatus[0] = '\0';
+    if (expJobBegin(&sJob, force) < 0) return -1; /* one job at a time: a press while one runs changes nothing */
     if (!sDataDir[0] || sIo.file == NULL || spec == NULL) return -1;
+    {
+        struct stat sb;
+        char old[1200];
+
+        snprintf(old, sizeof old, "%s/models", sDataDir);
+        if (stat(old, &sb) == 0 && S_ISDIR(sb.st_mode))
+            plogLine("models", "%s/ is the old layout of the models and is not read any more (they are in digimon/d<nnn>/model/); you can delete it\n", old);
+    }
     nAll = modelExportIds(&sIo, all, 1024);
     if (nAll <= 0) {
         plogLine("models", "the fighters file cannot be read: nothing to export\n");
@@ -2292,120 +2198,48 @@ int modelExportRequestEx(const char *spec, int force) {
         free(q);
         return -1;
     }
-    sQueue = q;
-    sCount = n;
-    sNext = 0;
-    sRan = 1;
-    sSince = 0;
-    snprintf(sStatus, sizeof sStatus, "Exporting 0/%d", n);
+    return expJobQueue(&sJob, q, n);
+}
+
+int modelExportRun(const char *spec) {
+    int n = modelExportRequest(spec);
+
+    if (n > 0) expJobRun(&sJob);
     return n;
 }
 
 int modelExportStart(const char *spec, int force) {
     const uint8_t *fp;
     size_t flen = 0;
-    int n;
+    int n, i;
 
     n = modelExportRequestEx(spec, force);
     if (n <= 0) return -1;
     fp = sIo.file(sIo.ud, MODEL_EXPORT_FILE_FIGHTERS, &flen);
     if (fp != NULL && flen > 0) sFightersCopy = (uint8_t *)malloc(flen);
     if (sFightersCopy == NULL) {
-        dropJob();
+        expJobDrop(&sJob);
         return -1;
     }
     memcpy(sFightersCopy, fp, flen);
     sFightersLen = flen;
-    if (sMu == NULL) sMu = SDL_CreateMutex();
-    if (sCv == NULL) sCv = SDL_CreateCond();
-    if (sMu != NULL && sCv != NULL) {
-        int i;
-        for (i = 0; i < PF_SLOTS; i++) sSlots[i].job = -1;
-        sStop = sWorkerDone = sFed = 0;
-        sThread = SDL_CreateThread(workerMain, "dw3-model-export", NULL);
-    }
-    if (sThread == NULL) {
-        plogLine("models", "the export thread cannot start: %s\n", SDL_GetError());
-        free(sFightersCopy);
-        sFightersCopy = NULL;
-        sFightersLen = 0;
-        dropJob();
-        return -1;
-    }
+    for (i = 0; i < PF_SLOTS; i++) sSlots[i].job = -1;
+    sFed = 0;
+    if (expJobStart(&sJob) < 0) return -1; /* it released the copy */
     return n;
 }
 
-void modelExportShutdown(void) {
-    if (sThread == NULL) return;
-    SDL_LockMutex(sMu);
-    sStop = 1;
-    SDL_CondBroadcast(sCv);
-    SDL_UnlockMutex(sMu);
-    reap();
-}
-
-int modelExportBuilt(void) {
-    int n;
-    lockMu();
-    n = sBuilt;
-    unlockMu();
-    return n;
-}
-
-int modelExportActive(void) {
-    if (sThread != NULL) return workerBusy();
-    return sQueue != NULL && sNext < sCount;
-}
-
-void modelExportCounts(int *done, int *failed, int *total) {
-    lockMu();
-    if (done) *done = sDone;
-    if (failed) *failed = sFailed;
-    if (total) *total = sCount;
-    unlockMu();
-}
-
-const char *modelExportStatus(void) {
-    lockMu();
-    snprintf(sStatusOut, sizeof sStatusOut, "%s", sStatus);
-    unlockMu();
-    return sStatusOut;
-}
-
-int modelExportPump(unsigned budgetMs) {
-    clock_t start = clock();
-
-    if (sThread != NULL) {
-        feed(2);
-        if (workerBusy()) return 1;
-        reap();
-        return 0;
-    }
-    if (!modelExportActive()) return 0;
-    do {
-        if (exportOne(sQueue[sNext], sForce) == 0) sDone++;
-        else sFailed++;
-        sNext++;
-        if (++sSince >= 16) {
-            manifestSave();
-            sSince = 0;
-        }
-    } while (sNext < sCount && (unsigned)((clock() - start) * 1000 / CLOCKS_PER_SEC) < budgetMs);
-    if (sNext < sCount) {
-        snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext, sCount);
-        return 1;
-    }
-    manifestSave();
-    finishStatus();
-    free(sQueue);
-    sQueue = NULL;
-    return 0;
-}
+void modelExportShutdown(void) { expJobShutdown(&sJob); }
+int modelExportBuilt(void) { return expJobBuilt(&sJob); }
+int modelExportActive(void) { return expJobActive(&sJob); }
+void modelExportCounts(int *done, int *failed, int *total) { expJobCounts(&sJob, done, failed, total); }
+const char *modelExportStatus(void) { return expJobStatus(&sJob); }
+int modelExportPump(unsigned budgetMs) { return expJobPump(&sJob, budgetMs); }
 
 int modelExportOne(int fighterId) {
     int r;
-    if (!sDataDir[0] || sIo.file == NULL || workerBusy()) return -1;
-    r = exportOne(fighterId, 1);
+    if (!sDataDir[0] || sIo.file == NULL || expJobBusy(&sJob)) return -1;
+    r = exportOneIo(&sIo, fighterId, 1);
     manifestSave();
-    return r;
+    return r < 0 ? -1 : 0;
 }

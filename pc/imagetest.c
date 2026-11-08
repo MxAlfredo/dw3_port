@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <utime.h>
 
+#include "shim/exp_core.h"
 #include "shim/image_data.h"
 #include "shim/mods.h"
 #include "shim/png_read.h"
@@ -338,6 +339,92 @@ static size_t makeTmFile(uint8_t *out, const uint16_t *page, int pageW, int page
     return makeArchive(out, top, topLens, 1, 0);
 }
 
+/* A screen whose palettes sit on another page than the pixels (stmcrdtm, sttrngtm): a part names its CLUT as a position of the
+   screen's image space (64 halfwords per page), so the palette is where that position falls, not on the page of the pixels. */
+static size_t makeTwoPageTm(uint8_t *out)
+{
+    uint8_t t[4096], z[2][8192], sub[16384];
+    uint16_t page[2][64 * 4];
+    const uint8_t *ents[2];
+    size_t lens[2], nz, nsub;
+    const uint8_t *top[1];
+    size_t topLens[1];
+    int i, k;
+
+    memset(page, 0, sizeof page);
+    for (i = 0; i < 16; i++) {
+        page[0][2 * 64 + 48 + i] = rgb555(31, i, 0); /* page 0: the palette at (48, 2), the next row at (48, 3) */
+        page[0][3 * 64 + 48 + i] = rgb555(0, i, 31);
+        page[1][2 * 64 + 48 + i] = rgb555(i, 31, i); /* page 1: a decoy where a reader of the pixel page would look */
+        page[1][2 * 64 + 16 + i] = rgb555(7, 7, i);  /* and a real palette at column 64 + 16 of the screen's space */
+    }
+    page[1][0] = 0x2100;
+    for (k = 0; k < 2; k++) {
+        nz = rlenPack(t, makeTim(t, 2, 0, 0, NULL, 64, 4, page[k]), z[k]);
+        ents[k] = z[k];
+        lens[k] = nz;
+    }
+    nsub = makeArchive(sub, ents, lens, 2, 1);
+    top[0] = sub;
+    topLens[0] = nsub;
+    return makeArchive(out, top, topLens, 1, 0);
+}
+
+static void testScreenPalette(void)
+{
+    uint8_t file[65536], sheet[512];
+    const int parts[3][7] = {{256, 0, 16, 3, 48, 2, 0}, {0, 0, 16, 3, 64 + 16, 2, 0}, {0, 0, 16, 3, 48, 3, 0}};
+    size_t n = makeTwoPageTm(file), sn = makeSheet(sheet, parts, 3);
+    ImgPages *pg = imgPagesOpen(file, n);
+    ImgPart part;
+    ImgPalAt at;
+    uint16_t pal[256];
+    int i, ok;
+
+    CHECK(pg != NULL && imgSheetPartCount(sheet, sn) == 3 && imgSheetPart(sheet, sn, 0, &part) == 0 && part.u == 256 && part.clutX == 48 && part.clutY == 2);
+    if (!pg) return;
+    /* a part of page 1 whose CLUT column 48 is page 0's: the palette of page 0, not the decoy under the pixels */
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) == 0 && at.page == 0 && at.x == 48 && at.y == 2);
+    for (i = 0, ok = 1; i < 16; i++) ok &= pal[i] == rgb555(31, i, 0);
+    CHECK(ok);
+    /* a frame's added CLUT row selects the next row */
+    CHECK(imgPartPalette(pg, &part, 1, pal, &at) == 0 && at.page == 0 && at.y == 3);
+    for (i = 0, ok = 1; i < 16; i++) ok &= pal[i] == rgb555(0, i, 31);
+    CHECK(ok);
+    /* column 64 + 16 is page 1, column 16 */
+    CHECK(imgSheetPart(sheet, sn, 1, &part) == 0 && imgPartPalette(pg, &part, 0, pal, &at) == 0 && at.page == 1 && at.x == 16 && at.y == 2);
+    for (i = 0, ok = 1; i < 16; i++) ok &= pal[i] == rgb555(7, 7, i);
+    CHECK(ok);
+    /* outside the pages: no palette */
+    CHECK(imgSheetPart(sheet, sn, 2, &part) == 0 && imgPartPalette(pg, &part, 3, pal, &at) != 0); /* row 6 of 4 */
+    CHECK(imgPartPalette(pg, &part, -4, pal, &at) != 0);
+    part.clutX = 128;
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) != 0); /* page 2 does not exist */
+    imgPagesFree(pg);
+
+    /* the page export: the PNG of page 1 carries the palette of page 0 */
+    snprintf(gRoot, sizeof gRoot, "%s/imagetest-XXXXXX", getenv("TMPDIR") && getenv("TMPDIR")[0] ? getenv("TMPDIR") : "/tmp");
+    if (mkdtemp(gRoot)) {
+        ImgRun run;
+        Png p;
+        size_t tl;
+        char *txt;
+
+        memset(&run, 0, sizeof run);
+        CHECK(imgRunOpen(&run, gRoot, "aaaa", 1) == 0);
+        CHECK(imgExtractFile(&run, "AAA/DAT/MCARD/STMCRDTM.BIN", file, n, sheet, sn) == 2 && run.failed == 0);
+        CHECK(imgRunClose(&run) == 0);
+        txt = slurp("images/mcard/stmcrdtm/00_01.png", &tl);
+        CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0);
+        if (txt) {
+            CHECK(p.rgb[3] == 255 && p.rgb[4] == 8 && p.rgb[5] == 0 && p.rgb[6] == 255 && p.rgb[7] == 16); /* (31,1,0), (31,2,0); the decoy is (1,31,1) */
+            free(p.px);
+        }
+        free(txt);
+        rmtree(gRoot);
+    }
+}
+
 static void testWalkAndNames(void)
 {
     uint8_t file[32768];
@@ -511,8 +598,8 @@ static void testExtract(void)
         return;
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=1") == 0);
-    CHECK(!run.stampMatches && !imgRunCurrent(&run));
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 1) == 0);
+    CHECK(!run.sameRun && !imgRunCurrent(&run));
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
     CHECK(run.written == 4 && run.kept == 0 && run.failed == 0); /* two PNGs and their piece maps */
     CHECK(imgRunClose(&run) == 0);
@@ -543,19 +630,19 @@ static void testExtract(void)
     }
     free(txt);
 
-    /* second run, same stamp: pristine files are skipped and nothing is rewritten */
+    /* second run, same header: pristine files are skipped and nothing is rewritten */
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=1") == 0);
-    CHECK(run.stampMatches && imgRunCurrent(&run));
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 1) == 0);
+    CHECK(run.sameRun && imgRunCurrent(&run));
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
     CHECK(run.written == 0 && run.kept == 4 && run.newFiles == 0);
     CHECK(imgRunClose(&run) == 0);
 
-    /* a file the user edited survives a new stamp; the new version lands beside it as .new */
+    /* a file the user edited survives a new disc; the new version lands beside it as .new */
     spit("images/screen/stshoptm/00_01.png", "edited by the user", 18);
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=bbbb;images=1") == 0);
-    CHECK(!run.stampMatches);
+    CHECK(imgRunOpen(&run, gRoot, "bbbb", 1) == 0);
+    CHECK(!run.sameRun);
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
     CHECK(run.newFiles == 1 && run.written == 0 && run.kept == 3); /* 00_00 and both maps are already what we would write */
     CHECK(imgRunClose(&run) == 0);
@@ -568,15 +655,15 @@ static void testExtract(void)
     free(txt);
     if (p.px) free(p.px);
 
-    /* a missing file makes the folder not current even with a matching stamp, and is rewritten */
+    /* a missing file makes the folder not current even with a matching header, and is rewritten */
     {
         char path[1300];
         snprintf(path, sizeof path, "%s/images/screen/stshoptm/00_00.png", gRoot);
         CHECK(remove(path) == 0);
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=bbbb;images=1") == 0);
-    CHECK(run.stampMatches && !imgRunCurrent(&run));
+    CHECK(imgRunOpen(&run, gRoot, "bbbb", 1) == 0);
+    CHECK(run.sameRun && !imgRunCurrent(&run));
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
     CHECK(run.written == 1 && run.kept == 2 && run.newFiles == 1); /* the edited one stays edited, the maps are current */
     CHECK(imgRunClose(&run) == 0);
@@ -585,7 +672,7 @@ static void testExtract(void)
     /* a manifest that is not ours is rebuilt without losing the user's files */
     spit("images/manifest.json", "{ not json", 10);
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=bbbb;images=1") == 0 && !run.stampMatches);
+    CHECK(imgRunOpen(&run, gRoot, "bbbb", 1) == 0 && !run.sameRun);
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
     CHECK(run.newFiles == 1 && run.written == 0 && run.kept == 3); /* no manifest: identical files are ours, a different one is the user's */
     CHECK(imgRunClose(&run) == 0);
@@ -593,7 +680,7 @@ static void testExtract(void)
     /* a piece map the user edited is kept, the new one lands beside it; a file with no sheet gets an empty map */
     spit("images/screen/stshoptm/00_01.json", "{\"mine\": true}", 15);
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=cccc;images=1") == 0);
+    CHECK(imgRunOpen(&run, gRoot, "cccc", 1) == 0);
     CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, NULL, 0) == 2);
     CHECK(run.newFiles >= 1 && exists("images/screen/stshoptm/00_01.json.new"));
     txt = slurp("images/screen/stshoptm/00_01.json", &tl);
@@ -666,11 +753,50 @@ static size_t makeSpriteFile(uint8_t *out, int withSets)
     return makeArchive(out, ents, lens, 6, 0);
 }
 
+/* the exporter's way of writing a sprite (sprite_export.c, covered by sprexptest): frames and sprite.json through the manifest rules into sprites/<name>/ of the data folder */
+typedef struct SprWrite {
+    const ExpSink *sink;
+    char folder[40];
+    int failed;
+} SprWrite;
+
+static int sprWriteEmit(void *ctx, const char *rel, const uint8_t *data, size_t len)
+{
+    SprWrite *w = (SprWrite *)ctx;
+    char path[120];
+    snprintf(path, sizeof path, "%s/%s", w->folder, rel);
+    if (expPut(w->sink, path, data, len)) w->failed++;
+    return 0;
+}
+
+/* writes the sprite of `discPath` under <dataDir>/sprites/ with its manifest; returns the number of PNGs */
+static int writeSprite(const char *dataDir, const char *discPath, const uint8_t *file, size_t len, SprStats *st)
+{
+    ExpManifest man;
+    ExpStats es;
+    ExpSink sink;
+    SprWrite w;
+    char dir[1200], mp[1300];
+    int n;
+
+    snprintf(dir, sizeof dir, "%s/sprites", dataDir);
+    snprintf(mp, sizeof mp, "%s/manifest.json", dir);
+    expManOpen(&man, "test", mp, "sprites");
+    memset(&es, 0, sizeof es);
+    expSinkInPlace(&sink, "test", dir, &man, &es);
+    memset(&w, 0, sizeof w);
+    w.sink = &sink;
+    CHECK(sprFolder(discPath, w.folder, sizeof w.folder) == 0);
+    n = sprExtractAs("sprites-sprite-v1", sprWriteEmit, &w, discPath, file, len, st);
+    CHECK(w.failed == 0 && expManSave(&man, 0) == 0);
+    expManFree(&man);
+    return n;
+}
+
 static void testSprites(void)
 {
     uint8_t file[4096];
     size_t n, tl, jl;
-    ImgRun run;
     SprStats st;
     Png p;
     char *txt, name[160];
@@ -680,8 +806,8 @@ static void testSprites(void)
     CHECK(sprIsSpriteFile("AAA/DAT/FIELD/SPRT/P001PLAY.BIN"));
     CHECK(!sprIsSpriteFile("AAA/DAT/FIELD/FIELDCOM.BIN") && !sprIsSpriteFile("AAA/DAT/FIELD/SPRT/P001PLAY.TXT") &&
           !sprIsSpriteFile("AAA/DAT/FIELD/SPRT/X/P001PLAY.BIN") && !sprIsSpriteFile("AAA/DAT/SCREEN/STSHOPTM.BIN"));
-    CHECK(sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", 4, NULL, name, sizeof name) == 0 && strcmp(name, "field/sprt/p001play/004.png") == 0);
-    CHECK(sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", 0, "sprite.json", name, sizeof name) == 0 && strcmp(name, "field/sprt/p001play/sprite.json") == 0);
+    CHECK(sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", 4, NULL, name, sizeof name) == 0 && strcmp(name, "sprites/p001play/004.png") == 0);
+    CHECK(sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", 0, "sprite.json", name, sizeof name) == 0 && strcmp(name, "sprites/p001play/sprite.json") == 0);
     CHECK(sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", 4, NULL, name, 8) != 0 && sprName("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", -1, NULL, name, sizeof name) != 0);
     CHECK(!imgIsScreenFile("AAA/DAT/FIELD/SPRT/P001PLAY.BIN"));
 
@@ -692,18 +818,15 @@ static void testSprites(void)
         failures++;
         return;
     }
-    memset(&run, 0, sizeof run);
     memset(&st, 0, sizeof st);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=3") == 0);
-    CHECK(sprExtractFile(&run, "AAA/DAT/FIELD/SPRT/P001PLAY.BIN", file, n, &st) == 3);
-    CHECK(run.written == 4 && run.kept == 0 && run.failed == 0 && run.images == 3); /* three PNGs and the map */
+    CHECK(writeSprite(gRoot, "AAA/DAT/FIELD/SPRT/P001PLAY.BIN", file, n, &st) == 3);
     CHECK(st.files == 1 && st.frames == 3 && st.unused == 1 && st.anims == 2 && st.sets == 2 && st.failed == 0);
-    CHECK(imgRunClose(&run) == 0);
-    CHECK(exists("images/field/sprt/p001play/000.png") && exists("images/field/sprt/p001play/001.png") &&
-          exists("images/field/sprt/p001play/004.png") && exists("images/field/sprt/p001play/sprite.json"));
-    CHECK(!exists("images/field/sprt/p001play/002.png") && !exists("images/field/sprt/p001play/005.png")); /* animations and the set table are not images */
+    CHECK(exists("sprites/p001play/000.png") && exists("sprites/p001play/001.png") &&
+          exists("sprites/p001play/004.png") && exists("sprites/p001play/sprite.json"));
+    CHECK(!exists("sprites/p001play/002.png") && !exists("sprites/p001play/005.png")); /* animations and the set table are not images */
+    CHECK(!exists("images/field/sprt/p001play/000.png"));
 
-    txt = slurp("images/field/sprt/p001play/000.png", &tl);
+    txt = slurp("sprites/p001play/000.png", &tl);
     CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0);
     if (txt) {
         CHECK(p.w == 8 && p.h == 3 && p.depth == 4);
@@ -713,13 +836,13 @@ static void testSprites(void)
         free(p.px);
     }
     free(txt);
-    txt = slurp("images/field/sprt/p001play/004.png", &tl);
+    txt = slurp("sprites/p001play/004.png", &tl);
     CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0 && p.w == 4 && p.h == 1);
     if (txt) free(p.px);
     free(txt);
 
-    txt = slurp("images/field/sprt/p001play/sprite.json", &tl);
-    CHECK(contains(txt, "\"format\": \"sprite-v1\"") && contains(txt, "\"source\": \"DAT/FIELD/SPRT/P001PLAY.BIN\"") == 0);
+    txt = slurp("sprites/p001play/sprite.json", &tl);
+    CHECK(contains(txt, "\"format\": \"sprites-sprite-v1\"") && contains(txt, "\"source\": \"DAT/FIELD/SPRT/P001PLAY.BIN\"") == 0);
     CHECK(contains(txt, "\"source\": \"FIELD/SPRT/P001PLAY.BIN\"") && contains(txt, "\"set_table\": 5"));
     CHECK(contains(txt, "{ \"id\": 0, \"image\": \"000.png\", \"w\": 8, \"h\": 3 }"));
     CHECK(contains(txt, "{ \"id\": 1, \"image\": \"001.png\", \"w\": 4, \"h\": 2 }"));
@@ -731,32 +854,15 @@ static void testSprites(void)
     CHECK(contains(txt, "{ \"id\": 4, \"name\": \"WALK\", \"animations\": [3, 3, 3, 3, 3] }"));
     CHECK(contains(txt, "{ \"dir\": 5, \"slot\": 3, \"flip\": true") && contains(txt, "{ \"dir\": 0, \"slot\": 0, \"flip\": false"));
     free(txt);
-    txt = slurp("images/manifest.json", &tl);
-    CHECK(contains(txt, "field/sprt/p001play/sprite.json") && contains(txt, "field/sprt/p001play/004.png"));
+    txt = slurp("sprites/manifest.json", &tl);
+    CHECK(contains(txt, "p001play/sprite.json") && contains(txt, "p001play/004.png") && !contains(txt, "field/sprt"));
     free(txt);
 
-    /* the same text through sprJson, without writing */
+    /* the same text through sprJson (the partners' "sprite-v1"), without writing */
     memset(&st, 0, sizeof st);
     json = sprJson("AAA/DAT/FIELD/SPRT/P001PLAY.BIN", file, n, &jl, &st);
-    CHECK(json && jl == strlen(json) && st.frames == 3);
+    CHECK(json && jl == strlen(json) && st.frames == 3 && contains(json, "\"format\": \"sprite-v1\""));
     free(json);
-
-    /* second run: nothing rewritten; an edited frame survives a new stamp, the new one lands beside it */
-    memset(&run, 0, sizeof run);
-    memset(&st, 0, sizeof st);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=3") == 0 && run.stampMatches && imgRunCurrent(&run));
-    CHECK(sprExtractFile(&run, "AAA/DAT/FIELD/SPRT/P001PLAY.BIN", file, n, &st) == 3);
-    CHECK(run.written == 0 && run.kept == 4 && run.newFiles == 0);
-    CHECK(imgRunClose(&run) == 0);
-    spit("images/field/sprt/p001play/001.png", "edited by the user", 18);
-    memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=bbbb;images=3") == 0 && !run.stampMatches);
-    CHECK(sprExtractFile(&run, "AAA/DAT/FIELD/SPRT/P001PLAY.BIN", file, n, &st) == 3);
-    CHECK(run.newFiles == 1 && run.written == 0 && run.kept == 3 && exists("images/field/sprt/p001play/001.png.new"));
-    CHECK(imgRunClose(&run) == 0);
-    txt = slurp("images/field/sprt/p001play/001.png", &tl);
-    CHECK(txt && tl == 18 && memcmp(txt, "edited by the user", 18) == 0);
-    free(txt);
 
     /* no set table in the last entry: every TIM is a frame no animation uses, and the map says so */
     n = makeSpriteFile(file, 0);
@@ -839,7 +945,7 @@ static void testFieldCom(void)
         return;
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=3") == 0);
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 3) == 0);
     CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/FIELDCOM.BIN", file, n, NULL, 0) == 2);
     CHECK(run.written == 4 && run.failed == 0);
     CHECK(imgRunClose(&run) == 0);
@@ -1242,6 +1348,7 @@ static void testOverrides(void)
         return;
     }
     snprintf(dataDir, sizeof dataDir, "%s/data", gRoot);
+    assetSetData(dataDir);
     snprintf(modsDir, sizeof modsDir, "%s/mods", gRoot);
     makePage(page);
     n = makeTmFile(file, page, PG_W, PG_H);
@@ -1251,35 +1358,56 @@ static void testOverrides(void)
     CHECK(imgDecodeTim(tim, tn, &h, &pic) == 0);
 
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, dataDir, "disc=aaaa;images=1") == 0);
-    CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 2);
+    CHECK(imgRunOpen(&run, dataDir, "aaaa", 1) == 0);
+    CHECK(imgExtractFile(&run, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 2);
     CHECK(imgRunClose(&run) == 0);
 
     {
         char path[1300];
         struct utimbuf old;
         old.actime = old.modtime = 1000000000;
-        snprintf(path, sizeof path, "%s/images/screen/stshoptm/00_00.png", dataDir);
+        snprintf(path, sizeof path, "%s/images/screen/tlogousa/00_00.png", dataDir);
         CHECK(utime(path, &old) == 0);
     }
+    /* A5.5: a screen's TM pages are edited by menus/ pieces only. The same PNG that a loose picture (TLOGO) takes from images/ is not read for
+       the TM file, in the data folder or in a mod; the per-page entry stays (it carries the patched TIM of the menu packer). */
+    CHECK(imgIsMenuScreen("AAA/DAT/SCREEN/STSHOPTM.BIN") && imgIsMenuScreen("AAA/DAT/MCARD/STMCRDTM.BIN"));
+    CHECK(!imgIsMenuScreen("AAA/DAT/SCREEN/TLOGOUSA.BIN") && !imgIsMenuScreen("AAA/DAT/SCREEN/TTCOMMPK.BIN") && !imgIsMenuScreen("AAA/DAT/CARD/CARDDATA.BIN"));
+    CHECK(!imgIsMenuScreen("AAA/DAT/SCREEN/STWMP0TM.BIN") && !imgIsMenuScreen("AAA/DAT/SCREEN/STWMP1TM.BIN")); /* raw 8-bit pages: no piece has a PNG */
+    touchMod("a");
+    CHECK(modsInit(modsDir, NULL) == 1);
+    putMad("data/images/screen/stshoptm/00_00.png", &pic, 2, 6);
+    putMad("mods/a/images/SCREEN/STSHOPTM/00_00.png", &pic, 2, 7);
+    memset(&ov, 0, sizeof ov);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn) == 0);
+    CHECK(ov.n == 2 && ov.applied == 0 && byChain(&ov, 0, 0) && !byChain(&ov, 0, 0)->tim && byChain(&ov, 0, 0)->off > 0);
+    imgOverridesFree(&ov);
+    putMad("mods/a/images/SCREEN/STWMP0TM/00_00.png", &pic, 2, 7);
+    memset(&ov, 0, sizeof ov);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STWMP0TM.BIN", file, n, sheet, sn) == 1); /* the exception keeps its images/ path */
+    CHECK(byChain(&ov, 0, 0) && byChain(&ov, 0, 0)->tim != NULL);
+    imgOverridesFree(&ov);
+    rmtree(modsDir);
+    CHECK(modsInit(modsDir, NULL) == 0);
+
     /* nothing edited, no mods: nothing substituted */
     CHECK(modsInit(modsDir, NULL) == 0);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 0);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 0);
     CHECK(ov.n == 2 && ov.applied == 0 && byChain(&ov, 0, 0) && !byChain(&ov, 0, 0)->tim);
     CHECK(byChain(&ov, 0, 1) && byChain(&ov, 0, 0)->off > 0);
-    m0 = imgOverridesMix(&ov, dataDir);
+    m0 = imgOverridesMix(&ov);
     imgOverridesFree(&ov);
 
     /* the user edited data/images/...: it applies; a pristine copy of another image does not. The
        extracted files get an old mtime so the edit below is seen even within the same second. */
-    putMad("data/images/screen/stshoptm/00_00.png", &pic, 2, 6);
+    putMad("data/images/screen/tlogousa/00_00.png", &pic, 2, 6);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 1);
     a = byChain(&ov, 0, 0);
     CHECK(a && a->tim && a->len == tn && a->tim[20 + 1] == 0x26 /* 0x2600: pixel 2 is 6 */ && !byChain(&ov, 0, 1)->tim);
     CHECK(imgOverrideAt(&ov, a->off) == a && imgOverrideAt(&ov, 1) == NULL);
-    m1 = imgOverridesMix(&ov, dataDir);
+    m1 = imgOverridesMix(&ov);
     CHECK(m1 != m0);
     imgOverridesFree(&ov);
 
@@ -1287,19 +1415,19 @@ static void testOverrides(void)
     touchMod("a");
     touchMod("b");
     CHECK(modsInit(modsDir, NULL) == 2);
-    putMad("mods/a/images/SCREEN/STSHOPTM/00_00.png", &pic, 2, 7);
+    putMad("mods/a/images/SCREEN/TLOGOUSA/00_00.png", &pic, 2, 7);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 1);
     CHECK(byChain(&ov, 0, 0)->tim[21] == 0x27);
     imgOverridesFree(&ov);
-    spit("mods/b/images/SCREEN/STSHOPTM/00_00.png", "not a png at all", 16);
+    spit("mods/b/images/SCREEN/TLOGOUSA/00_00.png", "not a png at all", 16);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 1);
     CHECK(byChain(&ov, 0, 0)->tim[21] == 0x27); /* b refused, a wins over the edited data */
     imgOverridesFree(&ov);
-    putMad("mods/b/images/SCREEN/STSHOPTM/00_00.png", &pic, 2, 8);
+    putMad("mods/b/images/SCREEN/TLOGOUSA/00_00.png", &pic, 2, 8);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 1);
     CHECK(byChain(&ov, 0, 0)->tim[21] == 0x28);
     imgOverridesFree(&ov);
     /* an image of the 8-bit TIM through a mod */
@@ -1314,28 +1442,29 @@ static void testOverrides(void)
         n8 = makeTim(t8, 1, 256, 1, c8, 2, 1, pix);
         memset(&h8, 0, sizeof h8);
         CHECK(imgDecodeTim(t8, n8, &h8, &p8) == 0);
-        putMad("mods/a/images/SCREEN/STSHOPTM/00_01.png", &p8, 0, 9);
+        putMad("mods/a/images/SCREEN/TLOGOUSA/00_01.png", &p8, 0, 9);
         memset(&ov, 0, sizeof ov);
-        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 2);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 2);
         CHECK(byChain(&ov, 0, 1)->tim && byChain(&ov, 0, 1)->tim[8 + 12 + 512 + 12] == 9);
         imgOverridesFree(&ov);
         /* the mods are read once: an image that appears in a mod while the game runs is not looked for (no probing of the
            folders per use); the rescan, which a restart and the opt-in hot reload do, sees it */
-        putMadRaw("mods/b/images/SCREEN/STSHOPTM/00_01.png", &p8, 0, 10);
+        putMadRaw("mods/b/images/SCREEN/TLOGOUSA/00_01.png", &p8, 0, 10);
         memset(&ov, 0, sizeof ov);
-        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 2);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 2);
         CHECK(byChain(&ov, 0, 1)->tim && byChain(&ov, 0, 1)->tim[8 + 12 + 512 + 12] == 9); /* still a's */
         imgOverridesFree(&ov);
         imgOverridesRescan();
         memset(&ov, 0, sizeof ov);
-        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, dataDir) == 2);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 2);
         CHECK(byChain(&ov, 0, 1)->tim && byChain(&ov, 0, 1)->tim[8 + 12 + 512 + 12] == 10); /* b, the later mod, wins now */
         imgOverridesFree(&ov);
         imgPicFree(&p8);
     }
     /* no data folder: the mods alone */
+    assetSetData(NULL);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/STSHOPTM.BIN", file, n, sheet, sn, NULL) == 2);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/SCREEN/TLOGOUSA.BIN", file, n, sheet, sn) == 2);
     imgOverridesFree(&ov);
     CHECK(imgOverrideTim(1, 0, &tn) == NULL); /* no disc was given to imgStart: no runtime override */
     free(png = NULL);
@@ -1375,22 +1504,51 @@ static size_t makeCardPak(uint8_t *out)
     return (size_t)CARD_COUNT * CARD_STRIDE;
 }
 
+/* imgCardFaces' callback: keeps the PNG of card `id` (1-based within the test's file) */
+typedef struct CardFaces {
+    int n, ids[CARD_COUNT + 1];
+    uint8_t *png[CARD_COUNT + 1];
+    size_t len[CARD_COUNT + 1];
+} CardFaces;
+
+static int keepFace(void *ud, int id, const uint8_t *png, size_t len)
+{
+    CardFaces *f = (CardFaces *)ud;
+    if (f->n > CARD_COUNT) return -1;
+    f->ids[f->n] = id;
+    f->png[f->n] = (uint8_t *)malloc(len);
+    memcpy(f->png[f->n], png, len);
+    f->len[f->n++] = len;
+    return 0;
+}
+
 static void testCardPak(void)
 {
     uint8_t file[CARD_COUNT * CARD_STRIDE];
-    size_t n = makeCardPak(file), pn, tl;
+    size_t n = makeCardPak(file), tl;
     ImgRun run;
     ImgOverrides ov;
     ImgPic pic;
     ImgHints h;
     Png p;
     char *txt;
-    char name[64];
-    int chain[1] = {2}, i;
+    int i;
+    CardFaces faces;
+    char folder[8];
 
     CHECK(imgIsCardFile("AAA/DAT/CARD/CARDPAK0.BIN") && imgIsCardFile("AAA/DAT/CARD/CARDPAK4.BIN"));
     CHECK(!imgIsCardFile("AAA/DAT/CARD/CARDPAK5.BIN") && !imgIsCardFile("AAA/DAT/CARD/CARD_NPC.BIN") && !imgIsCardFile("AAA/DAT/SCREEN/CARDPAK0.BIN"));
-    CHECK(imgImageName("AAA/DAT/CARD/CARDPAK1.BIN", chain, 1, name, sizeof name) == 0 && !strcmp(name, "card/cardpak1/02.png"));
+    /* the game's card number: file A, image i is A * 64 + i + 1 (cardDrawerSetCard) */
+    CHECK(imgCardId("AAA/DAT/CARD/CARDPAK0.BIN", 0) == 1 && imgCardId("AAA/DAT/CARD/CARDPAK0.BIN", 63) == 64 && imgCardId("AAA/DAT/CARD/CARDPAK1.BIN", 0) == 65);
+    CHECK(imgCardId("AAA/DAT/CARD/CARDPAK4.BIN", 59) == 316 && imgCardId("AAA/DAT/CARD/CARDPAK0.BIN", 64) == 0 && imgCardId("AAA/DAT/CARD/CARDPAK5.BIN", 0) == 0);
+    CHECK(imgCardFolder(12, folder, sizeof folder) == 0 && !strcmp(folder, "c012") && imgCardFolder(316, folder, sizeof folder) == 0 && !strcmp(folder, "c316"));
+    CHECK(imgCardFolder(0, folder, sizeof folder) != 0 && imgCardFolder(1000, folder, sizeof folder) != 0 && imgCardFolder(5, folder, 4) != 0);
+    CHECK(imgCardIdOf("c012") == 12 && imgCardIdOf("c316") == 316 && imgCardIdOf("c12") == 0 && imgCardIdOf("x012") == 0 && imgCardIdOf("c01a") == 0 && imgCardIdOf("sample") == 0);
+    memset(&faces, 0, sizeof faces);
+    CHECK(imgCardFaces("AAA/DAT/CARD/CARDPAK2.BIN", file, n, keepFace, &faces) == CARD_COUNT && faces.n == CARD_COUNT);
+    for (i = 0; i < faces.n; i++) CHECK(faces.ids[i] == 128 + i + 1);
+    CHECK(imgCardFaces("AAA/DAT/SCREEN/CARDPAK0.BIN", file, n, keepFace, &faces) == -1);
+    for (i = 0; i < faces.n; i++) free(faces.png[i]);
 
     snprintf(gRoot, sizeof gRoot, "%s/imagetest-XXXXXX", getenv("TMPDIR") && getenv("TMPDIR")[0] ? getenv("TMPDIR") : "/tmp");
     if (!mkdtemp(gRoot)) {
@@ -1399,13 +1557,15 @@ static void testCardPak(void)
         return;
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=4") == 0);
-    CHECK(imgExtractFile(&run, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0) == CARD_COUNT);
-    CHECK(run.written == CARD_COUNT && run.failed == 0); /* a PNG per card, no piece map */
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 4) == 0);
+    CHECK(imgExtractFile(&run, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0) == 0); /* the faces are not images/'s any more: card_export.c writes them to cards/ */
+    CHECK(run.written == 0 && run.failed == 0);
     CHECK(imgRunClose(&run) == 0);
-    CHECK(exists("images/card/cardpak0/00.png") && exists("images/card/cardpak0/02.png") && !exists("images/card/cardpak0/03.png"));
-    CHECK(!exists("images/card/cardpak0/00.json"));
-    txt = slurp("images/card/cardpak0/02.png", &tl);
+    CHECK(!exists("images/card/cardpak0/00.png") && !exists("images/card"));
+    memset(&faces, 0, sizeof faces);
+    CHECK(imgCardFaces("AAA/DAT/CARD/CARDPAK0.BIN", file, n, keepFace, &faces) == CARD_COUNT && faces.n == CARD_COUNT);
+    txt = faces.n == CARD_COUNT ? (char *)faces.png[2] : NULL;
+    tl = faces.n == CARD_COUNT ? faces.len[2] : 0;
     CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0 && p.w == 32 && p.h == 32 && p.depth == 8 && p.nPal == 256);
     if (txt) {
         CHECK(p.px[0] == 2 && p.px[33] == 4 && p.px[31 * 32 + 31] == (31 + 31 + 2));
@@ -1413,7 +1573,7 @@ static void testCardPak(void)
         CHECK(p.nAlpha >= 1 && p.alpha[0] == 0);
         free(p.px);
     }
-    free(txt);
+    for (i = 0; i < faces.n; i++) free(faces.png[i]);
 
     /* a mod's PNG replaces one card picture: the TIM the game would load has its pixel and colour */
     touchMod("a");
@@ -1424,10 +1584,10 @@ static void testCardPak(void)
     }
     memset(&h, 0, sizeof h);
     CHECK(imgDecodeTim(file + 12 + CARD_STRIDE, 0x620, &h, &pic) == 0);
-    putMad("mods/a/images/card/cardpak0/01.png", &pic, 0, 9);
+    putMad("mods/a/cards/c002/face.png", &pic, 0, 9); /* card 2 is image 1 of CARDPAK0 */
     imgPicFree(&pic);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0, gRoot) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0) == 1);
     CHECK(ov.n == CARD_COUNT);
     for (i = 0; i < ov.n; i++) CHECK(ov.v[i].off == (size_t)12 + (size_t)i * CARD_STRIDE && ov.v[i].depth == 1);
     CHECK(imgOverrideAt(&ov, 12 + CARD_STRIDE) && imgOverrideAt(&ov, 12 + CARD_STRIDE)->tim);
@@ -1439,9 +1599,41 @@ static void testCardPak(void)
         CHECK(!memcmp(t, file + 12 + CARD_STRIDE, 8 + 12 + 512 + 12)); /* header, CLUT and image block header as on disc */
     }
     imgOverridesFree(&ov);
+
+    /* the old images/card/cardpak<A>/<ii>.png route is gone; an edited data/cards/c003/face.png counts, a pristine one (its hash in cards/manifest.json) does not */
+    memset(&h, 0, sizeof h);
+    CHECK(imgDecodeTim(file + 12 + 2 * CARD_STRIDE, 0x620, &h, &pic) == 0);
+    putMad("mods/a/images/card/cardpak0/00.png", &pic, 0, 7);
+    {
+        char dataDir[1300], mp[1400], hex[17];
+        uint8_t *bytes;
+        size_t bl;
+        TdManifest man;
+
+        snprintf(dataDir, sizeof dataDir, "%s/data", gRoot);
+        assetSetData(dataDir);
+        putMadRaw("data/cards/c003/face.png", &pic, 1, 5);
+        memset(&ov, 0, sizeof ov);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0) == 2); /* the mod's c002 and the edited data c003, not images/card/.../00.png */
+        CHECK(imgOverrideAt(&ov, 12)->tim == NULL && imgOverrideAt(&ov, 12 + 2 * CARD_STRIDE)->tim != NULL);
+        imgOverridesFree(&ov);
+        snprintf(mp, sizeof mp, "%s/data/cards/c003/face.png", gRoot);
+        CHECK(tdReadFile(mp, &bytes, &bl) == 0);
+        tdHashHex(tdHash(bytes, bl), hex);
+        free(bytes);
+        expManInit(&man, "cards");
+        CHECK(tdManifestSet(&man, "c003/face.png", hex) == 0);
+        snprintf(mp, sizeof mp, "%s/data/cards/manifest.json", gRoot);
+        CHECK(expManWrite("imagetest", mp, &man) == 0);
+        tdManifestFree(&man);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/CARD/CARDPAK0.BIN", file, n, NULL, 0) == 1);
+        CHECK(imgOverrideAt(&ov, 12 + 2 * CARD_STRIDE)->tim == NULL);
+        imgOverridesFree(&ov);
+        assetSetData(NULL);
+    }
+    imgPicFree(&pic);
     modsInit(NULL, NULL);
     rmtree(gRoot);
-    (void)pn;
 }
 
 /* CARDDATA.BIN: [0] and [1] archives of one page each, [2] and [3] the sheets that describe them (scene.c loads the pages and
@@ -1483,7 +1675,7 @@ static void testCardData(void)
         return;
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=4") == 0);
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 4) == 0);
     CHECK(imgExtractFile(&run, "AAA/DAT/CARD/CARDDATA.BIN", file, n, NULL, 0) == 2);
     CHECK(run.written == 4 && run.failed == 0);
     CHECK(imgRunClose(&run) == 0);
@@ -1554,13 +1746,11 @@ static void testStageMask(void)
     /* parts: page 0 palette 1 of page 0 (column 16), page 1 the palette of page 0 column 0, page 3 (8-bit texels 384..) CLUT row 1 */
     const int parts[3][7] = {{0, 0, 16, 16, 16, 3, 0}, {256, 0, 32, 16, 0, 3, 0}, {384, 0, 16, 16, 0, 257, 1}};
     const uint8_t *ents[2];
-    size_t lens[2], mlens[4], mn, sn = makeSheet(sh, parts, 3) - 4, tn, tl, bn;
+    size_t lens[2], mlens[4], mn, sn = makeSheet(sh, parts, 3) - 4, tn, bn;
     ImgRun run;
     ImgOverrides ov;
     ImgPic pic;
     ImgHints h;
-    Png p;
-    char *txt;
     char name[64], sp[96];
     int chain[1] = {1};
 
@@ -1583,47 +1773,6 @@ static void testStageMask(void)
         failures++;
         return;
     }
-    memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=5") == 0);
-    CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/STAGE/S233MASK.BIN", mask, mn, tmpk, tn) == 4);
-    CHECK(run.written == 8 && run.failed == 0 && run.guessed == 0); /* a PNG and a piece map per page, every palette found */
-    CHECK(imgRunClose(&run) == 0);
-    CHECK(exists("images/field/stage/s233mask/00.png") && exists("images/field/stage/s233mask/03.json"));
-
-    txt = slurp("images/field/stage/s233mask/00.png", &tl);
-    CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0 && p.w == 256 && p.h == 4 && p.depth == 4);
-    if (txt) { /* the palette in column 16 of its own page */
-        CHECK(p.px[2] == 1 && p.px[3] == 2);
-        CHECK(p.rgb[3 * 1] == 3 << 3 && p.rgb[3 * 1 + 1] == (uint8_t)(1 << 3 | 1 >> 2));
-        free(p.px);
-    }
-    free(txt);
-    txt = slurp("images/field/stage/s233mask/01.png", &tl);
-    CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0 && p.w == 256 && p.h == 4 && p.depth == 4);
-    if (txt) { /* the palette of page 0, column 0: this page has none of its own */
-        CHECK(p.px[0] == 1 && p.px[3] == 4);
-        CHECK(p.rgb[3 * 1] == (uint8_t)(1 << 3 | 1 >> 2) && p.rgb[3 * 1 + 1] == 3 << 3 && p.rgb[3 * 1 + 2] == 255);
-        free(p.px);
-    }
-    free(txt);
-    txt = slurp("images/field/stage/s233mask/03.png", &tl);
-    CHECK(txt && pngRead((uint8_t *)txt, tl, &p) == 0 && p.w == 128 && p.h == 4 && p.depth == 8); /* the sheet says this page is 8-bit art */
-    if (txt) { /* CLUT row 1 of the 8-bit TIM */
-        CHECK(p.px[0] == 3 && p.px[1] == 4);
-        CHECK(p.rgb[3 * 3] == (uint8_t)(3 << 3 | 3 >> 2) && p.rgb[3 * 3 + 1] == (uint8_t)(9 << 3 | 9 >> 2));
-        free(p.px);
-    }
-    free(txt);
-    txt = slurp("images/field/stage/s233mask/01.json", &tl);
-    CHECK(contains(txt, "\"sheet\": \"FIELD/STAGE/S233TMPK.BIN (entry 0)\"") && contains(txt, "\"mode\": \"4bit\""));
-    free(txt);
-
-    /* without its TMPK the pages still export (placeholder palettes, no pieces) */
-    memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=5") == 0);
-    CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/STAGE/S233MASK.BIN", mask, mn, NULL, 0) == 4 && run.failed == 0);
-    imgRunClose(&run);
-
     /* a BG file: its images, no piece map */
     {
         uint16_t px[2] = {0x0201, 0x0403};
@@ -1635,13 +1784,14 @@ static void testStageMask(void)
         bn = makeArchive(bg, be, bl, 1, 1);
     }
     memset(&run, 0, sizeof run);
-    CHECK(imgRunOpen(&run, gRoot, "disc=aaaa;images=5") == 0);
+    CHECK(imgRunOpen(&run, gRoot, "aaaa", 5) == 0);
     CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/STAGE/S415BG01.BIN", bg, bn, NULL, 0) == 1);
     CHECK(run.written == 1 && run.failed == 0);
     imgRunClose(&run);
     CHECK(exists("images/field/stage/s415bg01/00.png") && !exists("images/field/stage/s415bg01/00.json"));
 
-    /* a mod's PNG replaces page 0 (pixel 0 and the colour at index 1): the TIM the game would load has them in its own page */
+    /* the objects of a stage are edited only by piece (A6.4): a PNG a mod leaves in images/ for a MASK page is not read, and the page still has its
+       (empty) entry, the carrier of what the stage hook writes into it; a BG file keeps its PNGs */
     touchMod("a");
     {
         char modsDir[1300];
@@ -1649,8 +1799,11 @@ static void testStageMask(void)
         CHECK(modsInit(modsDir, NULL) == 1);
     }
     {
-        uint16_t pg0[64 * 4];
-        const ImgOverride *o0;
+        uint16_t pg0[64 * 4], clut[256], px2[2] = {0x0201, 0x0403}, px1[1] = {0};
+        uint8_t t8[2048], t16[256], tim0[4096];
+        const uint8_t *be[2];
+        size_t bl[2], n0;
+        int i;
         memset(pg0, 0, sizeof pg0);
         pg0[0] = 0x2100;
         stagePal(pg0, 0, 0);
@@ -1662,23 +1815,33 @@ static void testStageMask(void)
         h.palAt = 1;
         h.palX = 16;
         h.palY = 3;
-        {
-            uint8_t tim0[4096];
-            size_t n0 = makeTim(tim0, 2, 0, 0, NULL, 64, 4, pg0);
-            CHECK(imgDecodeTim(tim0, n0, &h, &pic) == 0);
-        }
+        n0 = makeTim(tim0, 2, 0, 0, NULL, 64, 4, pg0);
+        CHECK(imgDecodeTim(tim0, n0, &h, &pic) == 0);
         putMad("mods/a/images/field/stage/s233mask/00.png", &pic, 0, 9);
         imgPicFree(&pic);
         memset(&ov, 0, sizeof ov);
-        CHECK(imgOverridesBuild(&ov, "AAA/DAT/FIELD/STAGE/S233MASK.BIN", mask, mn, tmpk, tn, gRoot) == 1);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/FIELD/STAGE/S233MASK.BIN", mask, mn, tmpk, tn) == 0);
         CHECK(ov.n == 4 && ov.v[0].off == 20 && ov.v[1].depth == 1 && ov.v[1].chain[0] == 1);
-        o0 = imgOverrideAt(&ov, 20);
-        CHECK(o0 && o0->tim && o0->len >= mlens[0]); /* a raw entry's length is the rest of the file */
-        CHECK(imgOverrideAt(&ov, ov.v[1].off) && imgOverrideAt(&ov, ov.v[1].off)->tim == NULL);
-        if (o0 && o0->tim) {
-            CHECK((o0->tim[8 + 12] & 15) == 9 && !memcmp(o0->tim, p0, 8 + 12)); /* pixel 0 is index 9 (low nibble), header as on disc */
-            CHECK(!memcmp(o0->tim + 8 + 12 + 2 * 64 * 3, p0 + 8 + 12 + 2 * 64 * 3, 32)); /* the palette at column 0 untouched */
-        }
+        for (i = 0; i < ov.n; i++) CHECK(ov.v[i].tim == NULL && ov.v[i].rel[0] == 0); /* nothing to watch in images/ either */
+        imgOverridesFree(&ov);
+
+        /* a BG file: an 8-bit TIM, then a raw page with its palette; its PNG still goes in */
+        for (i = 0; i < 256; i++) clut[i] = (uint16_t)(i * 3);
+        be[0] = t8;
+        bl[0] = makeTim(t8, 1, 256, 1, clut, 1, 1, px1);
+        be[1] = t16;
+        bl[1] = makeTim(t16, 2, 0, 0, NULL, 2, 1, px2);
+        bn = makeArchive(bg, be, bl, 2, 1);
+        memset(&h, 0, sizeof h);
+        h.pixelBits = 8;
+        h.pal = clut;
+        h.nPal = 256;
+        CHECK(imgDecodeTim(t16, bl[1], &h, &pic) == 0);
+        putMad("mods/a/images/field/stage/s415bg01/01.png", &pic, 0, 9);
+        imgPicFree(&pic);
+        memset(&ov, 0, sizeof ov);
+        CHECK(imgOverridesBuild(&ov, "AAA/DAT/FIELD/STAGE/S415BG01.BIN", bg, bn, NULL, 0) == 1);
+        CHECK(imgOverrideAt(&ov, ov.v[1].off) && imgOverrideAt(&ov, ov.v[1].off)->tim != NULL);
         imgOverridesFree(&ov);
     }
     modsInit(NULL, NULL);
@@ -1717,7 +1880,6 @@ static void testSpriteOverrides(void)
     const uint8_t *bents[200];
     size_t blens[200], n, nfc, tl, tn, i;
     SprEntry ent[8];
-    ImgRun run;
     SprStats st;
     ImgOverrides ov;
     const ImgOverride *a, *b2;
@@ -1733,18 +1895,22 @@ static void testSpriteOverrides(void)
         return;
     }
     snprintf(dataDir, sizeof dataDir, "%s/data", gRoot);
+    assetSetData(dataDir);
     snprintf(modsDir, sizeof modsDir, "%s/mods", gRoot);
-    memset(&run, 0, sizeof run);
     memset(&st, 0, sizeof st);
-    CHECK(imgRunOpen(&run, dataDir, "disc=aaaa;images=3") == 0);
-    CHECK(sprExtractFile(&run, disc, file, n, &st) == 3);
-    CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/FIELDCOM.BIN", fc, nfc, NULL, 0) == 2);
-    CHECK(imgRunClose(&run) == 0);
+    CHECK(writeSprite(dataDir, disc, file, n, &st) == 3);
+    {
+        ImgRun run;
+        memset(&run, 0, sizeof run);
+        CHECK(imgRunOpen(&run, dataDir, "aaaa", 3) == 0);
+        CHECK(imgExtractFile(&run, "AAA/DAT/FIELD/FIELDCOM.BIN", fc, nfc, NULL, 0) == 2);
+        CHECK(imgRunClose(&run) == 0);
+    }
     {
         char path[1300];
         struct utimbuf old;
         old.actime = old.modtime = 1000000000; /* so that the edit below shows in the mtime even within the same second */
-        snprintf(path, sizeof path, "%s/images/field/sprt/p001play/001.png", dataDir);
+        snprintf(path, sizeof path, "%s/sprites/p001play/001.png", dataDir);
         CHECK(utime(path, &old) == 0);
     }
     CHECK(sprTable(file, n, ent, 8) == 6 && ent[0].off > 0 && ent[5].len == 36);
@@ -1752,36 +1918,36 @@ static void testSpriteOverrides(void)
 
     /* nothing edited, no mods: the frames have a source (the extractor's own) but none counts, and nothing is read yet */
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3);
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3);
     CHECK(ov.n == 3 && ov.applied == 0);
     a = imgOverrideGet(&ov, ent[0].off);
-    CHECK(a && a->chain[0] == 0 && a->depth == 1 && !a->tim && strcmp(a->rel, "field/sprt/p001play/000.png") == 0);
+    CHECK(a && a->chain[0] == 0 && a->depth == 1 && !a->tim && strcmp(a->rel, "sprites/p001play/000.png") == 0);
     CHECK(imgOverrideGet(&ov, ent[4].off) && imgOverrideGet(&ov, ent[4].off)->chain[0] == 4);
     CHECK(imgOverrideGet(&ov, ent[2].off) == NULL && imgOverrideGet(&ov, ent[5].off) == NULL && imgOverrideGet(&ov, 1) == NULL); /* animations, set table */
     CHECK(ov.applied == 0);
-    m0 = imgOverridesMix(&ov, dataDir);
+    m0 = imgOverridesMix(&ov);
     imgOverridesFree(&ov);
 
-    /* the user edited data/images/...: it applies (frame 1), a pristine one (frame 0) does not */
-    editPng("data/images/field/sprt/p001play/001.png", "data/images/field/sprt/p001play/001.png", 3, 9, 9, 9, 1, 2);
+    /* the user edited data/sprites/... it applies (frame 1), a pristine one (frame 0) does not */
+    editPng("data/sprites/p001play/001.png", "data/sprites/p001play/001.png", 3, 9, 9, 9, 1, 2);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3 && ov.applied == 0);
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3 && ov.applied == 0);
     a = imgOverrideGet(&ov, ent[1].off);
     CHECK(a && a->tim && a->len == ent[1].len && ov.applied == 1);
     CHECK(a->tim[20 + 6] == (9 >> 3 | (9 >> 3) << 5) && a->tim[20 + 7] == (9 >> 3) << 2); /* palette entry 3: (1,1,1) */
     CHECK(!imgOverrideGet(&ov, ent[0].off)->tim);
-    CHECK(imgOverridesMix(&ov, dataDir) != m0);
+    CHECK(imgOverridesMix(&ov) != m0);
     imgOverridesFree(&ov);
 
     /* a mod with an unchanged copy of the extracted PNG gives back the very same TIM bytes */
     touchMod("a");
     CHECK(modsInit(modsDir, NULL) == 1);
-    txt = slurp("data/images/field/sprt/p001play/000.png", &tl);
+    txt = slurp("data/sprites/p001play/000.png", &tl);
     CHECK(txt != NULL);
-    spit("mods/a/images/FIELD/SPRT/P001PLAY/000.png", txt, tl);
+    spit("mods/a/sprites/p001play/000.png", txt, tl);
     free(txt);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3 && ov.applied == 0); /* lazy: no PNG read yet */
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3 && ov.applied == 0); /* lazy: no PNG read yet */
     a = imgOverrideGet(&ov, ent[0].off);
     CHECK(a && a->tim && a->len == ent[0].len && memcmp(a->tim, file + ent[0].off, ent[0].len) == 0 && ov.applied == 1);
     b2 = imgOverrideGet(&ov, ent[0].off);
@@ -1789,9 +1955,9 @@ static void testSpriteOverrides(void)
     imgOverridesFree(&ov);
 
     /* a palette edit and a pixel edit */
-    editPng("data/images/field/sprt/p001play/000.png", "mods/a/images/FIELD/SPRT/P001PLAY/000.png", 5, 255, 0, 0, 2, 6);
+    editPng("data/sprites/p001play/000.png", "mods/a/sprites/p001play/000.png", 5, 255, 0, 0, 2, 6);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3);
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3);
     a = imgOverrideGet(&ov, ent[0].off);
     CHECK(a && a->tim && a->tim[30] == 0x1F && a->tim[31] == 0x00); /* CLUT entry 5: red */
     CHECK(a && a->tim[64] == 0x10 && a->tim[65] == 0x36);           /* pixel 2: 0x3210 -> 0x3610 */
@@ -1810,13 +1976,13 @@ static void testSpriteOverrides(void)
         uint8_t ix[24];
         for (k = 0; k < 24; k++) ix[k] = (uint8_t)(px17[k] % 16);
         CHECK(pngWriteIndexed(ix, 8, 3, 8, pl17, 17, NULL, 0, &png, &pl) == 0);
-        spit("mods/b/images/FIELD/SPRT/P001PLAY/000.png", png, pl);
+        spit("mods/b/sprites/p001play/000.png", png, pl);
         free(png);
     }
-    spit("mods/b/images/FIELD/SPRT/P001PLAY/001.png", "not a png at all", 16);
-    spit("mods/b/images/FIELD/SPRT/P001PLAY/004.png", kPng4, sizeof kPng4);
+    spit("mods/b/sprites/p001play/001.png", "not a png at all", 16);
+    spit("mods/b/sprites/p001play/004.png", kPng4, sizeof kPng4);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3);
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3);
     a = imgOverrideGet(&ov, ent[0].off);
     CHECK(a && a->tim && a->tim[30] == 0x1F && ov.applied == 1);       /* a's red palette */
     a = imgOverrideGet(&ov, ent[1].off);
@@ -1826,9 +1992,9 @@ static void testSpriteOverrides(void)
     imgOverridesFree(&ov);
 
     /* the last mod wins */
-    editPng("data/images/field/sprt/p001play/000.png", "mods/b/images/FIELD/SPRT/P001PLAY/000.png", 5, 0, 255, 0, -1, 0);
+    editPng("data/sprites/p001play/000.png", "mods/b/sprites/p001play/000.png", 5, 0, 255, 0, -1, 0);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n, dataDir) == 3);
+    CHECK(imgSpriteOverridesBuild(&ov, disc, file, n) == 3);
     a = imgOverrideGet(&ov, ent[0].off);
     CHECK(a && a->tim && a->tim[30] == 0xE0 && a->tim[31] == 0x03);
     imgOverridesFree(&ov);
@@ -1851,11 +2017,13 @@ static void testSpriteOverrides(void)
         CHECK(modsInit(modsDir, NULL) == 3);
         for (i = 0; i < 200; i++) {
             pic.px[0] = (uint8_t)(i % 16);
-            snprintf(rel, sizeof rel, "mods/c/images/FIELD/SPRT/P009BIG0/%03d.png", (int)i);
+            snprintf(rel, sizeof rel, "mods/c/sprites/p009big0/%03d.png", (int)i);
             {
                 uint8_t *png;
                 size_t pl;
                 CHECK(imgPicToPng(&pic, &png, &pl) == 0);
+                spit(rel, png, pl);
+                snprintf(rel, sizeof rel, "mods/c/images/field/sprt/p008old0/%03d.png", (int)i); /* the route of before A7.5 */
                 spit(rel, png, pl);
                 free(png);
             }
@@ -1865,7 +2033,7 @@ static void testSpriteOverrides(void)
         {
             SprEntry be[256];
             CHECK(sprTable(big, tn, be, 256) == 200);
-            CHECK(imgSpriteOverridesBuild(&ov, "AAA/DAT/FIELD/SPRT/P009BIG0.BIN", big, tn, dataDir) == 200 && ov.n == 200 && ov.applied == 0);
+            CHECK(imgSpriteOverridesBuild(&ov, "AAA/DAT/FIELD/SPRT/P009BIG0.BIN", big, tn) == 200 && ov.n == 200 && ov.applied == 0);
             for (k = 0; k < 3; k++) {
                 for (i = 0; i < 200; i++) {
                     const ImgOverride *e = imgOverrideGet(&ov, be[i].off);
@@ -1875,6 +2043,10 @@ static void testSpriteOverrides(void)
             }
             CHECK(imgOverrideGet(&ov, be[199].off + 1) == NULL);
         }
+        imgOverridesFree(&ov);
+        /* images/field/sprt/<name>/ is not read any more: the same 200 PNGs there give no source, and the data folder's own are never an edit */
+        memset(&ov, 0, sizeof ov);
+        CHECK(imgSpriteOverridesBuild(&ov, "AAA/DAT/FIELD/SPRT/P008OLD0.BIN", big, tn) == 0 && ov.applied == 0);
         imgOverridesFree(&ov);
     }
 
@@ -1888,7 +2060,7 @@ static void testSpriteOverrides(void)
     CHECK(modsInit(modsDir, NULL) == 1);
     editPng("data/images/field/fieldcom/03_00.png", "mods/a/images/FIELD/FIELDCOM/03_00.png", 1, 0, 0, 255, -1, 0);
     memset(&ov, 0, sizeof ov);
-    CHECK(imgOverridesBuild(&ov, "AAA/DAT/FIELD/FIELDCOM.BIN", fc, nfc, NULL, 0, dataDir) == 1);
+    CHECK(imgOverridesBuild(&ov, "AAA/DAT/FIELD/FIELDCOM.BIN", fc, nfc, NULL, 0) == 1);
     {
         const ImgOverride *c3 = byChain(&ov, 3, 0), *c2 = byChain(&ov, 2, 0);
         CHECK(c3 && c3->tim && c2 && !c2->tim && c3->off > 0);
@@ -1898,6 +2070,7 @@ static void testSpriteOverrides(void)
     imgOverridesFree(&ov);
     CHECK(imgOverrideTim(1, 0, &tl) == NULL);
     modsInit(NULL, NULL);
+    assetSetData(NULL);
     rmtree(gRoot);
 }
 
@@ -2208,6 +2381,84 @@ static void testModSprites(void)
     }
 }
 
+/* A stage's object palettes by piece (A6.1). The 8-bit TIM is entry 0 here, so the pages shift (page 0 is its image) and its 3-row CLUT is
+   at row 256 of the sheet's space: an 8-bit part at clutY 257 is CLUT row 1, and a frame that adds a row reads CLUT row 2. Page 1 holds
+   4-bit art with a DECOY palette under it, the part's real palette is on page 2 (column 128 + 48), row 2, and the frame row +1 is row 3. */
+static int palIs(const uint16_t *pal, int n, uint16_t (*want)(int))
+{
+    int i, ok = 1;
+    for (i = 0; i < n; i++) ok &= pal[i] == want(i);
+    return ok;
+}
+static uint16_t wantReal4(int i) { return rgb555(31, i, 2); }
+static uint16_t wantReal4Row(int i) { return rgb555(2, i, 31); }
+static uint16_t wantClut1(int i) { return i ? rgb555(i & 31, 9, 1) : 0; }
+static uint16_t wantClut2(int i) { return i ? rgb555(1, i & 31, 7) : 0; }
+
+static void testStagePartPalette(void)
+{
+    uint16_t c8[3 * 256], img0[64 * 4], pg1[64 * 4], pg2[64 * 4], pg3[64 * 4], pal[256];
+    uint8_t t0[8192], t1[4096], t2[4096], t3[4096], z1[8192], z2[8192], z3[8192], mask[32768];
+    const uint8_t *me[4];
+    size_t ml[4], mn, n0, n1, n2, n3;
+    ImgPages *pg;
+    ImgPart part;
+    ImgPalAt at;
+    int i;
+
+    memset(c8, 0, sizeof c8);
+    for (i = 0; i < 256; i++) {
+        c8[256 + i] = wantClut1(i);
+        c8[512 + i] = wantClut2(i);
+        c8[i] = rgb555(0, 0, 31); /* CLUT row 0: what a reader that forgets the -256 would get */
+    }
+    memset(img0, 0, sizeof img0);
+    memset(pg1, 0, sizeof pg1);
+    memset(pg2, 0, sizeof pg2);
+    memset(pg3, 0, sizeof pg3);
+    for (i = 0; i < 16; i++) {
+        pg1[2 * 64 + 48 + i] = rgb555(i, 31, i); /* the decoy: under the pixels of page 1, where the part's column 48 would read the page of the pixels */
+        pg2[2 * 64 + 48 + i] = wantReal4(i);
+        pg2[3 * 64 + 48 + i] = wantReal4Row(i);
+    }
+    pg1[0] = 0x4321;
+    pg3[0] = 0x0403;
+    n0 = makeTim(t0, 1, 256, 3, c8, 64, 4, img0);
+    n1 = makeTim(t1, 2, 0, 0, NULL, 64, 4, pg1);
+    n2 = makeTim(t2, 2, 0, 0, NULL, 64, 4, pg2);
+    n3 = makeTim(t3, 2, 0, 0, NULL, 64, 4, pg3);
+    me[0] = t0; ml[0] = n0;
+    me[1] = z1; ml[1] = rlenPack(t1, n1, z1);
+    me[2] = z2; ml[2] = rlenPack(t2, n2, z2);
+    me[3] = z3; ml[3] = rlenPack(t3, n3, z3);
+    mn = makeArchive(mask, me, ml, 4, 1);
+
+    pg = imgStagePagesOpen(mask, mn);
+    CHECK(pg != NULL && imgPagesCount(pg) == 4);
+    if (!pg) return;
+    memset(&part, 0, sizeof part);
+    /* 4-bit: the palette is on page 2, not under the pixels of page 1 */
+    part.u = 256; part.w = 16; part.h = 4; part.clutX = 128 + 48; part.clutY = 2; part.mode = 0;
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) == 0 && at.page == 2 && at.x == 48 && at.y == 2 && palIs(pal, 16, wantReal4));
+    /* the frame's CLUT row +1 */
+    CHECK(imgPartPalette(pg, &part, 1, pal, &at) == 0 && at.y == 3 && palIs(pal, 16, wantReal4Row));
+    /* 8-bit: clutY 256 + r is CLUT row r of the archive's TIM, and the frame's row adds to it */
+    part.mode = 1; part.clutX = 0; part.clutY = 257;
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) == 0 && at.page == -1 && palIs(pal, 256, wantClut1));
+    CHECK(imgPartPalette(pg, &part, 1, pal, &at) == 0 && palIs(pal, 256, wantClut2));
+    CHECK(imgPartPalette(pg, &part, -1, pal, &at) == 0 && pal[1] == rgb555(0, 0, 31)); /* row 256 is CLUT row 0 */
+    CHECK(imgPartPalette(pg, &part, -2, pal, &at) != 0); /* below the CLUT rows the loader wrote */
+    CHECK(imgPartPalette(pg, &part, 2, pal, &at) != 0);  /* CLUT row 3 of 3 */
+    part.clutX = 1;
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) != 0);  /* 256 colours from column 1: past the CLUT's 256 halfwords */
+    part.clutX = 0; part.clutY = 100;
+    CHECK(imgPartPalette(pg, &part, 0, pal, &at) != 0);  /* an 8-bit part below row 256 is not in the CLUTs (and not in a page: no guess) */
+    /* a 4-bit part past the pages' rows: VRAM below them, not data */
+    part.mode = 0; part.clutX = 128 + 48; part.clutY = 2;
+    CHECK(imgPartPalette(pg, &part, 3, pal, &at) != 0);
+    imgPagesFree(pg);
+}
+
 int main(void)
 {
     testPngRead();
@@ -2217,6 +2468,7 @@ int main(void)
     testDecode();
     testWalkAndNames();
     testSheet();
+    testScreenPalette();
     testAtlas();
     testExtract();
     testSprites();
@@ -2226,6 +2478,7 @@ int main(void)
     testCardPak();
     testCardData();
     testStageMask();
+    testStagePartPalette();
     testModSprites();
     if (failures) {
         printf("imagetest: %d check(s) failed\n", failures);

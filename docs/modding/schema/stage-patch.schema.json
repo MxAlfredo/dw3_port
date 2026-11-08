@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "DW3 port stages/<number>.json (a stage patch, stage-patch-v1)",
-  "description": "Changes the characters of one field stage (pc/shim/stage_mods.c, docs/stages.md section 7): patch the ones the stage has, add new ones, remove some, and change their talks. The patch is merged into what the stage's own setup produced when it starts, so a character is named by its place in that list (\"index\", 0-based, as the reference file data/stages/<number>.json shows it) or by the key of one a patch added (\"<mod>:<key>\"). Later mods win; a field two mods set is logged. S8/S10 add \"slots\" (exits), \"events\" (scripted events) and \"battles\" (area battles) to the same file (docs/stages.md section 10). T9 adds \"fishing\" and \"hiddenSpots\" (docs/stages.md section 14).",
+  "title": "DW3 port stages/s<nnn>/stage.json (a stage patch, stage-patch-v1)",
+  "description": "Changes the characters of one field stage (pc/shim/stage_mods.c, docs/stages.md section 7): patch the ones the stage has, add new ones, remove some, and change their talks. The patch is merged into what the stage's own setup produced when it starts, so a character is named by its place in that list (\"index\", 0-based, as the reference file data/stages/s<nnn>/stage.json shows it) or by the key of one a patch added (\"<mod>:<key>\"). Later mods win; a field two mods set is logged. S8/S10 add \"slots\" (exits), \"events\" (scripted events) and \"battles\" (area battles) to the same file (docs/stages.md section 10). T9 adds \"fishing\" and \"hiddenSpots\" (docs/stages.md section 14).",
   "type": "object",
   "required": [
     "format"
@@ -97,7 +97,7 @@
     "battles": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Area battles of the place the stage's setup chose (data/stages/<number>.json, \"battles\").",
+      "description": "Area battles of the place the stage's setup chose (data/stages/s<nnn>/stage.json, \"battles\").",
       "properties": {
         "patch": {
           "type": "array",
@@ -311,7 +311,7 @@
         "sprite": {
           "type": "string",
           "pattern": "^([A-Za-z0-9._-]+:)?[a-z0-9_-]{1,48}$",
-          "description": "A sprite this mod (or \"<mod>:<name>\", another) brings in mods/<mod>/sprites/<name>/ (sprite.json sprite-v1 + one PNG per frame), as the character. It always gets a VRAM slot of its own. Not together with \"character\"."
+          "description": "A sprite this mod (or \"<mod>:<name>\", another) brings in mods/<mod>/sprites/<name>/ (sprite.json, sprites-sprite-v1 or sprite-v1, + one PNG per frame; a name that is not an original sprite's), as the character. It always gets a VRAM slot of its own. Not together with \"character\"."
         },
         "image": {
           "type": "integer",

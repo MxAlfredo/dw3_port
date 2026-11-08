@@ -351,11 +351,11 @@ def check_sequences(root, recs):
 def check_manifest(root):
     man = json.loads(read(os.path.join(root, "data", "audio", "manifest.json")))
     files = man["files"]
-    check(man["stamp"] == "audio-v1", "manifest stamp")
+    check(man["format"] == "asset-manifest-v1" and man["topic"] == "audio" and "stamp" not in man, "manifest header")
     for rel in ("vag_001.wav", "vag_002.wav", "vag_003.wav", "bank.json", "seq_0_00.mid", "seq_0_01.mid", "seq_1_00.mid", "sequences.json"):
         check("TEST01/" + rel in files, "manifest has TEST01/" + rel)
     check(all(not k.endswith(".new") for k in files), "the manifest has no .new file")
-    check(files["TEST01/exporter"] == "%016x" % 1, "bank exporter version")
+    check(man["exporter"]["TEST01"] == 1 and "TEST01/exporter" not in files, "bank exporter version")
 
 
 def main():

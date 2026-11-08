@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port content/teams.json (teams-v1)",
+  "description": "New starter teams. Derived from pc/shim/partner_ext.c and content.c. A team is <mod folder>:<key>; its number is 3 plus its place in the alphabetical order of all declared teams (DW3_STARTER_SET takes it).",
+  "type": "object",
+  "required": [
+    "format",
+    "new"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "teams-v1"
+    },
+    "new": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_-]{1,48}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "base": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              },
+              {
+                "type": "string",
+                "pattern": "^dw3:team/[0-2]$"
+              }
+            ],
+            "description": "An original team whose members are the defaults; optional when partners is given."
+          },
+          "partners": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "pattern": "^(dw3:partner/[0-7]|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+            },
+            "description": "Three different partners by name (originals allowed)."
+          },
+          "name": {
+            "type": "object",
+            "description": "Text per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required for a name.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "object",
+            "description": "The text of the team on the starter screen. Optional.",
+            "properties": {
+              "eng": {
+                "type": "string"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "ita": {
+                "type": "string"
+              },
+              "ger": {
+                "type": "string"
+              },
+              "spa": {
+                "type": "string"
+              },
+              "es-419": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

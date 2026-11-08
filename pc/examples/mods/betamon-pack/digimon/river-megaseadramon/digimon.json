@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../docs/modding/schema/digimon.schema.json",
+  "format": "digimon-digimon-v1",
+  "name": "river-megaseadramon",
+  "base": "dw3:digimon/61",
+  "title": { "eng": "MegaSeadramon", "es-419": "MegaSeadramon" },
+  "stats": { "attack": 200, "defense": 150, "spirit": 200, "wisdom": 220, "speed": 160 }
+}

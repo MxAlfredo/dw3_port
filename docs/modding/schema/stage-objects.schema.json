@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port stages/s<nnn>/objects/objects.json (stages-objects-v1)",
+  "description": "The object pieces of one original stage: a PNG per rectangle of the stage's sprite sheet with its palette, and where the game draws each (data/stages/s<nnn>/objects/). Same exporter and piece model as menu.schema.json (pc/shim/stage_obj_export.c, pc/shim/menu_export.c), read back by the same code when a mod has stages/s<nnn>/objects/<piece>.png: the positions come from the disc, not from this file. Detail: docs/formats.md 7.5c.",
+  "type": "object",
+  "required": [
+    "format",
+    "name",
+    "disc",
+    "pages",
+    "pieces",
+    "notes"
+  ],
+  "properties": {
+    "format": {
+      "const": "stages-objects-v1"
+    },
+    "name": {
+      "type": "string",
+      "description": "The stage's folder, s<nnn>."
+    },
+    "disc": {
+      "type": "object",
+      "description": "Where the art comes from (no bytes).",
+      "required": [
+        "files"
+      ],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The disc files, without the AAA/ prefix: S<nnn>MASK.BIN (pages) and S<nnn>TMPK.BIN (sheet). Empty when the stage has no sheet."
+        },
+        "sheetEntry": {
+          "type": "integer",
+          "description": "Entry of the TMPK archive that holds the sheet (the stage's setup sets it)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "unexported": {
+      "type": "string",
+      "description": "Only when the whole document could not be cut (for example, the stage sets no sprite sheet); pieces is then empty."
+    },
+    "pages": {
+      "type": "array",
+      "description": "The size of each page of the screen in halfwords [width, height] (the game loads them side by side, 64 halfwords per page); null for a page that could not be read.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer"
+            }
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "pieces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "file",
+          "page",
+          "u",
+          "v",
+          "w",
+          "h",
+          "mode",
+          "clut",
+          "frames"
+        ],
+        "properties": {
+          "file": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^f[0-9]{3}p[0-9]{2}\\.png$",
+            "description": "The piece's PNG in the same folder, f<frame>p<slot>.png (the first frame and slot that use it). null when the piece cannot be cut (see unexported); such a piece is listed so no part of the sheet is dropped silently."
+          },
+          "unexported": {
+            "type": "string",
+            "description": "Only with file null: why. Values the exporter writes: empty rectangle, palette outside the pages, no pixels on the pages."
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The page where the piece's top-left corner falls (u / 256 in 4bit, u / 128 in 8bit)."
+          },
+          "u": {
+            "type": "integer",
+            "description": "Texels, in the space of the screen's pages laid side by side."
+          },
+          "v": {
+            "type": "integer"
+          },
+          "w": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "h": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mode": {
+            "enum": [
+              "4bit",
+              "8bit"
+            ],
+            "description": "Pixel depth: 4bit is 16 colours, 8bit is 256."
+          },
+          "clut": {
+            "type": "object",
+            "description": "The piece's palette: column x in halfwords of the screen's space, row (the frame's CLUT row included) and the page where the palette falls.",
+            "required": [
+              "x",
+              "row",
+              "page"
+            ],
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "row": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "outside": {
+            "const": true,
+            "description": "Only written when true: the rectangle reaches past the pages (those texels are index 0). No piece of the EU disc does."
+          },
+          "frames": {
+            "type": "array",
+            "description": "Where the game draws the piece.",
+            "items": {
+              "type": "object",
+              "required": [
+                "frame",
+                "slot",
+                "at",
+                "blend"
+              ],
+              "properties": {
+                "frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The frame's id in the sheet."
+                },
+                "slot": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The part's position in the frame (slot 0 is drawn last, on top)."
+                },
+                "at": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "integer"
+                  },
+                  "description": "x, y from the sprite's origin."
+                },
+                "blend": {
+                  "enum": [
+                    "none",
+                    "average",
+                    "add",
+                    "subtract",
+                    "quarter",
+                    "unknown"
+                  ],
+                  "description": "none is opaque; the others are the PS1 semi-transparency rates 0 to 3 (unknown for any other value)."
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Fixed explanation, written in every export."
+    }
+  },
+  "additionalProperties": false
+}

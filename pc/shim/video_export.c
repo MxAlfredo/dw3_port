@@ -7,9 +7,9 @@
 #include <string.h>
 #include <time.h>
 
-#include <SDL2/SDL.h>
-
 #include "avi_write.h"
+#include "exp_core.h"
+#include "exp_job.h"
 #include "host_mdec.h"
 #include "host_xa.h"
 #include "jpeg_write.h"
@@ -353,61 +353,29 @@ static int buildMovie(const VideoExportIo *io, const char *name, const char *out
 
 static char sDataDir[1024];
 static VideoExportIo sIo;
-static int *sQueue;
-static int sCount, sNext, sDone, sFailed, sBuilt;
-static int sForce;
 static TdManifest sMan;
 static int sManLoaded, sManDirty;
-static char sStatus[96], sStatusOut[96];
-static SDL_mutex *sMu;
-static SDL_Thread *sThread;
-static volatile int sStop;
-static int sWorkerDone;
-
-static void lockMu(void) {
-    if (sMu != NULL) SDL_LockMutex(sMu);
-}
-
-static void unlockMu(void) {
-    if (sMu != NULL) SDL_UnlockMutex(sMu);
-}
+static ExpJob sJob; /* the queue holds indexes into kNames */
 
 static void manifestPath(char *out, size_t cap) { snprintf(out, cap, "%s/video/manifest.json", sDataDir); }
 
 static void manifestLoad(void) {
     char mp[1200];
-    uint8_t *mt;
-    size_t ml;
 
     if (sManLoaded) return;
-    memset(&sMan, 0, sizeof sMan);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "video-v1");
     manifestPath(mp, sizeof mp);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
+    sManDirty = expManLoad("video", mp, "video", &sMan);
     sManLoaded = 1;
-    sManDirty = 0;
 }
 
 static void manifestSave(void) {
     char mp[1200], dir[1200];
-    char *text;
 
     if (!sManLoaded || !sManDirty) return;
     snprintf(dir, sizeof dir, "%s/video", sDataDir);
     manifestPath(mp, sizeof mp);
-    text = tdManifestFormat(&sMan);
-    if (text == NULL || tdMakeDirs(dir) || tdWriteFileAtomic(mp, text, strlen(text))) plogLine("video", "cannot write %s\n", mp);
+    if (tdMakeDirs(dir) || expManWrite("video", mp, &sMan)) plogLine("video", "cannot write %s\n", mp);
     else sManDirty = 0;
-    free(text);
 }
 
 static int fileExists(const char *p) {
@@ -437,20 +405,18 @@ static int hashFile(const char *path, char hex[17]) {
     return 1;
 }
 
-static void versionKey(const char *name, char *rel, size_t cap) { snprintf(rel, cap, "%s/exporter", name); }
-
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)VIDEO_EXPORT_VERSION); }
+/* the manifest header's `exporter` holds, under the movie's name, the version that wrote it */
+static void versionDec(char *dec) { snprintf(dec, 16, "%u", (unsigned)VIDEO_EXPORT_VERSION); }
 
 /* written by this version and the file is there (an edited file still counts): nothing to build */
 static int upToDate(const char *name) {
-    char rel[96], path[1300], hex[17];
+    char path[1300], dec[16];
     const char *have;
 
     manifestLoad();
-    versionKey(name, rel, sizeof rel);
-    have = tdManifestFind(&sMan, rel);
-    versionHex(hex);
-    if (have == NULL || strcmp(have, hex)) return 0;
+    have = tdKvFind(&sMan.exporter, name);
+    versionDec(dec);
+    if (have == NULL || strcmp(have, dec)) return 0;
     snprintf(path, sizeof path, "%s/video/%s.avi", sDataDir, name);
     return fileExists(path);
 }
@@ -500,13 +466,15 @@ static int place(const char *name, const char *part) {
     return 0;
 }
 
-/* 0: built (or already up to date), -1: failed */
-static int exportOne(int index, int force) {
+/* 1: built, 0: already up to date, -1: failed */
+static int exportOne(void *ud, int pos, int index, int force) {
     const char *name = kNames[index];
-    char dir[1300], part[1400], err[256], rel[96], hex[17];
+    char dir[1300], part[1400], err[256], dec[16];
     VideoExportStats st;
     clock_t t0 = clock();
 
+    (void)ud;
+    (void)pos;
     manifestLoad();
     if (!force && upToDate(name)) return 0;
     snprintf(dir, sizeof dir, "%s/video", sDataDir);
@@ -515,79 +483,36 @@ static int exportOne(int index, int force) {
         return -1;
     }
     snprintf(part, sizeof part, "%s/%s.avi.part", dir, name);
-    if (buildMovie(&sIo, name, part, &st, err, sizeof err, NULL, NULL, &sStop) != 0) {
+    if (buildMovie(&sIo, name, part, &st, err, sizeof err, NULL, NULL, expJobStopping(&sJob)) != 0) {
         remove(part);
         plogLine("video", "%s not exported: %s\n", name, err);
         return -1;
     }
     if (place(name, part) != 0) return -1;
-    versionKey(name, rel, sizeof rel);
-    versionHex(hex);
-    if (tdManifestSet(&sMan, rel, hex) == 0) sManDirty = 1;
+    versionDec(dec);
+    if (tdKvSet(&sMan.exporter, name, dec) == 0) sManDirty = 1;
     manifestSave();
-    lockMu();
-    sBuilt++;
-    unlockMu();
     plogLine("video", "%s: %d frames, %dx%d, %s, %ld bytes, %.1f s\n", name, st.frames, st.width, st.height,
              st.channels == 2 ? "stereo" : (st.channels == 1 ? "mono" : "no audio"), st.bytes, (double)(clock() - t0) / CLOCKS_PER_SEC);
-    return 0;
+    return 1;
 }
 
-static void finishStatus(void) {
-    if (sFailed) snprintf(sStatus, sizeof sStatus, "Done, %d failed", sFailed);
-    else snprintf(sStatus, sizeof sStatus, "Done (%d)", sDone);
-    plogLine("video", "Done: %d movies in %s/video, %d failed\n", sDone, sDataDir, sFailed);
-}
-
-static int workerMain(void *arg) {
-    int j;
-    (void)arg;
-    for (j = 0; j < sCount && !sStop; j++) {
-        int r = exportOne(sQueue[j], sForce);
-        SDL_LockMutex(sMu);
-        if (r == 0) sDone++;
-        else if (!sStop) sFailed++;
-        sNext = j + 1;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-        SDL_UnlockMutex(sMu);
-    }
+static void flushManifest(void *ud) {
+    (void)ud;
     manifestSave();
-    SDL_LockMutex(sMu);
-    if (j >= sCount) finishStatus();
-    sWorkerDone = 1;
-    SDL_UnlockMutex(sMu);
-    return 0;
 }
 
-static int workerBusy(void) {
-    int busy;
-    if (sThread == NULL) return 0;
-    lockMu();
-    busy = !sWorkerDone;
-    unlockMu();
-    return busy;
+static void logDone(void *ud, int done, int failed) {
+    (void)ud;
+    plogLine("video", "Done: %d movies in %s/video, %d failed\n", done, sDataDir, failed);
 }
 
-static void reap(void) {
-    if (sThread == NULL) return;
-    SDL_WaitThread(sThread, NULL);
-    sThread = NULL;
-    free(sQueue);
-    sQueue = NULL;
-}
-
-static void dropJob(void) {
-    free(sQueue);
-    sQueue = NULL;
-    sCount = sNext = 0;
-}
+static const ExpJobKind kKind = {"video", "dw3-video-export", 1, 0, NULL, exportOne, NULL, flushManifest, logDone, NULL, NULL, NULL, NULL};
 
 void videoExportSetup(const char *dataDir, const VideoExportIo *io) {
-    videoExportShutdown();
-    dropJob();
+    expJobSetup(&sJob, &kKind);
     if (sManLoaded) tdManifestFree(&sMan);
     sManLoaded = 0;
-    sStatus[0] = '\0';
     snprintf(sDataDir, sizeof sDataDir, "%s", dataDir != NULL ? dataDir : "");
     if (io != NULL) sIo = *io;
     else memset(&sIo, 0, sizeof sIo);
@@ -613,12 +538,7 @@ int videoExportRequestEx(const char *spec, int force) {
     int *q, n = 0, i;
     const char *p;
 
-    if (workerBusy()) return -1; /* one job at a time: a press while one runs changes nothing */
-    reap();
-    dropJob();
-    sDone = sFailed = sBuilt = 0;
-    sForce = force;
-    sStatus[0] = '\0';
+    if (expJobBegin(&sJob, force) < 0) return -1; /* one job at a time: a press while one runs changes nothing */
     if (!sDataDir[0] || sIo.movie == NULL || sIo.read == NULL || spec == NULL) return -1;
     q = (int *)malloc(sizeof(int) * (size_t)N_MOVIES);
     if (q == NULL) return -1;
@@ -661,85 +581,26 @@ int videoExportRequestEx(const char *spec, int force) {
         free(q);
         return -1;
     }
-    sQueue = q;
-    sCount = n;
-    sNext = 0;
-    snprintf(sStatus, sizeof sStatus, "Exporting 1/%d", n);
+    return expJobQueue(&sJob, q, n);
+}
+
+int videoExportRun(const char *spec) {
+    int n = videoExportRequest(spec);
+
+    if (n > 0) expJobRun(&sJob);
     return n;
 }
 
 int videoExportStart(const char *spec, int force) {
     int n = videoExportRequestEx(spec, force);
 
-    if (n <= 0) return -1;
-    if (sMu == NULL) sMu = SDL_CreateMutex();
-    if (sMu != NULL) {
-        sStop = 0;
-        sWorkerDone = 0;
-        sThread = SDL_CreateThread(workerMain, "dw3-video-export", NULL);
-    }
-    if (sThread == NULL) {
-        plogLine("video", "the export thread cannot start: %s\n", SDL_GetError());
-        dropJob();
-        return -1;
-    }
+    if (n <= 0 || expJobStart(&sJob) < 0) return -1;
     return n;
 }
 
-void videoExportShutdown(void) {
-    if (sThread == NULL) return;
-    sStop = 1;
-    reap();
-    sStop = 0;
-}
-
-int videoExportActive(void) {
-    if (sThread != NULL) return workerBusy();
-    return sQueue != NULL && sNext < sCount;
-}
-
-void videoExportCounts(int *done, int *failed, int *total) {
-    lockMu();
-    if (done) *done = sDone;
-    if (failed) *failed = sFailed;
-    if (total) *total = sCount;
-    unlockMu();
-}
-
-int videoExportBuilt(void) {
-    int n;
-    lockMu();
-    n = sBuilt;
-    unlockMu();
-    return n;
-}
-
-const char *videoExportStatus(void) {
-    lockMu();
-    snprintf(sStatusOut, sizeof sStatusOut, "%s", sStatus);
-    unlockMu();
-    return sStatusOut;
-}
-
-int videoExportPump(unsigned budgetMs) {
-    clock_t start = clock();
-
-    if (sThread != NULL) {
-        if (workerBusy()) return 1;
-        reap();
-        return 0;
-    }
-    if (!videoExportActive()) return 0;
-    do {
-        if (exportOne(sQueue[sNext], sForce) == 0) sDone++;
-        else sFailed++;
-        sNext++;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-    } while (sNext < sCount && (unsigned)((clock() - start) * 1000 / CLOCKS_PER_SEC) < budgetMs);
-    if (sNext < sCount) return 1;
-    manifestSave();
-    finishStatus();
-    free(sQueue);
-    sQueue = NULL;
-    return 0;
-}
+void videoExportShutdown(void) { expJobShutdown(&sJob); }
+int videoExportActive(void) { return expJobActive(&sJob); }
+void videoExportCounts(int *done, int *failed, int *total) { expJobCounts(&sJob, done, failed, total); }
+int videoExportBuilt(void) { return expJobBuilt(&sJob); }
+const char *videoExportStatus(void) { return expJobStatus(&sJob); }
+int videoExportPump(unsigned budgetMs) { return expJobPump(&sJob, budgetMs); }

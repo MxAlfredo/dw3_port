@@ -24,6 +24,7 @@
 #include "shim/host_xa.h"
 #include "shim/jpeg_read.h"
 #include "shim/jpeg_write.h"
+#include "shim/mods.h"
 #include "shim/text_data.h"
 #include "shim/video_export.h"
 #include "shim/video_mod.h"
@@ -587,7 +588,7 @@ static void testJob(void) {
     snprintf(f1, sizeof f1, "%s/video/MOVIED01.avi.part", dir);
     CHECK(!exists(f1)); /* the partial file is gone */
     man = slurp("data/video/manifest.json", NULL);
-    CHECK(man != NULL && strstr(man, "MOVIED01.avi") != NULL && strstr(man, "MOVIED01/exporter") != NULL);
+    CHECK(man != NULL && strstr(man, "MOVIED01.avi") != NULL && strstr(man, "\"MOVIED01\": ") != NULL && strstr(man, "MOVIED01/exporter") == NULL);
     free(man);
 
     /* the same request again: up to date, nothing built */
@@ -621,13 +622,13 @@ static void testJob(void) {
     man = slurp("data/video/manifest.json", NULL);
     CHECK(man != NULL);
     if (man != NULL) {
-        char *at = strstr(man, "MOVIEE01/exporter");
+        char *at = strstr(man, "\"MOVIEE01\": ");
         CHECK(at != NULL);
         if (at != NULL) {
-            char *q = strstr(at, "0000000000000002");
-            CHECK(q != NULL);
-            if (q != NULL) {
-                q[15] = '1'; /* version 1 */
+            char *q = at + strlen("\"MOVIEE01\": ");
+            CHECK(*q == '2' && (q[1] < '0' || q[1] > '9'));
+            if (*q == '2') {
+                *q = '1'; /* version 1 */
                 {
                     char mp[1300];
                     path(mp, sizeof mp, "data/video/manifest.json");
@@ -1136,8 +1137,6 @@ static void testAviRead(void) {
 
 /* ---- the replacement itself ---- */
 
-static const char *gModNames[2] = {"modlow", "modhigh"};
-static char gModDirs[2][1300];
 
 static int vmLbaOf(void *ud, const char *name, long *lba) {
     (void)ud;
@@ -1145,9 +1144,6 @@ static int vmLbaOf(void *ud, const char *name, long *lba) {
     if (!strcmp(name, "MOVIED02")) { *lba = 2000; return 1; }
     return 0;
 }
-static int vmCount(void *ud) { (void)ud; return 2; }
-static const char *vmName(void *ud, int i) { (void)ud; return gModNames[i]; }
-static const char *vmDir(void *ud, int i) { (void)ud; return gModDirs[i]; }
 
 static int pixelNear(unsigned short v, int r, int g, int b, int tol) {
     int pr = (v & 31) << 3, pg = ((v >> 5) & 31) << 3, pb = ((v >> 10) & 31) << 3;
@@ -1178,9 +1174,15 @@ static void testVideoMod(void) {
     char cline[64];
     int colors[12][3];
 
-    snprintf(gModDirs[0], sizeof gModDirs[0], "%s/vmods/modlow", gDir);
-    snprintf(gModDirs[1], sizeof gModDirs[1], "%s/vmods/modhigh", gDir);
-    io.movieLba = vmLbaOf; io.modCount = vmCount; io.modName = vmName; io.modDir = vmDir; io.ud = NULL;
+    {
+        char root[1300];
+        static const char json[] = "{\"format\": \"mod-v1\"}\n"; /* modlow, then modhigh: the last wins */
+
+        CHECK(copyTo("vmods/modlow/mod.json", json, sizeof json - 1) == 0 && copyTo("vmods/modhigh/mod.json", json, sizeof json - 1) == 0);
+        snprintf(root, sizeof root, "%s/vmods", gDir);
+        CHECK(modsInit(root, "modlow, modhigh") == 2);
+    }
+    io.movieLba = vmLbaOf; io.ud = NULL;
 
     /* without a setup, or with no file: the disc plays */
     CHECK(videoModArm(1000) == 0 && !videoModActive());

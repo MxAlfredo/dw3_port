@@ -114,7 +114,7 @@ static s32 wrapParalysis(u8 side) {
 
 static void wrapRequestMode(s32 mode, s32 arg) {
     if (mode == MODE_BATTLE && arg == 0) {
-        if (traceLead >= 0 && traceLead < 8) {
+        if (traceLead >= 0 && traceLead < PC_PARTNER_COUNT) {
             s32 i;
 
             for (i = 0; i < 3; i++) {
@@ -124,19 +124,19 @@ static void wrapRequestMode(s32 mode, s32 arg) {
                 }
             }
             GAME.party[0] = traceLead;
-            GAME.partners[traceLead].unlocked = traceLead + 3;
+            PC_PARTNER(traceLead).unlocked = traceLead + 3;
             fprintf(stderr, "battle-trace: party %d/%d/%d\n", (int)GAME.party[0], (int)GAME.party[1],
                     (int)GAME.party[2]);
         }
         if (envInt("DW3_BATTLE_PARTY_HP", -1) > 0) {
-            PartnerStats *lp = &GAME.partners[GAME.party[0]].info;
+            PartnerStats *lp = &PC_PARTNER(GAME.party[0]).info;
 
             lp->stats[STAT_HP] = lp->stats[STAT_MAX_HP] = (s16)envInt("DW3_BATTLE_PARTY_HP", 150);
         }
         if (traceForm >= 0) {
             /* give the lead partner the form whose name string is traceForm as battle slot 0 */
             s32 lead = GAME.party[0];
-            PartnerStats *ps = &GAME.partners[lead].info;
+            PartnerStats *ps = &PC_PARTNER(lead).info;
             int d, e, id = -1;
 
             for (d = 0; d < 55; d++) {

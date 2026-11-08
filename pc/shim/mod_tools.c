@@ -147,10 +147,13 @@ static const char kReadme[] =
     "                    \"port\": \">=0.4\" pide una version minima del puerto; \"requires\": [\"otro-mod\"] lo\n"
     "                    hace depender de otros mods (por nombre de carpeta).\n"
     "tables/<tabla>.json  parches de tablas del juego (recompensas, botin, precios, tiendas...).\n"
-    "content/<tipo>.json  contenido nuevo: items.json, techs.json, digimon.json, cards.json (solo con \"kind\": \"content\").\n"
-    "card/<llave>.png    arte de las cartas nuevas de content/cards.json (PNG indexado 32x32).\n"
+    "content/<tipo>.json  contenido nuevo: items.json, techs.json, teams.json, encounters.json (solo con \"kind\": \"content\").\n"
+    "digimon/<llave>/     un Digimon nuevo: digimon.json (digimon-digimon-v1) y, si tiene modelo propio, model/ (model.json, glTF y PNG); la carpeta\n                    d<nnn> (el numero del Digimon del juego) cambia a la original con su digimon.json (solo con \"kind\": \"content\").\n"
+    "cards/<carta>/face.png  arte de una carta: c<nnn> (el numero de la carta del juego) reemplaza el de la original (PNG indexado 32x32,\n                    hasta 256 colores); cards/<llave>/card.json (cards-card-v1) mas su face.png es una carta nueva (solo con \"kind\": \"content\").\n"
+    "partners/<llave>/    un companero nuevo: partner.json (partners-partner-v1) junto a su arte (portrait.png, icon.png, field/, training/); el nombre de\n                    una original (agumon) solo reemplaza su arte (solo con \"kind\": \"content\").\n"
     "config/              tiempos y banner (stage_banner.json, transitions.json); solo las claves que cambias.\n"
     "text/<idioma>/       textos del juego, un JSON por archivo de texto.\n"
+    "sprites/<nombre>/    personajes del campo: el nombre de una original (p001play, el de su archivo del disco) reemplaza sus cuadros con NNN.png;\n                    otro nombre es un sprite nuevo (sprite.json y un PNG por cuadro, hasta 16 colores).\n"
     "images/              imagenes PNG indexadas, con el mismo tamano que la original.\n"
     "audio/<BANCO>/       efectos (vag_NNN.wav) y musica (seq_P_RR.wav) en WAV de 16 bits.\n"
     "video/<NOMBRE>.avi   peliculas AVI con MJPEG.\n"
@@ -431,7 +434,7 @@ static int mentions(const char *text, const ModsReport *r)
 static int looksLikeProblem(const char *m)
 {
     static const char *const words[] = {" rejected", " disabled", " refused", " ignored", " not registered", " dropped", "cannot ", " skipped",
-                                       " invalid", " unknown ", "failed"};
+                                       " invalid", " unknown ", "failed", " has no animation"};
     size_t i;
     for (i = 0; i < sizeof words / sizeof words[0]; i++) {
         if (!strstr(m, words[i])) continue;
@@ -475,7 +478,7 @@ static void classifyLog(const char *log, const char *only)
                 if (!strncmp(shown, r->name, strlen(r->name)) && shown[strlen(r->name)] == ':' && shown[strlen(r->name) + 1] == ' ')
                     memmove(shown, shown + strlen(r->name) + 2, strlen(shown + strlen(r->name) + 2) + 1); /* "<mod>: " is the mod's own header */
                 if (only && strcmp(only, r->name)) continue;
-                addProblem(owner, strstr(shown, " ignored") || strstr(shown, " skipped") ? 1 : 0, "%s", shown);
+                addProblem(owner, strstr(shown, " ignored") || strstr(shown, " skipped") || strstr(shown, " has no animation") ? 1 : 0, "%s", shown);
             } else if (!only) {
                 addProblem(-1, 1, "%s", line);
             }
@@ -514,8 +517,10 @@ static const char *nearest(const char *word, const char *const *list, int n)
     return pick;
 }
 
-static const char *const kKnownFolders[] = {"config", "content", "card", "tables", "text", "images", "files", "video", "audio", "z_stage", "stages", "new-stages", "sprites"};
-static const char *const kContentFiles[] = {"items", "techs", "digimon", "cards"};
+static const char *const kKnownFolders[] = {"config", "content", "cards", "digimon", "tables", "text", "images", "menus", "partners", "files", "video", "audio", "stages", "sprites"};
+/* the original cards: ids 1..316 (pcCardBaseImage; PC_CARD_ORIG_COUNT is 317 counting id 0) */
+#define MT_CARD_ORIG_MAX 316
+static const char *const kContentFiles[] = {"items", "techs", "teams", "encounters"};
 static const char *const kModKeys[] = {"format", "name", "version", "author", "description", "kind", "port", "requires", "$schema"};
 
 static int hasStem(const char *file, char *stem, size_t cap)
@@ -554,13 +559,212 @@ static void checkModJson(int mi, const ModsReport *r)
 static const char *notCheckedWhy(const char *folder)
 {
     if (!strcmp(folder, "text")) return "the game reads each text file when it opens it";
-    if (!strcmp(folder, "z_stage")) return "the tile's palette is checked while the map loads (the PNG format and, with exported files, the size are checked here)";
     if (!strcmp(folder, "images")) return "needs the disc (run with the disc image)";
     if (!strcmp(folder, "audio") || !strcmp(folder, "video")) return "needs the disc and the sound/video code (run with the disc image)";
     return "only a running game reads it";
 }
 
 static void checkTree(int mi, const ModsReport *r, const ModToolsLayers *L);
+
+/* ---- partners/<key>/ (A8.2, A8.4) ----
+   partners/<key>/partner.json (partners-partner-v1, read by partner_ext.c: its header, fields and "rejected" lines come from that loader) is the registry record of a new
+   partner of this mod, next to its art. A folder named like an original partner (the slug of its English name) only replaces art: a partner.json there is the exporter's
+   information file (or a copy of one) and is never read. The art itself is read by the game's loaders (partner_bundle.c: an original's portrait.png and icon.png;
+   partner_art_vram.c: a new partner's; stage_mods.c: field/; partner_train.c: training/), which say what is wrong with a file (format, size, frames); what is here is
+   what no loader can say: a name nobody reads, a folder nothing declares and a folder two layers both have. */
+
+static int sOnlyOne; /* validating one mod: its lines are the whole report, so a shared folder is told on it whichever layer wins */
+
+static const char *const kPartnerEntries[] = {"partner.json", "portrait.png", "icon.png", "field", "training"};
+
+/* 1 when `dir` holds a regular file at any depth */
+static int dirHasFile(const char *dir, int depth)
+{
+    DIR *d = opendir(dir);
+    struct dirent *e;
+    int found = 0;
+
+    if (!d) return 0;
+    while (!found && (e = readdir(d)) != NULL) {
+        char sub[1700];
+        struct stat st;
+        if (e->d_name[0] == '.') continue;
+        snprintf(sub, sizeof sub, "%s/%s", dir, e->d_name);
+        if (stat(sub, &st) != 0) continue;
+        if (S_ISREG(st.st_mode)) found = 1;
+        else if (S_ISDIR(st.st_mode) && depth < 6) found = dirHasFile(sub, depth + 1);
+    }
+    closedir(d);
+    return found;
+}
+
+/* mods/<mod>/partners/<key>/ of another mod, matched without regard to case as the layers do: 1 and its path */
+static int modPartnerDir(const ModsReport *o, const char *key, char *path, size_t cap)
+{
+    char dir[1300];
+    DIR *d;
+    struct dirent *e;
+    int found = 0;
+
+    snprintf(dir, sizeof dir, "%s/partners", o->dir);
+    if ((d = opendir(dir)) == NULL) return 0;
+    while (!found && (e = readdir(d)) != NULL) {
+        if (e->d_name[0] == '.' || strcasecmp(e->d_name, key)) continue;
+        snprintf(path, cap, "%s/%s", dir, e->d_name);
+        found = isDirPath(path);
+    }
+    closedir(d);
+    return found;
+}
+
+/* the partner.json of an active content mod other than `skip` that declares a partner with this folder name */
+static int declaredElsewhere(const char *key, int skip)
+{
+    int j, n = modsReportCount();
+    char dir[1700], rec[1800];
+
+    for (j = 0; j < n; j++) {
+        const ModsReport *o = modsReportAt(j);
+        if (j == skip || o->status != MODS_REP_ACTIVE || strcmp(o->kind, "content") || !modPartnerDir(o, key, dir, sizeof dir)) continue;
+        snprintf(rec, sizeof rec, "%s/partner.json", dir);
+        if (access(rec, F_OK) == 0) return 1;
+    }
+    return 0;
+}
+
+/* the layers that have files of partners/<key>/, the winner first: "mods/b, mods/a, data/ (edited)". Returns how many; `winner` is the report index of the mod that wins
+   (-1 when only data/ and nothing else has it), `mine` whether mod `mi` is one of them */
+static int sharedLayers(int mi, const char *key, const ModToolsLayers *L, char *text, size_t cap, int *winner)
+{
+    int n = modsReportCount(), j, layers = 0, best = -1, bestPos = 0;
+    char dir[1700];
+    const ModsReport *self = modsReportAt(mi);
+    int selfIn = 0;
+
+    text[0] = '\0';
+    *winner = -1;
+    for (j = 0; j < n; j++) {
+        const ModsReport *o = modsReportAt(j);
+        if (o->status != MODS_REP_ACTIVE || !modPartnerDir(o, key, dir, sizeof dir) || !dirHasFile(dir, 0)) continue;
+        layers++;
+        if (j == mi) selfIn = 1;
+        if (o->position > bestPos) {
+            bestPos = o->position;
+            best = j;
+        }
+    }
+    if (!selfIn || self->status != MODS_REP_ACTIVE) return 0;
+    *winner = best;
+    {
+        int placed, pos;
+        /* the mods from the last to the first (the order the layers read them in) */
+        for (pos = bestPos; pos >= 1; pos--) {
+            for (j = 0; j < n; j++) {
+                const ModsReport *o = modsReportAt(j);
+                if (o->status != MODS_REP_ACTIVE || o->position != pos || !modPartnerDir(o, key, dir, sizeof dir) || !dirHasFile(dir, 0)) continue;
+                placed = (int)strlen(text);
+                snprintf(text + placed, cap - (size_t)placed, "%smods/%s", placed ? ", " : "", o->name);
+            }
+        }
+    }
+    if (L != NULL && L->partnerDataEdited != NULL && L->partnerDataEdited(L->ud, key)) {
+        size_t at = strlen(text);
+        snprintf(text + at, cap - at, "%sdata/ (edited)", at ? ", " : "");
+        layers++;
+    }
+    return layers;
+}
+
+static void checkPartnerFolder(int mi, const ModsReport *r, const ModToolsLayers *L, const char *path, const char *key)
+{
+    DIR *d = opendir(path);
+    struct dirent *e;
+    int original = L != NULL && L->partnerOriginal != NULL && L->partnerOriginal(L->ud, key);
+    int hasRecord = 0;
+    char sub[2000], shared[400];
+    int winner, layers;
+
+    if (!d) return;
+    while ((e = readdir(d)) != NULL) {
+        int k, known = -1, dir;
+        if (e->d_name[0] == '.') continue;
+        for (k = 0; k < (int)(sizeof kPartnerEntries / sizeof kPartnerEntries[0]); k++) {
+            if (!strcasecmp(e->d_name, kPartnerEntries[k])) known = k;
+        }
+        snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+        dir = isDirPath(sub);
+        if (known == 0) hasRecord = !dir;
+        if (known >= 0 && (known >= 3) == dir) {
+            if (known == 4) { /* training/<name>/training.json */
+                DIR *td = opendir(sub);
+                struct dirent *te;
+                while (td != NULL && (te = readdir(td)) != NULL) {
+                    char tsub[2300], rec[2400];
+                    if (te->d_name[0] == '.') continue;
+                    snprintf(tsub, sizeof tsub, "%s/%s", sub, te->d_name);
+                    if (!isDirPath(tsub)) {
+                        addProblem(mi, 1, "partners/%s/training/%s is ignored (a training is a folder: training/<name>/training.json)", key, te->d_name);
+                    } else if (L != NULL && L->partnerTraining != NULL && !L->partnerTraining(L->ud, te->d_name)) {
+                        addProblem(mi, 1, "partners/%s/training/%s is ignored: no training is called that (the folders of an exported data/partners/<name>/training/ are the names)", key, te->d_name);
+                    } else {
+                        snprintf(rec, sizeof rec, "%s/training.json", tsub);
+                        if (access(rec, F_OK) != 0) addProblem(mi, 1, "partners/%s/training/%s has no training.json (it is ignored)", key, te->d_name);
+                    }
+                }
+                if (td) closedir(td);
+            } else if (known == 3 && !original) { /* a new partner's field/ is a sprite: sprite.json and a PNG per frame (an original's frames go in one by one) */
+                char rec[2100];
+                snprintf(rec, sizeof rec, "%s/sprite.json", sub);
+                if (access(rec, F_OK) != 0) addProblem(mi, 1, "partners/%s/field/ is ignored: it has no sprite.json (the follower of a new partner is a sprite)", key);
+            }
+            continue;
+        }
+        if (known >= 0) {
+            addProblem(mi, 1, "partners/%s/%s is ignored: it must be a %s", key, e->d_name, known >= 3 ? "folder" : "file");
+        } else {
+            const char *sug = nearest(e->d_name, kPartnerEntries, (int)(sizeof kPartnerEntries / sizeof kPartnerEntries[0]));
+            if (sug) addProblem(mi, 1, "partners/%s/%s is ignored (did you mean %s?)", key, e->d_name, sug);
+            else addProblem(mi, 1, "partners/%s/%s is ignored (a partner's folder holds partner.json, portrait.png, icon.png, field/ and training/)", key, e->d_name);
+        }
+    }
+    closedir(d);
+    if (original) {
+        if (hasRecord) addProblem(mi, 1, "partners/%s/partner.json is never read (an original partner's folder only replaces its art; a new partner needs another folder name)", key);
+    } else if (hasRecord) {
+        if (strcmp(r->kind, "content")) addProblem(mi, 1, "partners/%s/partner.json is ignored: this mod's kind is \"%s\" (set \"kind\": \"content\" in mod.json)", key, r->kind);
+    } else if (L != NULL && L->partnerOriginal != NULL && !declaredElsewhere(key, mi)) {
+        addProblem(mi, 1, "partners/%s is ignored: it is not an original partner's folder and no active mod has a partners/%s/partner.json", key, key);
+    }
+    layers = sharedLayers(mi, key, L, shared, sizeof shared, &winner);
+    if (layers > 1 && (sOnlyOne || winner == mi)) {
+        char first[100];
+        const char *comma = strchr(shared, ',');
+        snprintf(first, sizeof first, "%.*s", comma ? (int)(comma - shared) : (int)strlen(shared), shared);
+        addProblem(mi, 1, "partners/%s/ is shared by %s: %s wins (a file is read from the first layer that has it: the mods from the last to the first, then data/)", key, shared, first);
+    }
+}
+
+static void checkPartners(int mi, const ModsReport *r, const ModToolsLayers *L)
+{
+    char path[1400];
+    DIR *d;
+    struct dirent *e;
+
+    snprintf(path, sizeof path, "%s/partners", r->dir);
+    if ((d = opendir(path)) == NULL) return;
+    while ((e = readdir(d)) != NULL) {
+        char sub[1700];
+        if (e->d_name[0] == '.' || !strcmp(e->d_name, "manifest.json")) continue;
+        snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+        if (!isDirPath(sub)) {
+            addProblem(mi, 1, "partners/%s is ignored (a partner is a folder: partners/<key>/partner.json beside its art, or an original's art in partners/agumon/portrait.png)", e->d_name);
+            continue;
+        }
+        checkPartnerFolder(mi, r, L, sub, e->d_name);
+    }
+    closedir(d);
+}
+
 
 static void walkFiles(int mi, const ModsReport *r, const char *rel, const ModToolsLayers *L)
 {
@@ -657,17 +861,150 @@ static void checkTree(int mi, const ModsReport *r, const ModToolsLayers *L)
         }
         closedir(d);
     }
-    /* stages/<number>.json: a stage patch (stage-patch-v1); what is inside is checked by the loader (its "rejected" lines), the names here */
+    /* stages/s<nnn>/: an original stage's folder (stage.json is the stage patch, stage-patch-v1; tiles/ and objects/ the art); any other folder is a new
+       stage (stage-new-v1). The loaders and validators of their parts say what is wrong (their "rejected" and "ignored" lines); a file straight in stages/ is
+       the old place of a patch (stages/<number>.json) or a stray: named here */
     snprintf(path, sizeof path, "%s/stages", r->dir);
     if ((d = opendir(path)) != NULL) {
         while ((e = readdir(d)) != NULL) {
-            char stem[80];
-            size_t i;
-            int digits;
+            char sub[1700];
             if (e->d_name[0] == '.') continue;
-            digits = hasStem(e->d_name, stem, sizeof stem) && stem[0] != 0 && strlen(stem) <= 4;
-            for (i = 0; digits && stem[i]; i++) digits = isdigit((unsigned char)stem[i]) != 0;
-            if (!digits) addProblem(mi, 1, "stages/%s is ignored (a stage patch is stages/<stage number>.json, e.g. stages/330.json)", e->d_name);
+            snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+            if (isDirPath(sub)) continue; /* a stage folder: the loaders of its parts name what is wrong with it */
+            addProblem(mi, 1, "stages/%s is ignored (a stage patch is stages/s<stage number>/stage.json, e.g. stages/s330/stage.json)", e->d_name);
+        }
+        closedir(d);
+    }
+    /* cards/c<nnn>/face.png: the art of original card <nnn> (the game's number, 1 to MT_CARD_ORIG_MAX on the disc: image (n - 1) & 63 of CARDPAK((n - 1) >> 6)); any
+       other folder is a new card of this mod: card.json (cards-card-v1, read by card_ext.c: its header, fields and "rejected" lines come from that loader) and an
+       optional face.png. The art itself (size, format) is checked where it is read (image_data.c for an original, card_ext.c for a new card); a file straight in
+       cards/ is a stray. A card.json in a c<nnn> folder is the exporter's information file (or a copy of one): never read */
+    snprintf(path, sizeof path, "%s/cards", r->dir);
+    if ((d = opendir(path)) != NULL) {
+        while ((e = readdir(d)) != NULL) {
+            char sub[1700], face[1800], key[260];
+            size_t i;
+            int id = 0, original;
+            if (e->d_name[0] == '.') continue;
+            snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+            if (!isDirPath(sub)) {
+                addProblem(mi, 1, "cards/%s is ignored (a card is a folder: cards/<card>/card.json and face.png, e.g. cards/c012/face.png)", e->d_name);
+                continue;
+            }
+            snprintf(key, sizeof key, "%s", e->d_name);
+            for (i = 0; key[i]; i++) key[i] = (char)tolower((unsigned char)key[i]);
+            original = key[0] == 'c' && strlen(key) == 4 && isdigit((unsigned char)key[1]) && isdigit((unsigned char)key[2]) && isdigit((unsigned char)key[3]);
+            if (original) id = atoi(key + 1);
+            snprintf(face, sizeof face, "%s/face.png", sub);
+            if (original) {
+                if (access(face, F_OK) != 0) addProblem(mi, 1, "cards/%s has no face.png (it is ignored)", e->d_name);
+                if (id < 1 || id > MT_CARD_ORIG_MAX) addProblem(mi, 1, "cards/%s is not a card of the disc (the original cards are c001 to c%03d)", e->d_name, MT_CARD_ORIG_MAX);
+                snprintf(face, sizeof face, "%s/card.json", sub);
+                if (access(face, F_OK) == 0) addProblem(mi, 1, "cards/%s/card.json is never read (an original card's folder only replaces its face.png; a new card needs another folder name)", e->d_name);
+            } else {
+                snprintf(face, sizeof face, "%s/card.json", sub);
+                if (access(face, F_OK) != 0) addProblem(mi, 1, "cards/%s is ignored: it has no card.json (a new card is cards/<card>/card.json, face.png optional; an original card's folder is c<nnn>, e.g. c012)", e->d_name);
+                else if (strcmp(r->kind, "content")) addProblem(mi, 1, "cards/%s/card.json is ignored: this mod's kind is \"%s\" (set \"kind\": \"content\" in mod.json)", e->d_name, r->kind);
+            }
+        }
+        closedir(d);
+    }
+    /* digimon/<key>/digimon.json (digimon-digimon-v1, read by digimon_ext.c: its header, fields and "rejected" lines come from that loader) is the registry record of a
+       new Digimon of this mod and digimon/<key>/model/ its model (model.json, read by model_bake.c, which says what is wrong with it); a folder d<nnn> is original
+       fighter <nnn>'s: its digimon.json changes that fighter and its model/ is never read (no mod replaces an original's model). A folder with neither a digimon.json
+       nor a model/ is not a Digimon, and a file straight in digimon/ is a stray */
+    snprintf(path, sizeof path, "%s/digimon", r->dir);
+    if ((d = opendir(path)) != NULL) {
+        while ((e = readdir(d)) != NULL) {
+            char sub[1700], rec[1800];
+            int original, record, model;
+
+            if (e->d_name[0] == '.') continue;
+            snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+            if (!isDirPath(sub)) {
+                addProblem(mi, 1, "digimon/%s is ignored (a Digimon is a folder: digimon/<key>/digimon.json and model/, e.g. digimon/sproutmon/digimon.json)", e->d_name);
+                continue;
+            }
+            original = strlen(e->d_name) == 4 && e->d_name[0] == 'd' && isdigit((unsigned char)e->d_name[1]) && isdigit((unsigned char)e->d_name[2]) && isdigit((unsigned char)e->d_name[3]);
+            snprintf(rec, sizeof rec, "%s/digimon.json", sub);
+            record = access(rec, F_OK) == 0;
+            snprintf(rec, sizeof rec, "%s/model", sub);
+            model = isDirPath(rec);
+            if (original && model) {
+                addProblem(mi, 1, "digimon/%s/model/ is never read (no mod replaces an original's model; a new Digimon with its own model needs another folder name)", e->d_name);
+            }
+            if (record && strcmp(r->kind, "content")) {
+                addProblem(mi, 1, "digimon/%s/digimon.json is ignored: this mod's kind is \"%s\" (set \"kind\": \"content\" in mod.json)", e->d_name, r->kind);
+            }
+            if (!original && !record && !model) {
+                addProblem(mi, 1, "digimon/%s is ignored: it has no digimon.json and no model/ (a new Digimon is digimon/<key>/digimon.json; an original's change is digimon/d<nnn>/digimon.json)", e->d_name);
+            } else if (!original && model) {
+                snprintf(rec, sizeof rec, "%s/model/model.json", sub);
+                if (access(rec, F_OK) != 0) addProblem(mi, 1, "digimon/%s/model/ has no model.json (it is ignored)", e->d_name);
+            }
+        }
+        closedir(d);
+    }
+    checkPartners(mi, r, L);
+    /* images/field/sprt/<name>/<EEE>.png was the place of an original sprite's frames before A7.5; it is not read any more (images/field/stage/ and fieldcom/ still are) */
+    {
+        const char *const spellings[2] = {"images/field", "images/FIELD"};
+        int sp;
+
+        for (sp = 0; sp < 2; sp++) {
+            snprintf(path, sizeof path, "%s/%s", r->dir, spellings[sp]);
+            if ((d = opendir(path)) == NULL) continue;
+            while ((e = readdir(d)) != NULL) {
+                if (strcasecmp(e->d_name, "sprt") == 0) {
+                    addProblem(mi, 1, "folder %s/%s/ is never read (the frames of an original sprite are sprites/<name>/NNN.png, e.g. sprites/p001play/000.png)", spellings[sp], e->d_name);
+                }
+            }
+            closedir(d);
+        }
+    }
+    /* sprites/<name>/: a folder named like an original sprite (the lower case of its disc file, p001play) holds that sprite's frames, NNN.png (image_data.c: they
+       replace the frame of that number; a frame the file does not have is reported there); any other name is a new sprite of this mod (sprite.json and its PNGs,
+       stage_mods.c / sprite_data.c report what is wrong with it). A sprite.json in an original's folder is not read, and a follower of a partner is not under sprites/ */
+    snprintf(path, sizeof path, "%s/sprites", r->dir);
+    if ((d = opendir(path)) != NULL) {
+        while ((e = readdir(d)) != NULL) {
+            char sub[1700], key[260];
+            DIR *fd;
+            struct dirent *fe;
+            size_t i;
+            int kind = 0;
+
+            if (e->d_name[0] == '.') continue;
+            snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
+            if (!isDirPath(sub)) {
+                addProblem(mi, 1, "sprites/%s is ignored (a sprite is a folder: sprites/<name>/sprite.json, or an original's frames in sprites/p001play/000.png)", e->d_name);
+                continue;
+            }
+            snprintf(key, sizeof key, "%s", e->d_name);
+            for (i = 0; key[i]; i++) key[i] = (char)tolower((unsigned char)key[i]);
+            if (L->spriteKind) kind = L->spriteKind(L->ud, key);
+            if (kind == 2) {
+                addProblem(mi, 1, "sprites/%s is ignored: that is the follower of an original partner (put its frames in partners/<name>/field/)", e->d_name);
+                continue;
+            }
+            if (kind == 1) {
+                if (strcmp(key, e->d_name)) addProblem(mi, 1, "sprites/%s is ignored: the folder of an original sprite is in lower case (sprites/%s)", e->d_name, key);
+                if ((fd = opendir(sub)) != NULL) {
+                    while ((fe = readdir(fd)) != NULL) {
+                        size_t n = strlen(fe->d_name);
+
+                        if (fe->d_name[0] == '.') continue;
+                        if (!strcmp(fe->d_name, "sprite.json"))
+                            addProblem(mi, 1, "sprites/%s/sprite.json is ignored: %s is an original sprite, so only its frames (000.png, 001.png...) are read (a new sprite needs another name)", e->d_name, key);
+                        else if (!(n == 7 && isdigit((unsigned char)fe->d_name[0]) && isdigit((unsigned char)fe->d_name[1]) && isdigit((unsigned char)fe->d_name[2]) && !strcmp(fe->d_name + 3, ".png")))
+                            addProblem(mi, 1, "sprites/%s/%s is ignored (a frame of an original sprite is NNN.png, the entry's number with 3 digits)", e->d_name, fe->d_name);
+                    }
+                    closedir(fd);
+                }
+            } else if (L->discHas && strlen(key) == 8 && isalpha((unsigned char)key[0]) && isdigit((unsigned char)key[1]) && isdigit((unsigned char)key[2]) &&
+                       isdigit((unsigned char)key[3])) {
+                addProblem(mi, 1, "sprites/%s is read as a new sprite: the disc has no original sprite with that name (an original's folder is its disc name, e.g. p001play)", e->d_name);
+            }
         }
         closedir(d);
     }
@@ -680,13 +1017,28 @@ static void checkTree(int mi, const ModsReport *r, const ModToolsLayers *L)
             int found = 0;
             if (e->d_name[0] == '.') continue;
             snprintf(sub, sizeof sub, "%s/%s", path, e->d_name);
-            if (isDirPath(sub)) continue; /* content/models/ and the like belong to a type */
+            if (isDirPath(sub)) {
+                if (!strcmp(e->d_name, "models")) addProblem(mi, 1, "content/models/ is never read (a model is digimon/<digimon>/model/, e.g. digimon/robot/model/model.json)");
+                continue; /* a folder here belongs to no type */
+            }
             if (!hasStem(e->d_name, stem, sizeof stem)) continue;
+            if (!strcmp(stem, "cards")) {
+                addProblem(mi, 1, "content/cards.json is never read (a card is cards/<card>/card.json and face.png, e.g. cards/bee/card.json)");
+                continue;
+            }
+            if (!strcmp(stem, "digimon")) {
+                addProblem(mi, 1, "content/digimon.json is never read (a Digimon is digimon/<digimon>/digimon.json and model/, e.g. digimon/sproutmon/digimon.json; a change of an original is digimon/d<nnn>/digimon.json; the placements are content/encounters.json)");
+                continue;
+            }
+            if (!strcmp(stem, "partners")) {
+                addProblem(mi, 1, "content/partners.json is never read (a partner is partners/<partner>/partner.json beside its art, e.g. partners/betamon/partner.json)");
+                continue;
+            }
             for (k = 0; k < (int)(sizeof kContentFiles / sizeof kContentFiles[0]); k++) found |= !strcmp(stem, kContentFiles[k]);
             if (!found) {
                 const char *sug = nearest(stem, kContentFiles, (int)(sizeof kContentFiles / sizeof kContentFiles[0]));
                 if (sug) addProblem(mi, 1, "content/%s is ignored (did you mean content/%s.json?)", e->d_name, sug);
-                else addProblem(mi, 1, "content/%s is ignored (the kinds are items, techs, digimon, cards)", e->d_name);
+                else addProblem(mi, 1, "content/%s is ignored (the kinds are items, techs, teams, encounters)", e->d_name);
             }
         }
         closedir(d);
@@ -697,9 +1049,10 @@ int modToolsValidate(const char *target, const ModToolsLayers *layers, FILE *out
 {
     char *log;
     int i, j2, n = modsReportCount(), shown = 0, errMods = 0, errors = 0, warns = 0, unchecked = 0, targetIdx = -1;
-    static const ModToolsLayers none = {NULL, NULL, "", NULL};
+    static const ModToolsLayers none = {0};
 
     if (!layers) layers = &none;
+    sOnlyOne = target != NULL;
     if (layers->run) layers->run(layers->ud);
     log = captureEnd();
     if (target) {

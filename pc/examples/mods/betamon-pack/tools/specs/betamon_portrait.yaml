@@ -1,0 +1,27 @@
+spritekiln: 1
+# The portrait cells of the menus: the head and chest, facing the player. One frame per animation = one cell.
+name: betamon_portrait
+extends: betamon.yaml
+kind: character
+view: topdown
+size: 64
+directions: [s]
+camera: {pitch: 30, scale: 0.030, center: [0, 0.52, 0.06]}
+
+animations:
+  cell0:
+    frames: 1
+    ms: 100
+    channels: {}
+  cell1:
+    frames: 1
+    ms: 100
+    channels: {crest: 0.6, head_pitch: 0.05, bob: -0.015, jaw: 0.35}
+  cell2:
+    frames: 1
+    ms: 100
+    channels: {crest: 1.0, head_pitch: -0.08, jaw: 0.8, eyes: 0.6}
+  cell3:
+    frames: 1
+    ms: 100
+    channels: {crest: 0.3, head_pitch: 0.03, bob: -0.01, eyes: 0.15}

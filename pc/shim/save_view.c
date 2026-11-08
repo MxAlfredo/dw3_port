@@ -128,10 +128,16 @@ char *saveViewBuild(const unsigned char *game, unsigned long gameLen, int slot, 
     put(&b, "  \"progress\": %d,\n  \"place\": %d,\n  \"placeArg\": %d,\n", (int)g.progress, (int)g.place, (int)g.placeArg);
     put(&b, "  \"party\": [%d, %d, %d],\n  \"partners\": [", (int)g.party[0], (int)g.party[1], (int)g.party[2]);
     first = 1;
-    for (i = 0; i < PARTNER_COUNT; i++) {
-        const Partner *p = &g.partners[i];
+    for (i = 0; i < PC_PARTNER_COUNT; i++) {
+        const Partner *p = &PC_PARTNER_SAVED(g, i); /* the block holds the original eight; the partners a mod adds live in the port's array */
         if (p->unlocked == 0) continue;
-        put(&b, "%s\n    { \"index\": %d, \"name\": ", first ? "" : ",", i);
+        put(&b, "%s\n    { \"index\": %d, ", first ? "" : ",", i);
+        if (i >= PARTNER_COUNT) { /* an index above the eight is only this run's registration order: the stable name goes beside it */
+            put(&b, "\"id\": ");
+            str(&b, pcPartnerName(i) != NULL ? pcPartnerName(i) : "");
+            put(&b, ", ");
+        }
+        put(&b, "\"name\": ");
         first = 0;
         gameText(&b, p->info.name, sizeof p->info.name);
         put(&b, ", \"level\": %d, \"hp\": %d, \"maxHp\": %d }", (int)p->info.stats[STAT_LEVEL], (int)p->info.stats[STAT_HP],
@@ -140,11 +146,11 @@ char *saveViewBuild(const unsigned char *game, unsigned long gameLen, int slot, 
     put(&b, first ? "],\n" : "\n  ],\n");
     put(&b, "  \"modTechs\": [");
     first = 1;
-    for (i = 0; i < PARTNER_COUNT; i++) {
+    for (i = 0; i < PC_PARTNER_COUNT; i++) {
         int e, k;
         for (e = 0; e < PARTNER_ENTRY_COUNT; e++) {
             for (k = 0; k < 6; k++) {
-                int id = (int)((unsigned)g.partners[i].info.entries[e].skills[k] & SKILL_ID);
+                int id = (int)((unsigned)PC_PARTNER_SAVED(g, i).info.entries[e].skills[k] & SKILL_ID);
                 const char *name;
                 if (id < PC_TECH_FIRST_EXT_ID) continue;
                 name = (sHave && sCtx.techName != NULL) ? sCtx.techName(id) : NULL;
@@ -161,10 +167,10 @@ char *saveViewBuild(const unsigned char *game, unsigned long gameLen, int slot, 
     put(&b, first ? "],\n" : "\n  ],\n");
     put(&b, "  \"modForms\": [");
     first = 1;
-    for (i = 0; i < PARTNER_COUNT; i++) {
+    for (i = 0; i < PC_PARTNER_COUNT; i++) {
         int e;
         for (e = 0; e < PARTNER_ENTRY_COUNT; e++) {
-            int id = (int)g.partners[i].info.entries[e].id;
+            int id = (int)PC_PARTNER_SAVED(g, i).info.entries[e].id;
             const char *name;
             if (id < PC_DIGIMON_FIRST_NEW_ID) continue;
             name = (sHave && sCtx.formName != NULL) ? sCtx.formName(id) : NULL;

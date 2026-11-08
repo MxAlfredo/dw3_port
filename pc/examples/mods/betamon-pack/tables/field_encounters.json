@@ -1,0 +1,12 @@
+{
+  "format": "field_encounters-v1",
+  "rows": {
+    "betamon-pack:megaseadramon": {
+      "enemies": [{ "enemy": "betamon-pack:river-megaseadramon", "level": 19, "hp": 900, "mp": 9999, "strength": 16 }],
+      "ambushChance": 0,
+      "kind": 2,
+      "runAway": 1,
+      "rewards": { "money": 380, "exp": 200, "digimonExp": 19 }
+    }
+  }
+}

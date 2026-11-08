@@ -272,8 +272,8 @@ static void testStage(const char *logPath) {
     uint8_t *tileBuf;
 
     mod("tm");
-    put("tm/new-stages/yard/stage.json", kGood);
-    maps("tm/new-stages/yard", 256, 256, ruleFloor, ruleTrig, ruleArea);
+    put("tm/stages/yard/stage.json", kGood);
+    maps("tm/stages/yard", 256, 256, ruleFloor, ruleTrig, ruleArea);
     logBegin(logPath);
     load("tm", &host);
     log = logEnd(logPath);
@@ -351,9 +351,9 @@ static void testStage(const char *logPath) {
 static void bad(const char *name, const char *json) {
     char rel[300];
 
-    snprintf(rel, sizeof rel, "tm/new-stages/%s/stage.json", name);
+    snprintf(rel, sizeof rel, "tm/stages/%s/stage.json", name);
     put(rel, json);
-    snprintf(rel, sizeof rel, "tm/new-stages/%s", name);
+    snprintf(rel, sizeof rel, "tm/stages/%s", name);
     maps(rel, 256, 256, ruleFloor, ruleTrig, ruleArea);
 }
 
@@ -369,37 +369,37 @@ static void testRefusals(const char *logPath) {
     {
         char cmd[1500];
 
-        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/new-stages'", root);
+        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/stages'", root);
         if (system(cmd) != 0) abort();
     }
-    put("tm/new-stages/ok/stage.json", kGood);
-    maps("tm/new-stages/ok", 256, 256, ruleFloor, ruleTrig, ruleArea);
+    put("tm/stages/ok/stage.json", kGood);
+    maps("tm/stages/ok", 256, 256, ruleFloor, ruleTrig, ruleArea);
 
-    put("tm/new-stages/notjson/stage.json", "this is not json");
-    maps("tm/new-stages/notjson", 256, 256, ruleFloor, NULL, NULL);
+    put("tm/stages/notjson/stage.json", "this is not json");
+    maps("tm/stages/notjson", 256, 256, ruleFloor, NULL, NULL);
     bad("wrongformat", "{\"format\": \"stage-patch-v1\"}");
     snprintf(json, sizeof json, "%s}", kHead);
-    put("tm/new-stages/nofloor/stage.json", json);
-    maps("tm/new-stages/nofloor", 256, 256, NULL, NULL, NULL);
+    put("tm/stages/nofloor/stage.json", json);
+    maps("tm/stages/nofloor", 256, 256, NULL, NULL, NULL);
     bad("nobackground", json);
     {
         char cmd[1500];
 
-        snprintf(cmd, sizeof cmd, "rm -f '%s/tm/new-stages/nobackground/background.png'", root);
+        snprintf(cmd, sizeof cmd, "rm -f '%s/tm/stages/nobackground/background.png'", root);
         if (system(cmd) != 0) abort();
     }
     bad("oddsize", json);
-    maps("tm/new-stages/oddsize", 200, 256, ruleFloor, NULL, NULL);
+    maps("tm/stages/oddsize", 200, 256, ruleFloor, NULL, NULL);
     bad("sizemismatch", json);
     p = plane(128, 256, ruleFloor);
-    png("tm/new-stages/sizemismatch/floor.png", p, 128, 256, 24, 0);
+    png("tm/stages/sizemismatch/floor.png", p, 128, 256, 24, 0);
     free(p);
     bad("floorvalue", json);
     p = plane(256, 256, ruleFloorBad);
-    png("tm/new-stages/floorvalue/floor.png", p, 256, 256, 24, 0);
+    png("tm/stages/floorvalue/floor.png", p, 256, 256, 24, 0);
     free(p);
     bad("toomany", json);
-    maps("tm/new-stages/toomany", 128 * 16, 128 * 16, ruleOne, NULL, NULL); /* 256 tiles, one over what the streamer keeps */
+    maps("tm/stages/toomany", 128 * 16, 128 * 16, ruleOne, NULL, NULL); /* 256 tiles, one over what the streamer keeps */
     snprintf(json, sizeof json, "{\"format\": \"stage-new-v1\"}");
     bad("nostart", json);
     snprintf(json, sizeof json, "{\"format\": \"stage-new-v1\", \"start\": {\"x\": 5000, \"y\": 5, \"dir\": 0}}");
@@ -412,6 +412,12 @@ static void testRefusals(const char *logPath) {
     bad("unknownkey", json);
     snprintf(json, sizeof json, "%s, \"music\": {\"bank\": 999, \"track\": 0}}", kHead);
     bad("badmusic", json);
+    /* s<nnn> is an original stage's folder (its stage.json is a stage-patch-v1): a stage-new-v1 in it is never a new stage, and only the patch loader says why */
+    snprintf(json, sizeof json, "%s}", kHead);
+    put("tm/stages/s202/stage.json", json);
+    maps("tm/stages/s202", 256, 256, ruleFloor, NULL, NULL);
+    put("tm/stages/Bad Name/stage.json", json);
+    maps("tm/stages/Bad Name", 256, 256, ruleFloor, NULL, NULL);
 
     logBegin(logPath);
     load("tm", &host);
@@ -434,6 +440,9 @@ static void testRefusals(const char *logPath) {
     CHECK(strstr(log, "unknownkey/stage.json rejected: the file: unknown key \"mystery\"") != NULL);
     CHECK(strstr(log, "badmusic/stage.json rejected: \"music\".\"bank\"") != NULL);
     CHECK(strstr(log, "/ok/") == NULL);
+    CHECK(msByKey("tm:s202") == NULL && strstr(log, "s202/stage.json rejected: \"format\" must be \"stage-patch-v1\"") != NULL);
+    CHECK(strstr(log, "s202/floor.png") == NULL && strstr(log, "s202 ignored") == NULL); /* the new-stage loader leaves it alone: no second line */
+    CHECK(strstr(log, "Bad Name ignored: a new stage's folder") != NULL);
     free(log);
     msReset();
     nsReset();
@@ -451,9 +460,9 @@ static void hostChanged(int k) { if (k >= 0 && k < 64) sChanged[k]++; }
 static void plain(const char *name, const char *json) {
     char rel[300];
 
-    snprintf(rel, sizeof rel, "tm/new-stages/%s/stage.json", name);
+    snprintf(rel, sizeof rel, "tm/stages/%s/stage.json", name);
     put(rel, json);
-    snprintf(rel, sizeof rel, "tm/new-stages/%s", name);
+    snprintf(rel, sizeof rel, "tm/stages/%s", name);
     maps(rel, 256, 256, ruleFloor, NULL, NULL);
 }
 
@@ -467,7 +476,7 @@ static void testBanner(const char *logPath) {
     {
         char cmd[1500];
 
-        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/new-stages'", root);
+        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/stages'", root);
         if (system(cmd) != 0) abort();
     }
     put("tm/text/eng/stages.json",
@@ -542,22 +551,22 @@ static void testChecks(const char *logPath) {
     {
         char cmd[1500];
 
-        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/new-stages'", root);
+        snprintf(cmd, sizeof cmd, "rm -rf '%s/tm/stages'", root);
         if (system(cmd) != 0) abort();
     }
     /* "aaa" is refused after the seal (its trigger layer names a slot it does not have); "bbb" has an exit to it and goes with it; "zzz" stands, and so does "mid" */
-    put("tm/new-stages/aaa/stage.json", kGood);
-    maps("tm/new-stages/aaa", 256, 256, ruleFloor, ruleTrigBad, ruleArea);
+    put("tm/stages/aaa/stage.json", kGood);
+    maps("tm/stages/aaa", 256, 256, ruleFloor, ruleTrigBad, ruleArea);
     snprintf(json, sizeof json, "%s, \"slots\": {\"add\": [{\"key\": \"go\", \"stage\": \"tm:aaa\", \"x\": 5, \"y\": 6, \"dir\": 0}]}}", kHead);
-    put("tm/new-stages/bbb/stage.json", json);
-    maps("tm/new-stages/bbb", 256, 256, ruleFloor, ruleTrig, NULL);
-    put("tm/new-stages/mid/stage.json", kGood);
-    maps("tm/new-stages/mid", 256, 256, ruleFloor, ruleTrig, ruleAreaBad); /* area 2, one battle area */
+    put("tm/stages/bbb/stage.json", json);
+    maps("tm/stages/bbb", 256, 256, ruleFloor, ruleTrig, NULL);
+    put("tm/stages/mid/stage.json", kGood);
+    maps("tm/stages/mid", 256, 256, ruleFloor, ruleTrig, ruleAreaBad); /* area 2, one battle area */
     snprintf(json, sizeof json, "%s}", kHead);
-    put("tm/new-stages/zzz/stage.json", json);
-    maps("tm/new-stages/zzz", 256, 256, ruleFloor, NULL, NULL);
-    put("tm/new-stages/zzy/stage.json", json);
-    maps("tm/new-stages/zzy", 256, 256, ruleFloor, ruleZero, NULL);
+    put("tm/stages/zzz/stage.json", json);
+    maps("tm/stages/zzz", 256, 256, ruleFloor, NULL, NULL);
+    put("tm/stages/zzy/stage.json", json);
+    maps("tm/stages/zzy", 256, 256, ruleFloor, ruleZero, NULL);
 
     logBegin(logPath);
     load("tm", &host);

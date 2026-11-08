@@ -26,7 +26,7 @@
  * blast_forms lives in the executable (patched once, with the rest of gameTablesRegister). The other six are the report
  * overlay's data, which the "stfgtrep" scope restores on every entry: gameTablesRegisterReport registers them and
  * gameTablesApplyReport (the scope's onEnter hook) patches them. Evolutions of mod partner forms ("evolution" of
- * digimon.json) are entries 44 and up of the port's own list and are never part of the table: see gameTablesApplyReport.
+ * digimon/<key>/digimon.json) are entries 44 and up of the port's own list and are never part of the table: see gameTablesApplyReport.
  */
 
 /* The table descriptors (the engine keeps the pointer: they outlive it) */
@@ -55,8 +55,8 @@ int gameTablesRegisterReport(void);
 /* Applies the six tables' patches: call it right after the "stfgtrep" scope restored the overlay's data, on every entry.
    The port reads a partner's evolutions from a list of its own when a mod added entries (ext_state.c: the 44 originals
    copied, then the mod's); extendedList(partner, NULL) must return that list or NULL, and when evolutions has a patch its
-   first 44 entries are overwritten with the patched originals, so the table patches the originals and digimon.json
-   owns entries 44 and up: they never overlap and nothing is applied twice. Without a patch nothing is written. */
+   first 44 entries are overwritten with the patched originals, so the table patches the originals and the Digimon folders
+   own entries 44 and up: they never overlap and nothing is applied twice. Without a patch nothing is written. */
 void gameTablesApplyReport(void *(*extendedList)(int partner, void *original));
 
 /*
@@ -250,7 +250,8 @@ int gameTablesRegisterInns(void);
  * that a stage patch names (`["special", "<mod>:<name>", 1]`, stage_codes.c). The rows live in the port (ids 0x100 and up, up to 256, kept
  * outside SPECIAL_CONDITIONS); events.c's checkSpecialCondition asks pcSpecialExtRow for those ids. A new row starts invalid (primitive 15):
  * it must give `primitive` and `op` (and `arg` where the primitive reads it) and pass the same check as the original rows, or the name is
- * not defined.
+ * not defined. A new row that gives a field the engine rejects (`arg` naming a partner nobody defines, a number out of range) is not
+ * defined either: it would run with the field's default.
  */
 const TmTable *gameTableSpecialConditions(void); /* its row count is that of SPECIAL_CONDITIONS when called */
 const TmTable *gameTableMoneyRequired(void);
@@ -262,6 +263,14 @@ const TmTable *gameTablePartyStatThresholds(void);
 /* Registers the six tables and patches them (once: the executable's data is never reset); returns how many registered. Call once at boot,
    before the stage patches are loaded (their `special` names resolve to the rows this reads). */
 int gameTablesRegisterEvents(void);
+/* How many partners there are (the registry's count): the partner ops of a special condition (1, 3, 4, 6) read partner `arg`, which must be one of them.
+   Without a hook, the original eight. Call before gameTablesRegisterEvents. */
+void gameTablesSetPartnerCount(int (*count)(void));
+
+/* The registry's name lookup (pcPartnerFind): a partner op of a special condition may give `arg` as a partner's name ("<mod>:<key>",
+   "dw3:partner/<n>") instead of its number; the name is resolved while the table loads (once) and an unknown name rejects the field.
+   Without a hook no name resolves. Call before gameTablesRegisterEvents. */
+void gameTablesSetPartnerFind(int (*find)(const char *name));
 
 /* The id (0x100 and up) of a mod's special condition, or -1 when the name defines no valid row */
 int gameSpecialIdOf(const char *name);

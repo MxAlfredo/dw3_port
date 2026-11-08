@@ -11,21 +11,21 @@ contenido nuevo, imágenes, audio, escenarios, modelos). *[Read in English](READ
 > todo de ella en tu equipo. Es un proyecto de fans, sin relación con Bandai Namco ni Sony ni
 > respaldo de ellas.
 
-**Jugadores:** [baja la versión 1.1.0](https://github.com/MxAlfredo/dw3_port/releases/latest), instálala y apúntala a tu propio disco.
+**Jugadores:** [baja la versión 2.0.0](https://github.com/MxAlfredo/dw3_port/releases/latest), instálala y apúntala a tu propio disco.
 **Modders:** empieza por la [guía de mods](docs/modding/README.md): un primer mod en 5 minutos, dónde van los mods en
 cada sistema (también Android), las herramientas y los formatos de archivo. Errores e ideas: [issues](https://github.com/MxAlfredo/dw3_port/issues).
 
 ## Descarga
 
-Baja la versión **1.1.0** desde **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (cada archivo está en
+Baja la versión **2.0.0** desde **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (cada archivo está en
 `SHA256SUMS`; las versiones anteriores están en la misma página):
 
 | Sistema | Archivo |
 |---|---|
-| Windows (recomendado) | `DW3Port-1.1.0-Setup.exe`: instalador; pide tu disco y, si quieres, una tarjeta de memoria de un emulador |
-| Windows, portátil | `DW3Port-1.1.0-windows-portable.zip`: descomprímelo donde quieras, pon tu disco en `game/` y abre `DW3.exe` |
-| Linux (x86_64, glibc 2.34+, de 2022 en adelante) | `DW3Port-1.1.0-x86_64.AppImage`: dale permiso de ejecución y ábrelo |
-| Android 10+ (arm64) | `DW3Port-1.1.0-android.apk`: cópialo al equipo, ábrelo y permite instalar desde ese origen; la app pide tu disco con el selector de archivos del sistema |
+| Windows (recomendado) | `DW3Port-2.0.0-Setup.exe`: instalador; pide tu disco y, si quieres, una tarjeta de memoria de un emulador |
+| Windows, portátil | `DW3Port-2.0.0-windows-portable.zip`: descomprímelo donde quieras, pon tu disco en `game/` y abre `DW3.exe` |
+| Linux (x86_64, glibc 2.34+, de 2022 en adelante) | `DW3Port-2.0.0-x86_64.AppImage`: dale permiso de ejecución y ábrelo |
+| Android 10+ (arm64) | `DW3Port-2.0.0-android.apk`: cópialo al equipo, ábrelo y permite instalar desde ese origen; la app pide tu disco con el selector de archivos del sistema |
 
 Cada descarga trae un `LEEME.txt` / `README.txt` con los controles, dónde quedan tus partidas y qué
 hacer si algo falla.
@@ -40,15 +40,17 @@ hacer si algo falla.
 
 ## Estado
 
-La versión 1.1.0 agrega escenarios nuevos desde mods (ver las notas de la versión). Los errores son bienvenidos como *issues*: en [CONTRIBUTING.md](CONTRIBUTING.md) está qué incluir.
+La versión 2.0.0 reestructura los archivos del juego (carpetas legibles por recurso) y agrega un paquete de compañero de ejemplo, más herramientas de modding y arreglos de Android. Los mods y la carpeta `data` de 1.x deben actualizarse o volver a exportarse (ver las notas de la versión). Los errores son bienvenidos como *issues*: en [CONTRIBUTING.md](CONTRIBUTING.md) está qué incluir.
 
 ## Mods
 
 Todo lo que necesita quien hace mods está en este repositorio:
 
 - [`docs/modding/README.md`](docs/modding/README.md) (inglés: [`README.en.md`](docs/modding/README.en.md)): la guía: carpetas de mods,
-  tablas de datos, Digimon nuevos, objetos, cartas, imágenes, audio, video, escenarios, modelos y cómo se cargan.
-- [`pc/examples/`](pc/examples/README.md): mods de ejemplo listos para copiar.
+  tablas de datos, Digimon nuevos, objetos, cartas, imágenes, audio, video, escenarios, modelos y cómo se cargan. Los assets viven en una
+  carpeta por tema (`stages/`, `cards/`, `partners/`, `digimon/`, `sprites/`, `menus/`...), igual en `data/` y en un mod; un mod hecho
+  para una versión anterior se mueve con la [tabla de migración](docs/modding/README.md#11-migración-desde-el-formato-anterior) de la guía.
+- [`pc/examples/`](pc/examples/README.md): tres mods de ejemplo completos (escenarios nuevos, un Digimon con modelo propio, un paquete de compañero) y una carpeta modelo.
 - [`docs/`](docs/): formatos de archivo (`formats.md`), tablas de datos, estado extendido, datos de escenarios y las
   decisiones de diseño (`docs/decisions/`).
 - [`tools/`](tools/): `model_export.py` / `model_import.py` (modelos glTF), `techcompat.py`,
@@ -111,7 +113,7 @@ Las versiones se arman en una máquina Linux con MinGW-w64, NSIS (`makensis`), D
 desde un checkout limpio después de `scripts/fetch_deps.sh`:
 
 ```sh
-pc/make_release.sh <versión>      # por ejemplo 1.1.0
+pc/make_release.sh <versión>      # por ejemplo 2.0.0
 ```
 
 Escribe `pc/build-release/<versión>/`: el instalador y el zip portátil de Windows, el AppImage de Linux

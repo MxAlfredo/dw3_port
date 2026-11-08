@@ -1,4 +1,4 @@
-DW3 Port 1.1.0
+DW3 Port 2.0.0
 ==============
 
 Downloads, new versions and the source: https://github.com/MxAlfredo/dw3_port/releases
@@ -15,11 +15,11 @@ Italian (often named "Digimon World 2003 (Europe) (En,Fr,De,Es,It)"), as a
 Getting started
 ---------------
 
-The downloads of version 1.1.0 are named:
-  DW3Port-1.1.0-Setup.exe               Windows installer
-  DW3Port-1.1.0-windows-portable.zip    Windows, portable
-  DW3Port-1.1.0-x86_64.AppImage         Linux
-  DW3Port-1.1.0-android.apk             Android
+The downloads of version 2.0.0 are named:
+  DW3Port-2.0.0-Setup.exe               Windows installer
+  DW3Port-2.0.0-windows-portable.zip    Windows, portable
+  DW3Port-2.0.0-x86_64.AppImage         Linux
+  DW3Port-2.0.0-android.apk             Android
 
 Windows, installer (DW3Port-...-Setup.exe)
   Run it. On the "Your game" page, choose your disc image and, if you want to
@@ -55,6 +55,38 @@ Controllers work too (Xbox, PlayStation and most others).
 F1 (or Select on the controller) opens the options: controls, video (with the
 battle speed), display, audio and language. The language list includes
 "Espanol Latam".
+
+
+What's new in 2.0.0
+-------------------
+
+Your saves and settings from 1.x load as they are. Mods and the data folder do not:
+this version reorganises how the game's files are stored, so a few steps are needed.
+
+If you update from 1.x:
+  - Delete the data\ folder (see "Where your files are"). The game exports it again
+    from your disc the first time you start; this can take a little while once.
+  - Mods made for 1.x do not work any more and their authors must update them to the
+    new layout (one folder per asset: stages\, cards\, sprites\, partners\, digimon\...;
+    see the modding guide). Switch them off in Options > Mods until they are updated.
+
+New:
+  - Readable files: everything the game exports from your disc is now a folder per
+    asset with plain PNG, JSON and glTF files, so it is easy to look at and change.
+  - Example partner pack "betamon-pack": a new partner (Betamon) with its forms,
+    evolutions, techniques, its own art and a quest to unlock it, shaped like the
+    originals. Two more examples remain: training-field and sample-model.
+  - For modders: models can borrow the motions and scripts of other fighters
+    (enemy scripts convert to the partner side), motion slots are checked and
+    filled, techniques can be added, "balance_compare" prints your partner forms
+    next to the eight originals, and the art of a model can be made with SpriteKiln.
+  - Partners are no longer limited to eight: more partners and starter teams can be
+    added, with their own portrait, icon and field sprite.
+  - Latin American Spanish: more fixes to texts that did not fit or read badly.
+  - Android: fixed the crash in the falling-tiles scene, and fixed the game
+    closing abnormally when you choose "Quit game".
+  - If the game crashes, the report is now written in the game's log file, so
+    attaching the log to an issue is enough.
 
 
 What's new in 1.1.0
@@ -200,8 +232,8 @@ file manager that shows Android/data can see it. Saves and settings are the same
 files as on the PC, so you can copy saves\default from the PC to the device.
 
 Mods: they are made and installed on a PC (see the modding guide in the project
-repository; the examples are installed on the PC with pc/examples/install_examples.sh
-from the repository, which generates the images from your disc). Then
+repository; the examples (training-field, sample-model and betamon-pack) are installed on the PC with
+pc/examples/install_examples.sh from the repository). Then
 copy the PC's mods\ folder (without `_template`) into the mods folder above,
 turn them on in Options > Mods and restart the game. The game only reads mods at
 startup.
@@ -233,7 +265,7 @@ If something goes wrong
 
 Please report it on the project's GitHub page (https://github.com/MxAlfredo/dw3_port/issues)
 and attach the newest file from the logs folder, saying which version you use
-(1.1.0) and on which system. On Windows, DW3-debug.exe is the same game with a console
+(2.0.0) and on which system. On Windows, DW3-debug.exe is the same game with a console
 window that shows the log while you play.
 
 

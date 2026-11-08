@@ -1,0 +1,7 @@
+{
+  "format": "encounters-v1",
+  "encounters": {
+    "34": { "2": { "enemy": "sample-model:boxbot", "level": 3, "hp": 60, "mp": 10, "strength": 16 } },
+    "35": { "2": { "enemy": "sample-model:boxbot", "level": 3, "hp": 60, "mp": 10, "strength": 16 } }
+  }
+}

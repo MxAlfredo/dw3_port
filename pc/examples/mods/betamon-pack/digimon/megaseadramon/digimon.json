@@ -1,0 +1,72 @@
+{
+  "format": "digimon-digimon-v1",
+  "name": "megaseadramon",
+  "base": "dw3:digimon/383",
+  "model": {
+    "from": "dw3:digimon/148",
+    "model": "dw3:digimon/61",
+    "motions": "dw3:digimon/61",
+    "effects": "dw3:digimon/375",
+    "scripts": {
+      "5": { "from": "dw3:digimon/61", "slot": 5 }
+    },
+    "fill": 14
+  },
+  "title": {
+    "eng": "MegaSeadramon",
+    "es-419": "MegaSeadramon"
+  },
+  "hp": 190,
+  "mp": 160,
+  "hpGrowth": 80,
+  "mpGrowth": 55,
+  "stats": {
+    "strength": 56,
+    "defense": 52,
+    "spirit": 50,
+    "wisdom": 50,
+    "speed": 56,
+    "charisma": 1
+  },
+  "statGrowth": {
+    "strength": 3,
+    "defense": 3,
+    "spirit": 3,
+    "wisdom": 3,
+    "speed": 3,
+    "charisma": 3
+  },
+  "skills": {
+    "1": {
+      "tech": "dw3:tech/157",
+      "level": 5
+    },
+    "2": {
+      "tech": "betamon-pack:thunder-justice",
+      "level": 15
+    },
+    "3": {
+      "tech": "dw3:tech/150",
+      "level": 25
+    },
+    "4": {
+      "tech": "dw3:tech/158",
+      "level": 45
+    },
+    "5": {
+      "tech": "dw3:tech/217",
+      "level": 55
+    },
+    "6": {
+      "tech": "dw3:tech/147",
+      "level": 80
+    }
+  },
+  "knownLevels": {
+    "0": 15,
+    "1": 65,
+    "2": 35,
+    "3": 80,
+    "4": 90
+  }
+}

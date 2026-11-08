@@ -1,8 +1,0 @@
-{
-  "format": "weapon_data-v1",
-  "rows": {
-    "*": {
-      "atk": "*2"
-    }
-  }
-}

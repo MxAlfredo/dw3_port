@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port partners/<name>/training/<training>/training.json (partners-training-v1; menus-gym-effect-v1 uses the same layout)",
+  "description": "One gym training scene of a partner: PNG sprites cut from their parts, with the animations of the scene (pc/shim/partner_export.c, peTrainEmit; read back by pc/shim/partner_train.c, ptParse, for a mod's partner or an edited original). The effects every partner shares have the same layout in menus/gym/effects/<name>/training.json with format menus-gym-effect-v1 (then disc has no id); only the export writes them. The reader needs format and frames; each frame needs an id (0 to 4095), an id without an image is an empty sprite; animations are optional. The reader ignores members it does not know.",
+  "type": "object",
+  "required": [
+    "format",
+    "frames"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "partners-training-v1",
+        "menus-gym-effect-v1"
+      ],
+      "description": "partners-training-v1 is a partner's training scene (read back). menus-gym-effect-v1 is the same layout for the effects every partner shares (menus/gym/effects/<name>/training.json): exported, and nothing reads it back yet."
+    },
+    "name": {
+      "type": "string",
+      "description": "The training (folder) name. Informational."
+    },
+    "disc": {
+      "type": "object",
+      "description": "Export only: provenance. Informational.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "dw3:partner/<n>, absent for the shared effects."
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "set": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The set inside the TRANIN file."
+        }
+      },
+      "additionalProperties": false
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unique in the file; the sprite's index in the set.",
+            "maximum": 4095
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A plain NNN.png name in the same folder; null (or absent) is an empty sprite."
+          },
+          "w": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Export only: the PNG's width."
+          },
+          "h": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Export only: the PNG's height."
+          },
+          "origin": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": -100000,
+              "maximum": 100000
+            },
+            "description": "Where the image's top-left corner sits relative to the sprite's origin, in pixels. Default [0, 0]."
+          },
+          "paletteBase": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "First palette index of the image when it keeps several 16-colour palettes (0 or 1)."
+          },
+          "parts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Export only: parts the sprite is made of."
+          },
+          "effectParts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Export only: how many of them come from the shared effect set."
+          },
+          "semiTransparent": {
+            "type": "boolean",
+            "description": "Export only."
+          },
+          "blend": {
+            "type": "array",
+            "maxItems": 16,
+            "description": "Palettes drawn blended with what is behind them.",
+            "items": {
+              "type": "object",
+              "required": [
+                "indices",
+                "mode"
+              ],
+              "properties": {
+                "indices": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "description": "[lo, hi] of the palette's indices."
+                },
+                "mode": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "description": "0 average, 1 add, 2 subtract, 3 a quarter added."
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "animations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "steps"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The scene's animation number (unique).",
+            "maximum": 5
+          },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4096,
+            "items": {
+              "type": "object",
+              "required": [
+                "frame",
+                "time",
+                "x",
+                "y"
+              ],
+              "properties": {
+                "frame": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "A frame id."
+                },
+                "time": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255,
+                  "description": "How long the frame shows, in game ticks (0 to 255). The last step is held."
+                },
+                "x": {
+                  "type": "integer"
+                },
+                "y": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Export only: fixed explanation."
+    }
+  },
+  "additionalProperties": true
+}

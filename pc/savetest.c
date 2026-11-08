@@ -121,17 +121,17 @@ static void testView(void) {
     src->itemsCard[43] = 11;
     src->itemsCard[44] = 2; /* no name known: the id only */
     src->equippedItemsCard[44] = 1;
-    src->partners[1].unlocked = 4;
-    memcpy(src->partners[1].info.name, "\x2B\x2C", 3);
-    src->partners[1].info.stats[STAT_LEVEL] = 9;
-    src->partners[1].info.stats[STAT_HP] = 80;
-    src->partners[1].info.stats[STAT_MAX_HP] = 120;
-    src->partners[1].info.entries[2].skills[1] = (s16)(447 | SKILL_KNOWN); /* a technique of a mod */
-    src->partners[1].info.entries[2].skills[2] = 17;                        /* an original one: not listed */
-    src->partners[3].info.entries[0].skills[0] = 450;                       /* nobody names it: the id only */
-    src->partners[1].info.entries[3].id = 471;                              /* a new partner form of a mod */
-    src->partners[3].info.entries[1].id = 480;                              /* nobody names it: the id only */
-    src->partners[3].info.entries[2].id = 5;                                /* an original form: not listed */
+    PC_PARTNER_BLOCK(*src, 1).unlocked = 4;
+    memcpy(PC_PARTNER_BLOCK(*src, 1).info.name, "\x2B\x2C", 3);
+    PC_PARTNER_BLOCK(*src, 1).info.stats[STAT_LEVEL] = 9;
+    PC_PARTNER_BLOCK(*src, 1).info.stats[STAT_HP] = 80;
+    PC_PARTNER_BLOCK(*src, 1).info.stats[STAT_MAX_HP] = 120;
+    PC_PARTNER_BLOCK(*src, 1).info.entries[2].skills[1] = (s16)(447 | SKILL_KNOWN); /* a technique of a mod */
+    PC_PARTNER_BLOCK(*src, 1).info.entries[2].skills[2] = 17;                        /* an original one: not listed */
+    PC_PARTNER_BLOCK(*src, 3).info.entries[0].skills[0] = 450;                       /* nobody names it: the id only */
+    PC_PARTNER_BLOCK(*src, 1).info.entries[3].id = 471;                              /* a new partner form of a mod */
+    PC_PARTNER_BLOCK(*src, 3).info.entries[1].id = 480;                              /* nobody names it: the id only */
+    PC_PARTNER_BLOCK(*src, 3).info.entries[2].id = 5;                                /* an original form: not listed */
     pcExtStateReset();
     *pcItemCountRef(403) = 5;
     *pcItemCountRef(450) = 1; /* an extended id nobody names: listed by id */
@@ -184,6 +184,28 @@ static void testView(void) {
         }
         free(json);
     }
+    /* a partner a mod adds (Betamon pack P4) is listed too, with its stable name: its data is in the port's array, not in the block */
+    {
+        int idx = pcPartnerRegister("viewmod:river", 3);
+
+        CHECK(idx == 8);
+        PC_PARTNER(idx).unlocked = idx + 3;
+        memcpy(PC_PARTNER(idx).info.name, "\x2B\x2C", 3);
+        PC_PARTNER(idx).info.stats[STAT_LEVEL] = 4;
+        PC_PARTNER(idx).info.stats[STAT_HP] = 30;
+        PC_PARTNER(idx).info.stats[STAT_MAX_HP] = 31;
+        PC_PARTNER(idx).info.entries[1].id = 471;
+        json = saveViewBuild(block, sizeof block, 1, 7);
+        CHECK(json != NULL && strstr(json, "\"index\": 8, \"id\": \"viewmod:river\", \"name\": ") != NULL);
+        CHECK(json != NULL && strstr(json, "\"level\": 4, \"hp\": 30, \"maxHp\": 31") != NULL);
+        CHECK(json != NULL && strstr(json, "{ \"partner\": 8, \"entry\": 1, \"id\": 471") != NULL);
+        CHECK(json != NULL && strstr(json, "\"index\": 1, \"name\"") != NULL); /* an original has no \"id\" */
+        free(json);
+        pcPartnersUnregister();
+        json = saveViewBuild(block, sizeof block, 1, 8); /* the mod is gone: nothing above the eight */
+        CHECK(json != NULL && strstr(json, "\"index\": 8") == NULL);
+        free(json);
+    }
     /* an unwritable place only fails (the caller logs it) */
     CHECK(!saveViewWriteFile("/nonexistent-dir/slot0.json", "{}"));
     /* no context: ids only, no mods */
@@ -225,6 +247,14 @@ int main(void) {
     CHECK(memcmp(saveFileFind(&g, "INFO")->data, info, sizeof info) == 0);
     CHECK(saveFileFind(&g, "NONE") != NULL && saveFileFind(&g, "NONE")->size == 0);
     CHECK(saveFileFind(&g, "ABSENT") == NULL);
+    saveFileFree(&g);
+
+    /* a file with the partners section is format 2 (an earlier release refuses it); this build reads both */
+    f.formatVersion = SAVEFILE_FORMAT_PARTNERS;
+    CHECK(saveFileWrite(file, &f) == SAVEFILE_OK && saveFileRead(file, &g) == SAVEFILE_OK && g.formatVersion == 2 && g.count == 3);
+    saveFileFree(&g);
+    f.formatVersion = 0;
+    CHECK(saveFileWrite(file, &f) == SAVEFILE_OK && saveFileRead(file, &g) == SAVEFILE_OK && g.formatVersion == 1);
     saveFileFree(&g);
 
     /* a second write keeps the first as the fallback; no temporary file is left */
@@ -277,7 +307,7 @@ int main(void) {
         buf[3] ^= 1;
         CHECK(saveFileDecode(buf, n, &g) == SAVEFILE_ERR_MAGIC);
         buf[3] ^= 1;
-        buf[8] = 2; /* a newer format, CRC fixed up so only the version is wrong */
+        buf[8] = SAVEFILE_FORMAT_VERSION + 1; /* a newer format than this build reads, CRC fixed up so only the version is wrong */
         {
             unsigned long crc = saveCrc32(buf, n - 4);
 

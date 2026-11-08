@@ -312,10 +312,85 @@ index f558b40..db4f47c 100644
  		while (vbl - swapLastVbl < count);
  
 diff --git a/src/audio/PsyX_SPUAL.cpp b/src/audio/PsyX_SPUAL.cpp
-index 2909ee3..03518ae 100644
+index 2909ee3..9ba6a04 100644
 --- a/src/audio/PsyX_SPUAL.cpp
 +++ b/src/audio/PsyX_SPUAL.cpp
-@@ -467,6 +467,10 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+@@ -6,6 +6,7 @@
+ #include "PsyX_SPUAL.h"
+ 
+ #include <string.h>
++#include <stdlib.h>
+ #include <assert.h>
+ #include <AL/al.h>
+ #include <AL/alc.h>
+@@ -79,6 +80,9 @@ typedef struct
+ 
+ 	ALuint alBuffer;
+ 	ALuint alSource;
++	int sampleLen;		// the sample in the AL buffer: samples, and its loop (loopLen 0: no loop)
++	int loopStart;
++	int loopLen;
+ 	ushort sampledirty;
+ 	ushort reverb;
+ } SPUALVoice;
+@@ -165,6 +169,16 @@ int PsyX_SPUAL_InitSound()
+ 
+ 	g_spuInit = 1;
+ 
++	// the process ending must close the device while the mixer thread's library state is still alive: with exit() the
++	// library's static destructors run next, and a backend thread still mixing then locks destroyed mutexes
++	// (Android: SIGABRT "pthread_mutex_lock called on a destroyed mutex" in the AudioTrack thread at "Quit game")
++	static int s_exitHooked = 0;
++	if (!s_exitHooked)
++	{
++		s_exitHooked = 1;
++		atexit(PsyX_SPUAL_ShutdownSound);
++	}
++
+ 	int numDevices, alErr, i;
+ 	const char* devices;
+ 	const char* devStrptr;
+@@ -269,6 +283,7 @@ void PsyX_SPUAL_ShutdownSound()
+ 	for (int i = 0; i < s_spuVoiceCount; i++)
+ 	{
+ 		SPUALVoice* voice = &g_SpuVoices[i];
++		alSourceStop(voice->alSource);
+ 		alDeleteSources(1, &voice->alSource);
+ 		alDeleteBuffers(1, &voice->alBuffer);
+ 	}
+@@ -280,6 +295,9 @@ void PsyX_SPUAL_ShutdownSound()
+ 		alDeleteAuxiliaryEffectSlots(1, g_ALEffectSlots);
+ 	}
+ 
++	// no context current while it goes: every source still left (the port's XA and mod streams) dies with it, and closing
++	// the device stops and joins the backend's mixer thread
++	alcMakeContextCurrent(NULL);
+ 	alcDestroyContext(g_ALCcontext);
+ 	alcCloseDevice(g_ALCdevice);
+ 
+@@ -448,10 +466,12 @@ typedef enum
+ 
+ 
+ // Main decoding routine - Takes PSX ADPCM formatted audio data and converts it to PCM. It also extracts the looping information if used.
+-static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStart, int* loopLength, int breakOnEnd /*= 0*/)
++// Returns the number of samples written to oData, never more than oCapacity: a sample without an end marker is cut there
++// (the SPU would keep playing whatever follows it in its memory).
++static int decodeSound(const u_char* iData, int soundSize, short* oData, int oCapacity, int* loopStart, int* loopLength, int breakOnEnd /*= 0*/)
+ {
+-	u_char sp;
+-	u_char flag;
++	u_char sp = 0;
++	u_char flag = 0;
+ 	int sd = 0;
+ 	float vagPrev1 = 0.0;
+ 	float vagPrev2 = 0.0;
+@@ -464,11 +484,21 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+ 	{
+ 		if (i % 16 == 0)
+ 		{
++			if (i + 16 > soundSize)
++				break;	// a block cut by the end of the SPU memory
++
  			sp = iData[i];
  			flag = iData[i+1];
  			i += 2;
@@ -325,8 +400,13 @@ index 2909ee3..03518ae 100644
 +				loopStrt = k;
  		}
  
++		if (k + 2 > oCapacity)
++			break;
++
  		sd = (int)iData[i] & 0xF;
-@@ -481,11 +485,6 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+ 		oData[k++] = vagToPcm(sp, sd, &vagPrev1, &vagPrev2);
+ 
+@@ -481,11 +511,6 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
  		if (breakOn == -1)
  		{
  			// flags parsed
@@ -338,15 +418,128 @@ index 2909ee3..03518ae 100644
  			if (flag & LoopEnd)
  			{
  				loopEnd = k + 26;
-@@ -567,7 +566,7 @@ static void UpdateVoiceSample(SPUALVoice* voice)
+@@ -502,12 +527,39 @@ static int decodeSound(u_char* iData, int soundSize, short* oData, int* loopStar
+ 		}
+ 	}
+ 
+-	return soundSize;
++	return k;
++}
++
++// A loop shorter than this many samples is repeated inside the AL buffer. OpenAL Soft (seen in 1.24.3) loads the part of a
++// looping static buffer it is about to mix from the play position *before* wrapping it, so when that position has run past the
++// loop end (it does, by up to a mix call's worth of samples, which a high pitch makes bigger) the read is not cut at the loop
++// end and a short loop reads past the buffer (SIGSEGV in the mixer thread on Android). A loop of at least this many samples
++// leaves room for all of that: the wrapped position plus the longest read stays inside it.
++#define SPU_MIN_LOOP_SAMPLES	8192
++
++// Repeats the loop body, which must end the sample (loopStart + loopLen == count), until the loop holds SPU_MIN_LOOP_SAMPLES
++// or the capacity runs out; a whole number of repeats, so the sound is the same. Returns the new sample count and sets loopLen.
++static int repeatLoop(short* wave, int count, int capacity, int loopStart, int* loopLen)
++{
++	const int body = *loopLen;
++
++	if (body <= 0 || loopStart < 0 || loopStart + body != count)
++		return count;
++
++	while (*loopLen < SPU_MIN_LOOP_SAMPLES && count + body <= capacity)
++	{
++		memcpy(wave + count, wave + loopStart, body * sizeof(short));
++		count += body;
++		*loopLen += body;
++	}
++
++	return count;
+ }
+ 
+ static void UpdateVoiceSample(SPUALVoice* voice)
+ {
+ 	static short waveBuffer[SPU_REALMEMSIZE];
++	const int waveCapacity = SPU_REALMEMSIZE;
+ 	int loopStart, loopLen, count;
+ 	ALuint alSource, alBuffer;
+ 
+@@ -525,7 +577,7 @@ static void UpdateVoiceSample(SPUALVoice* voice)
+ 	loopStart = 0;
+ 	loopLen = 0;
+ 
+-	count = decodeSound(s_SpuMemory.samplemem + voice->attr.addr, SPU_MEMSIZE - voice->attr.addr, waveBuffer, &loopStart, &loopLen, 1);
++	count = decodeSound(s_SpuMemory.samplemem + voice->attr.addr, SPU_MEMSIZE - voice->attr.addr, waveBuffer, waveCapacity, &loopStart, &loopLen, 1);
+ 
+ 	if (count == 0)
+ 		return;
+@@ -560,25 +612,37 @@ static void UpdateVoiceSample(SPUALVoice* voice)
+ 	}
+ #endif
+ 
+-	alSourcei(alSource, AL_BUFFER, 0);
+-	alBufferData(alBuffer, AL_FORMAT_MONO16, waveBuffer, count * sizeof(short), 44100);
+-
+ 	if (loopLen > 0)
  	{
  		loopStart += voice->attr.loop_addr - voice->attr.addr;
  
 -		if (loopStart - 54 > 0 && loopStart + loopLen <= count)
-+		if (loopStart >= 0 && loopStart + loopLen <= count)
++		if (loopStart < 0 || loopStart + loopLen > count)
  		{
- 			int sampleOffs[] = { loopStart, loopStart + loopLen };
- 			alBufferiv(alBuffer, AL_LOOP_POINTS_SOFT, sampleOffs);
+-			int sampleOffs[] = { loopStart, loopStart + loopLen };
+-			alBufferiv(alBuffer, AL_LOOP_POINTS_SOFT, sampleOffs);
++			// a loop that is not inside the sample: the whole sample loops, as AL does by default
++			loopStart = 0;
++			loopLen = count;
+ 		}
+ 
++		// nothing past the loop end is ever played while it loops
++		count = loopStart + loopLen;
++		count = repeatLoop(waveBuffer, count, waveCapacity, loopStart, &loopLen);
++	}
++
++	voice->sampleLen = count;
++	voice->loopStart = loopStart;
++	voice->loopLen = loopLen;
++
++	alSourcei(alSource, AL_BUFFER, 0);
++	alBufferData(alBuffer, AL_FORMAT_MONO16, waveBuffer, count * sizeof(short), 44100);
++
++	if (loopLen > 0)
++	{
++		int sampleOffs[] = { loopStart, loopStart + loopLen };
++		alBufferiv(alBuffer, AL_LOOP_POINTS_SOFT, sampleOffs);
+ 		alSourcei(alSource, AL_LOOPING, AL_TRUE);
+ 	}
+ 	else
+ 	{
+-		//int sampleOffs[] = { 0, 0 };
+-		//alBufferiv(alBuffer, AL_LOOP_POINTS_SOFT, sampleOffs);
+ 		alSourcei(alSource, AL_LOOPING, AL_FALSE);
+ 	}
+ 
+@@ -607,6 +671,13 @@ void PsyX_SPUAL_GetVoicePitch(int vNum, u_short* pitch)
+ 	*pitch = g_SpuVoices[vNum].attr.pitch;
+ }
+ 
++void PsyX_SPUAL_GetVoiceSample(int vNum, int* length, int* loopStart, int* loopLen)
++{
++	*length = g_SpuVoices[vNum].sampleLen;
++	*loopStart = g_SpuVoices[vNum].loopStart;
++	*loopLen = g_SpuVoices[vNum].loopLen;
++}
++
+ void PsyX_SPUAL_SetVoiceAttr(SpuVoiceAttr* psxAttrib)
+ {
+ 	if (!g_spuInit)
+diff --git a/src/audio/PsyX_SPUAL.h b/src/audio/PsyX_SPUAL.h
+index 7d64565..c0ca061 100644
+--- a/src/audio/PsyX_SPUAL.h
++++ b/src/audio/PsyX_SPUAL.h
+@@ -23,6 +23,7 @@ extern u_int PsyX_SPUAL_SetTransferStartAddr(u_int addr);
+ 
+ extern void PsyX_SPUAL_GetVoiceVolume(int vNum, short* volL, short* volR);
+ extern void PsyX_SPUAL_GetVoicePitch(int vNum, u_short* pitch);
++extern void PsyX_SPUAL_GetVoiceSample(int vNum, int* length, int* loopStart, int* loopLen);
+ extern void PsyX_SPUAL_SetVoiceAttr(SpuVoiceAttr* psxAttrib);
+ extern void PsyX_SPUAL_SetKey(int on_off, u_int voice_bit);
+ 
 diff --git a/src/gpu/PsyX_GPU.cpp b/src/gpu/PsyX_GPU.cpp
 index 6e9e6f6..0d6e2bb 100644
 --- a/src/gpu/PsyX_GPU.cpp

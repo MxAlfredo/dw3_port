@@ -384,20 +384,20 @@ static void testNames(const char *logPath) {
     host.stageByName = hostByName;
     host.stageName = hostName;
     mod("t4");
-    put("t4/stages/330.json",
+    put("t4/stages/s330/stage.json",
         "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"training:upper\", \"x\": 700, \"y\": 800, \"dir\": 3},\n"
         "                       {\"index\": 1, \"stage\": 330, \"x\": 5, \"y\": 6, \"dir\": 1}],\n"
         "  \"add\": [{\"key\": \"door\", \"stage\": \"training:lower\", \"x\": 10, \"y\": 20, \"dir\": 2, \"area\": {\"x\": 100, \"y\": 120, \"w\": 32, \"h\": 16}}]}}\n");
-    put("t4/stages/331.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"training:nope\"}]}}\n");
-    put("t4/stages/332.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"nocolon\"}]}}\n");
-    put("t4/stages/333.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"training:upper\", \"arg\": 5}]}}\n");
+    put("t4/stages/s331/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"training:nope\"}]}}\n");
+    put("t4/stages/s332/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"nocolon\"}]}}\n");
+    put("t4/stages/s333/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": \"training:upper\", \"arg\": 5}]}}\n");
     CHECK(modsInit(root, "t4") == 1);
     logBegin(logPath);
     CHECK(smLoad(&host) == 1); /* only 330 stands */
     log = logEnd(logPath);
-    CHECK(strstr(log, "331.json rejected: slot patch 0: there is no stage \"training:nope\"") != NULL);
-    CHECK(strstr(log, "332.json rejected: slot patch 0: there is no stage \"nocolon\"") != NULL);
-    CHECK(strstr(log, "333.json rejected: slot patch 0: give \"arg\" or \"stage\", not both") != NULL);
+    CHECK(strstr(log, "s331/stage.json rejected: slot patch 0: there is no stage \"training:nope\"") != NULL);
+    CHECK(strstr(log, "s332/stage.json rejected: slot patch 0: there is no stage \"nocolon\"") != NULL);
+    CHECK(strstr(log, "s333/stage.json rejected: slot patch 0: give \"arg\" or \"stage\", not both") != NULL);
     free(log);
 
     memset(&s, 0, sizeof s);

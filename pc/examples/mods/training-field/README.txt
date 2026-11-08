@@ -20,8 +20,8 @@ How to play
 
 How it is made (details and snippets in README.md, Spanish)
   mod.json                     manifest (mod-v1), with "port": ">=1.1.0"
-  stages/330.json             stage-patch-v1: the guide (conditions, sound, warp action)
-  new-stages/<floor>/         stage-new-v1: stage.json + background.png (image), floor.png (0 closed, 1 flat, 2-7 slope, 19 = 16+3 mirrored), areas.png (battle zones)
+  stages/s330/stage.json      stage-patch-v1: the guide (conditions, sound, warp action)
+  stages/<floor>/             stage-new-v1: stage.json + background.png (image), floor.png (0 closed, 1 flat, 2-7 slope, 19 = 16+3 mirrored), areas.png (battle zones)
   tables/field_encounters.json new rows "training-field:..." with their own enemies and rewards (hp 24 x level + 120, EXP 5 x level, BIT 10 x level)
   text/{eng,es-419,spa}/stages.json named texts (eng required); {speaker-of:TALK04:19} takes the game's own speaker header from the player's disc
   sprites/sign/               own sign sprite (sprite-v1, 32 x 40 px), used with "sprite": "sign"

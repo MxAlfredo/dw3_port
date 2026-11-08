@@ -92,6 +92,7 @@
    before the name entry's define lands clean. */
 #undef OVL_NAME
 #include "menus/player_name.h"
+#include "menus/gym.h"
 #include "cardgame/card_battle.h"
 #include "host.h"
 #include "host_st.h"
@@ -201,6 +202,9 @@ static const PadKey PAD_KEYS[] = {
                             0x500, because confirming the name returns the
                             game to the field stage (requestMode(0x2D8)). */
 
+#define B_kindGym 8      /* the gym's exact drive (A4b): partner pick, training pick (`gymdrive:<k>`: the k-th of the menu), intensity and Yes, each press
+                            answering a state the screen, menu or session task itself holds; ends when the training's result task exists */
+
 /* The conditions a B_kindUntil step waits for */
 #define C_none 0
 #define C_modeChanged 1    /* the game left the mode the step started in */
@@ -242,6 +246,9 @@ static int padBarrierMode = -1; /* the mode the current 'wait' barrier saw */
 static int padBarrierTimer;     /* frames the current barrier has waited */
 static int drainPresses;        /* exact presses the current dialog drain fired */
 static int namePresses;         /* exact presses the current name drive fired */
+static int padGymTarget;        /* `gymdrive:<k>`: the training of the menu's first row, k columns to the right */
+static int padGymMoves;
+static int padGymPresses;
 
 void pcBootPadRootTask(void *task) {
     padRootTask = task;
@@ -530,6 +537,7 @@ static int padExtraFlagCount;
 static int padBattleArmed;
 
 static int padModeArmed;
+static int padModeFired; /* the `mode:` token fired: a script that follows it (namedrive on mode:500) starts then, not at the country select */
 static s32 padModeValue;
 static s32 padModeArg;
 static int padBattleArg;
@@ -545,6 +553,38 @@ static s32 padPartnerMember = -1;
 static s32 padPartnerForm;
 static s32 padPartnerLevel = 1;
 static s32 padPartnerHpPercent = 100; /* the optional 4th argument: HP left, in percent of the maximum */
+
+/* DW3_STARTER_SET=<n>: the starter team the harness gives where the original gave team 0 (a warp or a mode token with no party yet, the
+   battle test). 0..2 are the game's three, 3 and up the teams mods add (teams.json, in the alphabetical order of their names); a team
+   name ("dw3:team/1", "<mod>:<key>") works too, and does not move with the mods. An unknown number or name is reported once and team 0 is used. Test harness only. */
+extern char *getenv(const char *name); /* stdlib.h clashes with the game's headers in this unit */
+extern long strtol(const char *text, char **end, int base);
+
+static s32 padStarterSet(void) {
+    static s32 set = -1;
+    const char *env;
+    char *end;
+    long n;
+
+    if (set >= 0) {
+        return set;
+    }
+    set = 0;
+    env = getenv("DW3_STARTER_SET");
+    if (env != NULL && *env != '\0') {
+        n = strtol(env, &end, 10);
+        if (*end == '\0' && n >= 0 && n < PC_STARTER_PARTY_COUNT) {
+            set = (s32)n;
+            fprintf(stderr, "pad: DW3_STARTER_SET: starter team %d\n", (int)set);
+        } else if (pcStarterPartyFind(env) >= 0) {
+            set = (s32)pcStarterPartyFind(env); /* by name ("dw3:team/1", "<mod>:<key>"): the number moves with the mods */
+            fprintf(stderr, "pad: DW3_STARTER_SET: starter team %s = %d\n", env, (int)set);
+        } else {
+            fprintf(stderr, "pad: DW3_STARTER_SET \"%s\" is not a starter team (0..%d); team 0 is used\n", env, PC_STARTER_PARTY_COUNT - 1);
+        }
+    }
+    return set;
+}
 
 /* Seeds the `partner:` token once the party exists. The game's own paths do the work: addPartnerEntry gives the
    form, STFGTREP_addDigimonExp levels it (10 exp a level up to its expLevel, so the level-ups are the game's),
@@ -944,7 +984,7 @@ static void padWarpFire(int frame) {
            with the starter already chosen (e.g. WSTAG805 gates on progress
            0x20, and its fight reads the party), so the sweep's warp, which
            keeps progress 0 unless told otherwise, gives it one too */
-        GAME.funcs.setParty(0);
+        GAME.funcs.setParty(padStarterSet());
         GAME.funcs.giveStarterDeck();
     }
     GAME.fieldPos = warp->start;
@@ -967,6 +1007,7 @@ static void padModeFire(int frame) {
         return;
     }
     padModeArmed = 0; /* fires once */
+    padModeFired = 1;
     FONT.load();
     if ((padModeValue == MODE_STATUS || padModeValue == MODE_CONTINUE ||
          padModeValue == MODE_DIGI_LAB || padModeValue == MODE_NAMING ||
@@ -979,7 +1020,7 @@ static void padModeFire(int frame) {
            menu's party pages divide by the member count, the card screens
            read the deck, and a save writes the party. Only where the boot
            state is empty. */
-        GAME.funcs.setParty(0);
+        GAME.funcs.setParty(padStarterSet());
         GAME.funcs.giveStarterDeck();
         GAME.fieldMode = padModeValue == MODE_DIGI_LAB ? 0x206 : 0x207; /* a real field mode: where both screens return,
                                    and what a save keeps for the load (0 is no
@@ -1074,12 +1115,13 @@ static void padModeFire(int frame) {
            read the deck, and cancelling the menu goes back to the field mode
            the player was in. Seed what a started game has, only where the
            boot state is empty, and take the mode's arg as the menu option
-           (FIELD_MENU_CHOICE.option, 0 items ... 4 status, 5 partners;
+           (FIELD_MENU_CHOICE.option, 0 items ... 4 status, 5 partners; 16 + n the same
+           with FIELD_MENU_CHOICE.extra 1, where option 5 is the card screen;
            retail's own arg is 0, so the slot is free). `battle@` presses
            ride the fire like the battle's. */
         /* fieldMode is 0x207 above: MODE_NEW_GAME (0x2D7) would make STSTATUS_getGameHalf -1 */
-        FIELD_MENU_CHOICE.option = padModeArg;
-        FIELD_MENU_CHOICE.extra = 0;
+        FIELD_MENU_CHOICE.option = padModeArg & 15;
+        FIELD_MENU_CHOICE.extra = (padModeArg >> 4) & 1; /* 16 + option: the second table (with the card screen, option 5) */
         padModeArg = 0;
     }
     padSeedPartner();
@@ -1122,7 +1164,7 @@ static void padBattleFire(int frame) {
            early game, so a starter party can win the fight and reach the
            battle's end (entry 1 is Pharaohmon, far above the starters).
            The music stays the battle test's. */
-        GAME.funcs.setParty(0);
+        GAME.funcs.setParty(padStarterSet());
         padSeedPartner();
         {
             int m;
@@ -2112,6 +2154,11 @@ typedef struct PadWalkPoint {
 static PadWalkPoint padWalkPts[PAD_WALK_MAX];
 static int padWalkCount;
 static int padWalkIdx;
+static int padNamePickTarget = -1; /* `namepick:<n>`: the team the name drive puts the partners page's cursor on before cross (-1: cross on the first) */
+static int padNamePickStop;        /* `namestop`: the run ends on the partners page instead of confirming (for its screenshot) */
+static int padNameStopQuiet;
+static int padNameConfirmStop; /* `confirmstop`: the run ends on the Yes/No confirmation (for its screenshot) */
+static int padNameConfirmQuiet;
 static int padWalkEnd;      /* `walkend`: the run ends (after a short settle for the screenshot) once the route is done */
 static int padWalkWait;     /* frames to stay still after a press */
 static int padWalkStill;    /* frames without moving toward the current point */
@@ -2594,6 +2641,24 @@ static void padRunScript(void) {
     if (padPhase == 0) {
         CountryMenuTask *menu = padMenuTask();
 
+        if (padModeFired != 0 && (padModeValue >> 8) == 5 && (GAME.funcs.getMode() >> 8) == 5) {
+            /* mode:500 skipped the country select: the name screen's drive starts from the mode itself */
+            printf("pad: the player-name screen is up; scripting %d step(s)\n", padStepCount);
+            padPhase = 1;
+            padTimer = PAD_START_DELAY;
+            padIndex = 0;
+            padBarrierMode = -1;
+            return;
+        }
+        if (padModeFired != 0 && (padModeValue >> 8) == 0xA && (GAME.funcs.getMode() >> 8) == 0xA) {
+            /* mode:A00 skipped the country select: the gym's drive (gymdrive) starts from the mode itself */
+            printf("pad: the gym is up; scripting %d step(s), training column %d\n", padStepCount, padGymTarget);
+            padPhase = 1;
+            padTimer = PAD_START_DELAY;
+            padIndex = 0;
+            padBarrierMode = -1;
+            return;
+        }
         if (menu == NULL || menu->state != TASK_RUN || menu->substate != MENU_SELECT) {
             return;
         }
@@ -2839,6 +2904,24 @@ static void padRunScript(void) {
                         return;
                     }
                     padBarrierTimer = 0;
+                    if (padNamePickTarget >= 0 && pick->choice != padNamePickTarget) {
+                        /* `namepick:<n>`: down (or up) until the cursor is on team n, read from the page's own state */
+                        step->keyBit = padKeyBit(pick->choice < padNamePickTarget ? "down" : "up");
+                        printf("pad: partners page: %s toward team %d (cursor %d)\n", pick->choice < padNamePickTarget ? "down" : "up",
+                               (int)padNamePickTarget, (int)pick->choice);
+                        padFakeKey(step->keyBit, 1);
+                        padPhase = 2;
+                        padTimer = PAD_KEY_HOLD;
+                        return;
+                    }
+                    if (padNamePickStop != 0) {
+                        /* `namestop`: the page is up with the cursor where `namepick` put it; the run ends (the screenshot) after the page settled */
+                        if (++padNameStopQuiet == 90) {
+                            pcHarnessState("partners page");
+                            pcBootStopInMode(GAME.funcs.getMode(), 30);
+                        }
+                        return;
+                    }
                     step->keyBit = padLogicalIndexToRaw(PAD_CROSS);
                     printf("pad: partners %d: cross keeps choice %d (substate "
                            "100)\n",
@@ -2856,6 +2939,14 @@ static void padRunScript(void) {
                         return;
                     }
                     padBarrierTimer = 0;
+                    if (padNameConfirmStop != 0) {
+                        /* `confirmstop`: the confirmation is up; the run ends (the screenshot) after it settled */
+                        if (++padNameConfirmQuiet == 90) {
+                            pcHarnessState("name confirmation");
+                            pcBootStopInMode(GAME.funcs.getMode(), 30);
+                        }
+                        return;
+                    }
                     step->keyBit = padLogicalIndexToRaw(PAD_CROSS);
                     printf("pad: name confirm %d: cross on Yes (cursor %d)\n",
                            (int)(namePresses + 1), (int)yesno->cursor);
@@ -2870,6 +2961,89 @@ static void padRunScript(void) {
                the closing tween) advances by itself. */
             return;
         }
+        return;
+    }
+
+    /* The gym's exact drive (B_kindGym, A4b): the screen, menu and session tasks say what they wait for (the substates are the decomp's: screen 5 picks the
+       partner, menu 10 the training, session 6 the intensity and 0x12 the Yes); the drive ends once the training's result task exists (its actor is the
+       scene the port's training sets show). No timing: a press answers a state. */
+    if (step->kind == B_kindGym) {
+        Task *mode = (Task *)padRootTask, *scene = NULL, *screenTask = NULL;
+        TrainScreen *sc;
+        TrainScreenWindows *win;
+        u16 bit = 0;
+        const char *what = NULL;
+
+        if (padPhase == 2) {
+            if (--padTimer > 0) {
+                return;
+            }
+            padFakeKey(step->keyBit, 0);
+            padPhase = 1;
+            padTimer = PAD_KEY_GAP;
+            return;
+        }
+        if ((GAME.funcs.getMode() >> 8) != 0xA) {
+            printf("pad: gym drive done after %d exact press(es) (mode 0x%X); the script goes on\n", padGymPresses, (int)GAME.funcs.getMode());
+            padIndex++;
+            padTimer = PAD_KEY_GAP;
+            return;
+        }
+        if (mode != NULL && mode->children != NULL && mode->childCount > 0) {
+            scene = ((Task **)mode->children)[0];
+        }
+        if (scene != NULL && scene->update == STGTRAIN_updateRoot && scene->children != NULL && scene->childCount > 0) {
+            screenTask = ((Task **)scene->children)[0];
+        }
+        if (screenTask == NULL || screenTask->update != STGTRAIN_updateScreen || screenTask->children == NULL) {
+            if (++padBarrierTimer >= PAD_BARRIER_TIMEOUT) {
+                fprintf(stderr, "pad: gym drive found no gym screen in %d frames; the script stops\n", (int)padBarrierTimer);
+                padPhase = 3;
+            }
+            return;
+        }
+        sc = (TrainScreen *)screenTask;
+        win = (TrainScreenWindows *)screenTask->children;
+        if (win->result != NULL) {
+            printf("pad: gym drive done after %d exact press(es): the training result task exists (training %d, partner slot %d)\n", padGymPresses,
+                   (int)sc->training, (int)sc->partner);
+            pcHarnessState("gym training");
+            padIndex++;
+            padTimer = PAD_KEY_GAP;
+            return;
+        }
+        if (win->session != NULL && (win->session->substate == 0x12 || win->session->substate == 6)) {
+            bit = padLogicalIndexToRaw(PAD_CROSS);
+            what = win->session->substate == 6 ? "cross picks the intensity" : "cross answers Yes";
+        } else if (win->menu != NULL && win->menu->substate == 10 && win->menu->state == TASK_RUN) {
+            if (padGymMoves < padGymTarget) {
+                bit = padKeyBit("right");
+                what = "right: next training";
+                padGymMoves++;
+            } else {
+                bit = padLogicalIndexToRaw(PAD_CROSS);
+                what = "cross picks the training";
+            }
+        } else if (win->menu == NULL && win->session == NULL && sc->substate == 5) {
+            bit = padLogicalIndexToRaw(PAD_CROSS);
+            what = "cross picks the partner";
+        }
+        if (bit == 0) {
+            return;
+        }
+        if (padTimer > 0) {
+            padTimer--;
+            if (what != NULL && bit == padKeyBit("right")) {
+                padGymMoves--;
+            }
+            return;
+        }
+        step->keyBit = bit;
+        printf("pad: gym press %d: %s\n", padGymPresses + 1, what);
+        padGymPresses++;
+        padFakeKey(bit, 1);
+        padPhase = 2;
+        padTimer = PAD_KEY_HOLD;
         return;
     }
 
@@ -3185,6 +3359,27 @@ void pcBootPadInit(const char *script) {
                default name), partners and Yes; ends when the mode leaves
                the name entry */
             padAddStep(padKeyBit("cross"), B_kindName, C_none);
+            continue;
+        }
+        if (padTokenStarts(token, "gymdrive:")) {
+            padGymTarget = (int)padParseBattleArg(token + 9);
+            padAddStep(padKeyBit("cross"), B_kindGym, C_none);
+            continue;
+        }
+        if (padTokenIs(token, "gymdrive")) {
+            padAddStep(padKeyBit("cross"), B_kindGym, C_none);
+            continue;
+        }
+        if (padTokenStarts(token, "namepick:")) {
+            padNamePickTarget = (int)padParseBattleArg(token + 9);
+            continue;
+        }
+        if (padTokenIs(token, "namestop")) {
+            padNamePickStop = 1;
+            continue;
+        }
+        if (padTokenIs(token, "confirmstop")) {
+            padNameConfirmStop = 1;
             continue;
         }
         if (padTokenStarts(token, "fieldbattles:")) {

@@ -195,8 +195,8 @@ fuera de ambos, una entrada desechable. Sin mods el almacén está vacío y nada
 
 ## 9. Digimon existentes
 
-`pc/shim/digimon_ext.c/.h` lee `mods/<mod>/content/digimon.json` (`digimon-v1`, objeto `"change"`), que cambia luchadores existentes
-por `dw3:digimon/<id>` con las facetas `partner` (fila de `DIGIMON_DATA`) y `enemy` (fila de `FILE_BATTLE_TABLE`, que se lee del disco
+`pc/shim/digimon_ext.c/.h` lee `mods/<mod>/digimon/d<nnn>/digimon.json` (`digimon-digimon-v1`, A8.3; antes el objeto `"change"` de `content/digimon.json`), que cambia luchadores existentes
+(`d<nnn>` = `dw3:digimon/<id>` con tres dígitos) con las facetas `partner` (fila de `DIGIMON_DATA`) y `enemy` (fila de `FILE_BATTLE_TABLE`, que se lee del disco
 para validar los ids). No crea ids, así que el guardado no cambia. Las filas de compañero se parchean en memoria con una máscara de
 bytes y `digimonExtReset` las restaura (antes de `techExtReset`, porque `learnedBy` guarda sus propios valores previos); las de enemigo
 se parchean en el búfer de lectura de la tabla de batalla por el mismo gancho post-lectura de `battle_loot` (`pcPatchBattleTable`):
@@ -205,8 +205,8 @@ luchadores con su nombre en inglés (DIGNAM, por `nameId`) y los campos editable
 
 ## 10. Enemigos nuevos y encuentros
 
-`digimon.json` suma `"new"` (enemigos, núcleo de contenido: ids desde 471 en orden alfabético, nombre en `DIGNAM` con la entrada
-`251 + posición`, hasta 32297 por el `s16` de los ids) y `"encounters"` (colocar enemigos en `FIELDSTG_encounters`, `onEnter` del
+la carpeta `digimon/<llave>/` suma Digimon nuevos (su `digimon.json` es una entrada de `"new"`, enemigos, núcleo de contenido: ids desde 471 en orden alfabético, nombre en `DIGNAM` con la entrada
+`251 + posición`, hasta 32297 por el `s16` de los ids) y `content/encounters.json` (colocar enemigos en `FIELDSTG_encounters`, `onEnter` del
 ámbito `fieldstg`). **Guardado: sin
 impacto, por evidencia.** `GameState` (los `0x26BC` bytes que se guardan, `include/engine/game_state.h`) contiene el dinero, el grupo,
 objetos, cartas (`cards`, `cardsSeen`: ids de carta), mazos, los ocho `Partner` (ids de formas de compañero y de técnicas), el
@@ -233,7 +233,7 @@ a la fila 254 como máximo (255 es el tope de esos campos); P3 decide cómo leva
 
 ## 12. Formas de compañero nuevas: filas, nombres y guardado
 
-`digimon.json` `"new"` con un compañero de `"base"` agrega una **forma de compañero**: una fila de `DigimonData` (copia de la fila original
+un `digimon/<llave>/digimon.json` con un compañero de `"base"` agrega una **forma de compañero**: una fila de `DigimonData` (copia de la fila original
 del `base` con los campos de §9), una entrada en el archivo de luchadores (`{id, índice y tipo del modelo}`, sin ficha nueva) y un nombre.
 
 - **Ids:** una sola lista alfabética de todos los Digimon nuevos (enemigos y compañeros, de todos los mods), `id = 471 + posición`; así no
@@ -304,6 +304,61 @@ y guardado):
 nivel y un dato del compañero). Dos líneas cambiadas: la lista que lee (`PC_EVOLUTION_LIST(partner, original)`) y su largo
 (`PC_EVOLUTION_COUNT(partner)`, `include/battle/report.h`; PS1: el mismo texto). En el port, `pcEvolutionList` devuelve una copia de la lista original
 con las entradas de los mods al final (`pcEvolutionExtend`, `ext_state.c`; la lista original no se escribe) y `digimon_ext.c` las publica
-al cargar los mods (`digimon.json` `"evolution"` de una forma nueva; formato en `docs/modding/README.md` §6.9; se reinician con `digimonExtReset`).
+al cargar los mods (`"evolution"` del `digimon.json` de una forma nueva; formato en `docs/modding/README.md` §6.9; se reinician con `digimonExtReset`).
 `PcEvolution` (`ext_state.h`) tiene el diseño de `Evolution` (una unidad del shim no puede incluir `battle/report.h`); `boot.c` comprueba que coinciden.
 
+## 14. Compañeros como arreglo del port (ADR-013, P1)
+
+`GameState.partners[8]` se renombró `partnersCard` bajo `DW3_PC` y ya es solo el espejo del bloque guardado. El juego alcanza a los
+compañeros por `PC_PARTNER(p)` (lvalue) y `PC_PARTNER_COUNT` (`include/engine/partner_access.h`): un arreglo contiguo creciente
+(`pcPartners`, `pcPartnersGrow`, tope de seguridad `PC_PARTNER_LIMIT` 256) con los 8 originales primero. En PS1 los macros expanden a
+`GAME.partners[p]` y `PARTNER_COUNT`. Sincronía con el espejo: `pcPartnersImport` tras cargar (`saves.c`) y en `newGame`;
+`pcPartnersExport` antes de copiar `GAME` al búfer de la tarjeta (`STGMCARD_fillSave`). Lo que lee el bloque en bytes (códecs de
+`ext_state.c`, `save_view.c`) sigue con los 8 del espejo (`PC_PARTNER_BLOCK`). Los bucles sobre compañeros vivos usan
+`PC_PARTNER_COUNT` (`events.c`, `party.c`, `boot.c`, `battle_trace.c`); `game_tables.c` valida el `arg` de las filas de
+condiciones contra el conteo del registro por un gancho (P4, §16: su prueba no enlaza el arreglo). Las tablas fijas por compañero no cambian. Evidencia de que no hay acceso por desplazamiento:
+ADR-013.
+
+P2: `PC_PARTNER_ROW(p)` (`partner_access.h`) es la fila de `DIGIMON_DATA` de la primera forma del compañero `p`: identidad para los 8 originales,
+`-1` (fila de descarte) para uno nuevo hasta que `pcPartnerSetRow` le da la suya. Reemplaza a `PC_DIGIMON(partner)` donde el código quiere
+"la primera forma" (sitios y evidencia en ADR-013); no se usa donde ya hay una fila (evolución, pareja, blast).
+
+
+## 15. Compañeros por nombre (ADR-014, P3)
+
+Los compañeros tienen nombre (`dw3:partner/<i>`, `<mod>:<llave>`); el índice es solo el orden de registro (`pcPartnerRegister`). Una casilla con más de 8 compañeros registrados es **formato 2** y trae:
+
+- **`PTNR`** (v1): `u32` versión, `u32` cuenta, `u32` largo + chunk tipo `EXTD`, `u32` largo + chunk tipo `EXTT` (nombres de formas/técnicas nuevas dentro de los registros), el equipo (3 nombres: `u16` largo + bytes, largo 0 = vacío) y por compañero:
+  nombre, `u32` tamaño del registro (`sizeof(Partner)`), el registro (disposición del bloque `GAME`), `u32` cuenta de entradas guardadas > 44 y esos registros `EXTP` (byte 0 sin uso). Con `PTNR` no se escribe `EXTP`.
+- **`ICON`** (v1): `u32` versión, `u32` cuenta, por entrada `u8` casilla, `u8` posición, `u8` ícono de reemplazo, nombre. Solo compañeros >= 8 de los 3 resúmenes de `MemCardFile`.
+
+Al leer: nombre -> índice actual; un nombre sin mod se descarta (`[saves]`); `unlocked` = índice + 3; formas y técnicas por nombre; `GAME.party` reescrito por nombre y válido (compactado, nunca vacío); `MemCardSave.partners` por nombre con el ícono de reemplazo si el mod no está.
+Sin compañeros nuevos: formato 1, sin `PTNR`/`ICON`, `EXTP` v1 como en §13. Los campos con índice de compañero y las tablas `[8]` protegidas con `PC_PARTNER_ART`: ADR-014.
+
+## 16. Compañeros y equipos iniciales de mods (ADR-015, P4)
+
+`partners/<llave>/partner.json` (`partners-partner-v1`, desde A8.2; antes `content/partners.json`) y `content/teams.json` (`teams-v1`) son dos tipos más del núcleo de contenido (`pc/shim/partner_ext.c`, §6.9b de la guía de
+modding). Se leen **una vez al arrancar** (`pcInstallPartners`, `boot.c`, después de las carpetas `digimon/` y los objetos, antes de cualquier partida): `pcPartnerRegister` en el orden
+alfabético del nombre completo da el índice (8 + lugar; un equipo, 3 + lugar). Lo que el juego lee de un compañero nuevo además de su ranura del arreglo:
+
+- **Textos**: entradas de `NAMEET` después de las 31 del disco (`tdSetPartnerTextHook`): `31 + 2k` nombre y `32 + 2k` descripción del compañero `k`; después, el título y la
+  descripción de cada equipo nuevo (`PC_STARTER_NAME_ENTRY`, `PC_STARTER_TEXT_ENTRY`, `PC_STARTER_PACK_NAME_ENTRY/TEXT_ENTRY`) y, al final, la etiqueta de la fila de cada
+  equipo nuevo en la columna izquierda (`PC_STARTER_LABEL_ENTRY`: D, E, ... Z, AA, AB, ...; los originales siguen con A, B, C = entradas 7 a 9 del disco).
+- **Equipos iniciales**: una tabla (`pcStarterParty(set)`, `PC_STARTER_PARTY_COUNT`) que empieza en `STARTER_PARTIES` y a la que se añaden los equipos de los mods; `setParty` y la
+  pantalla de nombre y equipo la leen igual. El arnés elige con `DW3_STARTER_SET=<n>` o por nombre (`DW3_STARTER_SET=<mod>:<llave>`). Cada equipo tiene un nombre estable
+  (`pcStarterPartyName`: `dw3:team/<i>` los originales, `<mod>:<llave>` los de mods; `pcStarterPartyFind` da el número de hoy).
+- **Pantalla de equipo (P5)**: la columna izquierda muestra `PC_STARTER_ROWS` = min(equipos, 6) filas (las 3 cajas del original son un sprite; las de abajo repiten su parte con `STPLNMET_drawChoiceBoxes`); con más de 6 equipos se desplaza (`PartnerChoice.top`, `pcStarterPageMove`) y
+  una barra en el margen (x 6..10, alto de las filas) marca dónde están. `PartnerChoice.choice` es el número del equipo; `confirm.c` y `setParty` lo reciben igual.
+- **`GameState.partySet` (P5)**: guarda el **número** del equipo. Su único lector es `checkPartner` op 0 (`events.c:93`, `partySet == arg`; los `arg` de las filas del disco
+  son 0, 1 y 2). Los tres originales conservan su número (el juego idéntico, sin sección); el de un equipo de mod cambia con los mods, así que la partida lo guarda por nombre:
+  sección `TEAM` del `dw3save` (u32 versión 1 + nombre), solo cuando `partySet` es de un equipo de mod (`pcExtStateEncodeTeam`). Al leer (`pcExtStateRemapTeam`, junto a
+  `pcExtStateRemapParty`): nombre -> número de hoy; si el mod ya no está o la sección está dañada, `partySet = -1` (línea `[saves]`), que ningún `arg` iguala: se lee como "sin equipo",
+  igual que un equipo de mod (que ninguna condición del disco nombra). Un bloque sin sección se deja como está.
+- **Equipo (armas, armaduras, accesorios)**: `PC_CAN_EQUIP(item, máscara, compañero)` (`pcPartnerCanEquip`: `deny` > `allow` > el bit de `equip.like`) y los conjuntos
+  `PC_EQUIP_SET_ITEM/BONUS` (`pcPartnerEquipSet*`). La máscara `u8` del registro del objeto no cambia.
+- **Ficha inicial**: `initPartnerData` (`party.c`) la usa `initNewGameData` y, tras cargar una partida (`saves.c`), `pcInitMissingPartners` para los compañeros nuevos que la partida no traía.
+- **Reserva del laboratorio**: `LabPartyScreen.partners` es un puntero a `pcLabPartnerBuffer` (`PC_PARTNER_COUNT + 1` entradas).
+- **Filas `special_conditions`**: el `arg` de las operaciones de compañero se valida contra `gameTablesSetPartnerCount` (el conteo del registro).
+- **Vista** `view/slotN.json`: lista los compañeros hasta `PC_PARTNER_COUNT` (los nuevos con `"id"`).
+
+El registro y todo lo anterior desaparecen con el mod (`pcPartnersUnregister`, `pcStarterPartiesReset`); la partida guarda solo nombres (§15).

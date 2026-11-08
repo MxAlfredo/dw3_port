@@ -46,6 +46,7 @@
 #include "stage_timing.h"
 #include "field/field_map.h"
 #include "host.h"
+#include "fault_report.h"
 #include "host_video.h"
 #include "port_log.h"
 #include "controls_screen.h"
@@ -2022,6 +2023,9 @@ static void hostDrawFrame(s32 draw) {
         pcBootPadFrame(presentFrames);
 
         presentFrames++;
+        if ((presentFrames & 255) == 0) {
+            faultReportRefreshModules(); /* the audio stack's libraries load after the start: a crash report names their frames */
+        }
         /* T19: the field demo's stop (see pcBootStopInMode). The mode is read
            the same way the game reads it, and the count only starts once the
            mode has been reached. */

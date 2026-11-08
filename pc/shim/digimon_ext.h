@@ -8,16 +8,22 @@
  * DigimonData id (DIGIMON_DATA, in the executable) and an enemy is a battle table id (FILE_BATTLE_TABLE). The two id spaces
  * are disjoint (248 fighters: 55 partner forms, 3 of them empty placeholders, and 193 enemies), so the id tells the facet.
  *
- * A mod of kind "content" changes them in mods/<mod>/content/digimon.json (format "digimon-v1"):
+ * A mod of kind "content" keeps a Digimon in the folder mods/<mod>/digimon/<name>/ (ADR-016). The folder d<nnn> (the fighter id on three digits, the
+ * name the data folder gives the original, d383 for Kotemon) changes original <nnn> with its digimon.json (format "digimon-digimon-v1"):
  *
- *   { "format": "digimon-v1",
- *     "change": {
- *       "dw3:digimon/383": { "partner": { "hp": 60, "stats": { "strength": 90 },
- *                                          "skills": { "6": { "tech": "mymod:spark", "level": 12 } } } },
- *       "4":               { "enemy":   { "stats": { "defense": 120 }, "item": "dw3:item/43", "itemChance": 1023 } } } }
+ *   digimon/d383/digimon.json:
+ *   { "format": "digimon-digimon-v1", "name": "d383",
+ *     "partner": { "hp": 60, "stats": { "strength": 90 }, "skills": { "6": { "tech": "mymod:spark", "level": 12 } } } }
+ *   digimon/d004/digimon.json:
+ *   { "format": "digimon-digimon-v1", "name": "d004",
+ *     "enemy":   { "stats": { "defense": 120 }, "item": "dw3:item/43", "itemChance": 1023 } }
  *
- * The key is the name or the plain number. "change" only touches existing Digimon: no new ids, so a save is not affected
- * (nothing saved holds a value the mod made up: techniques of mods keep their own by-name chunk, ext_state.h). "new" adds Digimon:
+ * "name" is optional and, when there, is the folder's name; "$schema" and "notes" are ignored. A change only touches existing Digimon: no new ids, so a
+ * save is not affected (nothing saved holds a value the mod made up: techniques of mods keep their own by-name chunk, ext_state.h). Nothing else of an
+ * original can be replaced: its model/ in that folder is never read. Any other folder name is a new Digimon (below): its digimon.json is the record
+ * ("new" of the old content/digimon.json, with "title" for the name per language) and its model/ the model it uses when the record has no "model".
+ * content/digimon.json and content/models/ are not read any more; the placements ("encounters") are content/encounters.json (format "encounters-v1").
+ * A new Digimon:
  * an enemy (base = an original enemy: a battle table row) or a partner form (base = an original partner form: a DigimonData row in
  * the port's store, P2). Both share one id space (471 + the position in the alphabetical list of all new Digimon) and one name
  * space (DIGNAM entry 251 + position); a new partner form's id can be saved, so it has a by-name chunk ("EXTD", ext_state.h).
@@ -62,11 +68,14 @@ void digimonExtSetEnemyTable(const unsigned char *file, size_t len);
    entry is built from that fighter's. Call before digimonExtLoad; without it new enemies are rejected. */
 void digimonExtSetFighters(const unsigned char *file, size_t len);
 
-/* Reads the active content mods' digimon.json, validates, patches DIGIMON_DATA and keeps the enemy patches. Call after
+/* Reads the active content mods' digimon/ folders and content/encounters.json, validates, patches DIGIMON_DATA and keeps the enemy patches. Call after
    techExtLoad and itemExtLoad (names resolve) and after the fighter probe is set. Returns the fighters changed. */
 int digimonExtLoad(void);
 /* Puts DIGIMON_DATA back and forgets everything (tests, reload) */
 void digimonExtReset(void);
+
+/* 1 when digimon/<key>/ is original fighter <nnn>'s folder (d<nnn>: "d" and three digits): a change of that fighter, never a new Digimon */
+int digimonExtKeyIsOriginal(const char *key);
 
 /* The Digimon type of the content core (reference export: contentReferenceText); ids 3..470 */
 const ContentType *digimonExtType(void);
@@ -78,7 +87,7 @@ int digimonExtNameId(int id);
    ("dw3:digimon/<id>") or a new partner form ("<mod>:<key>"); -1 for anything else (an enemy, a name no mod defines). */
 long long digimonExtRowRef(const char *name);
 
-/* ---- new enemies (D3): "new" of digimon.json ---- */
+/* ---- new Digimon (D3): the digimon/<key>/digimon.json records ---- */
 
 int digimonExtNewCount(void);                /* new enemies and new partner forms together */
 int digimonExtNewId(const char *fullName);   /* "<mod>:<key>" -> the id (>= 471), or -1 */
@@ -92,13 +101,20 @@ int digimonExtBaseOf(int id);                /* the original Digimon id a new Di
    "<mod>:<key>") sets its own before the fighters file is built; NULL restores the default. Not reset by digimonExtReset. */
 void digimonExtSetFileResolver(int (*resolve)(const char *name));
 
+/* The bytes of a disc file (malloc'd, the caller frees; NULL: not readable), to look at the motions a model takes by reference
+   ("motions": "dw3:digimon/<id>" or {"file", "entry"}). With it, a slot the battle code plays that the archive leaves empty is a warning
+   line, and "fill" (a slot 0..61 of that archive) makes the empty slots play it (a copy of the file as a virtual file). The same reader gives
+   the effects archives of "scripts" ({"<slot>": {"from": <original fighter>, "slot": <its slot>}}): the form's effects file is copied with those
+   slots replaced by the fighters' scripts, converted to the form's side when the fighter is of the other (script_mirror.h). NULL: no check. */
+void digimonExtSetDiscReader(unsigned char *(*read)(int file, size_t *len));
+
 /* The battle table and the fighters file with the new enemies added: malloc'd, whole sectors long (longer than the disc's
    file when the rows no longer fit), the original bytes untouched; NULL when there is nothing to add. The host serves them
    in place of the disc files (pfsSetGenerated); the post-read hook then patches the former as before. */
 unsigned char *digimonExtBuildBattleTable(size_t *len);
 unsigned char *digimonExtBuildFighters(size_t *len);
 
-/* ---- placing enemies in encounters (D4): "encounters" of digimon.json ---- */
+/* ---- placing enemies in encounters (D4): "encounters" of content/encounters.json ---- */
 
 int digimonExtPlaceCount(void);
 void digimonExtPlaceTarget(int i, int *encounter, int *slot);   /* the encounter's index and the slot 0..2 of placement i */

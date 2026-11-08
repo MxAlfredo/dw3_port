@@ -73,6 +73,9 @@ int plogChannelListed(const char *list, const char *channel);
    one entry per line), through a pipe and a reader thread. 1 when set up; 0 on every other platform or on failure (the
    streams are then untouched). */
 int plogTeeToLogcat(const char *logFile);
+/* Android: the descriptor of that log file (opened O_APPEND), which the fatal-signal report writes to directly (shim/fault_report.c);
+   -1 when there is none and on every other platform (stderr is the log file there). */
+int plogLogFd(void);
 /* The reader's pure part: appends data[0..n) to the partial line in buf (used bytes, capacity cap), calls emit once per complete
    line (without the newline; carriage returns dropped). A line that fills the buffer is emitted as it is. Returns the lines emitted. */
 int plogLineSplit(char *buf, size_t *used, size_t cap, const char *data, size_t n, void (*emit)(const char *line, void *ud), void *ud);

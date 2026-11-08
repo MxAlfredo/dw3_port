@@ -1,8 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Sample item",
-  "version": "1.0.0",
-  "kind": "content",
-  "author": "DW3 port",
-  "description": "Adds one new item, sold in the first item shop (content mod: content/items.json plus tables/shop_stock.json)."
-}

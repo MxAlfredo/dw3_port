@@ -1,6 +1,8 @@
 #ifndef PC_MODS_H
 #define PC_MODS_H
 
+#include <stddef.h>
+
 /*
  * Mods and the small JSON reader of the port's data files (ADR-005, feature stage-banner T2).
  *
@@ -38,6 +40,37 @@ const char *modsNameOf(int i);  /* folder name of the i-th active mod, in order 
 const char *modsDirOf(int i);   /* its path, no trailing slash */
 const char *modsVersionOf(int i); /* manifest "version" ("0" when absent) */
 const char *modsKindOf(int i);    /* "assets" (default) or "content" */
+
+/* ---- asset layers (ADR-016, asset-v1): data/<topic>/<rel> is mods/<mod>/<topic>/<rel> ----
+ *
+ * THE place that knows the lookup order of a file: the enabled mods from the last to the first (the last wins), then the data folder.
+ * Every site that reads an asset asks here; none walks the mods or joins data/ itself. A layer is a root folder; layer 0 wins and the
+ * data folder, when set, is the last one. The layers are fixed once modsInit and assetSetData ran (mods are read once at startup). */
+typedef struct AssetLayer {
+    const char *root; /* the folder (no trailing slash) */
+    char label[80];   /* "mods/<name>" or "data": what a log line names */
+    int mod;          /* index for modsNameOf/modsDirOf, -1 for the data folder */
+} AssetLayer;
+
+void assetSetData(const char *dataDir);           /* the data folder (NULL or "": none); the port sets it once at startup */
+const char *assetDataDir(void);                   /* what assetSetData gave, NULL when none */
+int assetLayerCount(void);                        /* enabled mods + the data folder when set */
+int assetLayerAt(int i, AssetLayer *out);         /* 0 = the winning layer; 1 when i is in range */
+/* <layer>/<topic>/<rel> as a regular file, matched without regard to case (ADR-010 section 3): 1 and the real path, else 0 */
+int assetLayerFile(const AssetLayer *layer, const char *topic, const char *rel, char *path, size_t cap);
+/* The winning file of <topic>/<rel>: 1 with its path (and the layer in *from when not NULL), 0 when no layer has it. A caller that may
+   reject a file (a bad PNG) and fall through to the next layer walks assetLayerAt with assetLayerFile instead. */
+int assetResolve(const char *topic, const char *rel, char *path, size_t cap, AssetLayer *from);
+
+/* A partner's follower sprite is the folder partners/<key>/field/ (partner_bundle.h); the sprite registry (stage_mods.c) names it ASSET_PARTNER_FIELD_PREFIX + <key>
+   and partner_ext.c gives that name to the partner whose bundle has field/sprite.json. */
+#define ASSET_PARTNER_FIELD_PREFIX "partner:"
+
+/* The layers that are mods are the first modsCount() ones (the data folder, when set, is the last). A site that reads every mod in load
+   order (merging tables, content, config) walks the mods by index and asks for its file or folder of one mod: the first mod loads
+   first, the last one overrides. topic may be NULL (rel is then the whole path inside the mod). */
+int assetModFile(int mod, const char *topic, const char *rel, char *path, size_t cap); /* a regular file, case-insensitive: 1 and its path */
+int assetModDir(int mod, const char *topic, const char *rel, char *path, size_t cap);  /* a folder: 1 and its path */
 
 /* ---- the report of the last modsInit (--list-mods, --validate-mod) ---- */
 enum { MODS_REP_ACTIVE, MODS_REP_DISABLED, MODS_REP_REJECTED, MODS_REP_NOT_LISTED, MODS_REP_MISSING };

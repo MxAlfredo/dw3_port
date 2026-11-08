@@ -7,7 +7,8 @@ Usage:
   python3 -I tools/model_export.py "<disc>.bin" <fighter> <outdir> --source [--unit-scale F]   (also with --all)
 
 --source writes the layout the port's in-game export uses (<outdir>/<id>/model.gltf + .bin + .png + model.json, at Blender
-scale 1/1000, ready for a mod's content/models/<key>/) and is the reference pc/shim/model_export.c is compared with.
+scale 1/1000: the files of a <outdir>/<id>/ folder are what the port exports to digimon/d<nnn>/model/, and what a mod keeps in
+digimon/<key>/model/) and is the reference pc/shim/model_export.c is compared with.
 
 <fighter> is the fighter number (e.g. 383 = Kotemon) or dw3:digimon/<id>. --repo is the
 checkout that holds src/engine/file/file_table.c (default: the parent of tools/).
@@ -1003,7 +1004,7 @@ def source_json(fid, fighter, motions, unit_scale=UNIT_SCALE):
 
 def export_source(disc, fid, outdir, unit_scale=UNIT_SCALE):
     """The in-game export's layout: <outdir>/model.gltf + model.bin + model.png + model.json, ready to drop into a
-    mod's content/models/<key>/. Returns the counts like export_fighter."""
+    mod's digimon/<key>/model/ (the port's own export is digimon/d<nnn>/model/). Returns the counts like export_fighter."""
     f = disc.fighter(fid)
     d, o = disc.entry(f["model"])
     model = parse_model(d, o)

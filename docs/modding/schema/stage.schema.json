@@ -1,0 +1,467 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port stages/s<nnn>/stage.json (stage-v1, the exported reference copy)",
+  "description": "The reference copy of one original field stage, written from the player's own disc (pc/shim/stage_data.c, sdStageToJson; docs/stages.md). Descriptive: the game never reads it back (only the sheetEntry member is read, by the object exporter, pc/shim/stage_obj_export.c). A mod changes a stage with a stage-patch-v1 file at the same path (stage-patch.schema.json: same member names, only what changes), or adds one with stage-new-v1 (stage-new.schema.json). The file is the stage at story progress 0; what the stage does in C code is listed in notes and functions.",
+  "type": "object",
+  "required": [
+    "format",
+    "about",
+    "notes",
+    "stage",
+    "name",
+    "modes",
+    "textFile",
+    "mapFile",
+    "sheetEntry",
+    "imageEntry",
+    "imageFile",
+    "soundBank",
+    "music",
+    "start",
+    "spriteColor",
+    "objects",
+    "images",
+    "actors",
+    "slots",
+    "events",
+    "functions"
+  ],
+  "properties": {
+    "format": {
+      "const": "stage-v1"
+    },
+    "about": {
+      "type": "string",
+      "description": "Fixed explanation of the file, written in every export."
+    },
+    "notes": {
+      "type": "array",
+      "description": "What the stage does in C code that these data do not hold.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stage": {
+      "type": "integer",
+      "description": "The stage number (the nnn of s<nnn>)."
+    },
+    "name": {
+      "type": "string",
+      "description": "The decompilation's setup function, such as WSTAG202."
+    },
+    "modes": {
+      "type": "array",
+      "description": "The game modes that run this stage.",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "textFile": {
+      "type": "integer",
+      "description": "The disc file number of the stage's text."
+    },
+    "mapFile": {
+      "type": "integer",
+      "description": "The disc file number of the stage's map."
+    },
+    "sheetEntry": {
+      "type": "integer",
+      "description": "Sprite sheet of the stage's objects: file number << 16 | entry in the S<nnn>TMPK.BIN archive, as the stage's setup sets it. 0 means no sheet."
+    },
+    "imageEntry": {
+      "type": "integer",
+      "description": "Entry of the picture archive."
+    },
+    "imageFile": {
+      "type": "integer",
+      "description": "The disc file number of the picture archive (S<nnn>MASK.BIN)."
+    },
+    "soundBank": {
+      "type": "integer"
+    },
+    "music": {
+      "type": "integer",
+      "description": "The music id as the setup passes it (a 32-bit value)."
+    },
+    "start": {
+      "type": "object",
+      "description": "Where the player starts. x and y are the game's fixed-point values (pixels * 256).",
+      "required": [
+        "x",
+        "y",
+        "dir"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "dir": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "spriteColor": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "integer"
+      }
+    },
+    "objects": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of objects of the stage's sheet."
+    },
+    "images": {
+      "type": "array",
+      "description": "The picture archive's entries (image and palette placement in VRAM).",
+      "items": {
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "imageX",
+          "imageY",
+          "u",
+          "v",
+          "clutX",
+          "clutY"
+        ],
+        "properties": {
+          "x": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer"
+          },
+          "imageX": {
+            "type": "integer"
+          },
+          "imageY": {
+            "type": "integer"
+          },
+          "u": {
+            "type": "integer"
+          },
+          "v": {
+            "type": "integer"
+          },
+          "clutX": {
+            "type": "integer"
+          },
+          "clutY": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "actors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "index",
+          "character",
+          "image",
+          "x",
+          "y",
+          "dir",
+          "talks"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "character": {
+            "type": "integer",
+            "description": "Character id (2 is the player, 3 the partner)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Only written for the player and the partner."
+          },
+          "image": {
+            "type": "integer"
+          },
+          "x": {
+            "type": "integer",
+            "description": "Pixels."
+          },
+          "y": {
+            "type": "integer",
+            "description": "Pixels."
+          },
+          "dir": {
+            "type": "integer"
+          },
+          "conditions": {
+            "$ref": "#/$defs/codeList"
+          },
+          "talks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "entry"
+              ],
+              "properties": {
+                "entry": {
+                  "type": "integer"
+                },
+                "conditions": {
+                  "$ref": "#/$defs/codeList"
+                },
+                "actions": {
+                  "$ref": "#/$defs/codeList"
+                },
+                "preview": {
+                  "type": "string",
+                  "description": "The line's text in the language the export ran in, only to read."
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "slots": {
+      "type": "array",
+      "description": "Triggers: exits, climbs, gauges, warps and the like.",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "arg",
+          "x",
+          "y",
+          "dir",
+          "hideAnim",
+          "place",
+          "placeArg"
+        ],
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "integer"
+            ],
+            "description": "A name (exit, climb-down, gauge, event, launch, warp-0, ...) or the number of a type with no name."
+          },
+          "arg": {
+            "type": "integer"
+          },
+          "x": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer"
+          },
+          "dir": {
+            "type": "integer"
+          },
+          "hideAnim": {
+            "type": "integer"
+          },
+          "place": {
+            "type": "integer"
+          },
+          "placeArg": {
+            "type": "integer"
+          },
+          "area": {
+            "type": "object",
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "w": {
+                "type": "integer"
+              },
+              "h": {
+                "type": "integer"
+              },
+              "facing": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "conditions": {
+            "$ref": "#/$defs/codeList"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "object",
+            "required": [
+              "file",
+              "entry"
+            ],
+            "properties": {
+              "file": {
+                "type": "integer"
+              },
+              "entry": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "start": {
+            "const": true
+          },
+          "end": {
+            "const": true
+          },
+          "script": {
+            "type": "array",
+            "description": "A list of commands, each [name, arguments...], ending with [\"end\"].",
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "prefixItems": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "previews": {
+            "type": "object",
+            "description": "Text entry number -> its text in the language the export ran in, only to read.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "battles": {
+      "type": "object",
+      "description": "Random battles of the stage's areas. Present only when the stage has them.",
+      "required": [
+        "place",
+        "serial",
+        "areas"
+      ],
+      "properties": {
+        "place": {
+          "type": "integer"
+        },
+        "serial": {
+          "type": "integer"
+        },
+        "areas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "area",
+              "rate",
+              "slots"
+            ],
+            "properties": {
+              "area": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "The area number, from 1."
+              },
+              "rate": {
+                "type": "integer"
+              },
+              "slots": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "encounter",
+                    "stage",
+                    "music"
+                  ],
+                  "properties": {
+                    "encounter": {
+                      "type": "integer"
+                    },
+                    "stage": {
+                      "type": "integer"
+                    },
+                    "music": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "functions": {
+      "type": "array",
+      "description": "The stage's C functions besides the setup and start, by name (not data).",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "codeList": {
+      "type": "array",
+      "description": "A list of codes, each [name, reference, value] (or with one more member, or only [name, value] for codes with no reference): [\"flag\", \"1A:1F\", 1] is flag 0x1F of group 0x1A set, [\"item\", \"dw3:item/18\", 1] the player has item 18. The number and kind of members depend on the code name (pc/shim/stage_codes.c, scListToJson). A list of conditions holds when every entry does.",
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 4,
+        "prefixItems": [
+          {
+            "type": "string"
+          }
+        ],
+        "items": {
+          "type": [
+            "string",
+            "integer"
+          ]
+        }
+      }
+    }
+  }
+}

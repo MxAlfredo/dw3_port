@@ -256,16 +256,16 @@ static void testNamedTexts(void) {
     put("t1/text/fra/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"x\": \"\"}}\n");                 /* an empty line: the file is refused */
     put("t1/text/ita/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"only\": \"Solo italiano\"}}\n"); /* no English for it */
     put("t2/text/eng/stages.json", "{\"texts\": {\"other\": \"Other\"}}\n");                                         /* no format: refused */
-    put("t1/stages/200.json",
+    put("t1/stages/s200/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"npc\", \"character\": 75, \"image\": 2, \"x\": 5, \"y\": 6, \"talks\": [\n"
         "  {\"text\": \"t1:hello\", \"conditions\": [[\"mod-flag\", \"t1:met\", 1]]}, {\"text\": \"t1:bye\", \"actions\": [[\"mod-flag\", \"t1:met\", 1]]}]}]}}\n");
-    put("t1/stages/206.json",
+    put("t1/stages/s206/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"npc\", \"character\": 75, \"image\": 2, \"x\": 5, \"y\": 6, \"talks\": [{\"text\": \"t1:bye\"}]}]}}\n");
-    put("t1/stages/201.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:only\"}]}]}}\n");
-    put("t1/stages/202.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:nothing\"}]}]}}\n");
-    put("t1/stages/203.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:bye\", \"entry\": 3}]}]}}\n");
-    put("t1/stages/204.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"nocolon\"}]}]}}\n");
-    put("t2/stages/205.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t2:other\"}]}]}}\n");
+    put("t1/stages/s201/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:only\"}]}]}}\n");
+    put("t1/stages/s202/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:nothing\"}]}]}}\n");
+    put("t1/stages/s203/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t1:bye\", \"entry\": 3}]}]}}\n");
+    put("t1/stages/s204/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"nocolon\"}]}]}}\n");
+    put("t2/stages/s205/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"t2:other\"}]}]}}\n");
 
     snprintf(logPath, sizeof logPath, "%s/.stagelog", root);
     CHECK(modsInit(root, "t1, t2") == 2);
@@ -280,11 +280,11 @@ static void testNamedTexts(void) {
     CHECK(strstr(log, "\"t1:only\" has no English text") != NULL);
     CHECK(strstr(log, "text/es-419/stages.json: \"t1:bye\" is missing here and skipped: the English line is shown instead") != NULL);
     CHECK(strstr(log, "text/ita/stages.json: \"t1:hello\" is missing here and skipped") != NULL && strstr(log, "text/ita/stages.json: \"t1:bye\" is missing here and skipped") != NULL);
-    CHECK(strstr(log, "201.json rejected: \"talks\" talk 0: the text \"t1:only\" has no English text") != NULL);
-    CHECK(strstr(log, "202.json rejected: \"talks\" talk 0: the text \"t1:nothing\" is not defined") != NULL);
-    CHECK(strstr(log, "203.json rejected: \"talks\" talk 0: give an \"entry\" or a \"text\", not both") != NULL);
-    CHECK(strstr(log, "204.json rejected: \"talks\" talk 0: \"text\" must be a name") != NULL);
-    CHECK(strstr(log, "205.json rejected: \"talks\" talk 0: the text \"t2:other\" is not defined") != NULL);
+    CHECK(strstr(log, "s201/stage.json rejected: \"talks\" talk 0: the text \"t1:only\" has no English text") != NULL);
+    CHECK(strstr(log, "s202/stage.json rejected: \"talks\" talk 0: the text \"t1:nothing\" is not defined") != NULL);
+    CHECK(strstr(log, "s203/stage.json rejected: \"talks\" talk 0: give an \"entry\" or a \"text\", not both") != NULL);
+    CHECK(strstr(log, "s204/stage.json rejected: \"talks\" talk 0: \"text\" must be a name") != NULL);
+    CHECK(strstr(log, "s205/stage.json rejected: \"talks\" talk 0: the text \"t2:other\" is not defined") != NULL);
     free(log);
     CHECK(smTextNames() == 3 && smTextCount(3) == 0); /* t1:hello, t1:bye, t1:only; nothing is appended until a stage that uses them starts */
 
@@ -550,6 +550,34 @@ static int fakeStageExists2(int n) {
 }
 
 /* "{speaker-of:FILE:N}" at the start of a text: accepted for a game file, refused for an unknown file or a malformed prefix */
+/* The "item received" signal of a reward talk: ["special", "0x13", 1], after the item (the original's talks end with {FLAG, ITEM, SPECIAL(0x13), 1}) */
+static void testRewardSignal(void) {
+    StageCodeEnv base, env;
+    ExtJson j;
+    uint16_t *w = NULL;
+    int n = 0;
+    char err[300] = "";
+    ScBuf b;
+    const char *text = "{\"l\": [[\"give-money\", 300], [\"special\", \"0x13\", 1]], \"n\": [[\"special\", 19, 1]], \"x\": [[\"special\", \"0x1FF\", 1]]}";
+
+    memset(&base, 0, sizeof base);
+    base.stageExists = fakeStageExists;
+    smCodeEnv(&env, &base);
+    CHECK(extJsonParse((const uint8_t *)text, strlen(text), &j) == 0);
+    CHECK(scListFromJson(&env, extJsonGet(&j, "l"), &w, &n, err, sizeof err) == 0 && n == 4);
+    if (n == 4) {
+        CHECK(w[2] == 0x7013 && w[3] == 1); /* SPECIAL(0x13): condition 0x13 = SPECIAL_CONDITIONS {0x13, 0x50, 0}, showActorIcon */
+        memset(&b, 0, sizeof b);
+        CHECK(scListToJson(&env, w, n, &b) == 0 && strstr(b.b, "[\"special\", \"0x13\", 1]") != NULL);
+        scFree(&b);
+    }
+    free(w);
+    w = NULL;
+    CHECK(scListFromJson(&env, extJsonGet(&j, "n"), &w, &n, err, sizeof err) == 0 && n == 2 && w[0] == 0x7013); /* a number says the same */
+    free(w);
+    extJsonFree(&j);
+}
+
 static void testSpeakerText(void) {
     char logPath[1200], *log;
     SmHost host;
@@ -559,7 +587,7 @@ static void testSpeakerText(void) {
     put("sp/text/fra/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:NOPE:19}x\"}}\n");
     put("sp/text/ger/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:TALK04}x\"}}\n");
     put("sp/text/ita/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"sign\": \"{speaker-of:TALK04:19}\"}}\n");
-    put("sp/stages/210.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"sp:sign\"}]}]}}\n");
+    put("sp/stages/s210/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"talks\": [{\"text\": \"sp:sign\"}]}]}}\n");
     snprintf(logPath, sizeof logPath, "%s/.stagelog3", root);
     CHECK(modsInit(root, "sp") == 1);
     memset(&host, 0, sizeof host);
@@ -588,7 +616,7 @@ static void testStageData(void) {
     mod("s8");
     mod("s8bad");
     put("s8/text/eng/stages.json", "{\"format\": \"stage-text-v1\", \"texts\": {\"hi\": \"Hi there.\", \"bye\": \"Bye.\"}}\n");
-    put("s8/stages/300.json",
+    put("s8/stages/s300/stage.json",
         "{\"format\": \"stage-patch-v1\",\n"
         " \"slots\": {\"patch\": [{\"index\": 0, \"stage\": 330, \"x\": 700, \"y\": 800, \"dir\": 3, \"conditions\": [[\"mod-flag\", \"s8:open\", 1]]},\n"
         "                       {\"index\": 2, \"event\": \"s8:intro\"}, {\"index\": 9, \"x\": 1}, {\"key\": \"s8:door\", \"x\": 11}],\n"
@@ -603,16 +631,16 @@ static void testStageData(void) {
         "   \"add\": [{\"area\": 4, \"rate\": 2, \"slots\": [{\"encounter\": 40, \"stage\": 1, \"music\": 2}, {\"encounter\": 41, \"stage\": 1, \"music\": 2}, {\"encounter\": 42, \"stage\": 1, \"music\": 2}]},\n"
         "             {\"area\": 7, \"rate\": 1, \"slots\": [{\"encounter\": 40, \"stage\": 1, \"music\": 2}]}]}}\n");
     /* files that must be refused, with the reason */
-    put("s8bad/stages/301.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"add\": [{\"key\": \"x\", \"type\": \"exit\", \"arg\": 1}]}}\n"); /* no area */
-    put("s8bad/stages/302.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": 330, \"arg\": 5}]}}\n");
-    put("s8bad/stages/303.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"conditions\": [[\"flag\", \"00:01\", 1], [\"flag\", \"00:02\", 1], [\"flag\", \"00:03\", 1]]}]}}\n");
-    put("s8bad/stages/304.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\"}]}}\n");
-    put("s8bad/stages/305.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\", \"script\": [[\"talk\", 0, \"s8:nothing\", 2, 4], [\"end\"]]}]}}\n");
-    put("s8bad/stages/306.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 336}]}}\n");
-    put("s8bad/stages/307.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"add\": [{\"area\": 5, \"rate\": 1}]}}\n");
-    put("s8bad/stages/310.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\", \"text\": \"s8:hi\", \"script\": [[\"end\"]]}]}}\n");
-    put("s8bad/stages/308.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": 5000}]}}\n");
-    put("s8bad/stages/309.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"type\": \"teleport\"}]}}\n");
+    put("s8bad/stages/s301/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"add\": [{\"key\": \"x\", \"type\": \"exit\", \"arg\": 1}]}}\n"); /* no area */
+    put("s8bad/stages/s302/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": 330, \"arg\": 5}]}}\n");
+    put("s8bad/stages/s303/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"conditions\": [[\"flag\", \"00:01\", 1], [\"flag\", \"00:02\", 1], [\"flag\", \"00:03\", 1]]}]}}\n");
+    put("s8bad/stages/s304/stage.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\"}]}}\n");
+    put("s8bad/stages/s305/stage.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\", \"script\": [[\"talk\", 0, \"s8:nothing\", 2, 4], [\"end\"]]}]}}\n");
+    put("s8bad/stages/s306/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 336}]}}\n");
+    put("s8bad/stages/s307/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"add\": [{\"area\": 5, \"rate\": 1}]}}\n");
+    put("s8bad/stages/s310/stage.json", "{\"format\": \"stage-patch-v1\", \"events\": {\"add\": [{\"key\": \"e\", \"text\": \"s8:hi\", \"script\": [[\"end\"]]}]}}\n");
+    put("s8bad/stages/s308/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"stage\": 5000}]}}\n");
+    put("s8bad/stages/s309/stage.json", "{\"format\": \"stage-patch-v1\", \"slots\": {\"patch\": [{\"index\": 0, \"type\": \"teleport\"}]}}\n");
 
     snprintf(logPath, sizeof logPath, "%s/.stagelog2", root);
     CHECK(modsInit(root, "s8, s8bad") == 2);
@@ -625,16 +653,16 @@ static void testStageData(void) {
     logBegin(logPath);
     CHECK(smLoad(&host) == 1); /* only s8's 300 stands */
     log = logEnd(logPath);
-    CHECK(strstr(log, "301.json rejected: slot add 0 needs an \"area\"") != NULL);
-    CHECK(strstr(log, "302.json rejected: slot patch 0: give \"arg\" or \"stage\", not both") != NULL);
-    CHECK(strstr(log, "303.json rejected: slot patch 0: a slot holds at most two conditions") != NULL);
-    CHECK(strstr(log, "304.json rejected: event add 0 needs a \"script\"") != NULL);
-    CHECK(strstr(log, "305.json rejected: event add 0 command 0: the text \"s8:nothing\" is not defined") != NULL);
-    CHECK(strstr(log, "306.json rejected: battles patch 0: there is no field encounter 336") != NULL);
-    CHECK(strstr(log, "307.json rejected: battles add 0 needs a \"rate\" and \"slots\"") != NULL);
-    CHECK(strstr(log, "308.json rejected: slot patch 0: there is no stage 5000 in this build") != NULL);
-    CHECK(strstr(log, "310.json rejected: event add 0: \"text\" is the game's own block of lines") != NULL);
-    CHECK(strstr(log, "309.json rejected: slot patch 0: unknown slot type \"teleport\"") != NULL);
+    CHECK(strstr(log, "s301/stage.json rejected: slot add 0 needs an \"area\"") != NULL);
+    CHECK(strstr(log, "s302/stage.json rejected: slot patch 0: give \"arg\" or \"stage\", not both") != NULL);
+    CHECK(strstr(log, "s303/stage.json rejected: slot patch 0: a slot holds at most two conditions") != NULL);
+    CHECK(strstr(log, "s304/stage.json rejected: event add 0 needs a \"script\"") != NULL);
+    CHECK(strstr(log, "s305/stage.json rejected: event add 0 command 0: the text \"s8:nothing\" is not defined") != NULL);
+    CHECK(strstr(log, "s306/stage.json rejected: battles patch 0: there is no field encounter 336") != NULL);
+    CHECK(strstr(log, "s307/stage.json rejected: battles add 0 needs a \"rate\" and \"slots\"") != NULL);
+    CHECK(strstr(log, "s308/stage.json rejected: slot patch 0: there is no stage 5000 in this build") != NULL);
+    CHECK(strstr(log, "s310/stage.json rejected: event add 0: \"text\" is the game's own block of lines") != NULL);
+    CHECK(strstr(log, "s309/stage.json rejected: slot patch 0: unknown slot type \"teleport\"") != NULL);
     free(log);
     CHECK(smEventId("s8:intro") >= SM_EVENT_BASE && smEventId("s8:intro") == smEventId("s8:intro") && smEventId("s8:intro") != smEventId("s8:note"));
     CHECK(strcmp(smEventName(smEventId("s8:intro")), "s8:intro") == 0 && smEventName(5) == NULL && smEventId("nocolon") < 0);
@@ -744,7 +772,7 @@ static void testCatches(void) {
     int i, hit[3] = {0, 0, 0};
 
     mod("t9");
-    put("t9/stages/300.json",
+    put("t9/stages/s300/stage.json",
         "{\"format\": \"stage-patch-v1\",\n"
         " \"slots\": {\"add\": [{\"key\": \"pond\", \"type\": \"gauge\", \"x\": 4, \"area\": {\"x\": 10, \"y\": 20, \"w\": 30, \"h\": 8}},\n"
         "                      {\"key\": \"free\", \"type\": \"gauge\", \"conditions\": [], \"area\": {\"x\": 50, \"y\": 20, \"w\": 30, \"h\": 8}}]},\n"
@@ -754,12 +782,12 @@ static void testCatches(void) {
         "              {\"index\": 0, \"1\": []}, {\"key\": \"ghost\", \"2\": []}]},\n"
         " \"hiddenSpots\": {\"add\": [{\"x\": 100, \"y\": 200}, {\"x\": 300, \"y\": 400}],\n"
         "   \"prize\": {\"common\": [{\"encounter\": \"t9:eel\", \"stage\": 1, \"music\": 2}, {\"encounter\": 20, \"stage\": 1, \"music\": 2, \"weight\": 2}], \"rare\": {\"encounter\": \"t9:bass\", \"stage\": 1, \"music\": 2}}}}\n");
-    put("t9/stages/301.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": 12, \"music\": 2}}]}}\n");
-    put("t9/stages/302.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": \"t9:nope\", \"stage\": 1, \"music\": 2}}]}}\n");
-    put("t9/stages/303.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"item\": 0}}]}}\n");
-    put("t9/stages/304.json", "{\"format\": \"stage-patch-v1\", \"hiddenSpots\": {\"add\": [{\"x\": 5}]}}\n");
-    put("t9/stages/305.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"key\": \"a\", \"1\": []}]}}\n");
-    put("t9/stages/306.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"nothing\": true, \"item\": 5}}]}}\n");
+    put("t9/stages/s301/stage.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": 12, \"music\": 2}}]}}\n");
+    put("t9/stages/s302/stage.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"encounter\": \"t9:nope\", \"stage\": 1, \"music\": 2}}]}}\n");
+    put("t9/stages/s303/stage.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"item\": 0}}]}}\n");
+    put("t9/stages/s304/stage.json", "{\"format\": \"stage-patch-v1\", \"hiddenSpots\": {\"add\": [{\"x\": 5}]}}\n");
+    put("t9/stages/s305/stage.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"key\": \"a\", \"1\": []}]}}\n");
+    put("t9/stages/s306/stage.json", "{\"format\": \"stage-patch-v1\", \"fishing\": {\"slots\": [{\"index\": 0, \"1\": {\"nothing\": true, \"item\": 5}}]}}\n");
     snprintf(logPath, sizeof logPath, "%s/.stagelog9", root);
     CHECK(modsInit(root, "t9") == 1);
     memset(&host, 0, sizeof host);
@@ -772,12 +800,12 @@ static void testCatches(void) {
     logBegin(logPath);
     CHECK(smLoad(&host) == 1);
     log = logEnd(logPath);
-    CHECK(strstr(log, "301.json rejected: fishing slot 0 cell 1: a battle result needs \"stage\"") != NULL);
-    CHECK(strstr(log, "302.json rejected: fishing slot 0 cell 1: there is no field encounter named \"t9:nope\"") != NULL);
-    CHECK(strstr(log, "303.json rejected: fishing slot 0 cell 1: \"item\" must be an item") != NULL);
-    CHECK(strstr(log, "304.json rejected: hidden spot add 0 needs \"x\" and \"y\"") != NULL);
-    CHECK(strstr(log, "305.json rejected: fishing slot 0 needs exactly one of \"index\"") != NULL);
-    CHECK(strstr(log, "306.json rejected: fishing slot 0 cell 1 needs exactly one of") != NULL);
+    CHECK(strstr(log, "s301/stage.json rejected: fishing slot 0 cell 1: a battle result needs \"stage\"") != NULL);
+    CHECK(strstr(log, "s302/stage.json rejected: fishing slot 0 cell 1: there is no field encounter named \"t9:nope\"") != NULL);
+    CHECK(strstr(log, "s303/stage.json rejected: fishing slot 0 cell 1: \"item\" must be an item") != NULL);
+    CHECK(strstr(log, "s304/stage.json rejected: hidden spot add 0 needs \"x\" and \"y\"") != NULL);
+    CHECK(strstr(log, "s305/stage.json rejected: fishing slot 0 needs exactly one of \"index\"") != NULL);
+    CHECK(strstr(log, "s306/stage.json rejected: fishing slot 0 cell 1 needs exactly one of") != NULL);
     free(log);
 
     memset(&s, 0, sizeof s);
@@ -837,15 +865,15 @@ static void testEncounterNames(void) {
     int i, k;
 
     mod("t5b");
-    put("t5b/stages/300.json",
+    put("t5b/stages/s300/stage.json",
         "{\"format\": \"stage-patch-v1\",\n"
         " \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": \"t5b:meadow\", \"stage\": 3, \"music\": 4}, {\"area\": 2, \"index\": 1, \"encounter\": 337}],\n"
         "   \"add\": [{\"area\": 4, \"rate\": 2, \"slots\": [{\"encounter\": \"t5b:cave\", \"stage\": 1, \"music\": 2}, {\"encounter\": 12, \"stage\": 1, \"music\": 2}]}]},\n"
         " \"events\": {\"add\": [{\"key\": \"fight\", \"script\": [[\"end\"]]}]}}\n");
-    put("t5b/stages/301.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": \"t5b:nope\"}]}}\n");
-    put("t5b/stages/302.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 338}]}}\n");
-    put("t5b/stages/303.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 0}]}}\n");
-    put("t5b/stages/304.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"add\": [{\"area\": 4, \"rate\": 1, \"slots\": [{\"encounter\": \"t5b:gone\", \"stage\": 1, \"music\": 2}]}]}}\n");
+    put("t5b/stages/s301/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": \"t5b:nope\"}]}}\n");
+    put("t5b/stages/s302/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 338}]}}\n");
+    put("t5b/stages/s303/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"patch\": [{\"area\": 1, \"encounter\": 0}]}}\n");
+    put("t5b/stages/s304/stage.json", "{\"format\": \"stage-patch-v1\", \"battles\": {\"add\": [{\"area\": 4, \"rate\": 1, \"slots\": [{\"encounter\": \"t5b:gone\", \"stage\": 1, \"music\": 2}]}]}}\n");
     snprintf(logPath, sizeof logPath, "%s/.stagelog3", root);
     CHECK(modsInit(root, "t5b") == 1);
     memset(&host, 0, sizeof host);
@@ -859,10 +887,10 @@ static void testEncounterNames(void) {
     logBegin(logPath);
     CHECK(smLoad(&host) == 1); /* only 300 stands */
     log = logEnd(logPath);
-    CHECK(strstr(log, "301.json rejected: battles patch 0: there is no field encounter named \"t5b:nope\"") != NULL);
-    CHECK(strstr(log, "302.json rejected: battles patch 0: there is no field encounter 338") != NULL);
-    CHECK(strstr(log, "303.json rejected") != NULL); /* 0 is no encounter: the battle lists use it for none */
-    CHECK(strstr(log, "304.json rejected: battles add 0 slot 0: there is no field encounter named \"t5b:gone\"") != NULL);
+    CHECK(strstr(log, "s301/stage.json rejected: battles patch 0: there is no field encounter named \"t5b:nope\"") != NULL);
+    CHECK(strstr(log, "s302/stage.json rejected: battles patch 0: there is no field encounter 338") != NULL);
+    CHECK(strstr(log, "s303/stage.json rejected") != NULL); /* 0 is no encounter: the battle lists use it for none */
+    CHECK(strstr(log, "s304/stage.json rejected: battles add 0 slot 0: there is no field encounter named \"t5b:gone\"") != NULL);
     free(log);
     memset(&s, 0, sizeof s);
     s.number = 300;
@@ -941,6 +969,7 @@ static int fakeSpriteAdd(const char *dir, const char *label, SmSprite *out, char
     char path[1400];
     FILE *f;
 
+    if (strlen(dir) >= 9 && strcmp(dir + strlen(dir) - 9, "/p001play") == 0) return 1; /* the name of an original sprite: its frames, not a new sprite (boot.c pcSpriteAdd) */
     snprintf(path, sizeof path, "%s/ok.txt", dir);
     f = fopen(path, "rb");
     if (!f) {
@@ -974,7 +1003,8 @@ static void testSprites(void) {
     put("s9/sprites/Bad Name/ok.txt", "x");
     put("s9/sprites/broken/readme.txt", "x"); /* the host refuses it */
     put("s9b/sprites/owl/ok.txt", "x");
-    put("s9/stages/400.json",
+    put("s9/sprites/p001play/000.png", "x"); /* an original's name: the host says it is not a new sprite (A7.5) */
+    put("s9/stages/s400/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\n"
         "  \"patch\": [\n"
         "    {\"index\": 0, \"character\": 43},\n"                      /* a character the stage lacks: its own slot */
@@ -986,14 +1016,14 @@ static void testSprites(void) {
         "    {\"key\": \"c\", \"sprite\": \"s9b:owl\", \"x\": 5, \"y\": 6, \"image\": 2},\n"
         "    {\"key\": \"d\", \"sprite\": \"fox\", \"x\": 7, \"y\": 8},\n"
         "    {\"key\": \"e\", \"character\": 77, \"x\": 9, \"y\": 10, \"image\": 2}]}}\n");
-    put("s9bad/stages/401.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"nothing\", \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/402.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 5, \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/403.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 43, \"sprite\": \"s9:fox\", \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/404.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 16385, \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/405.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"s9:broken\", \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/406.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"sprite\": 3}]}}\n");
-    put("s9bad/stages/407.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"s9:Fox\", \"x\": 1, \"y\": 2}]}}\n");
-    put("s9bad/stages/408.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 43, \"x\": 1, \"y\": 2, \"image\": 99}]}}\n");
+    put("s9bad/stages/s401/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"nothing\", \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s402/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 5, \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s403/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 43, \"sprite\": \"s9:fox\", \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s404/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 16385, \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s405/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"s9:broken\", \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s406/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"sprite\": 3}]}}\n");
+    put("s9bad/stages/s407/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"sprite\": \"s9:Fox\", \"x\": 1, \"y\": 2}]}}\n");
+    put("s9bad/stages/s408/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"x\", \"character\": 43, \"x\": 1, \"y\": 2, \"image\": 99}]}}\n");
 
     snprintf(logPath, sizeof logPath, "%s/.stagelog3", root);
     CHECK(modsInit(root, "s9, s9b, s9bad") == 3);
@@ -1008,14 +1038,15 @@ static void testSprites(void) {
     CHECK(strstr(log, "s9/sprites/broken rejected: s9:broken has no ok.txt") != NULL);
     CHECK(strstr(log, "sprite s9:fox is character 16384 (frames up to 32x48)") != NULL);
     CHECK(strstr(log, "the sprite folder \"Bad Name\" is skipped") != NULL);
-    CHECK(strstr(log, "401.json rejected: add 0: there is no sprite \"s9bad:nothing\"") != NULL);
-    CHECK(strstr(log, "402.json rejected: add 0: the game has no character 5 with a sprite") != NULL);
-    CHECK(strstr(log, "403.json rejected: add 0: give \"character\" (one of the game's) or \"sprite\" (one a mod brings), not both") != NULL);
-    CHECK(strstr(log, "404.json rejected: add 0: the characters from 16384 up are the sprites mods bring") != NULL);
-    CHECK(strstr(log, "405.json rejected: add 0: there is no sprite \"s9:broken\"") != NULL);
-    CHECK(strstr(log, "406.json rejected: patch 0: \"sprite\" must be a string") != NULL);
-    CHECK(strstr(log, "407.json rejected: add 0: there is no sprite \"s9:Fox\"") != NULL || strstr(log, "407.json rejected: add 0: s9:Fox") != NULL ||
-          strstr(log, "407.json rejected") != NULL);
+    CHECK(strstr(log, "p001play") == NULL); /* no rejection, no sprite: the folder is the original's frames (A7.5) */
+    CHECK(strstr(log, "s401/stage.json rejected: add 0: there is no sprite \"s9bad:nothing\"") != NULL);
+    CHECK(strstr(log, "s402/stage.json rejected: add 0: the game has no character 5 with a sprite") != NULL);
+    CHECK(strstr(log, "s403/stage.json rejected: add 0: give \"character\" (one of the game's) or \"sprite\" (one a mod brings), not both") != NULL);
+    CHECK(strstr(log, "s404/stage.json rejected: add 0: the characters from 16384 up are the sprites mods bring") != NULL);
+    CHECK(strstr(log, "s405/stage.json rejected: add 0: there is no sprite \"s9:broken\"") != NULL);
+    CHECK(strstr(log, "s406/stage.json rejected: patch 0: \"sprite\" must be a string") != NULL);
+    CHECK(strstr(log, "s407/stage.json rejected: add 0: there is no sprite \"s9:Fox\"") != NULL || strstr(log, "s407/stage.json rejected: add 0: s9:Fox") != NULL ||
+          strstr(log, "s407/stage.json rejected") != NULL);
     free(log);
     CHECK(strcmp(smSpriteName(16384), "s9:fox") == 0 && strcmp(smSpriteName(16385), "s9b:owl") == 0 && smSpriteName(16386) == NULL && smSpriteName(75) == NULL);
     CHECK(smSpriteInfo(16385, &info) == 1 && info.entry == 15 && info.w == 36 && info.h == 48 && info.width == 24 && smSpriteInfo(16384, &info) == 1 && info.entry == 10 &&
@@ -1072,7 +1103,7 @@ int main(void) {
     mod("a");
     mod("b");
     mod("bad");
-    put("a/stages/100.json",
+    put("a/stages/s100/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\n"
         "  \"patch\": [\n"
         "    {\"index\": 0, \"x\": 150, \"y\": 160, \"dir\": 5},\n"
@@ -1082,9 +1113,9 @@ int main(void) {
         "    {\"entry\": 40, \"conditions\": [[\"mod-flag\", \"a:met\", 1]]},\n"
         "    {\"entry\": 41, \"actions\": [[\"mod-flag\", \"a:met\", 1], [\"set-var\", \"a:count\", 3]]}]}],\n"
         "  \"remove\": [2]}}\n");
-    put("a/stages/101.json",
+    put("a/stages/s101/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 1, \"image\": 9, \"x\": 5}]}}\n");
-    put("b/stages/100.json",
+    put("b/stages/s100/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\n"
         "  \"patch\": [\n"
         "    {\"index\": 0, \"x\": 999},\n"
@@ -1092,22 +1123,23 @@ int main(void) {
         "    {\"index\": 2, \"x\": 1},\n"
         "    {\"index\": 1, \"prependTalks\": [{\"entry\": 23, \"conditions\": [[\"mod-var\", \"b:score\", \">=\", 2]]}]}],\n"
         "  \"add\": [{\"key\": \"extra\", \"character\": 76, \"image\": 3, \"x\": 1, \"y\": 2, \"talks\": [{\"entry\": 50}]}]}}\n");
-    put("bad/stages/103.json",
+    put("bad/stages/s103/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"k\", \"character\": 1, \"image\": 2, \"x\": 0, \"y\": 0, "
         "\"talks\": [{\"entry\": 1, \"conditions\": [[\"flag\", \"1A:1\", 1]]}]}]}}\n"); /* the last talk must have no conditions */
-    put("bad/stages/104.json", "{\"format\": \"stage-v1\"}\n");
-    put("bad/stages/105.json",
+    put("bad/stages/s104/stage.json", "{\"format\": \"stage-v1\"}\n");
+    put("bad/stages/s105/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"conditions\": [[\"mod-flag\", \"nocolon\", 1]]}]}}\n");
-    put("bad/stages/106.json",
+    put("bad/stages/s106/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"conditions\": [[\"mod-var\", \"bad:v\", \"~\", 1]]}]}}\n");
-    put("bad/stages/107.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\n");
-    put("bad/stages/108.json",
+    put("bad/stages/s107/stage.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\n");
+    put("bad/stages/s108/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"key\": \"bad:k\", \"x\": 1}]}}\n");
-    put("bad/stages/109.json",
+    put("bad/stages/s109/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"add\": [{\"key\": \"Upper Case\", \"character\": 1, \"image\": 2, \"x\": 0, \"y\": 0}]}}\n");
-    put("bad/stages/110.json",
+    put("bad/stages/s110/stage.json",
         "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"dir\": 8}]}}\n");
-    put("bad/stages/notes.json", "{\"format\": \"stage-patch-v1\"}\n"); /* not a stage number: not read */
+    put("bad/stages/notes/stage.json", "{\"format\": \"stage-patch-v1\"}\n"); /* not a stage number: not read */
+    put("a/stages/102.json", "{\"format\": \"stage-patch-v1\", \"actors\": {\"patch\": [{\"index\": 0, \"x\": 9}]}}\n"); /* the old place (stages/<n>.json): not read */
 
     CHECK(modsInit(root, "a, b, bad") == 3);
     memset(&host, 0, sizeof host);
@@ -1301,6 +1333,7 @@ int main(void) {
 
     testSpecialNames();
     testActions();
+    testRewardSignal();
 
     /* ---- the variables and their save chunk ---- */
     pcExtVarsReset();

@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Stage NPCs: park greeter",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Central Park: a greeter (own text, 100 BIT once, a small event), a new exit, a visitor of another stage and a rival with a sprite of its own (stage patch, named texts, scripted event, mod sprite)."
-}

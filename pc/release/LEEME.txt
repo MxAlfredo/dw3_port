@@ -1,4 +1,4 @@
-DW3 Port 1.1.0
+DW3 Port 2.0.0
 ==============
 
 Descargas, versiones nuevas y código fuente: https://github.com/MxAlfredo/dw3_port/releases
@@ -16,11 +16,11 @@ par .cue + .bin o como un solo .bin.
 Para empezar
 ------------
 
-Las descargas de la versión 1.1.0 se llaman:
-  DW3Port-1.1.0-Setup.exe               instalador de Windows
-  DW3Port-1.1.0-windows-portable.zip    Windows, portátil
-  DW3Port-1.1.0-x86_64.AppImage         Linux
-  DW3Port-1.1.0-android.apk             Android
+Las descargas de la versión 2.0.0 se llaman:
+  DW3Port-2.0.0-Setup.exe               instalador de Windows
+  DW3Port-2.0.0-windows-portable.zip    Windows, portátil
+  DW3Port-2.0.0-x86_64.AppImage         Linux
+  DW3Port-2.0.0-android.apk             Android
 
 Windows, instalador (DW3Port-...-Setup.exe)
   Ejecútalo. En la página "Tu juego", elige la imagen de tu disco y, si quieres
@@ -58,6 +58,39 @@ También funcionan los mandos (Xbox, PlayStation y la mayoría de los demás).
 F1 (o Select en el mando) abre las opciones: controles, video (con la
 velocidad de batalla), pantalla, audio e idioma. En la lista de idiomas está
 "Espanol Latam".
+
+
+Novedades de 2.0.0
+------------------
+
+Tus partidas y ajustes de 1.x cargan tal cual. Los mods y la carpeta data no: esta versión
+reorganiza cómo se guardan los archivos del juego, así que hacen falta unos pasos.
+
+Si actualizas desde 1.x:
+  - Borra la carpeta data\ (ver "Dónde están tus archivos"). El juego la exporta de nuevo
+    desde tu disco la primera vez que lo abres; puede tardar un poco esa vez.
+  - Los mods hechos para 1.x ya no funcionan y sus autores deben actualizarlos al nuevo
+    formato (una carpeta por recurso: stages\, cards\, sprites\, partners\, digimon\...;
+    ver la guía de modding). Desactívalos en Opciones > Mods hasta que se actualicen.
+
+Novedades:
+  - Archivos legibles: todo lo que el juego exporta de tu disco es ahora una carpeta por
+    recurso con archivos PNG, JSON y glTF normales, fáciles de ver y de cambiar.
+  - Paquete de ejemplo "betamon-pack": un compañero nuevo (Betamon) con sus formas,
+    evoluciones, técnicas, arte propio y una misión para desbloquearlo, hecha como las
+    originales. Quedan otros dos ejemplos: training-field y sample-model.
+  - Para quienes hacen mods: los modelos pueden tomar los movimientos y los guiones de
+    otros combatientes (los guiones de enemigos se convierten al lado del compañero),
+    los espacios de movimiento se revisan y se completan, se pueden agregar técnicas,
+    "balance_compare" muestra tus formas de compañero junto a los ocho originales y el
+    arte de un modelo se puede hacer con SpriteKiln.
+  - Los compañeros ya no se limitan a ocho: se pueden agregar más compañeros y equipos
+    iniciales, con su propio retrato, ícono y sprite de campo.
+  - Español latinoamericano: más arreglos a textos que no cabían o se leían mal.
+  - Android: se arregló el cierre en la escena de las baldosas que caen y se arregló
+    el cierre anormal del juego al elegir "Quit game".
+  - Si el juego se cierra por un fallo, el reporte ahora se escribe en el registro del
+    juego; basta con adjuntar el registro en un issue.
 
 
 Novedades de 1.1.0
@@ -211,8 +244,8 @@ muestre Android/data. Los ajustes y las partidas son los mismos archivos que
 en la PC, así que puedes copiar saves\default de la PC a la del aparato.
 
 Mods: se crean y se instalan en una PC (ver la guía de modding del
-repositorio; los ejemplos se instalan en la PC con pc/examples/install_examples.sh
-del repositorio, que genera las imágenes a partir de tu disco).
+repositorio; los ejemplos (training-field, sample-model y betamon-pack) se instalan en la PC con
+pc/examples/install_examples.sh del repositorio).
 Después copia la carpeta mods\ de la PC (sin `_template`) a la carpeta mods de
 arriba, abre Opciones > Mods para activarlos y reinicia el juego. El juego solo lee los mods al
 arrancar.
@@ -245,7 +278,7 @@ Si algo falla
 
 Avísanos en la página de GitHub del proyecto
 (https://github.com/MxAlfredo/dw3_port/issues) y adjunta el archivo más reciente
-de la carpeta logs, diciendo qué versión usas (1.1.0) y en qué sistema. En Windows, DW3-debug.exe es el mismo juego con una
+de la carpeta logs, diciendo qué versión usas (2.0.0) y en qué sistema. En Windows, DW3-debug.exe es el mismo juego con una
 ventana de consola que muestra el registro mientras juegas.
 
 

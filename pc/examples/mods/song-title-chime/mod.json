@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Song: title chime",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Replaces the title screen song with a synthetic looping chime (audio/TTLBGM/seq_0_00.wav, generated at install time)."
-}

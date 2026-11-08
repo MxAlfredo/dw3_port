@@ -1,0 +1,10 @@
+{
+  "format": "special_conditions-v1",
+  "rows": {
+    "betamon-pack:betamon-locked": { "primitive": 1, "op": 6, "arg": "betamon-pack:betamon" },
+    "betamon-pack:give-betamon":   { "primitive": 1, "op": 3, "arg": "betamon-pack:betamon" },
+    "betamon-pack:story-window":   { "primitive": 3, "op": 0, "arg": 28 },
+    "betamon-pack:levels-min":     { "primitive": 1, "op": 5, "arg": 1 },
+    "betamon-pack:levels-max":     { "primitive": 1, "op": 5, "arg": 3 }
+  }
+}

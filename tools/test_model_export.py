@@ -411,23 +411,23 @@ def png_pixels(data):
 
 
 def parity(folder):
-    """The C exporter (modeltest writes <folder>/blobs/<n>.bin and <folder>/c/<id>/model.*) against this tool: the .gltf, .bin
+    """The C exporter (modeltest writes <folder>/blobs/<n>.bin and <folder>/c/d<nnn>/model/model.*) against this tool: the .gltf, .bin
     and .json bytes are the same, the PNG has the same pixels (its deflate stream is the port's own). Returns the failures."""
     import tempfile
     root = Path(folder)
     files = {int(f.stem): f.read_bytes() for f in (root / "blobs").glob("*.bin")}
     disc = me.BlobDisc(files)
     bad = []
-    ids = sorted(int(d.name) for d in (root / "c").iterdir() if d.is_dir())
+    ids = sorted(int(d.name[1:]) for d in (root / "c").iterdir() if d.is_dir())
     for fid in ids:
         with tempfile.TemporaryDirectory() as tmp:
             me.export_source(disc, fid, tmp)
             for name in ("model.gltf", "model.bin", "model.json"):
-                a, b = (Path(tmp) / name).read_bytes(), (root / "c" / str(fid) / name).read_bytes()
+                a, b = (Path(tmp) / name).read_bytes(), (root / "c" / ("d%03d" % fid) / "model" / name).read_bytes()
                 if a != b:
                     first = next((i for i in range(min(len(a), len(b))) if a[i] != b[i]), min(len(a), len(b)))
                     bad.append("%d/%s differs (python %d bytes, C %d bytes, first difference at %d)" % (fid, name, len(a), len(b), first))
-            if png_pixels((Path(tmp) / "model.png").read_bytes()) != png_pixels((root / "c" / str(fid) / "model.png").read_bytes()):
+            if png_pixels((Path(tmp) / "model.png").read_bytes()) != png_pixels((root / "c" / ("d%03d" % fid) / "model" / "model.png").read_bytes()):
                 bad.append("%d/model.png has other pixels" % fid)
     return ids, bad
 

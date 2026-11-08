@@ -1,0 +1,73 @@
+{
+  "$schema": "../../../../../../docs/modding/schema/stage-patch.schema.json",
+  "format": "stage-patch-v1",
+  "about": "Central Park: Betamon's DDNA quest, shaped like the game's own partner quests (wstag375/wstag450 and the like). A fisher (character 43, image 6, the ones the stage's own DDNA givers use) shows up in the story window of the stage's own givers (special 0x24 = progress 14-38) and asks for the DDNA only while the party's levels add up to 45-74 (the same two thresholds as the stage's Patamon and Renamon givers). The request line re-enters the stage (warp) so the actors are made again, and then a river Digimon (its own sprite, sprites/river-digimon) appears while the request stands and the DDNA is not yours yet: talk -> event battle against MegaSeadramon (encounter betamon-pack:megaseadramon) -> talk again after winning -> the DDNA with the item-received signal (special 0x13). With the DDNA the fisher unlocks Betamon (special_conditions row give-betamon) and keeps it in the bag, like the originals.",
+  "actors": {
+    "add": [
+      {
+        "key": "fisher",
+        "character": 43,
+        "image": 6,
+        "x": 900,
+        "y": 960,
+        "dir": 0,
+        "conditions": [["special", "betamon-pack:story-window", 1]],
+        "talks": [
+          {
+            "text": "betamon-pack:give",
+            "conditions": [["item", "betamon-pack:betamon-ddna", 1], ["special", "betamon-pack:betamon-locked", 1]],
+            "actions": [["special", "betamon-pack:give-betamon", 1], ["special", "0x13", 1]]
+          },
+          {
+            "text": "betamon-pack:already",
+            "conditions": [["special", "betamon-pack:betamon-locked", 0]]
+          },
+          {
+            "text": "betamon-pack:intro",
+            "conditions": [["mod-flag", "betamon-pack:met", 0]],
+            "actions": [["mod-flag", "betamon-pack:met", 1]]
+          },
+          {
+            "text": "betamon-pack:busy",
+            "conditions": [["special", "betamon-pack:levels-min", 0]]
+          },
+          {
+            "text": "betamon-pack:busy",
+            "conditions": [["special", "betamon-pack:levels-max", 1]]
+          },
+          {
+            "text": "betamon-pack:request",
+            "conditions": [["mod-flag", "betamon-pack:quest", 0]],
+            "actions": [["mod-flag", "betamon-pack:quest", 1], ["warp", 330, 900, 985, 4]]
+          },
+          {
+            "text": "betamon-pack:request"
+          }
+        ]
+      },
+      {
+        "key": "river-digimon",
+        "sprite": "river-digimon",
+        "x": 1010,
+        "y": 1012,
+        "dir": 0,
+        "conditions": [["mod-flag", "betamon-pack:quest", 1], ["item", "betamon-pack:betamon-ddna", 0]],
+        "talks": [
+          {
+            "text": "betamon-pack:defeated",
+            "conditions": [["mod-flag", "dw3:battle-won/betamon-pack/megaseadramon", 1], ["item", "betamon-pack:betamon-ddna", 0]],
+            "actions": [["item", "betamon-pack:betamon-ddna", 1], ["special", "0x13", 1]]
+          },
+          {
+            "text": "betamon-pack:gone",
+            "conditions": [["item", "betamon-pack:betamon-ddna", 1]]
+          },
+          {
+            "text": "betamon-pack:challenge",
+            "actions": [["mod-flag", "dw3:battle-won/betamon-pack/megaseadramon", 0], ["start-battle", "betamon-pack:megaseadramon", 1, 1619525632]]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -72,6 +72,8 @@ int videoExportRequest(const char *spec);
 int videoExportRequestEx(const char *spec, int force);
 /* How many movies of the last job were really built (the rest were skipped as up to date) */
 int videoExportBuilt(void);
+/* The settings.ini key: videoExportRequest, then builds the queue now, on this thread. The queued count, or -1. */
+int videoExportRun(const char *spec);
 /* The menu's job: videoExportRequestEx, then a worker thread builds and writes the queue. Then call videoExportPump every frame */
 int videoExportStart(const char *spec, int force);
 /* Stops a running worker between two movies (a movie in progress is dropped, its .part file removed) and joins it; atexit-safe */

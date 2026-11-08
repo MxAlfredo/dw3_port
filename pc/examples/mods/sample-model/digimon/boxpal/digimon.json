@@ -1,0 +1,10 @@
+{
+  "format": "digimon-digimon-v1",
+  "name": "boxpal",
+  "base": "dw3:digimon/383",
+  "title": { "eng": "Boxpal", "es-419": "Cajamigo" },
+  "description": { "eng": "A partner form made of boxes: the sample of a partner with its own glTF model." },
+  "hp": 200,
+  "stats": { "strength": 70, "speed": 50 },
+  "evolution": { "partner": 0, "needs": [ { "digimon": "dw3:digimon/383", "level": 1 } ], "stat": "level", "value": 3 }
+}

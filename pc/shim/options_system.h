@@ -59,25 +59,10 @@ void optionsSystemSetArgs(int argc, char **argv);
 void optionsSystemRestartAtExit(void);
 /* Registers the restart's atexit handler: call before PsyCross starts so it runs last */
 void optionsSystemRegisterExit(void);
-/* The "Prepare modding files" row (modding-ux U4): the four heavy exporters behind one row. It exists only when boot registered at
-   least one of them before optionsSystemInit, so the tab builds without the exporters (inputtest). Fields:
-   start: queues everything and rebuilds it (>0 queued, else nothing); startIfNeeded: the same but skips what is up to date (the row
-   and --export-all use it, so a second press is quick; NULL falls back to start); pump: one slice of the job, called every frame;
-   status: "Exporting 12/248", "Done (248)"; active: 1 while it runs; failed: how many items of the last job failed (may be NULL) */
-typedef struct OptSysExport {
-    int (*start)(void);
-    void (*pump)(void);
-    const char *(*status)(void);
-    int (*active)(void);
-    int (*startIfNeeded)(void);
-    int (*failed)(void);
-} OptSysExport;
-/* The models (model-import I7), videos (content-export E2a), audio (E3a) and stages (E6b) exporters; NULL unregisters */
-void optionsSystemSetExport(const OptSysExport *e);
-void optionsSystemSetExportVideos(const OptSysExport *e);
-void optionsSystemSetExportAudio(const OptSysExport *e);
-void optionsSystemSetExportStages(const OptSysExport *e);
-/* Starts the job of the row: videos, audio, models, stages one after the other, each skipping what is up to date. 1 started, 0 when
+/* The "Prepare modding files" row (modding-ux U4): the heavy exporters behind one row. The steps are the exporter types of shim/exp_types.h
+   that have an on-demand job (models, videos, audio, stages today), registered before optionsSystemInit; the row exists only when there
+   is at least one, so the tab builds without the exporters (inputtest). */
+/* Starts the job of the row: the exporter types one after the other, in table order, each skipping what is up to date. 1 started, 0 when
    no exporter is registered or the job is already running. The step that runs shows as "Videos 3/14", the end as "Done" or "Done, 2 failed" */
 int optionsSystemPrepStart(void);
 int optionsSystemPrepActive(void);

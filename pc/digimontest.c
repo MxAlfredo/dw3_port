@@ -1,6 +1,6 @@
 #define _GNU_SOURCE 1
 /*
- * Host test of the Digimon content type (pc/shim/digimon_ext.c, content-techs-digimon D1/D2): the digimon-v1 file, validation
+ * Host test of the Digimon content type (pc/shim/digimon_ext.c, content-techs-digimon D1/D2): the digimon/ folders (digimon-digimon-v1, A8.3), validation
  * of every field, patching and restoring DIGIMON_DATA_CARD, the battle table read-buffer patch, learnedBy by "dw3:digimon/<id>",
  * and the reference export. No game, no disc, no window.
  *
@@ -17,6 +17,7 @@
 #include "shim/digimon_ext.h"
 #include "shim/ext_state.h"
 #include "shim/item_ext.h"
+#include "shim/model_bake.h"
 #include "shim/mods.h"
 #include "shim/port_fs.h"
 #include "shim/port_paths.h"
@@ -93,6 +94,115 @@ static void modJson(const char *mod, const char *kind) {
     snprintf(rel, sizeof rel, "mods/%s/mod.json", mod);
     snprintf(text, sizeof text, "{\"format\":\"mod-v1\",\"name\":\"%s\",\"version\":\"1.0\",\"kind\":\"%s\"}", mod, kind);
     putFile(rel, text);
+}
+
+/* ---- the fixtures ----
+   Most fixtures of this file say a mod's Digimon as one object, {"new": {key: record, ...}, "change": {id: facets, ...}, "encounters": {...}}.
+   The loader reads a folder per Digimon, so putDigimon splits that object into the files it reads: digimon/<key>/digimon.json for each "new" entry
+   (its "name", the language texts, becomes "title"), digimon/d<nnn>/digimon.json for each "change" entry (the change of an original, A8.3; two entries
+   of one id share the file) and content/encounters.json for "encounters". It deletes the mod's earlier ones first. */
+
+static const char *skipWs(const char *p) {
+    while (*p == ' ' || *p == '\n' || *p == '\t' || *p == '\r') p++;
+    return p;
+}
+
+/* the end of the JSON value that starts at p: after its closing quote, brace or bracket, or at the ',' or '}' that ends a literal */
+static const char *valueEnd(const char *p) {
+    int depth = 0;
+
+    while (*p != '\0') {
+        if (*p == '"') {
+            for (p++; *p != '"'; p++) {
+                if (*p == '\\') p++;
+            }
+        } else if (*p == '{' || *p == '[') {
+            depth++;
+        } else if (*p == '}' || *p == ']') {
+            if (depth == 0) return p;
+            depth--;
+        } else if (*p == ',' && depth == 0) {
+            return p;
+        }
+        p++;
+        if (depth == 0 && (p[-1] == '"' || p[-1] == '}' || p[-1] == ']')) return p;
+    }
+    return p;
+}
+
+/* the next member of the object whose text continues at *pp (just after its '{' or after a ','): its key and value text; 0 at the end */
+static int nextMember(const char **pp, char *key, size_t cap, const char **val, const char **vend) {
+    const char *p = skipWs(*pp);
+    size_t n = 0;
+
+    if (*p != '"') return 0;
+    for (p++; *p != '"'; p++) {
+        if (*p == '\\') p++;
+        if (n + 1 < cap) key[n++] = *p;
+    }
+    key[n] = '\0';
+    p = skipWs(skipWs(p + 1) + 1); /* the ':' */
+    *val = p;
+    *vend = valueEnd(p);
+    p = skipWs(*vend);
+    if (*p == ',') p++;
+    *pp = p;
+    return 1;
+}
+
+/* appends the members of the object `val` as ,"key":value; the top-level "name" of a new Digimon is its text: "title" */
+static size_t addMembers(char *out, size_t cap, size_t at, const char *val, int newDigimon) {
+    const char *p = val + 1, *v, *e;
+    char key[96];
+
+    while (nextMember(&p, key, sizeof key, &v, &e)) {
+        at += (size_t)snprintf(out + at, cap - at, ",\"%s\":%.*s", newDigimon && !strcmp(key, "name") ? "title" : key, (int)(e - v), v);
+    }
+    return at;
+}
+
+static void putDigimon(const char *mod, const char *text) {
+    static char rec[60000], change[32][4000];
+    static int changeId[32];
+    char cmd[700], rel[200], key[96], sub[96], head[160];
+    const char *p = skipWs(text) + 1, *v, *e, *q, *v2, *e2;
+    int nChange = 0, i;
+
+    snprintf(cmd, sizeof cmd, "rm -rf '%s/mods/%s/digimon' '%s/mods/%s/content/encounters.json'", gRoot, mod, gRoot, mod);
+    if (system(cmd)) {}
+    while (nextMember(&p, key, sizeof key, &v, &e)) {
+        if (!strcmp(key, "new")) {
+            for (q = v + 1; nextMember(&q, sub, sizeof sub, &v2, &e2);) {
+                snprintf(rel, sizeof rel, "mods/%s/digimon/%s/digimon.json", mod, sub);
+                snprintf(head, sizeof head, "{\"format\":\"digimon-digimon-v1\",\"name\":\"%s\"", sub);
+                snprintf(rec, sizeof rec, "%s", head);
+                if (*v2 == '{') addMembers(rec, sizeof rec, strlen(rec), v2, 1);
+                strcat(rec, "}");
+                putFile(rel, rec);
+            }
+        } else if (!strcmp(key, "change")) {
+            for (q = v + 1; nextMember(&q, sub, sizeof sub, &v2, &e2);) {
+                int id = !strncmp(sub, "dw3:digimon/", 12) ? atoi(sub + 12) : atoi(sub);
+
+                for (i = 0; i < nChange && changeId[i] != id; i++) {}
+                if (i == nChange) {
+                    changeId[nChange] = id;
+                    change[nChange][0] = '\0';
+                    nChange++;
+                }
+                if (*v2 == '{') addMembers(change[i], sizeof change[i], strlen(change[i]), v2, 0);
+            }
+        } else if (!strcmp(key, "encounters")) {
+            snprintf(rec, sizeof rec, "{\"format\":\"encounters-v1\",\"encounters\":%.*s}", (int)(e - v), v);
+            snprintf(rel, sizeof rel, "mods/%s/content/encounters.json", mod);
+            putFile(rel, rec);
+        }
+    }
+    for (i = 0; i < nChange; i++) {
+        snprintf(rel, sizeof rel, "mods/%s/digimon/d%03d/digimon.json", mod, changeId[i]);
+        snprintf(rec, sizeof rec, "{\"format\":\"digimon-digimon-v1\",\"name\":\"d%03d\"%s}", changeId[i], change[i]);
+        putFile(rel, rec);
+    }
 }
 
 /* the fake battle table: three enemies (ids 206, 207, 208), 70 bytes each, then the id 0 that ends it */
@@ -233,7 +343,7 @@ static void testChanges(void) {
             "{\"format\":\"techs-v1\",\"new\":{\"spark\":{\"base\":8,\"script\":5,\"name\":{\"eng\":\"Spark\"},"
             "\"learnedBy\":{\"dw3:digimon/6\":{\"slot\":3,\"level\":4},\"dw3:digimon/7\":{\"slot\":2,\"level\":9},"
             "\"dw3:digimon/x\":{\"slot\":1,\"level\":1}}}}}");
-    putFile("mods/zeta/content/digimon.json",
+    putDigimon("zeta",
             "{\"format\":\"digimon-v1\",\"change\":{"
             "\"dw3:digimon/3\":{\"partner\":{\"hp\":77,\"mp\":0,\"stats\":{\"strength\":500,\"speed\":20,\"luck\":1,\"defense\":1000},"
             "\"resistances\":{\"2\":40,\"7\":1},\"statusResists\":{\"sleep\":9},\"family\":2,"
@@ -255,9 +365,9 @@ static void testChanges(void) {
             "\"stats\":{\"attack\":40000},\"ai\":1}},"
             "\"208\":{\"enemy\":{\"item\":0},\"bogus\":{}},"
             "\"bad-key\":{\"partner\":{}}}}");
-    putFile("mods/alpha/content/digimon.json",
+    putDigimon("alpha",
             "{\"format\":\"digimon-v1\",\"change\":{\"3\":{\"partner\":{\"hp\":55,\"expLevel\":9}},\"206\":{\"enemy\":{\"itemChance\":3}}}}");
-    putFile("mods/plain/content/digimon.json", "{\"format\":\"digimon-v1\",\"change\":{\"3\":{\"partner\":{\"hp\":1}}}}");
+    putDigimon("plain", "{\"format\":\"digimon-v1\",\"change\":{\"3\":{\"partner\":{\"hp\":1}}}}");
 
     logBegin();
     n = loadAll();
@@ -304,7 +414,7 @@ static void testChanges(void) {
     CHECK(strstr(log, "\"dw3:digimon/400\" rejected: no such Digimon") != NULL);
     CHECK(strstr(log, "\"dw3:digimon/206\" facet \"partner\" rejected: this Digimon is an enemy") != NULL);
     CHECK(strstr(log, "\"dw3:digimon/10\" facet \"enemy\" rejected: this Digimon is a partner form") != NULL);
-    CHECK(strstr(log, "digimon \"bad-key\" rejected: use \"dw3:digimon/<id>\"") != NULL);
+    CHECK(strstr(log, "d000/digimon.json rejected: d000 is not an original Digimon") != NULL); /* "bad-key" of the old file: not an id */
     CHECK(strstr(log, "\"dw3:digimon/207\" field \"techs.1\" rejected") != NULL && strstr(log, "the first one cannot be 0") != NULL);
     CHECK(strstr(log, "\"dw3:digimon/207\" field \"techs.2\" rejected: its fighter has no script slot 11") != NULL);
     CHECK(strstr(log, "\"dw3:digimon/207\" field \"techs.4\" rejected: the slot is 1..3") != NULL);
@@ -350,8 +460,8 @@ static void testChanges(void) {
             for (p = ref; (p = strstr(p, "\"placeholder\": true")) != NULL; p++) placeholders++;
             for (p = ref; (p = strstr(p, "\"kind\": \"enemy\"")) != NULL; p++) enemies++;
             CHECK(count == 55 + 3 && placeholders == 3 && enemies == 3);
-            CHECK(strstr(ref, "\"dw3:digimon/3\": { \"id\": 3, \"eng\": \"Name1\", \"kind\": \"partner\", \"model\": \"models/3/\", \"hp\": 10,") != NULL);
-            CHECK(strstr(ref, "\"dw3:digimon/206\": { \"id\": 206, \"eng\": \"Name60\", \"kind\": \"enemy\", \"model\": \"models/206/\", \"family\": 2,") != NULL);
+            CHECK(strstr(ref, "\"dw3:digimon/3\": { \"id\": 3, \"eng\": \"Name1\", \"kind\": \"partner\", \"model\": \"digimon/d003/model/\", \"hp\": 10,") != NULL);
+            CHECK(strstr(ref, "\"dw3:digimon/206\": { \"id\": 206, \"eng\": \"Name60\", \"kind\": \"enemy\", \"model\": \"digimon/d206/model/\", \"family\": 2,") != NULL);
             CHECK(strstr(ref, "\"item\": \"dw3:item/5\"") != NULL && strstr(ref, "\"techs\": {\"1\": \"dw3:tech/7\", \"2\": \"dw3:tech/8\"}") != NULL);
             CHECK(strstr(ref, "\"skills\": {\"2\": {\"tech\": \"dw3:tech/111\", \"level\": 20}}") != NULL);
             CHECK(strstr(ref, "\"stats\": {\"strength\": 100,") != NULL && strstr(ref, "\"statusResists\": {\"poison\": 0,") != NULL);
@@ -380,21 +490,22 @@ static void testBadFiles(void) {
     modJson("m1", "content");
     modJson("m2", "content");
     modJson("m3", "content");
-    putFile("mods/m1/content/digimon.json", "not json");
-    putFile("mods/m2/content/digimon.json", "{\"format\":\"digimon-v2\",\"change\":{\"3\":{\"partner\":{\"hp\":1}}}}");
-    putFile("mods/m3/content/digimon.json", "{\"format\":\"digimon-v1\",\"new\":{\"x\":{}},\"change\":[]}");
+    putFile("mods/m1/digimon/d003/digimon.json", "not json");
+    putFile("mods/m1/digimon/y/digimon.json", "not json");
+    putFile("mods/m2/digimon/d003/digimon.json", "{\"format\":\"digimon-v1\",\"name\":\"d003\",\"partner\":{\"hp\":1}}");
+    putFile("mods/m3/digimon/x/digimon.json", "{\"format\":\"digimon-digimon-v1\",\"name\":\"x\"}");
     logBegin();
     CHECK(loadAll() == 0);
     log = logEnd();
-    CHECK(strstr(log, "m1/content/digimon.json rejected: not valid JSON") != NULL);
-    CHECK(strstr(log, "\"format\" must be \"digimon-v1\"") != NULL);
+    CHECK(strstr(log, "m1/digimon/d003/digimon.json rejected: not valid JSON") != NULL);
+    CHECK(strstr(log, "m1/digimon/y/digimon.json rejected: not valid JSON") != NULL);
+    CHECK(strstr(log, "m2/digimon/d003/digimon.json rejected: \"format\" must be \"digimon-digimon-v1\"") != NULL);
     CHECK(strstr(log, "digimon \"m3:x\" rejected: \"base\" must be an original Digimon id (3..470)") != NULL);
-    CHECK(strstr(log, "\"change\" must be an object") != NULL);
     CHECK(DIGIMON_DATA_CARD[0].hp == 10);
     unloadAll();
 
     /* without the battle table, enemy changes are rejected and partner ones still apply */
-    putFile("mods/m1/content/digimon.json",
+    putDigimon("m1",
             "{\"format\":\"digimon-v1\",\"change\":{\"206\":{\"enemy\":{\"itemChance\":1}},\"3\":{\"partner\":{\"hp\":12}}}}");
     {
         char root[700];
@@ -424,7 +535,7 @@ static void testNew(void) {
     buildTables();
     modJson("nm", "content");
     modJson("zz", "content");
-    putFile("mods/nm/content/digimon.json",
+    putDigimon("nm",
             "{\"format\":\"digimon-v1\",\"new\":{"
             "\"zed\":{\"base\":206,\"model\":207,\"name\":{\"eng\":\"Zed\",\"spa\":\"Zeta\"},\"description\":{\"eng\":\"d\"},"
             "\"stats\":{\"attack\":500,\"luck\":1},\"techs\":{\"1\":7},\"item\":\"dw3:item/43\",\"itemChance\":900,\"family\":3,\"ai\":1},"
@@ -441,7 +552,7 @@ static void testNew(void) {
             "\"x\":{\"enemy\":206}},"
             "\"35\":{\"3\":{\"enemy\":0},\"1\":{\"enemy\":\"dw3:digimon/208\",\"level\":100,\"hp\":0,\"mp\":-1,\"strength\":9,\"bogus\":1}},"
             "\"0\":{\"1\":{\"enemy\":206}},\"335\":{\"1\":{\"enemy\":206}},\"bad\":{},\"36\":5}}");
-    putFile("mods/zz/content/digimon.json",
+    putDigimon("zz",
             "{\"format\":\"digimon-v1\",\"encounters\":{\"34\":{\"1\":{\"enemy\":\"nm:alpha\",\"level\":7}}}}");
 
     logBegin();
@@ -491,8 +602,8 @@ static void testNew(void) {
     CHECK(strstr(log, "\"nm:zed\" field \"ai\" rejected: unknown field") != NULL);
     CHECK(strstr(log, "base\" dw3:digimon/468 is not a partner form or an enemy") != NULL);
     CHECK(strstr(log, "digimon \"nm:nobody\" rejected: \"base\" must be an original Digimon id (3..470)") != NULL);
-    CHECK(strstr(log, "\"nm:no-name\" rejected: it needs a name in \"eng\"") != NULL);
-    CHECK(strstr(log, "digimon \"471\" rejected: use \"dw3:digimon/<id>\"") != NULL); /* a new enemy cannot be changed by number */
+    CHECK(strstr(log, "\"nm:no-name\" rejected: it needs a title in \"eng\"") != NULL);
+    CHECK(strstr(log, "d471/digimon.json rejected: d471 is not an original Digimon") != NULL); /* a new enemy cannot be changed */
 
     /* the fighters file: original bytes untouched but the header's entries offset; a longer entry list after them */
     ft = digimonExtBuildFighters(&flen);
@@ -589,7 +700,7 @@ static void testNewPartner(void) {
     modJson("pn", "content");
     putFile("mods/pn/content/techs.json",
             "{\"format\":\"techs-v1\",\"new\":{\"zap\":{\"base\":8,\"script\":5,\"name\":{\"eng\":\"Zap\"}}}}");
-    putFile("mods/pn/content/digimon.json",
+    putDigimon("pn",
             "{\"format\":\"digimon-v1\",\"new\":{"
             "\"fire\":{\"base\":3,\"name\":{\"eng\":\"Fire\",\"es-419\":\"Fuego\"},\"description\":{\"eng\":\"d\"},\"hp\":99,"
             "\"stats\":{\"strength\":321,\"luck\":1},\"statusResists\":{\"sleep\":7},\"resistances\":{\"2\":55},"
@@ -633,7 +744,7 @@ static void testNewPartner(void) {
     CHECK(strstr(log, "\"pn:fire\" field \"id\" rejected: unknown field") != NULL);
     CHECK(strstr(log, "\"pn:badmodel\" field \"model\" rejected: an original partner form") != NULL);
     CHECK(strstr(log, "\"pn:ghost\" field \"model\" rejected: an original partner form") != NULL);
-    CHECK(strstr(log, "digimon \"471\" rejected: use \"dw3:digimon/<id>\"") != NULL);
+    CHECK(strstr(log, "d471/digimon.json rejected: d471 is not an original Digimon") != NULL);
     /* names: every new Digimon has a DIGNAM entry, partners and enemies alike */
     t = digimonExtType();
     CHECK(t->count() == 5 && strcmp(t->text(2, "es-419", 0), "Fuego") == 0 && strcmp(t->text(2, "eng", 0), "Fire") == 0 &&
@@ -682,7 +793,7 @@ static void testEvolution(void) {
     buildTables();
     pcEvolutionSetOriginal(gEvoOrig);
     modJson("pe", "content");
-    putFile("mods/pe/content/digimon.json",
+    putDigimon("pe",
             "{\"format\":\"digimon-v1\",\"new\":{"
             /* row 55: partner 0, needs the rookie (id 3, row 0) at 5, the partner's level 10 */
             "\"a\":{\"base\":3,\"name\":{\"eng\":\"A\"},\"evolution\":{\"partner\":0,"
@@ -777,7 +888,7 @@ static void testWideRows(void) {
         len += snprintf(json + len, sizeof json - (size_t)len, "}");
     }
     snprintf(json + len, sizeof json - (size_t)len, "}}");
-    putFile("mods/pw/content/digimon.json", json);
+    putDigimon("pw", json);
 
     logBegin();
     n = loadAll();
@@ -865,7 +976,7 @@ static void testOwnModel(void) {
         put16(EINFO(i) + 0x44, 3);
     }
     modJson("om", "content");
-    putFile("mods/om/content/digimon.json",
+    putDigimon("om",
             "{\"format\":\"digimon-v1\",\"new\":{"
             "\"orc\":{\"base\":206,\"name\":{\"eng\":\"Orc\"},\"model\":{\"from\":207,\"model\":{\"file\":7000,\"entry\":3},"
             "\"motions\":{\"file\":\"om:mot\",\"entry\":1},\"effects\":\"dw3:digimon/208\",\"height\":123,\"distance\":-50}},"
@@ -926,7 +1037,7 @@ static void testOwnModel(void) {
                                9000 + i);
     }
     snprintf(json + at, sizeof json - at, "}}");
-    putFile("mods/om/content/digimon.json", json);
+    putDigimon("om", json);
     logBegin();
     loadAll();
     ft = digimonExtBuildFighters(&flen);
@@ -946,7 +1057,7 @@ static void testOwnModel(void) {
     digimonExtSetFileResolver(NULL);
 
     /* without an object in "model" nothing changes: the header keeps its offsets (testNew checks the bytes) */
-    putFile("mods/om/content/digimon.json",
+    putDigimon("om",
             "{\"format\":\"digimon-v1\",\"new\":{\"a\":{\"base\":206,\"name\":{\"eng\":\"A\"},\"model\":207}}}");
     loadAll();
     ft = digimonExtBuildFighters(&flen);
@@ -959,6 +1070,17 @@ static void testOwnModel(void) {
 
 /* "model": "<mod>:<key>": a model source of the mod (glTF + PNG + model.json) is baked when the fighters file is built, and the
    Digimon gets its own info row from it (model-import I5); "dw3:model/<id>" shares that fighter's row */
+static int countOf(const char *hay, const char *needle) {
+    int n = 0;
+    const char *p = hay;
+
+    while ((p = strstr(p, needle)) != NULL) {
+        n++;
+        p += strlen(needle);
+    }
+    return n;
+}
+
 static void testSourceModel(void) {
     const char *log;
     unsigned char *ft;
@@ -985,16 +1107,31 @@ static void testSourceModel(void) {
     pfsInit(NULL, 3000); /* no disc: the virtual file numbers start at 3000 */
     pfsClearVirtualFiles();
     modJson("sm", "content");
-    snprintf(cmd, sizeof cmd, "mkdir -p '%s/mods/sm/content/models/robot' && cp test_fixtures/model/robot/m.* '%s/mods/sm/content/models/robot/'", gRoot, gRoot);
-    if (system(cmd)) {}
-    putFile("mods/sm/content/models/robot/model.json",
-            "{\"format\":\"model-src-v1\",\"name\":\"robot\",\"gltf\":\"m.gltf\",\"fitHeight\":1800,\"template\":\"dw3:digimon/207\","
-            "\"effects\":\"dw3:digimon/208\",\"info\":{\"distance\":-321,\"height\":77},\"motions\":{\"0\":\"idle\",\"1\":\"idle\"},\"fill\":\"idle\"}");
-    putFile("mods/sm/content/digimon.json",
+    putDigimon("sm",
             "{\"format\":\"digimon-v1\",\"new\":{"
             "\"alias\":{\"base\":206,\"name\":{\"eng\":\"Alias\"},\"model\":\"dw3:model/207\"},"
             "\"bot\":{\"base\":206,\"name\":{\"eng\":\"Bot\"},\"model\":\"sm:robot\"},"
-            "\"missing\":{\"base\":206,\"name\":{\"eng\":\"Missing\"},\"model\":\"sm:nothing\"}}}");
+            "\"missing\":{\"base\":206,\"name\":{\"eng\":\"Missing\"},\"model\":\"sm:nothing\"},"
+            "\"pal\":{\"base\":3,\"name\":{\"eng\":\"Pal\"},\"model\":\"sm:pal\"},"
+            "\"zeb\":{\"base\":206,\"name\":{\"eng\":\"Zeb\"},\"model\":\"sm:zeb\"}}}");
+    snprintf(cmd, sizeof cmd, "mkdir -p '%s/mods/sm/digimon/robot/model' && cp test_fixtures/model/robot/m.* '%s/mods/sm/digimon/robot/model/'", gRoot, gRoot);
+    if (system(cmd)) {}
+    /* P8: models with no "fill": a partner's (template 4) and an enemy's (template 207) leave empty the slots the battle code plays; one line each */
+    for (i = 0; i < 2; i++) {
+        snprintf(cmd, sizeof cmd, "mkdir -p '%s/mods/sm/digimon/%s/model' && cp test_fixtures/model/robot/m.* '%s/mods/sm/digimon/%s/model/'", gRoot,
+                 i == 0 ? "pal" : "zeb", gRoot, i == 0 ? "pal" : "zeb");
+        if (system(cmd)) {}
+    }
+    putFile("mods/sm/digimon/pal/model/model.json",
+            "{\"format\":\"model-src-v1\",\"name\":\"pal\",\"gltf\":\"m.gltf\",\"fitHeight\":1800,\"template\":\"dw3:digimon/4\","
+            "\"effects\":\"dw3:digimon/3\",\"motions\":{\"0\":\"idle\",\"1\":\"idle\",\"2\":\"idle\",\"4\":\"idle\",\"10\":\"idle\",\"11\":\"idle\",\"12\":\"idle\"}}");
+    putFile("mods/sm/digimon/zeb/model/model.json",
+            "{\"format\":\"model-src-v1\",\"name\":\"zeb\",\"gltf\":\"m.gltf\",\"fitHeight\":1800,\"template\":\"dw3:digimon/207\","
+            "\"effects\":\"dw3:digimon/208\",\"motions\":{\"0\":\"idle\",\"1\":\"idle\",\"2\":\"idle\",\"3\":\"idle\",\"4\":\"idle\",\"10\":\"idle\","
+            "\"11\":\"idle\",\"12\":\"idle\"}}");
+    putFile("mods/sm/digimon/robot/model/model.json",
+            "{\"format\":\"model-src-v1\",\"name\":\"robot\",\"gltf\":\"m.gltf\",\"fitHeight\":1800,\"template\":\"dw3:digimon/207\","
+            "\"effects\":\"dw3:digimon/208\",\"info\":{\"distance\":-321,\"height\":77},\"motions\":{\"0\":\"idle\",\"1\":\"idle\"},\"fill\":\"idle\"}");
     snprintf(path, sizeof path, "test_fixtures/model/robot/expected.bin");
     expect = NULL;
     f = fopen(path, "rb");
@@ -1030,10 +1167,366 @@ static void testSourceModel(void) {
         free(ft);
     }
     CHECK(strstr(log, "[models] sm:robot: baked 5 bones") != NULL);
+    /* P8: a partner's model lists each empty slot its battle code plays (3, 13, 14, 20, 32), an enemy's only the attack; "fill" covers them all (the robot) */
+    CHECK(digimonExtNewId("sm:pal") == 474 && digimonExtNewId("sm:zeb") == 475);
+    CHECK(countOf(log, "[digimon] sm:pal: motion slot ") == 5 && countOf(log, "[digimon] sm:zeb: motion slot ") == 1);
+    CHECK(strstr(log, "[digimon] sm:pal: motion slot 3 (flinch) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] sm:pal: motion slot 13 (blast entrance) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] sm:pal: motion slot 14 (attack) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] sm:pal: motion slot 20 (attack, script 6) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] sm:pal: motion slot 32 (attack, script 8) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] sm:zeb: motion slot 14 (attack) has no animation: ") != NULL);
+    CHECK(strstr(log, "sm:pal: motion slot 0 ") == NULL && strstr(log, "sm:pal: motion slot 12 ") == NULL && strstr(log, "sm:robot: motion slot") == NULL);
     CHECK(strstr(log, "\"sm:missing\" field \"model\" rejected: no model source \"sm:nothing\"") != NULL);
     unloadAll();
     pfsClearVirtualFiles();
     free(expect);
+    unsetenv("DW3_USER_DIR");
+    portPathsReset();
+    itemExtReset();
+    buildFighters();
+}
+
+/* P13: a model that takes an original fighter's motions by reference. The donor's archive is read from the disc (digimonExtSetDiscReader), each
+   slot its table leaves empty that the battle code plays is one warning line, and "fill" copies a slot's offset into every empty slot of a
+   copy of the file (a virtual file) so the game never reads an empty slot. Here a fake disc: file 0x600, entry 0, 62 slots. */
+#define BYREF_FILE 0x600
+static unsigned char *fakeDisc(int file, size_t *len) {
+    static const int have[] = {0, 1, 2, 4, 10, 11, 12, 14};
+    unsigned char *d;
+    size_t i;
+
+    if (file != BYREF_FILE) return NULL;
+    d = (unsigned char *)calloc(1, 2048);
+    put32at(d, 4); /* entry 0: the archive at 4 */
+    for (i = 0; i < sizeof have / sizeof have[0]; i++) put32at(d + 4 + 4 * have[i], (unsigned)(248 + 16 * i));
+    for (i = 4 + 248; i < 2048; i++) d[i] = (unsigned char)i;
+    /* motion steps {index, count, frame, endFrame} that end holding a pose (frame 0x8000 loops the tail: an enemy's idle, entrance and
+       attack), each list closed by index 0x7FFF: slot 0 at 252, slot 12 at 348, slot 14 at 364 (absolute: the archive starts at 4) */
+    for (i = 0; i < 3; i++) {
+        static const int at[3] = {252, 348, 364};
+        static const unsigned short steps[2][4] = {{0, 10, 0, 0}, {10, 0, 0x8000, 66}};
+        int k, j;
+
+        for (k = 0; k < 2; k++) {
+            for (j = 0; j < 4; j++) d[at[i] + 8 * k + 2 * j] = (unsigned char)steps[k][j], d[at[i] + 8 * k + 2 * j + 1] = (unsigned char)(steps[k][j] >> 8);
+        }
+        d[at[i] + 16] = 0xFF;
+        d[at[i] + 17] = 0x7F;
+        d[at[i] + 18] = d[at[i] + 19] = 0;
+    }
+    d[332] = 0xFF; /* slot 11's list (filler bytes) closes before slot 12's */
+    d[333] = 0x7F;
+    *len = 2048;
+    return d;
+}
+
+static void testByReference(void) {
+    const char *log;
+    unsigned char *ft;
+    size_t flen = 0, glen = 0;
+    int i;
+
+    buildTables();
+    buildFighters();
+    for (i = 0; i < 3; i++) {
+        put32at(EINFO(i), 0x05200000u + 0x10 * (unsigned)i);
+        put32at(EINFO(i) + 4, 0x05210000u + (unsigned)i);
+        put32at(EINFO(i) + 8, 0x05220000u + (unsigned)i);
+    }
+    put32at(EINFO(1) + 4, (unsigned)BYREF_FILE << 16); /* fighter 207's motions: the fake file */
+    pfsInit(NULL, 3000);
+    pfsClearVirtualFiles();
+    modJson("br", "content");
+    putDigimon("br",
+            "{\"format\":\"digimon-v1\",\"new\":{"
+            "\"raw\":{\"base\":3,\"name\":{\"eng\":\"Raw\"},\"model\":{\"from\":4,\"model\":\"dw3:digimon/207\",\"motions\":\"dw3:digimon/207\",\"effects\":\"dw3:digimon/207\"}},"
+            "\"fil\":{\"base\":3,\"name\":{\"eng\":\"Fil\"},\"model\":{\"from\":4,\"model\":\"dw3:digimon/207\",\"motions\":\"dw3:digimon/207\",\"effects\":\"dw3:digimon/207\",\"fill\":14}},"
+            "\"nof\":{\"base\":3,\"name\":{\"eng\":\"Nof\"},\"model\":{\"from\":4,\"motions\":\"dw3:digimon/207\",\"fill\":7}},"
+            "\"big\":{\"base\":3,\"name\":{\"eng\":\"Big\"},\"model\":{\"from\":4,\"motions\":\"dw3:digimon/207\",\"fill\":99}},"
+            "\"foe\":{\"base\":206,\"name\":{\"eng\":\"Foe\"},\"model\":{\"from\":207,\"motions\":\"dw3:digimon/207\"}}}}");
+    digimonExtSetDiscReader(fakeDisc);
+    logBegin();
+    loadAll();
+    ft = digimonExtBuildFighters(&flen);
+    log = logEnd();
+    CHECK(digimonExtNewId("br:big") == 471 && digimonExtNewId("br:fil") == 472 && digimonExtNewId("br:raw") == 475);
+    /* a partner's form without "fill": the slots 3, 13, 20, 32 (the donor has 0, 1, 2, 4, 10, 11, 12, 14), one line each; with "fill" none */
+    CHECK(countOf(log, "[digimon] br:raw: motion slot ") == 4);
+    CHECK(strstr(log, "[digimon] br:raw: motion slot 3 (flinch) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] br:raw: motion slot 13 (blast entrance) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] br:raw: motion slot 20 (attack, script 6) has no animation: ") != NULL);
+    CHECK(strstr(log, "[digimon] br:raw: motion slot 32 (attack, script 8) has no animation: ") != NULL);
+    CHECK(strstr(log, "br:fil: motion slot") == NULL);
+    /* "fill" 7 (empty in the donor) and 99 (outside the table) are rejected and leave the slots empty (the warnings stay) */
+    CHECK(strstr(log, "model.fill\" rejected") != NULL && countOf(log, "model.fill\" rejected") == 2);
+    CHECK(countOf(log, "[digimon] br:nof: motion slot ") == 4);
+    /* an enemy's facet does not need 13, 20 and 32: only the flinch (3) */
+    CHECK(countOf(log, "[digimon] br:foe: motion slot ") == 1 && strstr(log, "br:foe: motion slot 3 (flinch)") != NULL);
+    CHECK(ft != NULL);
+    if (ft != NULL) {
+        unsigned pStart = get32(ft + 8);
+        const unsigned char *raw = ft + pStart + 5 * 0xC4, *fil = ft + pStart + 3 * 0xC4, *served;
+        unsigned ref;
+        int file;
+
+        {
+            unsigned rref = get32(raw + 4);
+            size_t rlen = 0;
+            const unsigned char *rs = (rref >> 16) >= 3000 ? pfsResolve((int)(rref >> 16), &rlen, 0, NULL) : NULL;
+
+            /* without "fill" a partner's form still gets its own copy, where the looping motions end (the slots stay empty) */
+            CHECK(rs != NULL && rlen == 2048 && get32(rs + get32(rs) + 4 * 3) == 0);
+            if (rs != NULL && rlen == 2048) CHECK(get16(rs + 364 + 12) == -1);
+        }
+        ref = get32(fil + 4);
+        file = (int)(ref >> 16);
+        CHECK(file >= 3000 && (ref & 0xFFFF) == 0);
+        served = file >= 3000 ? pfsResolve(file, &glen, 0, NULL) : NULL;
+        CHECK(served != NULL && glen == 2048);
+        if (served != NULL && glen == 2048) {
+            unsigned at = get32(served), want = get32(served + at + 4 * 14);
+            int ok = 1;
+
+            for (i = 0; i < 62; i++) {
+                unsigned v = get32(served + at + 4 * i);
+                if (i == 0 || i == 1 || i == 2 || i == 4 || i == 10 || i == 11 || i == 12) continue;
+                if (v != want) ok = 0; /* every other slot, 14 included, plays slot 14's */
+            }
+            CHECK(ok && want == 248 + 16 * 7);
+            /* a partner's script waits for each motion to end (keyframe 0xFFFF); the enemy's attack loops (0x8000), so the copy ends it,
+               while the idle (0) and the entrance/victory pose (12) keep holding */
+            CHECK(get16(served + 364 + 12) == -1 && get16(served + 364 + 14) == 0);
+            CHECK(get16(served + 252 + 12) == -32768 && get16(served + 348 + 12) == -32768);
+            CHECK(get32(served + at + 4 * 4) == 248 + 16 * 3 && get32(served + at + 4 * 12) == 248 + 16 * 6); /* the donor's own slots stay */
+        }
+        free(ft);
+    }
+    unloadAll();
+    digimonExtSetDiscReader(NULL);
+    pfsClearVirtualFiles();
+    buildFighters();
+}
+
+/* P17a: "scripts" in a model object: a slot of the form's effects archive takes the script of another fighter's archive, converted for the
+   form's side and place. A fake disc file 0x610 holds three archives: entry 0 (fighter 4's, 18 slots), entry 1 (enemy 207's, 18 slots, with an
+   empty slot 3 and a camera of its own in slot 4) and entry 2 (fighter 3's, only 12 slots). */
+#define SCRIPT_FILE 0x610
+static unsigned char sScriptFile[4096];
+
+static void scriptWords(int at, const int *w, int n) {
+    int i;
+
+    for (i = 0; i < n; i++) put16(sScriptFile + at + 2 * i, w[i]);
+}
+
+static unsigned char *scriptDisc(int file, size_t *len) {
+    static const int donor5[] = {2, 0, 0, 3, 255}, donor6[] = {2, 0, 0, 4, 255}, end[] = {255}, foe5[] = {3, 1, 1014, 3, 0, 1014, 0, -3968, 4992, 5, 0, 0, 1, 2, 2, 1, 255},
+                     foe4[] = {5, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 255}, own5[] = {2, 0, 0, 9, 255};
+    unsigned char *d;
+    int i;
+
+    if (file != SCRIPT_FILE) return NULL;
+    memset(sScriptFile, 0, sizeof sScriptFile);
+    put32at(sScriptFile + 0, 16);   /* entry 0 at 16: 18 slots (72 bytes), scripts from 88 */
+    put32at(sScriptFile + 4, 200);  /* entry 1 at 200 */
+    put32at(sScriptFile + 8, 400);  /* entry 2 at 400: 12 slots */
+    put32at(sScriptFile + 16, 72);
+    put32at(sScriptFile + 16 + 4 * 5, 72 + 4);
+    put32at(sScriptFile + 16 + 4 * 6, 72 + 20);
+    scriptWords(16 + 72, end, 1);
+    scriptWords(16 + 76, donor5, 5);
+    scriptWords(16 + 92, donor6, 5);
+    put32at(sScriptFile + 200, 72);
+    put32at(sScriptFile + 200 + 4 * 5, 72 + 4);
+    put32at(sScriptFile + 200 + 4 * 4, 72 + 60);
+    scriptWords(200 + 72, end, 1);
+    scriptWords(200 + 76, foe5, 17);
+    scriptWords(200 + 132, foe4, 18);
+    put32at(sScriptFile + 400, 48);
+    put32at(sScriptFile + 400 + 4 * 5, 48 + 4);
+    scriptWords(400 + 48, end, 1);
+    scriptWords(400 + 52, own5, 5);
+    d = (unsigned char *)malloc(sizeof sScriptFile);
+    for (i = 0; i < (int)sizeof sScriptFile; i++) d[i] = sScriptFile[i];
+    *len = sizeof sScriptFile;
+    return d;
+}
+
+static void testScripts(void) {
+    const char *log;
+    unsigned char *ft;
+    size_t flen = 0;
+    int i;
+
+    buildTables();
+    buildFighters();
+    for (i = 0; i < 2; i++) {
+        put32at(PINFO(i) + 8, ((unsigned)SCRIPT_FILE << 16) | (i == 0 ? 2u : 0u));
+        put16(PINFO(i) + 0x10, i == 0 ? 5 : 200);
+        put16(PINFO(i) + 0x18, 0);
+    }
+    for (i = 0; i < 3; i++) put32at(EINFO(i) + 8, ((unsigned)SCRIPT_FILE << 16) | (i == 1 ? 1u : 0u));
+    put16(EINFO(1) + 0x10, 50);
+    put16(EINFO(1) + 0x18, 100);
+    pfsInit(NULL, 3000);
+    pfsClearVirtualFiles();
+    modJson("sc", "content");
+    putDigimon("sc",
+            "{\"format\":\"digimon-v1\",\"new\":{"
+            "\"mir\":{\"base\":3,\"name\":{\"eng\":\"Mir\"},\"model\":{\"from\":4,\"effects\":\"dw3:digimon/4\",\"scripts\":{"
+            "\"5\":{\"from\":\"dw3:digimon/207\",\"slot\":5},"
+            "\"3\":{\"from\":\"dw3:digimon/207\",\"slot\":3},"
+            "\"7\":{\"from\":207,\"slot\":4},"
+            "\"40\":{\"from\":\"dw3:digimon/207\",\"slot\":5},"
+            "\"2\":{\"from\":\"dw3:digimon/999\",\"slot\":5},"
+            "\"9\":{\"from\":\"dw3:digimon/207\",\"slot\":99}}}},"
+            "\"same\":{\"base\":3,\"name\":{\"eng\":\"Same\"},\"model\":{\"from\":4,\"effects\":\"dw3:digimon/4\",\"scripts\":{"
+            "\"8\":{\"from\":\"dw3:digimon/3\",\"slot\":5}}}},"
+            "\"few\":{\"base\":3,\"name\":{\"eng\":\"Few\"},\"model\":{\"from\":4,\"effects\":\"dw3:digimon/3\",\"scripts\":{"
+            "\"15\":{\"from\":\"dw3:digimon/207\",\"slot\":5}}}}}}");
+    digimonExtSetDiscReader(scriptDisc);
+    logBegin();
+    loadAll();
+    ft = digimonExtBuildFighters(&flen);
+    log = logEnd();
+    /* one line each: an unknown slot (40, and 15 of a 12-slot archive), an empty source slot (3, from 207's slot 3), a camera of its own (7), and
+       the bad entries (a fighter that does not exist, a slot 99) */
+    CHECK(strstr(log, "model.scripts.40\" rejected: unknown slot") != NULL);
+    CHECK(strstr(log, "sc:few: field \"model.scripts.15\" rejected: unknown slot (its effects archive has 12 slots)") != NULL);
+    CHECK(strstr(log, "sc:mir: field \"model.scripts.3\" rejected: dw3:digimon/207 has no script in slot 3 of its effects archive") != NULL);
+    CHECK(strstr(log, "sc:mir: field \"model.scripts.7\" rejected: dw3:digimon/207 slot 4: ") != NULL && strstr(log, "view of its own") != NULL);
+    CHECK(strstr(log, "model.scripts.2\" rejected: {\"from\"") != NULL && strstr(log, "model.scripts.9\" rejected: {\"from\"") != NULL);
+    CHECK(countOf(log, "rejected") == 6);
+    CHECK(ft != NULL);
+    if (ft != NULL) {
+        unsigned pStart = get32(ft + 8);
+        const unsigned char *mir = ft + pStart + 3 * 0xC4, *served;
+        unsigned ref = get32(mir + 8);
+        size_t glen = 0;
+        int file = (int)(ref >> 16);
+
+        CHECK(file >= 3000 && (ref & 0xFFFF) == 0);
+        served = file >= 3000 ? pfsResolve(file, &glen, 0, NULL) : NULL;
+        CHECK(served != NULL && glen % 2048 == 0);
+        if (served != NULL) {
+            unsigned at = get32(served), s5 = at + get32(served + at + 4 * 5), s6 = at + get32(served + at + 4 * 6);
+
+            CHECK(at == 16 && get32(served + at + 4 * 3) == 0 && get32(served + at + 4 * 7) == 0); /* the refused slots stay as they were */
+            CHECK(s6 == 16 + 72 + 20 && get16(served + s6 + 6) == 4); /* a slot not named: the donor's */
+            CHECK(s5 >= 4096 && s5 + 34 <= glen); /* slot 5 moved to the end of the file: the enemy's script, mirrored for the form */
+            if (s5 + 34 <= glen) {
+                /* the enemy (height 100, distance 50) to a partner form of the template's place (height 0, distance 200): y + 100, z mirrored and
+                   moved by 50 - 200; the camera 1 becomes 5; the partner's model 0 (type 1) becomes the enemy's (4) */
+                CHECK(get16(served + s5) == 3 && get16(served + s5 + 2) == 1 && get16(served + s5 + 4) == 1014);
+                CHECK(get16(served + s5 + 6) == 3 && get16(served + s5 + 8) == 0 && get16(served + s5 + 10) == 1014);
+                CHECK(get16(served + s5 + 12) == 0 && get16(served + s5 + 14) == -3968 + 100 && get16(served + s5 + 16) == -4992 - 150);
+                CHECK(get16(served + s5 + 18) == 5 && get16(served + s5 + 24) == 5);
+                CHECK(get16(served + s5 + 26) == 2 && get16(served + s5 + 28) == 2 && get16(served + s5 + 30) == 4 && get16(served + s5 + 32) == 255);
+            }
+        }
+        {
+            const unsigned char *same = ft + pStart + 4 * 0xC4;
+            unsigned sref = get32(same + 8);
+            size_t slen = 0;
+            const unsigned char *sf = (sref >> 16) >= 3000 ? pfsResolve((int)(sref >> 16), &slen, 0, NULL) : NULL;
+
+            /* the same side (a partner's script into a partner form) is a copy */
+            CHECK(sf != NULL);
+            if (sf != NULL) {
+                unsigned at = get32(sf), s8 = at + get32(sf + at + 4 * 8);
+
+                CHECK(s8 + 10 <= slen && get16(sf + s8) == 2 && get16(sf + s8 + 6) == 9 && get16(sf + s8 + 8) == 255);
+            }
+        }
+        free(ft);
+    }
+    unloadAll();
+    digimonExtSetDiscReader(NULL);
+    pfsClearVirtualFiles();
+    buildFighters();
+}
+
+/* A8.3: the folders of digimon/. A new Digimon is digimon/<key>/ with digimon.json and an optional model/; d<nnn> is original fighter <nnn>'s (its
+   digimon.json changes it, its model/ is never read); the old content/digimon.json and content/models/ are not read */
+static void testFolders(void) {
+    const char *log;
+    unsigned char *ft;
+    size_t flen = 0;
+    char cmd[2000];
+    int i, n;
+    static const char *const modelJson =
+        "{\"format\":\"model-src-v1\",\"name\":\"robot\",\"gltf\":\"m.gltf\",\"fitHeight\":1800,\"template\":\"dw3:digimon/207\","
+        "\"effects\":\"dw3:digimon/208\",\"info\":{\"distance\":-321,\"height\":77},\"motions\":{\"0\":\"idle\",\"1\":\"idle\"},\"fill\":\"idle\"}";
+    static const char *const kModelFolders[] = {"own", "given", "d206", "nodigimon"};
+
+    buildTables();
+    buildFighters();
+    for (i = 0; i < 3; i++) put32at(EINFO(i) + 8, 0x05220000u + (unsigned)i);
+    {
+        char user[800];
+        snprintf(user, sizeof user, "%s/user", gRoot);
+        setenv("DW3_USER_DIR", user, 1);
+        unsetenv("DW3_CACHE_DIR");
+        portPathsReset();
+    }
+    pfsInit(NULL, 3000);
+    pfsClearVirtualFiles();
+    modJson("fo", "content");
+    putDigimon("fo", "{\"new\":{"
+               "\"own\":{\"base\":206,\"name\":{\"eng\":\"Own\"}},"
+               "\"given\":{\"base\":206,\"name\":{\"eng\":\"Given\"},\"model\":207}}}");
+    /* a digimon.json whose "name" is not its folder, one with another format, d-folders with a wrong name and out of range, a folder with no record */
+    putFile("mods/fo/digimon/named/digimon.json", "{\"format\":\"digimon-digimon-v1\",\"name\":\"other\",\"base\":206,\"title\":{\"eng\":\"N\"}}");
+    putFile("mods/fo/digimon/oldfmt/digimon.json", "{\"format\":\"digimon-v1\",\"base\":206,\"title\":{\"eng\":\"O\"}}");
+    putFile("mods/fo/digimon/d207/digimon.json", "{\"format\":\"digimon-digimon-v1\",\"name\":\"d206\",\"enemy\":{\"itemChance\":5}}");
+    putFile("mods/fo/digimon/d208/digimon.json", "{\"format\":\"digimon-digimon-v1\",\"name\":\"d208\",\"enemy\":{\"itemChance\":6},\"notes\":\"x\"}");
+    putFile("mods/fo/digimon/d001/digimon.json", "{\"format\":\"digimon-digimon-v1\",\"partner\":{\"hp\":1}}");
+    putFile("mods/fo/digimon/only-art/readme.txt", "no record: not a Digimon");
+    /* the old layout of before A8.3 is not read */
+    putFile("mods/fo/content/digimon.json", "{\"format\":\"digimon-v1\",\"new\":{\"legacy\":{\"base\":206,\"name\":{\"eng\":\"Legacy\"}}}}");
+    putFile("mods/fo/content/encounters.json", "{\"format\":\"digimon-v1\",\"encounters\":{\"34\":{\"1\":{\"enemy\":206}}}}");
+    for (i = 0; i < 4; i++) {
+        snprintf(cmd, sizeof cmd, "mkdir -p '%s/mods/fo/digimon/%s/model' && cp test_fixtures/model/robot/m.* '%s/mods/fo/digimon/%s/model/'", gRoot,
+                 kModelFolders[i], gRoot, kModelFolders[i]);
+        if (system(cmd)) {}
+        snprintf(cmd, sizeof cmd, "mods/fo/digimon/%s/model/model.json", kModelFolders[i]);
+        putFile(cmd, modelJson);
+    }
+    snprintf(cmd, sizeof cmd, "mkdir -p '%s/mods/fo/content/models/legacy' && cp test_fixtures/model/robot/m.* '%s/mods/fo/content/models/legacy/'", gRoot, gRoot);
+    if (system(cmd)) {}
+    putFile("mods/fo/content/models/legacy/model.json", modelJson);
+
+    logBegin();
+    n = loadAll();
+    ft = digimonExtBuildFighters(&flen);
+    log = logEnd();
+    /* the entries: own and given only; the changes of d207 (wrong name) and d001 are refused, d208's applies; the old files add nothing */
+    CHECK(digimonExtNewCount() == 2 && digimonExtNewId("fo:given") == 471 && digimonExtNewId("fo:own") == 472);
+    CHECK(digimonExtNewId("fo:d206") == -1 && digimonExtNewId("fo:legacy") == -1 && digimonExtNewId("fo:named") == -1 && digimonExtNewId("fo:oldfmt") == -1);
+    CHECK(n == 3 && digimonExtEnemyPatchCount() == 1 && digimonExtPlaceCount() == 0); /* two entries and the change of 208 */
+    CHECK(strstr(log, "fo/digimon/named/digimon.json rejected: \"name\" must be \"named\", the folder's name") != NULL);
+    CHECK(strstr(log, "fo/digimon/oldfmt/digimon.json rejected: \"format\" must be \"digimon-digimon-v1\"") != NULL);
+    CHECK(strstr(log, "fo/digimon/d207/digimon.json rejected: \"name\" must be \"d207\", the folder's name") != NULL);
+    CHECK(strstr(log, "fo/digimon/d001/digimon.json rejected: d001 is not an original Digimon (d003..d470)") != NULL);
+    CHECK(strstr(log, "fo/content/encounters.json rejected: \"format\" must be \"encounters-v1\"") != NULL);
+    CHECK(strstr(log, "legacy") == NULL && strstr(log, "only-art") == NULL && strstr(log, "d208") == NULL);
+    /* the folder's own model/ is the model of "fo:own" (a row of its own), not of "given" (its "model" wins: 207's row) or of a d<nnn> or a model-only folder */
+    CHECK(modelsHas("fo:own") && modelsHas("fo:given") && modelsHas("fo:nodigimon") && !modelsHas("fo:d206") && !modelsHas("fo:legacy"));
+    CHECK(strstr(log, "[models] fo:own: ") != NULL && strstr(log, "[models] fo:given") == NULL && strstr(log, "fo:d206") == NULL); /* baked here, or read back from the cache of the same bytes */
+    CHECK(ft != NULL);
+    if (ft != NULL) {
+        unsigned start = get32(ft + 4), eStart = get32(ft + 12);
+        const unsigned char *e = ft + start + 5 * 4, *own;
+
+        CHECK(get16(e) == 471 && e[2] == 1 && e[3] == 0x3B);      /* given: 207's row */
+        CHECK(get16(e + 4) == 472 && e[6] == 3 && e[7] == 0x3B);  /* own: a row of its own after the three originals, the kind of its template (207) */
+        own = ft + eStart + 3 * 0x48;
+        CHECK(get16(own + 0x18) == 77 && get16(own + 0x10) == -321 && get32(own + 8) == 0x05220002u);
+    }
+    free(ft);
+    unloadAll();
+    pfsClearVirtualFiles();
     unsetenv("DW3_USER_DIR");
     portPathsReset();
     itemExtReset();
@@ -1078,6 +1571,15 @@ int main(void) {
     snprintf(cmd, sizeof cmd, "rm -rf '%s/mods'", gRoot);
     if (system(cmd)) {}
     testSourceModel();
+    snprintf(cmd, sizeof cmd, "rm -rf '%s/mods'", gRoot);
+    if (system(cmd)) {}
+    testByReference();
+    snprintf(cmd, sizeof cmd, "rm -rf '%s/mods'", gRoot);
+    if (system(cmd)) {}
+    testScripts();
+    snprintf(cmd, sizeof cmd, "rm -rf '%s/mods'", gRoot);
+    if (system(cmd)) {}
+    testFolders();
     snprintf(cmd, sizeof cmd, "rm -rf '%s'", gRoot);
     if (system(cmd)) {}
     if (failures == 0) printf("digimontest: ok\n");

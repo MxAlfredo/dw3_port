@@ -6,6 +6,9 @@ This guide is the reference for what can be modded **today** and how. What is no
 (ADR-006 section 7). Mods are folders: install one by copying it, remove it by deleting it. The port never writes
 inside `mods/`, and a broken mod never stops the game (it goes to the log and the next source is used).
 
+It describes only the current asset format (contract `asset-v1`, ADR-016): one folder per topic, and the same shape in `data/` and in
+`mods/<mod>/`. If you have a mod or a `data/` folder from an earlier version, go to [section 11](#11-migrating-from-the-previous-format).
+
 ## Start here
 
 1. **What can I mod?** Text, images, sprites, audio, movies, every game table (prices, rewards, loot, evolutions, shops, cards...),
@@ -17,21 +20,22 @@ inside `mods/`, and a broken mod never stops the game (it goes to the log and th
    restart it from Options > System > Restart game).
 3. **Run the tools.** The game executable (`boot`) has command-line flags: from a source build it is `pc/build/boot`; on Windows use
    `DW3-debug.exe` (the same game with a console window); the Linux AppImage takes the same flags. `--new-mod`, `--list-mods` and
-   `--validate-mod` are described in section 2c; `--export-all` writes everything the disc holds into `<pref>/data/` for you to
+   `--validate-mod` are described in sections 2c and 2d; `--export-all` writes everything the disc holds into `<pref>/data/` for you to
    look at and edit.
-4. **First mod in 5 minutes, with a ready-made example.** From a checkout of this repository, start the game once with your disc
-   (so `<pref>/data/` exists), then `pc/examples/install_examples.sh --only cheap-shops` and open Options > Mods, enable
-   `cheap-shops`, restart, and look at the prices in item shop 0. Open its `tables/item_prices.json` and change `"*0.5"`: you have
-   just edited a table. Section 2c shows how to create your own mod folder and validate it; every example (section 7) has a
-   `README.txt` saying what it changes and where to see it.
+4. **First mod in 5 minutes.** From a checkout of this repository, start the game once with your disc (so `<pref>/data/` exists) and follow
+   section 2c: a one-line patch (`tables/item_prices.json`, half prices) checked with `--validate-mod`. When you want to see a big mod,
+   section 7 has two complete examples (`training-field`, new stages; `sample-model`, a Digimon with a model of its own) and a template
+   folder (`_template`); each has a `README.txt` saying what it changes and where to see it.
 5. **Tools** (section 8): `tools/file_names.py`, `tools/extract_disc.py`, `tools/image_atlas_preview.py`, `tools/image_mod_palette.py`,
-   `tools/techcompat.py`, `tools/model_export.py`, `tools/model_import.py`. Run them with `python3 tools/<name>.py ...`; all read
+   `tools/techcompat.py`, `tools/balance_compare.py`, `tools/model_export.py`, `tools/model_import.py`. Run them with `python3 tools/<name>.py ...`; all read
    your own disc and store no game data.
 6. **Formats and data (reference):** [`docs/formats.md`](../formats.md) (file formats), [`docs/data-tables.md`](../data-tables.md),
    [`docs/digimon-anatomy.md`](../digimon-anatomy.md), [`docs/extended-state.md`](../extended-state.md) (saves and extended
    state), [`docs/stages.md`](../stages.md) (stage data; Spanish) and the schemas in [`schema/`](schema/).
 7. **Sharing your mod:** only your own work, never game data (section 9). Describe what it changes and which port version it needs
    (the `port` key of `mod.json`).
+8. **Validating:** `boot "<disc>.bin" --validate-mod <mod>` checks a mod without starting the game (section 2d). **Coming from another version:**
+   section 11 has the table of old and new paths.
 
 ## 1. What can be modded today
 
@@ -45,26 +49,30 @@ inside `mods/`, and a broken mod never stops the game (it goes to the log and th
 | What each item shop sells | `tables/shop_stock.json` | 6.5 |
 | Weapons, armour and accessories (stats) | `tables/weapon_data.json`, `armor_data.json`, `accessory_data.json` | 6.5 |
 | What each usable item does | `tables/item_effects.json` | 6.5 |
-| The partners' evolutions, blasts and growth (E5b) | `tables/evolutions.json`, `blast_forms.json`, `level_exp.json`, `vital_cuts.json`, `vital_random.json`, `stat_gains.json`, `resist_gains.json` | 6.5b |
-| The field's encounters: enemies, ambush, battle rate (E5c) | `tables/field_enemies.json`, `field_encounters.json`, `battle_rates.json` | 6.5b |
-| Cards: prices, shops, packs, effects, prizes, the default deck (E5d) and opponents (U8a) | `tables/card_prices.json`, `card_shop_stock.json`, `card_pack_slots.json`, `card_effects.json`, `prize_items.json`, `default_deck.json`, `card_opponents.json` | 6.5b |
-| Gym and inns: trainings, gains, intensity costs and inn prices (E5e) | `tables/gym_trainings.json`, `gym_stat_gains.json`, `gym_stat_losses.json`, `gym_resist_gains.json`, `gym_hp_mp_gains.json`, `gym_intensity_costs.json`, `inns.json` | 6.5b |
-| Existing Digimon (partners and enemies: stats, techniques, loot), new enemies and the encounters they appear in | `content/digimon.json` (content mod) | 6.9 |
-| New cards (record, effect, art and name) | `content/cards.json` and `card/<key>.png` (content mod) | 6.10 |
-| Screen and menu art (PNG, `atlas-v1` map) | `images/<folder>/<file>/<NN>_<MM>.png` | 6.2 |
-| Field sprites (one PNG per frame, `sprite-v1` map) | `images/field/sprt/<name>/<EEE>.png` | 6.3 |
-| A card picture (32x32 PNG, 256 colors; 316 cards) | `images/card/cardpak<0-4>/<NN>.png` | 6.2b |
-| Map objects of a field stage (one PNG per page, `atlas-v1` map) and stage backgrounds | `images/field/stage/s<nnn>mask/<ii>.png`, `images/field/stage/s<nnn>bg<nn>/<ii>.png` | 6.2c |
-| A map tile of a field stage (8-bit PNG per 128 px tile) | `z_stage/s<nnn>pack/<RR>_<CC>.png` | 6.2d |
+| The partners' evolutions, blasts and growth | `tables/evolutions.json`, `blast_forms.json`, `level_exp.json`, `vital_cuts.json`, `vital_random.json`, `stat_gains.json`, `resist_gains.json` | 6.5b |
+| The field's encounters: enemies, ambush, battle rate | `tables/field_enemies.json`, `field_encounters.json`, `battle_rates.json` | 6.5b |
+| Cards: prices, shops, packs, effects, prizes, the default deck and opponents | `tables/card_prices.json`, `card_shop_stock.json`, `card_pack_slots.json`, `card_effects.json`, `prize_items.json`, `default_deck.json`, `card_opponents.json` | 6.5b |
+| Gym and inns: trainings, gains, intensity costs and inn prices | `tables/gym_trainings.json`, `gym_stat_gains.json`, `gym_stat_losses.json`, `gym_resist_gains.json`, `gym_hp_mp_gains.json`, `gym_intensity_costs.json`, `inns.json` | 6.5b |
+| Existing Digimon (partners and enemies: stats, techniques, loot), new Digimon with their model and the encounters they appear in | `digimon/d<nnn>/digimon.json` (change), `digimon/<key>/` (new), `content/encounters.json` (content mod) | 6.9 |
+| New partners (name, first form, equipment, evolution list) and new starter teams | `partners/<key>/partner.json` and `content/teams.json` (content mod) | 6.9b |
+| New cards (record, effect, art and name) | `cards/<key>/card.json` and `face.png` (content mod) | 6.10 |
+| Loose images that are not edited by piece yet: logos and title (`TLOGO*`, `TTCOMMPK`), ending (`END__ALL`), country window (`CNTSELWN`), card battle windows (`CARDDATA`), `FIELDCOM` and the world map (`STWMP0`, `STWMP1`) (PNG, `atlas-v1` map) | `images/<folder>/<file>/<NN>_<MM>.png` | 6.2 |
+| Field sprites (one PNG per frame, `sprites-sprite-v1` map) | `sprites/<name>/<EEE>.png` | 6.3 |
+| A card picture (32x32 PNG, 256 colors; 316 cards) | `cards/c<nnn>/face.png` | 6.2b |
+| Stage backgrounds (4 files; one PNG per page) | `images/field/stage/s<nnn>bg<nn>/<ii>.png` | 6.2c |
+| Map objects of a field stage (one PNG per piece) | `stages/s<nnn>/objects/<piece>.png` | 6.2h |
+| A map tile of a field stage (8-bit PNG per 128 px tile) | `stages/s<nnn>/tiles/<RR>_<CC>.png` | 6.2d |
 | The files with no open format yet (collision maps, battle effects, overlays...) as a raw copy to start from | `raw/<disc path without AAA/>` | 6.2e |
+| The 8 original partners and a mod's own (portrait, icon, field sprite and the gym training scene: imported) | `partners/<name>/`, `menus/gym/effects/<training>/` | 6.2f |
+| The game's screens by piece, in their real colors (exported and read back, in the original geometry) | `menus/<screen>/<piece>.png`, `menus/<screen>/menu.json` | 6.2g |
 | **Any disc file**, raw | `files/<disc path without AAA/>` | 6.4 |
 | A game movie (MJPEG AVI with PCM audio) | `video/<NAME>.avi` | 8.1b |
 | A sound effect (one sample of a bank, 16-bit WAV) | `audio/<BANK>/vag_NNN.wav` | 8.1d |
 | A song (16-bit WAV in place of a sequence, with a loop) | `audio/<BANK>/seq_<package>_<record>.wav` | 8.1d |
-| The characters of a field stage (change, add, remove) and their talks, with the mod's own flags; exits, scripted events and area battles | `stages/<nnn>.json` (`stage-patch-v1`) | 6.11 |
-| New field stages (a map drawn with PNGs, collision, exits, battles) | `new-stages/<name>/` (`stage-new-v1`) | 6.11b |
+| The characters of a field stage (change, add, remove) and their talks, with the mod's own flags; exits, scripted events and area battles | `stages/s<nnn>/stage.json` (`stage-patch-v1`) | 6.11 |
+| New field stages (a map drawn with PNGs, collision, exits, battles) | `stages/<name>/` (`stage-new-v1`) | 6.11b |
 
-New sprites for field characters: `mods/<mod>/sprites/<name>/` (`sprite.json` + one PNG per frame), named by a stage patch with `"sprite"` (`docs/stages.md` section 11, in Spanish). Not yet: scripts (Lua, later), and loose XA audio (only inside the movies, 8.1b). See section 10.
+New sprites for field characters: `mods/<mod>/sprites/<name>/` with a name that is not an original's (`sprite.json` + one PNG per frame; the frames of an original go in `sprites/<original name>/<EEE>.png`, 6.3), named by a stage patch with `"sprite"` (`docs/stages.md` section 11, in Spanish). Not yet: scripts (Lua, later), and loose XA audio (only inside the movies, 8.1b). See section 10.
 
 ## 2. Where things live
 
@@ -80,11 +88,34 @@ New sprites for field characters: `mods/<mod>/sprites/<name>/` (`sprite.json` + 
 ```
 <pref>/settings.ini          the player's; its [mods] section sets the order
 <pref>/logs/                 one log per run (the last 10 are kept)
-<pref>/data/                 the port's, generated from YOUR disc; safe to delete, it is rebuilt (tables in data/tables/, original content names in data/content/)
+<pref>/data/                 the port's, generated from YOUR disc; safe to delete, it is rebuilt (the tree, below)
 <pref>/mods/<mod>/           the community's: one folder per mod
 <pref>/saves/default/        your port saves: slot0-2.dw3save (own format, ADR-008) and view/slot<N>.json (read-only view)
 <pref>/import/               PS1 .mcd memory cards to import (imported once, the first time)
 ```
+
+**The `data/` tree** has the same shape as a mod: `data/<topic>/…` is `mods/<mod>/<topic>/…`. An **asset** is a folder (or a single file when it is one medium: a `.avi`
+movie); every topic carries its `manifest.json` (`asset-manifest-v1`, in `data/` only) and every JSON its `"format"`.
+
+```
+<pref>/data/
+  stages/s<nnn>/          stage.json  tiles/  objects/                      an original stage (6.2d, 6.2h, 6.11)
+  cards/c<nnn>/           face.png  card.json                               an original card, c001 to c316 (6.2b)
+  partners/<name>/        partner.json  portrait.png  icon.png  field/  training/   an original partner (6.2f)
+  digimon/d<nnn>/model/   model.gltf  model.bin  model.png  model.json      an original fighter (8.1)
+  sprites/<name>/         sprite.json  <EEE>.png                            a field character (6.3)
+  menus/<screen>/         menu.json  <piece>.png                            a screen by pieces; menus/gym/effects/ (6.2g)
+  images/<folder>/<file>/<NN>_<MM>.png  (+ .json atlas-v1)                  the loose images that remain (6.2)
+  audio/<BANK>/           bank.json  sequences.json  vag_NNN.wav  seq_P_RR.mid   a sound bank (8.1c)
+  video/<NAME>.avi                                                          a movie (8.1b)
+  text/<language>/<file>.json                                               the text (6.1)
+  tables/<table>.json                                                       the tables with the original values (6.5)
+  content/                items.json  techs.json  digimon.json  cards.json  names of the original content (reference only)
+  config/                 stage_banner.json  transitions.json  keys and ranges (3)
+  raw/<disc path, lower case, without AAA/>                                 raw copy of what has no open format (6.2e)
+```
+
+A mod uses the same names (section 3). `raw/` is only the reference copy: in a mod, raw files go in `files/` (6.4).
 
 The **log** is the first place to look: `<pref>/logs/dw3-YYYYMMDD-HHMMSS.log`. Each layer prints one line per mod
 (`[files] override ...`, `[images] override ...`, `[config] ... from ...`, `[mods] ... disabled: ...`) and every rejection
@@ -119,7 +150,7 @@ boot "<disc>.bin" --validate-mods          # the same for every installed mod
 ```
 
 1. `boot --new-mod my-mod` (or `--new-mod my-mod --kind content`; `--kind` takes `assets`, `content` or folder names:
-   `config content tables text images audio video files`, comma separated). It never overwrites an existing mod. A template folder with a
+   `config content tables text images audio video files`, comma separated). It never overwrites an existing mod. The `stages/`, `cards/`, `partners/`, `digimon/`, `sprites/` and `menus/` folders are made by hand (section 3). A template folder with a
    tiny example per kind lives in `pc/examples/mods/_template/`.
 2. A one-line patch: `mods/my-mod/tables/item_prices.json` with
    `{"format": "item_prices-v1", "rows": {"*": {"price": "*0.5"}}}` (everything at half price).
@@ -128,41 +159,89 @@ boot "<disc>.bin" --validate-mods          # the same for every installed mod
    (a mod you have not installed yet).
 4. Play: with `DW3_LOG=mods` the log says `tables: item_prices patched by mods/my-mod (234 rows)`.
 
-What the validator looks at: `mod.json` and the order/dependencies; the `tables/` patches (the same per-row and per-field refusals as in
-the game); `content/*.json`; `config/`; the PNG images (`images/`), the audio, the videos and the tiles (`z_stage/`); and that every file of
-`files/` exists on the disc. It also warns about what the game ignores silently: an unknown `mod.json` key, a folder nobody reads (`table/`
-for `tables/`), a `tables/` or `content/` file with the wrong name, `content/` in a mod whose kind is not `content`. What cannot be
-checked without a running game shows as `skipped ... not checked` (today: the `text/` files, read when each one opens, and the palette of
-the `z_stage/` tiles, compared with the tile while the map loads). `--list-mods` and `--new-mod` need no disc.
+What it checks in each folder, and what it does not, is in section 2d. `--list-mods` and `--new-mod` need no disc.
 
-**JSON Schemas (completion and errors in your editor).** `docs/modding/schema/` has `mod.schema.json`, `items.schema.json`,
-`techs.schema.json`, `digimon.schema.json`, `cards.schema.json` and `table-patch.schema.json`. In VS Code add, at the top of the file,
-`"$schema": "<path to docs/modding/schema/items.schema.json>"` (relative to the file, or `file:///...`); the port ignores that key. The
-schemas come from what the parsers read (keys, types, ranges); each table field's range is in its reference file
+### 2d. Validating a mod
+
+`boot "<disc>.bin" --validate-mod <mod>` (or `--validate-mods`, for all of them) runs the **game's own readers** over the mod without starting it: one line per problem, with the path
+inside the mod. It is an `error` if the game rejects the file, a `warning` if it ignores it silently and `skipped ... not checked` if it cannot be checked. Exit code 0 (no
+errors), 1 (errors) or 2 (no such mod).
+
+| Mod folder | What it checks |
+|---|---|
+| `mod.json` | format, unknown keys, `version`, `port`, `requires`, order and dependencies |
+| `tables/` | that the table exists (with "did you mean") and every row and field, with the same refusals as in the game |
+| `content/` | `items.json`, `techs.json`, `teams.json` and `encounters.json` with their readers; warns about another file name and about a mod that is not `"kind": "content"` |
+| `config/` | the keys and their ranges |
+| `digimon/` | every `digimon.json` (header, `name`, fields, ranges) and `model/model.json`; warns about `d<nnn>/model/` (not read) and about a folder with neither a record nor a model |
+| `partners/` | `partner.json`; `portrait.png` and `icon.png` (size and format), the `field/` frames and every `training.json`; warns about what nobody reads, about a folder that no original or mod declares and about a folder two layers bring (which one wins) |
+| `cards/` | every `card.json` with the game's loader and the size of `face.png`; warns about `c<nnn>` outside `c001`-`c316`, without `face.png` or with a `card.json`, and about a folder with no `card.json` |
+| `stages/` | the `stage.json` patch, new stages, tiles (`tiles/`: format and size against the original) and the pieces of `objects/` (size and name); warns about stray files and about folders no stage uses |
+| `menus/` | the size of every piece; warns about a file no piece is called and about a piece two mods ship |
+| `sprites/` | the `NNN.png` frames of an original and the `sprite.json` of a new sprite; warns about what is not read (a `sprite.json` in an original, a partner's follower) |
+| `images/` | every PNG: size, indexed format and number of colors |
+| `audio/`, `video/` | the WAV and AVI files with the game's readers |
+| `files/` | that every file exists on the disc (needs the disc image) |
+| `text/` | **not checked** (`skipped ... not checked`): the text is read when each file opens; the palette of the tiles is also compared while the map loads |
+
+Any other top-level folder shows as `folder <name>/ is never read` (with a "did you mean" when it looks like a topic); that is what you will see with folders of the previous format
+(section 11). A mod's `tools/` folder (your own scripts) is neither read nor reported.
+
+### 2e. JSON Schemas (completion and errors in your editor)
+
+`docs/modding/schema/` has one schema per format. In VS Code, add `"$schema": "<path to the schema>"` at the top of the file (relative to the file, or `file:///...`); the port
+ignores that key. The schemas come from what the parsers read (keys, types, ranges); each table field's range is in its reference file
 `<pref>/data/tables/<table>.json`.
+
+| Schema | File | Read by the port |
+|---|---|---|
+| [`mod.schema.json`](schema/mod.schema.json) | `mod.json` | yes |
+| [`table-patch.schema.json`](schema/table-patch.schema.json) | `tables/<table>.json` | yes |
+| [`items.schema.json`](schema/items.schema.json), [`techs.schema.json`](schema/techs.schema.json), [`teams.schema.json`](schema/teams.schema.json), [`encounters.schema.json`](schema/encounters.schema.json) | `content/items.json`, `techs.json`, `teams.json`, `encounters.json` | yes |
+| [`digimon.schema.json`](schema/digimon.schema.json) | `digimon/<key>/digimon.json` and `digimon/d<nnn>/digimon.json` | yes |
+| [`partner.schema.json`](schema/partner.schema.json) | `partners/<key>/partner.json` (a new partner) | yes |
+| [`card.schema.json`](schema/card.schema.json) | `cards/<key>/card.json` (a new card) | yes |
+| [`stage-patch.schema.json`](schema/stage-patch.schema.json), [`stage-new.schema.json`](schema/stage-new.schema.json), [`stage-text.schema.json`](schema/stage-text.schema.json) | `stages/s<nnn>/stage.json` (patch), `stages/<key>/stage.json` (new stage), `text/<language>/stages.json` | yes |
+| [`sprite.schema.json`](schema/sprite.schema.json) | `sprites/<name>/sprite.json` (a new sprite's; the exported one is informational) | only a new sprite's |
+| [`manifest.schema.json`](schema/manifest.schema.json) | `data/<topic>/manifest.json` (`asset-manifest-v1`) | in `data/` only |
+| [`stage.schema.json`](schema/stage.schema.json), [`stage-tiles.schema.json`](schema/stage-tiles.schema.json), [`stage-objects.schema.json`](schema/stage-objects.schema.json) | the exported `stages/s<nnn>/stage.json` (`stage-v1`), `tiles/tiles.json` and `objects/objects.json` | no (informational) |
+| [`menu.schema.json`](schema/menu.schema.json) | the exported `menus/<screen>/menu.json` | no (informational) |
+| [`card-export.schema.json`](schema/card-export.schema.json), [`partner-export.schema.json`](schema/partner-export.schema.json), [`partner-training.schema.json`](schema/partner-training.schema.json) | an original's `card.json` and `partner.json`, and every training's `training.json` | no (a mod partner's `training.json` is) |
 
 ## 3. Anatomy of a mod
 
 ```
 my-mod/
   mod.json                              required
-  config/stage_banner.json              only the keys you change
-  config/transitions.json
-  content/items.json, content/techs.json   new content (kind "content")
-  tables/<table>.json                   table patches
-  stages/<nnn>.json                     patch of the characters and talks of one stage (6.11)
-  new-stages/<name>/stage.json          a new stage (6.11b) and its maps: background.png, floor.png, triggers.png, areas.png
-  text/<language>/<file>.json           languages: eng fra ita ger spa es-419
-  images/<folder>/<file>/<NN>_<MM>.png
-  images/field/sprt/<name>/<EEE>.png
-  files/<disc path without AAA/>        e.g. files/dat/z_stage/s330pack.bin
+  config/stage_banner.json              only the keys you change; also config/transitions.json
+  tables/<table>.json                   table patches (6.5)
+  text/<language>/<file>.json           the text; languages: eng fra ita ger spa es-419 (6.1)
+  content/items.json, techs.json, teams.json, encounters.json   new content (kind "content")
+  digimon/d<nnn>/digimon.json           changes an original Digimon (6.9)
+  digimon/<key>/digimon.json            a new Digimon (6.9) and, if it brings its glTF model, digimon/<key>/model/ (8.2)
+  partners/<key>/partner.json           a new partner (6.9b) beside its art: portrait.png, icon.png, field/, training/ (6.2f)
+  partners/<name>/portrait.png ...      an original partner's art (agumon...): only the art is replaced (6.2f)
+  cards/c<nnn>/face.png                 the picture of original card <nnn> (6.2b)
+  cards/<key>/card.json + face.png      a new card (6.10)
+  stages/s<nnn>/stage.json              patch of the characters and talks of one original stage (6.11)
+  stages/s<nnn>/tiles/<RR>_<CC>.png     a map tile (6.2d)
+  stages/s<nnn>/objects/<piece>.png     a piece of the map objects (6.2h)
+  stages/<key>/stage.json               a new stage (6.11b) and its maps: background.png, floor.png, triggers.png, areas.png
+  sprites/<name>/<EEE>.png              a frame of an original sprite (p001play) (6.3)
+  sprites/<name>/sprite.json + PNGs     a new sprite (docs/stages.md section 11)
+  menus/<screen>/<piece>.png            a piece of a screen (6.2g)
+  images/<folder>/<file>/<NN>_<MM>.png  one of the loose images that remain (6.2)
+  files/<disc path without AAA/>        a raw disc file, e.g. files/dat/z_stage/s330pack.bin (6.4)
   video/<NAME>.avi                      a replaced movie (8.1b), e.g. video/MOVIEOPN.avi
   audio/<BANK>/vag_NNN.wav              a replaced sound sample (8.1d), e.g. audio/COMMON/vag_056.wav
   audio/<BANK>/seq_P_RR.wav             a song in place of a sequence (8.1d), with an optional seq_P_RR.json (loop)
 ```
 
-Everything the port writes is **lower case** (`data/images/field/sprt/p001play/...`). When it reads `images/` and `files/`
-(from mods and from `data/`) it ignores case, so a mod written with the disc's upper-case paths
+Same path as in `data/` = **replacement** of that file; a folder with a new name = a **new asset** that is added. What a folder lacks uses the original's file.
+The names `s<nnn>`, `c<nnn>` and `d<nnn>` (a letter and three digits) are **reserved** for the originals: a key of your own is a-z, 0-9, `-` and `_`.
+
+Everything the port writes is **lower case** (`data/sprites/p001play/...`) and in a mod it is best to copy those names as they are: `sprites/`, `cards/` and `digimon/` expect the originals' keys
+in lower case (`p001play`, `c012`, `d383`). When it reads `images/`, `files/` and the tiles it ignores case, so a mod written with the disc's upper-case paths
 (`files/DAT/Z_STAGE/S330PACK.BIN`) works too, on Windows, Linux and Android. New content (items, techniques) goes in
 `content/<kind>.json` and table patches in `tables/<table>.json`.
 
@@ -191,7 +270,7 @@ Everything the port writes is **lower case** (`data/images/field/sprt/p001play/.
 | `format` | yes | always `"mod-v1"` |
 | `name`, `author`, `description` | no | informational |
 | `version` | no | digits and dots (`1.2.0`); `0` when missing. This is what `requires` compares |
-| `kind` | no | `"assets"` (default: replaces resources) or `"content"` (adds or changes data; its rules arrive with phase 2, section 10) |
+| `kind` | no | `"assets"` (default: replaces resources) or `"content"` (adds or changes data: new items, techniques, Digimon, cards and partners) |
 | `port` | no | minimum port version: `">=0.4"`. An older port disables the mod. Operators: `>=` `>` `<=` `<` `=` |
 | `requires` | no | list of mods it depends on, by **folder name**: `"base"` or `"base>=1.2"` |
 
@@ -251,48 +330,48 @@ cp -r my-mod ~/.local/share/dw3port/dw3/mods/          # Linux
 xcopy /E /I my-mod "%APPDATA%\dw3port\dw3\mods\my-mod"  :: Windows
 ```
 
-### 6.2 An image mod (menus and screens)
+### 6.2 An image mod: the loose images (`images/`)
 
-1. Find the image in `<pref>/data/images/<folder>/<file>/<NN>_<MM>.png`. Next to every PNG there is a `<NN>_<MM>.json`
-   (`atlas-v1`) with the pieces of the image; `python3 tools/image_atlas_preview.py <png>` draws them numbered (needs
-   Pillow).
+Almost all the art is edited per asset, in its own folder: the menu screens in `menus/` (6.2g), a stage's tiles and objects in `stages/` (6.2d, 6.2h), the cards in `cards/`
+(6.2b), the field sprites in `sprites/` (6.3) and the partners in `partners/` (6.2f). `images/` holds what still has no pieces: `TLOGO*`, `TTCOMMPK`, `END__ALL`, `CNTSELWN`, `CARDDATA`,
+`FIELDCOM`, the stage backgrounds (6.2c) and, as an exception, the 8-bit pages `STWMP0` and `STWMP1` (their pieces have no PNG, so there is no other way to edit them).
+
+1. Find the image in `<pref>/data/images/<folder>/<file>/<NN>_<MM>.png`. Next to most PNGs there is a `<NN>_<MM>.json` (`atlas-v1`) with the pieces of the image
+   (`tools/image_atlas_preview.py` draws screens by piece, stage objects and sprites, not these images).
 2. Copy it to `my-mod/images/<folder>/<file>/<NN>_<MM>.png` and edit it **keeping**: same width and height, an
    **indexed** PNG (with a palette, not interlaced), at most 16 colors (256 in 8-bit pages), and the palette **order**
    (the PNG's indices replace the game's). Alpha 0 = transparent.
 3. A PNG that breaks the rules is rejected: `images: <path> rejected: <reason>` and the next source is used. Mods are read **once, at
    startup** (an in-memory index of which PNGs each mod has): a change shows after you **restart** the game. To see changes
    with the game open, start it with `DW3_MODS_HOTRELOAD=1` (for modders only: it re-checks the files every second and costs
-   performance with many mods).
-
-Shortcut without an editor (palette only, see section 8): example `pc/examples/mods/menu-frames-gold`.
+   performance with many mods; it does not watch `menus/`).
 
 ### 6.2b An image mod: the card pictures
 
 The card game keeps each card's picture in `CARD/CARDPAK0-4.BIN` (64 cards per file, 60 in the last: 316 in all). The
-port exports them as `<pref>/data/images/card/cardpak<A>/<NN>.png`, with `A` = 0-4 and `NN` = 00-63. Game card number
-`k` (from 1) is `cardpak<(k-1)/64>/<(k-1)%64>`. Each PNG is **32x32**, 8-bit, with **its own 256-color palette** (index 0
-transparent): more freedom than the menus, because every card loads its own palette.
+port exports them as `<pref>/data/cards/c<nnn>/face.png` (plus an informative `card.json` and `cards/manifest.json`), where
+`<nnn>` is the **game's card number** in three digits (`c001` to `c316`): the same `<id>` as `dw3:card/<id>`. The game reads
+it that way (`cardDrawerSetCard`: file `(k-1)/64`, image `(k-1)%64`), so card `k` is image `(k-1)%64` of
+`CARDPAK<(k-1)/64>`. Each PNG is **32x32**, 8-bit, with **its own 256-color palette** (index 0 transparent): more freedom
+than the menus, because every card loads its own palette. It runs at start (`settings.ini`, `[data]`, `export_cards`: `all`
+if the line is missing, `off`, or numbers separated by commas: `export_cards = c012, 40`).
 
-To replace one, copy it to `my-mod/images/card/cardpak<A>/<NN>.png` and edit it under the rules of 6.2 (same size,
+To replace one, copy it to `my-mod/cards/c<nnn>/face.png` (or edit the one in `data/`) under the rules of 6.2 (same size,
 indexed, at most 256 colors, the palette order). The replacement shows in the album, the shop, the deck editor and the
 battle. The 12 bytes before each picture (color, AP, HP, kind...) are not exported: they are game data, not art.
-`CARD/CARDDATA.BIN` (card battle windows and sprites) comes out as `images/card/carddata/00_00.png` and `01_00.png`, with
-its `atlas-v1` map, and is replaced like any other screen. `CARDPACK.BIN` is almost a copy of the five files joined (it
+A `c<nnn>` folder (a `c` and three digits) is **always an original card**: a new card cannot be named that (its key does not
+read `cards/c<nnn>/face.png` as its own art).
+`CARD/CARDDATA.BIN` (card battle windows and sprites, not a card's art) comes out as `images/card/carddata/00_00.png`
+and `01_00.png`, with its `atlas-v1` map, and is replaced like the rest of `images/` (6.2). `CARDPACK.BIN` is almost a copy of the five files joined (it
 differs in 6 of the 316 cards) that the game does not read by number; it is not exported.
 
 ### 6.2c An image mod: field stage art
 
-`FIELD/STAGE/S<nnn>MASK.BIN` (it is not a depth mask) holds the art pages of stage `<nnn>`'s map objects; the port exports
-them as `<pref>/data/images/field/stage/s<nnn>mask/<ii>.png` (page `ii`, 256 tall; 128 wide when 8-bit, 256 when 4-bit),
-each with an `<ii>.json` (`atlas-v1`: the pieces the sheet in `S<nnn>TMPK.BIN` draws from that page). The backgrounds
-`S415BG01/02` and `S815BG01/02` come out as `field/stage/s415bg01/<ii>.png` (128x256, 8-bit, no map).
+A stage's **map objects** (`FIELD/STAGE/S<nnn>MASK.BIN`, which is not a depth mask) are edited by piece in
+`stages/s<nnn>/objects/` (6.2h).
 
-Replace them under the rules of 6.2 (same size, indexed, at most 16 or 256 colors). Notes:
-- A page can mix 4-bit and 8-bit pieces: the PNG is read in the mode most pieces use and the `json` marks the others
-  with `read_as`.
-- The palette of a 4-bit page may live in **another** page or in the CLUT of the file's 8-bit TIM: the PNG shows that
-  palette, but editing its PLTE changes nothing (only the pixels do). Change the palette in the page that holds it.
-- The 34 stages without a usable sheet (many of the 9xx) come out with a grey ramp, not the game's colors.
+The only stage art that is in `images/` are the **backgrounds** `S415BG01/02` and `S815BG01/02` (they are not objects and have no piece sheet): they come out as
+`<pref>/data/images/field/stage/s415bg01/<ii>.png` (128x256, 8-bit, no map) and are replaced under the rules of 6.2 (same size, indexed, at most 256 colors).
 
 ### 6.2d An image mod: the map tiles of a stage
 
@@ -306,19 +385,19 @@ the player walks. They do not take the same path as the rest of the art, so they
   A stage already exported by the same exporter version is **skipped** (the second start does not read the disc again). The menu row
   rebuilds all of them.
 
-Each stage comes out in `<pref>/data/z_stage/s<nnn>pack/`:
+Each stage comes out in `<pref>/data/stages/s<nnn>/tiles/`:
 
 - `<RR>_<CC>.png`: one tile (row `RR`, column `CC`, two digits; tile `n` of the stage is `RR = n / width`, `CC = n % width`). An 8-bit
   indexed PNG (256 colors with the tile's own CLUT; color 0 is transparent), 128 tall and 128 to 256 wide. Empty tiles have no file.
-- `s<nnn>pack.json` (`stage-pack-v1`): the stage's `width` and `height` in tiles, `tileBytes` and, per tile, `frame`, `row`, `col`, `png`,
+- `tiles.json` (`stages-tiles-v1`): the stage's `width` and `height` in tiles, `tileBytes` and, per tile, `frame`, `row`, `col`, `png`,
   `size` (bytes on the disc), `rle` (whether it is packed), `timOffset`, the image's `width`/`height` and `depths`: three lists (one per
   depth) of the `x, y, u, v, w, h` cut-outs the game draws from that PNG. It is reference only: the port does not read it.
-- `manifest.json`: what the port wrote (the usual `.new` rule: a PNG you edited stays and the new one goes beside it as
-  `<RR>_<CC>.png.new`).
+- What the port wrote is in the one `manifest.json` of `stages/` (shared with the stage data and objects; the version is `stage-tiles/s<nnn>` in `exporter`). The usual `.new` rule: a PNG you edited stays and the new one goes beside it as
+  `<RR>_<CC>.png.new`.
 
 Replace them under the rules of 6.2 (same size, indexed PNG, at most 256 colors; a PNG with fewer colors only changes the first ones
-and the rest of the palette stays as on the disc) by putting the file at `mods/<mod>/z_stage/s<nnn>pack/<RR>_<CC>.png` (the last mod
-wins; any letter case); editing the PNG in `data/z_stage/` also works (once it differs from the manifest). A PNG that breaks the rules is
+and the rest of the palette stays as on the disc) by putting the file at `mods/<mod>/stages/s<nnn>/tiles/<RR>_<CC>.png` (the last mod
+wins; any letter case); editing the PNG in `data/stages/s<nnn>/tiles/` also works (once it differs from the manifest, which is read once at start). A PNG that breaks the rules is
 refused with one log line (`images: <path> rejected: <reason>`, once) and the next source is tried. The change shows when the tile is
 loaded (on entering the stage or walking up to it); the files are read at startup: a change shows after a restart (or with `DW3_MODS_HOTRELOAD=1`, which looks again every second). Without a PNG the game is
 identical. Only the image changes: where each cut-out goes is fixed by the disc's tile (moving cut-outs would need another format).
@@ -349,21 +428,108 @@ mod wins, any letter case). Whether the game reads it that way depends on the ki
 Movies and the stage tiles (`Z_STAGE`) do not use this route (they have their own folders, 8.1b and 6.2d). The edit formats of these
 files do not exist yet: treat them as black boxes and replace them with another file of the same layout.
 
+### 6.2f The original partners: one bundle per partner
+
+Each original partner is exported **once and in its real colors** to `<pref>/data/partners/<name>/` (`<name>` is the partner's English name in lower case),
+with no VRAM sheets and no per-screen palettes. It runs at startup, before the window opens (about 6000 small files), and a start that finds everything
+written by the same version does not read the disc. **`portrait.png`, `icon.png` and `field/` are also read back** (see "Editing an original" below and 6.9b);
+`training/` is read back too (below, "A partner's gym"); `menus/gym/effects/` is export only.
+
+- **`settings.ini`:** `[data]` / `export_partners` is `all` when the line is absent, `off` to write nothing, or names separated by commas
+  (`export_partners = agumon, veemon`).
+
+```text
+partners/<name>/
+  partner.json        partners-partner-v1: name, identity (dw3:partner/<n>), first form (dw3:digimon/<n>), what each file is
+  portrait.png        strip 32 pixels high and 32 x N wide (N = 3 or 4 cells), with the partner's own palette; index 0 transparent
+  icon.png            44x28, the memory card icon
+  field/              the field sprite (sprite-v1: <EEE>.png per frame and sprite.json)
+  training/<training>/   the gym scene: <NNN>.png per sprite (real colors) and training.json
+menus/gym/effects/<training>/   the effects all 8 share (same training.json; 10 of the 12 trainings have one)
+```
+
+`portrait.png`: `partner.json` gives the cells, the animation order (there and back, `0 1 2 3 2 1`), where each cell sits in its frame (`offsets`) and which
+sheet frames it comes from. The game draws the same portrait on 7 screens: here it is once. `training/<training>/`: a training has the English name the gym shows
+for it (`punch`, `jump-rope`, ... the *slug* of your disc's text; the disc file, `TRANIN00`..., is named only inside `training.json`); the two trainings that share one file
+(the normal one and its "Super" variant) share a folder, and `partner.json` says which gym rows use it. A sprite is several pieces composed into one PNG (a 16-color palette per piece; if
+the sprite mixes palettes, each takes its own 16 indices); `training.json` gives, per sprite, the PNG's `origin`, and per animation its steps (`frame`, `time`
+in ticks, `x`, `y`). A partner's sprite may use pixels of the shared effect (`effectParts`). Semi-transparency (`semiTransparent`) is noted and `blend` lists the index ranges the game draws blended
+(mode 0 average, 1 add, 2 subtract, 3 a quarter added); the PNG draws them opaque. `paletteBase` (0 or 1) says where its 16-index palettes start. Pieces drawn over each other follow the list order (the last on top). All of it is information: it is regenerated from the disc, and a file you edited
+stays (the new one goes beside it as `<file>.new`).
+
+**Editing an original.** Change `data/partners/<name>/portrait.png`, `icon.png` or a frame of `field/` (or put them in `mods/<mod>/partners/<name>/`: a mod beats `data/`, the last
+mod beats earlier ones, **file by file**; whatever is missing stays as it was). At startup, once, the port reads your portrait and rewrites, in the 7 screens that draw it
+(starter team and confirmation, naming, lab, field menu, gym, battle report and memory card), the cells and **the same palette** in every row they use: there is no
+per-screen palette to keep in step. In `data/` only a file you **changed** counts (its hash is no longer the one in `partners/manifest.json`; the exporter's own file does not).
+Rules for an original's `portrait.png`: 32 high and **exactly the cells it already has** (3 or 4: each replaces the frame at that place of the animation), up to 16 colours
+(with more, the port merges the closest ones down to 16 and warns in the log with the path and the count; the transparent index 0 is kept); `icon.png`: 44x28, likewise. A file
+that does not comply is refused with a `[partners] <path> rejected: <reason>` line and the previous one stays. The frames of `field/` follow the `sprite-v1` rules (6.3).
+
+**A partner's gym.** The gym shows each partner's training scene, a mod's partner too (index >= 8, no PS1 limit of nine). Put a `training.json` and one `<NNN>.png` per sprite in
+`mods/<mod>/partners/<key>/training/<training>/` (`<key>` is its folder; `<training>` is the English name found in `data/partners/<name>/training/`: `punch`, `defense`, `yoga`, `study`,
+`jump-rope`, `heat-tolerance`, `water-tolerance`, `ice-tolerance`, `wind-tolerance`, `thunder-defense`, `missile-defense`, `haunting`): the easy way is to copy an original's folder and edit it. Rules:
+
+- Each training stands alone: a missing one (or one that cannot be built: a `[partners] <path> rejected: <reason>` log line) shows the partner's `base` one (the disc's, or the one you edited for that original),
+  and the log says so once (`partner 8 has no training defense of its own: it shows partner 3's`). A folder counts whole, from the first layer that has it (the last mod beats the earlier ones and `data/`).
+- `training.json` (`partners-training-v1`): `frames` (each with `id`, `image` -- a `.png` or `null` for an empty sprite --, `origin` [x, y] of the PNG relative to the sprite's origin, and optionally `paletteBase`
+  and `blend`) and `animations` (`id` 0..5, `steps` with `frame`, `time` in ticks, `x`, `y`; the last step is held). They are the set's 6 animations, the ones the game asks for by number (`docs/formats.md` 4.12);
+  a missing `id` leaves that number without an animation.
+- Each PNG is indexed (up to 256 colors, 256x256 at most; index 0 or a color with alpha 0 is transparent). If you made it by hand without `paletteBase`, the port deals the visible colors into palettes of 15 in index
+  order; a PNG copied from the exporter keeps its palettes.
+- A set fits **2 pages of 256x256 with 16 palettes each** (what a disc set fits; repeated pieces count once and, if they do not fit whole, tiles of 16 and of 8 pixels are tried). If it does not fit: `rejected` in the
+  log and the partner falls back to its `base`. The shared effects (`menus/gym/effects/`) are still the game's: the effect the game draws separately does not change.
+- An edited **original** works the same: change a file of `data/partners/<name>/training/<training>/` (a folder counts when some file's hash is no longer `partners/manifest.json`'s) or put it in
+  `mods/<mod>/partners/<name>/training/...`. The PNG is the flat composite of the pieces: a semi-transparent piece that covered another blends only with the background.
+- It is built once at startup, with no per-frame cost (about 0.1 s in all for the game's 96 folders when their hashes are checked).
+
+### 6.2g The screens by piece
+
+Every screen of the game is exported **by piece and in its real colors** to `<pref>/data/menus/<screen>/` (`<screen>` is the disc file without its suffix, in lower case: `stmcrd`, `stdglb`...), next to `menus/gym/effects/` and with one single
+`menus/manifest.json`. It runs at startup (about 960 files, 0.7 MB; a start that finds everything written by the same version does not read the disc).
+
+- **`settings.ini`:** `[data]` / `export_menus` is `all` if the line is missing, `off` to write nothing, or screen names separated by commas (`export_menus = stmcrd, stdglb`).
+- Each `<piece>.png` is an indexed PNG of 16 colors (256 for the 8-bit ones) with the palette the game draws that piece with; `menu.json` says where it goes (page, rectangle, palette row) and which frames draw it, with their offset and blend.
+  The full format is in `docs/formats.md` section 7.5b.
+- **Edit a piece:** change the PNG in `data/menus/<screen>/`, or copy the screen (or just the piece) to `mods/<mod>/menus/<screen>/` and edit it there. The game puts each piece **where the disc has it**: in its rectangle of the page and its palette in its CLUT row
+  (`menu.json` says so, but the port takes those positions from the disc, not from the mod's `menu.json`). So:
+  - **Keep the size** of the piece; a PNG of another size is refused with a log line (`menus: <path> rejected: size WxH, the piece is wxh`) and the next layer's file, or the disc's piece, is used.
+  - The PNG's indices are used as they are if it has up to 16 colors (256 for the 8-bit ones). With more colors they are reduced to 16, with a log line. Index 0 and every color the disc leaves as `0x0000` are transparent; the semi-transparency bit (STP) of each color is the disc's.
+  - Pieces that draw the same rectangle with another palette row share its indices, and pieces that share a CLUT position share the palette. If two edited pieces disagree, the later layer (the last mod) wins and the log says so; inside one layer, the first one in `menu.json`.
+  - Only what changes counts: a piece equal to the disc's writes nothing, so copying the whole export into a mod has no effect, and the pixels and the palette of a piece are judged apart.
+  - A piece with `file: null` (those of `stwmp0` and `stwmp1`) has no PNG and stays as on the disc (`images/` edits those two screens, 6.2).
+- **Layers:** the mods from the last to the first, then `data/` (section 5); a `data/` file only counts if you changed it (its hash is no longer `menus/manifest.json`'s). It is read once, when the game first builds that screen's files, and kept in memory;
+  there is no hot reload. Measured on the EU disc: about 20 ms in all for the 15 screens when the hashes of `data/` have to be checked (6 ms without the packer) and about 40 ms with a full copy of the export in a mod; in the game each screen pays only for its own.
+- **By piece only:** the screens that have a piece sheet are edited only here; `stwmp0` and `stwmp1` are the exception and stay in `images/` (6.2) because their pieces have no PNG.
+- **Validating:** `boot <disc> --validate-mod <mod>` builds the plan of each screen: a PNG of another size is an error (`menus/<screen>/<piece>.png rejected: size WxH, the piece is wxh`), a file that no piece is called is a warning (`... ignored: no piece of <screen> is called that`) and so is a piece that two mods ship (`... ignored: the piece is also in mods/<other>, which loads later and wins`).
+- **Example: frames in gold.** Look at `data/menus/<screen>/menu.json` and the PNGs to find the pieces of the frame (for instance in `stshop`, the item shop); copy those pieces to `mods/my-mod/menus/stshop/` and change **only the palette** (the blues to gold) with an editor that keeps the order and the number of colors; the pixels stay the same.
+  Pieces with the same `clut` in `menu.json` share a palette: give them all the same one, or the log reports the disagreement and one wins. At startup the log says `menus: override stshop/<piece>.png (colours) from mods/my-mod`.
+- **Not yet:** moving a piece elsewhere or changing its size (there is no free layout; the game asks for each texture at a fixed VRAM position). The pieces of `stwmp0`/`stwmp1` have no PNG: they are edited through `images/` (6.2).
+
+### 6.2h A stage's objects by piece
+
+The map objects of every stage are exported **by piece and in their real colors** to `<pref>/data/stages/s<nnn>/objects/` (one PNG per piece and an `objects.json`), with the same model as the screens of 6.2g and the `stages/manifest.json` manifest. It runs at startup, after `stages/s<nnn>/stage.json` is written (it takes from there which entry of the `TMPK` is the sheet; it is not always 0). On the EU disc: 8632 PNG and 294 `objects.json` (about 10 MB).
+
+- **`settings.ini`:** `[data]` / `export_stage_objects` is `all` if the line is missing, `off` to write nothing, or stages separated by commas (`export_stage_objects = s202, s920`).
+- A piece is a rectangle with **one** palette; its name is `f<frame>p<slot>.png`; `objects.json` says where it goes (page, rectangle, palette row) and which frames draw it. An 8-bit piece has a `clut.row` of 256 or more: its palette is a row of the CLUT of the `MASK` file's 8-bit image, not a page. Format: `docs/formats.md` section 7.5c.
+- A stage without pieces (11 today, with a sheet that has no frames) has an `objects.json` with `unexported` and the reason. The palette rows an object cycles at run time are not in the disc as data: only the rows the sheet's frames use are exported.
+- **They are read back.** Edit a piece (pixels and colors; same size) and put it in `mods/<mod>/stages/s<nnn>/objects/<piece>.png` (or edit the one in `data/`): when that stage loads, the game writes it back into its original place. The rectangle, mode and palette row come from the sheet on the disc, not from `objects.json` (which is informational). Only what differs from the disc is written, so copying the whole folder changes nothing; each color's STP bit and the `0x0000` (transparent) color come from the disc. A PNG of another size is refused with a log line. Two pieces that share a rectangle or palette and are edited differently: the later layer (the last mod) wins, with one log line naming the stage. A stage with no edited piece costs nothing at load. This is the **only** way to edit a stage's objects.
+- **Validate:** `boot <disc> --validate-mod <mod>` builds the plan of each stage that has edited pieces: a PNG of another size is an error (`stages/s<nnn>/objects/<piece>.png rejected: size WxH, the piece is wxh`); a file that no piece is called (`... ignored: no piece of s<nnn> is called that`) and a piece two mods ship are warnings, and so is a folder of `stages/` that is not `s<nnn>`, that is a stage the disc does not have, or that holds something besides `objects/`, `tiles/` and `stage.json` (`... ignored: ...`). The tiles are checked on their own (format, size against the exported original, `images: <path> rejected: <reason>`; a file that is not `<RR>_<CC>.png` is `ignored`), and so is the stage patch (`[stages] <path> rejected: <reason>`); a file straight in `stages/` is a warning: nothing reads it.
+- **No pieces, no objects.** The 11 stages without pieces (`S376`, `S875`, `S880`, `S885`, `S890`, `S895`, `S970` to `S974`) draw no map object: their `stageObjects` table holds only the terminator (`src/field/stages/`) and their sheet has no frames, so they lose no edit.
+
 ### 6.3 Recolor a field sprite
 
-Each `FIELD/SPRT/<NAME>.BIN` is extracted to one 4-bit PNG per frame plus a `sprite.json` (`sprite-v1`: frames,
-animations, sets and directions). The player in Central Park is `P002PLAY` (and `P001PLAY`). Each `P002PLAY` pose lives in its own file: `P002PLYD`
+Each `FIELD/SPRT/<NAME>.BIN` (except the 8 partner followers, which live in `partners/<name>/field/`) is extracted to `data/sprites/<name>/` (the file name in lower case): one 4-bit PNG per frame (`<EEE>.png`, the frame's entry in the file) plus a `sprite.json` (`sprites-sprite-v1`: frames,
+animations, sets and directions) and `sprites/manifest.json`. To replace a frame put the PNG at `mods/<mod>/sprites/<name>/<EEE>.png`; a folder named like an original only brings its frames (its `sprite.json` is not read), any other name is a new sprite of the mod (`docs/stages.md` section 11, in Spanish). `--validate-mod` reports what is not read. The player in Central Park is `P002PLAY` (and `P001PLAY`). Each `P002PLAY` pose lives in its own file: `P002PLYD`
 (drop, land), `P002PLYF` (gauge minigame), `P002PLYK` (search) and `P002PLYL` (stairs, climbing walls); a mod that
 recolors the player must cover them all (`FIELDSTG_animateActor`, `actor_control.c`).
 
 ```
-cp -r pc/examples/mods/player-recolor ~/.local/share/dw3port/dw3/mods/
-python3 tools/image_mod_palette.py --sprite P001PLAY --sprite P002PLAY --sprite P002PLYD --sprite P002PLYF --sprite P002PLYK --sprite P002PLYL --to 0
+python3 tools/image_mod_palette.py --mod ~/.local/share/dw3port/dw3/mods/my-recolor --sprite p001play --sprite p002play --sprite p002plyd --sprite p002plyf --sprite p002plyk --sprite p002plyl --to 0
 ```
 
-The script changes only each frame's palette (blues to red; `--to 120` green, `--to 45` gold). On Windows it uses
-`%APPDATA%\dw3port\dw3\` by itself, or pass `--data` and `--mod`. Rules: those of the menu art, with **16 colors**.
-`python3 tools/image_atlas_preview.py <data>/images/field/sprt/p002play --set 4 --dir 6 --gif` animates one direction.
+The script changes only each frame's palette (blues to red; `--to 120` green, `--to 45` gold) and writes every PNG at the same path inside the mod (`--mod` picks the folder; by default `<pref>/mods/player-recolor`). On Windows it uses
+`%APPDATA%\dw3port\dw3\` by itself, or pass `--data` and `--mod`. It works the same with one piece (`menus/stshop/f000p00.png`), a folder (`cards/c001`) or a portrait (`partners/<name>/portrait.png`); `--list` shows what is there. Rules: those of the menu art, with **16 colors**.
+`python3 tools/image_atlas_preview.py <data>/sprites/p002play --set 4 --dir 6 --gif` animates one direction.
 
 ### 6.4 Replace a raw disc file
 
@@ -387,9 +553,7 @@ Rules for raw files:
 
 ### 6.5 Data tables (rewards, loot, prices and shops)
 
-Game rules that live in tables are changed with a **patch**: `mods/<mod>/tables/<table>.json`. Four tables are open today,
-`battle_rewards`, `battle_loot`, `item_prices`, `shop_stock`, `weapon_data`, `armor_data`, `accessory_data` and `item_effects`; the others (encounters, Digimon, techniques) will open with the same format
-(ADR-007).
+Game rules that live in tables are changed with a **patch**: `mods/<mod>/tables/<table>.json`. This part covers `battle_rewards`, `battle_loot`, `item_prices`, `shop_stock`, `weapon_data`, `armor_data`, `accessory_data` and `item_effects`; the others (evolutions, growth, encounters, cards, gym) are in 6.5b, all with the same format (ADR-007).
 
 **Reference.** The port writes `<pref>/data/tables/<table>.json` with the **original values of your game**, the keys
 and, under `"notes"`, the range of every field. Use it to read values and copy keys. **Editing it does not change the
@@ -422,7 +586,7 @@ from your disc and never go into a mod you share.
   `tables: battle_rewards patched by mods/a, mods/b (N rows)`. The table is always rebuilt from the original values, so
   applying it again never accumulates. With no mod that has `tables/`, no table is touched.
 - Saved games: changing existing rows is compatible; the memory card does not store tables. This kind of mod is
-  `assets` (it adds no rows or identifiers). New rows come later, for `content` mods only.
+  `assets` (it adds no rows or identifiers). Adding rows is only possible in the tables that say so (id `<mod>:<name>`, a `content` mod).
 
 **`battle_rewards`.** Key: the encounter number (the battle's row), from 0. Fields (range):
 
@@ -436,7 +600,7 @@ The ranges are the caps the game's report applies. The report reads the row when
 **next battle**, without restarting. It is applied on entering the report, after the port restores the overlay's data.
 To see the row and the wallet of each report, set the log to `trace` with the `tables` channel (section 6.6).
 
-Example: `pc/examples/mods/double-rewards` (partner EXP and money x2 in every encounter).
+Minimal example (partner EXP and money x2 in every encounter): `{"format": "battle_rewards-v1", "rows": {"*": {"exp": "*2", "money": "*2"}}}`.
 
 **`battle_loot`.** The loot of each enemy, which lives in the battle table (disc file 463, one record per enemy). Key:
 the **enemy id** (`BattleTableEntry.id`, the first field of the record; not a position). Fields (range):
@@ -460,7 +624,7 @@ A name no installed mod defines (or a new-item number that does not exist) rejec
 row applies. `"*k"`, `"+k"` and `"-k"` on `item` that give a number with no item leave it as it was. The dropped (or stolen)
 item reaches the bag through the same counter as any other and its name shows in the results message.
 
-Example: `pc/examples/mods/generous-loot` (`itemChance` x2 for every enemy); `sample-item` also ships a `battle_loot`.
+Minimal example (`itemChance` x2 for every enemy): `{"format": "battle_loot-v1", "rows": {"*": {"itemChance": "*2"}}}`.
 
 **`item_prices`.** What the shops charge and what they pay. Key: the **item id** (the number the game uses, from 1).
 Fields (range):
@@ -476,7 +640,7 @@ the price is not stored in the save). A patch only changes these two fields of t
 stats, type) is untouched. An item sold for 0 no longer shows in the sell list, and a buy price of 0 is treated by the shop as 1
 when it works out how many you can afford.
 
-Example: `pc/examples/mods/cheap-shops` (`price` x0.5 for every item).
+Minimal example (`price` x0.5 for every item): `{"format": "item_prices-v1", "rows": {"*": {"price": "*0.5"}}}`.
 
 **Equipment and item effects: `weapon_data`, `armor_data`, `accessory_data`, `item_effects`.** What each piece of equipment adds
 and what each usable item does. Four tables of the program, all with the same key: the **item id** (or `"<mod>:<name>"` for an
@@ -567,7 +731,7 @@ on entering the shop mode, after the port restored the overlay's data. Prices ar
 item you add costs what that table says (and changing it changes every shop). It only covers the item shops; the card shop (`card_shop_stock`) has its own table, and the inns
 (`inns`) too.
 
-Example: `pc/examples/mods/shop-extra-item` (shop 0 sells one more item).
+Minimal example (shop 0 sells one more item): `{"format": "shop_stock-v1", "rows": {"0": {"items": {"add": [93]}}}}`.
 
 ### 6.5b The other game tables (equipment, evolutions, growth, the field and the cards)
 
@@ -579,39 +743,58 @@ in `"labels"`); it is only for reading, editing it changes nothing. A row or fie
 
 | Table (`tables/<name>.json`) | Row key | What it changes | When it shows |
 |---|---|---|---|
-| `weapon_data` (E5a) | item id 92-214 (or `<mod>:<name>`) | the weapons' stats: charisma, attack, accuracy, two bonuses, hit effect | when equipping |
-| `armor_data` (E5a) | item id 215-291 | the armour's stats | when equipping |
-| `accessory_data` (E5a) | item id 292-359 | the accessories' bonus and kind | when equipping |
-| `item_effects` (E5a) | usable item id (43-394) | what a usable item does: effect kind and amount | when used |
-| `evolutions` (E5b) | `partner * 100 + entry` (352 rows) | the form each partner learns and its requirements | in the next battle report |
-| `blast_forms` (E5b) | the Digimon id (52 forms) | the form a blast turns into, per level tier | in the next blast |
-| `level_exp` (E5b) | first level of the tier (1, 5, 20, 40) | the EXP each tier of levels asks for | in the next report |
-| `vital_cuts`, `vital_random` (E5b) | first level of the tier; slot 0-8 | the HP and MP a partner gains on a level up | in the next report |
-| `stat_gains`, `resist_gains` (E5b) | first level of the tier (1-80); slot 0-7 | the stats' and resistances' gain per level | in the next report |
-| `field_enemies` (E5c) | row number (0-522) | Digimon, level, HP, MP and strength of the enemies of the field's encounters | in the next field battle |
-| `field_encounters` (E5c) | encounter index (0-334); `"<mod>:<name>"` adds one (T5b) | which enemy rows each encounter uses, the ambush, the kind and the 12 blocks; in a new row, its enemies and rewards | in the next field battle |
-| `battle_rates` (E5c) | rate index (0-5) | how many steps each rate takes off the count to the next random battle | from the next step |
-| `card_prices` (E5d) | card id (the 44 priced cards) | what the card shop charges for each | when the card shop opens |
-| `card_shop_stock` (E5d) | shop number (49-67, 70-74) | the cards each shop sells (a list of ids 1-314 or `"<mod>:<name>"`) | when the buy screen opens |
-| `card_pack_slots` (E5d) | `pack item id * 10 + slot` (35 packs x 6 slots) | the 16 cards each slot draws from when a pack is opened (`card1`..`card16`) | when a pack is opened |
-| `card_effects` (E5d) | card id (1-60) | conditions, message, target kind and step script (`step1`..`step40`) of the first 60 cards | when the card is played in a duel |
-| `prize_items` (E5d) | prize number (0-35) | the item an opponent gives when beaten | when the opponent is loaded |
-| `default_deck` (E5d) | position in the deck (0-39) | the deck you play with when the chosen folder is empty (card id minus one) | when a duel picks the deck |
-| `card_opponents` (U8a) | the duel mode's argument minus one (0-169) | each opponent's 40-card deck, counter cards, level and prize (`CARD_NPC.BIN`) | when the next duel with that opponent starts |
-| `gym_trainings` (E5e) | `gym index * 100 + slot` (14 x 16 slots) | which trainings each gym offers: `id` (1-24), the stat it raises (`stat`) and the second one (`other`) | when the gym opens |
-| `gym_stat_gains` (E5e) | column 0-11: `kind * 6 + bonus try * 3 + intensity` | how much a training raises a battle stat (`base` and `range`) | when the training result shows |
-| `gym_stat_losses` (E5e) | intensity 0-2 | how much a resistance training may take off a battle stat | when the result shows |
-| `gym_resist_gains` (E5e) | `table * 10 + slot` (3 tables x 9) | how much a training raises a resistance (low, middle or high table) | when the result shows |
-| `gym_hp_mp_gains` (E5e) | slot 0-8: `intensity * 3 + tier` | how much a training raises the maximum HP or MP | when the result shows |
-| `gym_intensity_costs` (E5e) | intensity 0-2 | the training points (TP) each intensity costs | when the intensity is chosen |
-| `inns` (E5e) | game mode of the inn, in decimal (21 inns; 522 is the first) | `price` per night and per partner, and `string`, the text of the inn's name | when the inn opens |
+| `weapon_data` | item id 92-214 (or `<mod>:<name>`) | the weapons' stats: charisma, attack, accuracy, two bonuses, hit effect | when equipping |
+| `armor_data` | item id 215-291 | the armour's stats | when equipping |
+| `accessory_data` | item id 292-359 | the accessories' bonus and kind | when equipping |
+| `item_effects` | usable item id (43-394) | what a usable item does: effect kind and amount | when used |
+| `evolutions` | `partner * 100 + entry` (352 rows) | the form each partner learns and its requirements | in the next battle report |
+| `blast_forms` | the Digimon id (52 forms) | the form a blast turns into, per level tier | in the next blast |
+| `level_exp` | first level of the tier (1, 5, 20, 40) | the EXP each tier of levels asks for | in the next report |
+| `vital_cuts`, `vital_random` | first level of the tier; slot 0-8 | the HP and MP a partner gains on a level up | in the next report |
+| `stat_gains`, `resist_gains` | first level of the tier (1-80); slot 0-7 | the stats' and resistances' gain per level | in the next report |
+| `field_enemies` | row number (0-522) | Digimon, level, HP, MP and strength of the enemies of the field's encounters | in the next field battle |
+| `field_encounters` | encounter index (0-334); `"<mod>:<name>"` adds one | which enemy rows each encounter uses, the ambush, the kind and the 12 blocks; in a new row, its enemies and rewards | in the next field battle |
+| `battle_rates` | rate index (0-5) | how many steps each rate takes off the count to the next random battle | from the next step |
+| `card_prices` | card id (the 44 priced cards) | what the card shop charges for each | when the card shop opens |
+| `card_shop_stock` | shop number (49-67, 70-74) | the cards each shop sells (a list of ids 1-314 or `"<mod>:<name>"`) | when the buy screen opens |
+| `card_pack_slots` | `pack item id * 10 + slot` (35 packs x 6 slots) | the 16 cards each slot draws from when a pack is opened (`card1`..`card16`) | when a pack is opened |
+| `card_effects` | card id (1-60) | conditions, message, target kind and step script (`step1`..`step40`) of the first 60 cards | when the card is played in a duel |
+| `prize_items` | prize number (0-35) | the item an opponent gives when beaten | when the opponent is loaded |
+| `default_deck` | position in the deck (0-39) | the deck you play with when the chosen folder is empty (card id minus one) | when a duel picks the deck |
+| `card_opponents` | the duel mode's argument minus one (0-169) | each opponent's 40-card deck, counter cards, level and prize (`CARD_NPC.BIN`) | when the next duel with that opponent starts |
+| `gym_trainings` | `gym index * 100 + slot` (14 x 16 slots) | which trainings each gym offers: `id` (1-24), the stat it raises (`stat`) and the second one (`other`) | when the gym opens |
+| `gym_stat_gains` | column 0-11: `kind * 6 + bonus try * 3 + intensity` | how much a training raises a battle stat (`base` and `range`) | when the training result shows |
+| `gym_stat_losses` | intensity 0-2 | how much a resistance training may take off a battle stat | when the result shows |
+| `gym_resist_gains` | `table * 10 + slot` (3 tables x 9) | how much a training raises a resistance (low, middle or high table) | when the result shows |
+| `gym_hp_mp_gains` | slot 0-8: `intensity * 3 + tier` | how much a training raises the maximum HP or MP | when the result shows |
+| `gym_intensity_costs` | intensity 0-2 | the training points (TP) each intensity costs | when the intensity is chosen |
+| `inns` | game mode of the inn, in decimal (21 inns; 522 is the first) | `price` per night and per partner, and `string`, the text of the inn's name | when the inn opens |
+
+One file per table, minimal (each is the whole file; `"*"` is every row):
+
+```json
+// tables/stat_gains.json: double the stats gained per level
+{"format": "stat_gains-v1", "rows": {"*": {"gain0": "*2", "gain1": "*2", "gain2": "*2", "gain3": "*2", "gain4": "*2", "gain5": "*2", "gain6": "*2", "gain7": "*2", "gain8": "*2"}}}
+// tables/field_enemies.json: rows 71 and 72 become enemy 206 and enemy 32
+{"format": "field_enemies-v1", "rows": {"71": {"fighter": 206}, "72": {"fighter": 32}}}
+// tables/battle_rates.json: random battles come twice as often
+{"format": "battle_rates-v1", "rows": {"1": {"rate": "*2"}, "2": {"rate": "*2"}, "3": {"rate": "*2"}, "4": {"rate": "*2"}, "5": {"rate": "*2"}}}
+// tables/inns.json: every inn at 1 BIT
+{"format": "inns-v1", "rows": {"*": {"price": 1}}}
+// tables/gym_intensity_costs.json: the three gym intensities at half cost
+{"format": "gym_intensity_costs-v1", "rows": {"*": {"cost": "*0.5"}}}
+// tables/weapon_data.json: every weapon with double attack
+{"format": "weapon_data-v1", "rows": {"*": {"atk": "*2"}}}
+// tables/card_opponents.json: every opponent opens with ten copies of card 120, level 99
+{"format": "card_opponents-v1", "rows": {"*": {"card1": 120, "card2": 120, "card3": 120, "card4": 120, "card5": 120, "card6": 120, "card7": 120, "card8": 120, "card9": 120, "card10": 120, "level": 99}}}
+```
 
 Notes:
 
 - The field tables are applied each time the field is entered. `field_encounters` names its enemies by row number of
   `field_enemies`: the rows are shared, so changing a row changes every encounter that uses it. Neither row 0 of `field_enemies`
   nor encounter 0 can change, and an encounter cannot be left with an empty first enemy.
-- **New encounters (T5b).** A row of `tables/field_encounters.json` whose key is a name `"<mod>:<name>"` (the mod's own folder, a colon and a key of `a-z 0-9 - _`)
+- **New encounters.** A row of `tables/field_encounters.json` whose key is a name `"<mod>:<name>"` (the mod's own folder, a colon and a key of `a-z 0-9 - _`)
   **adds** an encounter instead of changing one; the originals are never touched and removing the mod leaves them as they were. It carries its own enemies (it does not share
   `field_enemies` rows) and its rewards:
 
@@ -635,7 +818,7 @@ Notes:
   (`"<mod>:<key>"`); a partner form is rejected.
 - The card tables are applied each time the card shop or the duel is entered. Each reference carries the English card (or item) name in
   `"labels"`. `card_prices` only covers the 44 priced cards of the disc (the shop charges 1 for a card with no row) and its key is the card:
-  a row cannot be made to price another card. The price of a mod's card is not a row: it is the `price` field of its `cards.json` (6.10).
+  a row cannot be made to price another card. The price of a mod's card is not a row: it is the `price` field of its `card.json` (6.10).
   Wherever a card table asks for a card (`card_shop_stock.cards`, `card_pack_slots.card1`..`card16`, `default_deck.card`, `card_opponents.card1`..`card40` and `counter1`..`counter20`)
   it accepts an original id 1-314 or `"<mod>:<name>"` (a card a content mod adds, 6.10); a name no installed mod defines is rejected with a log line
   (`no installed mod defines "..."`) and the field stays as it was. The ids 315 and 316 are not cards and are rejected. `card_shop_stock.cards` is a list (replace `[1, 2]` or `{"add": [...], "remove": [...]}`) of up
@@ -643,7 +826,7 @@ Notes:
 - `card_effects`: `step1`..`step40` are duel step numbers (1-174) and a 0 ends the script, so there must be a 0 among the 40 (otherwise the
   whole row is rejected). Changing a script is advanced: some steps wait for the target `target` gives and others skip the steps after
   them; the port only checks ranges. `default_deck.card` is the card id **minus one**, as the game stores it.
-- `card_opponents` (U8a) comes from the disc file `CARD_NPC.BIN`, not from memory: the patch is applied to the bytes each time the game reads the file (when a duel starts),
+- `card_opponents` comes from the disc file `CARD_NPC.BIN`, not from memory: the patch is applied to the bytes each time the game reads the file (when a duel starts),
   so a file a mod replaces is patched on top as well. The key is the row number (0-169): the duel reads row `argument - 1`, and the field's `CARD_BATTLE` actions set the argument, so one
   NPC can use more than one row. Each row has 40 places of the opponent's deck with `cardN` (id 1-314), `flaggedN` (0 or 1: bit 15 of the card, which the game reads when it picks
   the opponent's answer), `groupN` (1-7: from which round it may draw it; 7 is the reserve kept for last) and `kindN` (0-7: how the computer plays it, it sorts its hand by kind and
@@ -658,9 +841,8 @@ Notes:
   if `base + range - 1` is more than the stat can hold (31768 for stats and resistances, 22768 for maximum HP/MP, 32767 for losses). Several growth values share a table in
   `gym_resist_gains`: changing a row changes all of them. Which table each growth uses is not a table yet. In `inns` the key is the inn's mode and cannot be changed; `string` is an
   entry of the inn text file (0-21), where 1-15 and 21 are names and the rest the menu's texts.
-- The opponents' decks (`CARD_NPC.BIN`) are not a table yet.
-- The battles of each stage (`stageBattles`) are not a table but a section of the stage patch: `stages/<nnn>.json` with `battles` (6.11, `docs/stages.md` section 10, Spanish).
-- The `"encounters"` placements of `content/digimon.json` (section 6.9) are applied after these tables.
+- The battles of each stage (`stageBattles`) are not a table but a section of the stage patch: `stages/s<nnn>/stage.json` with `battles` (6.11, `docs/stages.md` section 10, Spanish).
+- The placements of `content/encounters.json` (section 6.9) are applied after these tables.
 
 ### 6.6 Log
 
@@ -754,7 +936,7 @@ is the mod's own content: the original items are not touched.
 }
 ```
 
-- **Name:** `<mod folder>:<key>` (here `sample-item:test-gadget`). The key uses lowercase letters, digits, `-` and `_`.
+- **Name:** `<mod folder>:<key>` (here `mimod:test-gadget`). The key uses lowercase letters, digits, `-` and `_`.
 - **`base`** (required): an original item (1..402), by its name `"dw3:item/43"` or by its number (`43`). The new item copies its
   type, its menu list and its effect or equipment stats; the fields you declare replace them.
 - **Fields:** `price`, `sellPrice` (0..65535) and `effect` `{ "amount", "kind", "flags" }` (only when the base is a
@@ -775,9 +957,9 @@ is the mod's own content: the original items are not touched.
   (read from your disc at start-up; the file never leaves your folder) and the fields you can change (`price`, `sellPrice`,
   `effect`) with their original values. It is only a reference: editing it changes nothing in the game (if you edit it the port
   leaves it alone and writes the new version beside it, `items.json.new`).
-- **Selling it:** `tables/shop_stock.json` accepts the name in the list: `{ "items": { "add": ["sample-item:test-gadget"] } }`
+- **Selling it:** `tables/shop_stock.json` accepts the name in the list: `{ "items": { "add": ["mimod:test-gadget"] } }`
   (§6.5). A name or number no installed mod defines is rejected. The buy price comes from the item (`price`);
-  another mod can change it with an `item_prices` row keyed by the name (`"sample-item:test-gadget": { "price": 77 }`): it goes on
+  another mod can change it with an `item_prices` row keyed by the name (`"mimod:test-gadget": { "price": 77 }`): it goes on
   the item's record, in the usual mod order; the declaration keeps its price as the default. An unknown name rejects that row with a
   log line and the rest of the patch applies. The `"*"` row only touches the original items.
 - **Removing the mod:** the save stores the item by name. Without the mod it is dropped on load with `[saves] item "..." is
@@ -785,7 +967,6 @@ is the mod's own content: the original items are not touched.
 - **Loot:** `tables/battle_loot.json` accepts the name in `item` (6.5); the enemy drops it, or it is stolen, like any item.
 - **Limit:** the game's item lists have room for about 404 different kinds in the bag at once.
 
-Complete example: `pc/examples/mods/sample-item`.
 
 #### Readable view of a save (read-only)
 
@@ -798,6 +979,8 @@ changes nothing (its `notes` field says so) and it is rewritten on the next save
 
 A mod with `"kind": "content"` can also declare **new techniques** in `content/techs.json` (format `techs-v1`) and make an existing
 Digimon learn them. It is the mod's own content: the original techniques are not touched.
+A technique's **name** stays in English in every language (`"es-419"` the same as `"eng"`), like the original techniques' names
+(Pepper Breath, Grand Wave); its **description** is translated.
 
 ```json
 {
@@ -815,7 +998,7 @@ Digimon learn them. It is the mod's own content: the original techniques are not
 }
 ```
 
-- **Name and number:** like items: `<mod folder>:<key>` (here `sample-tech:spark-strike`). The port hands out numbers from 444 in
+- **Name and number:** like items: `<mod folder>:<key>` (here `mimod:spark-strike`). The port hands out numbers from 444 in
   alphabetical order of the full name; they are not stable across sets of mods, so **do not write them**: saves store the name.
   Limit: a technique number is saved in 13 bits (up to 8191), about 7700 new techniques.
 - **`base`** (required): an original technique (1..443), by its name `"dw3:tech/9"` or by its number (`9`). The new one copies its whole record (`TechData`: cost, power,
@@ -893,33 +1076,39 @@ Digimon learn them. It is the mod's own content: the original techniques are not
   save` and the game carries on. If the mods change and the technique gets another number, the load renumbers it by name.
 - **Readable view:** `view/slot<N>.json` lists the mod techniques the entries hold (`modTechs`: partner, entry, slot, number and name).
 
-Complete example: `pc/examples/mods/sample-tech`.
 
 ### 6.9 Changing existing Digimon and adding new Digimon
 
 What a Digimon is in the game (three tables, ids, model, names, caps): [`docs/digimon-anatomy.md`](../digimon-anatomy.md) (in Spanish).
 
-A content mod can change the **Digimon that already exist** (partner forms and enemies) in `content/digimon.json` (format
-`digimon-v1`), add **new enemies** and **new partner forms**, and place enemies in **encounters** (below). Enemies do not change the
-save format (nothing saved holds an enemy id); new partner forms and techniques of mods are saved by name (6.8 and "New partner forms").
+A Digimon lives in a folder of the mod, `digimon/<name>/` (ADR-016), with its `digimon.json` (format `digimon-digimon-v1`) and, if it has a model of its
+own, its `model/` (8.2). The folder `d<nnn>` (the fighter id on three digits, the same name as the folder the port exports to `data/digimon/d<nnn>/`)
+**changes a Digimon that already exists** (partner forms and enemies); any other folder name is a **new Digimon** (enemy or partner form, below). The
+**encounters** where enemies appear go in `content/encounters.json`. Enemies do not change the save format (nothing saved holds an enemy id); new partner
+forms and techniques of mods are saved by name (6.8 and "New partner forms").
 
 ```json
+// mymod/digimon/d383/digimon.json
 {
-  "format": "digimon-v1",
-  "change": {
-    "dw3:digimon/383": { "partner": { "hp": 180, "stats": { "strength": 60 },
-                                      "skills": { "6": { "tech": "mymod:spark", "level": 1 } } } },
-    "4":               { "enemy":   { "stats": { "defense": 200 }, "item": "dw3:item/45", "itemChance": 1023 } }
-  }
+  "format": "digimon-digimon-v1",
+  "name": "d383",
+  "partner": { "hp": 180, "stats": { "strength": 60 },
+               "skills": { "6": { "tech": "mymod:spark", "level": 1 } } }
+}
+// mymod/digimon/d004/digimon.json
+{
+  "format": "digimon-digimon-v1",
+  "name": "d004",
+  "enemy": { "stats": { "defense": 200 }, "item": "dw3:item/45", "itemChance": 1023 }
 }
 ```
 
-- **Name:** a fighter is `dw3:digimon/<id>` (or the bare number). The id is the fighter's: the `DigimonData` id for partner forms and
+- **Name:** the folder `d<nnn>` is fighter `<nnn>` (`dw3:digimon/<nnn>`; ids 3 to 470, so `d003` to `d470`); `name` is optional and, when there, must be the folder (`$schema` and `notes` are ignored). A `d<nnn>` folder out of range, or with another `name`, is rejected with its line. The id is the fighter's: the `DigimonData` id for partner forms and
   the battle table id for enemies. The two id spaces never overlap, so the id decides the facet (`partner` or `enemy`); using the
   other one is rejected with its line. The reference with all 248 fighters (55 partner forms, 3 of them marked `"placeholder": true`
   because they are empty rows no Digimon uses and cannot be changed, and 193 enemies), their English name (read from your disc,
   never stored in the repo) and the editable fields with their original values is at `<pref>/data/content/digimon.json`
-  (`content-ref-v1`, same manifest and ".new" rule as `items.json` and `techs.json`).
+  (`content-ref-v1`, same manifest and ".new" rule as `items.json` and `techs.json`; it is only the list of names, the port does not read it).
 - **`partner`** (a `DigimonData` row): `hp`, `mp`, `hpGrowth`, `mpGrowth`, `expRate`, `expLevel` (0..255), `family` (only a value some
   original form has: it indexes a game table), `stats` `{strength, defense, spirit, wisdom, speed, charisma}` (0..999, what the form
   adds to its stats), `resistances` `{"0".."6"}` (0..999, the seven elements in game order), `statusResists` `{poison, paralysis,
@@ -940,30 +1129,34 @@ save format (nothing saved holds an enemy id); new partner forms and techniques 
   6.8; for enemies only the technique's own `script` counts).
 - **When it applies:** partner rows are patched in memory at startup; enemy rows are patched on the battle table buffer at every read
   (the change shows in the next battle). If several mods touch the same field, the one later in the mod order wins. `learnedBy` (6.8)
-  also accepts `"dw3:digimon/<id>"` as a key; if `digimon.json` and `learnedBy` give the same slot, `digimon.json` wins.
-- **Coexistence with `battle_loot`:** `digimon.json` content is applied first and the `battle_loot` table (6.5) goes on top, so for an
-  enemy's `item` and `itemChance` `battle_loot` wins; whatever else `digimon.json` changes stays.
+  also accepts `"dw3:digimon/<id>"` as a key; if the `digimon.json` of `d<nnn>` and `learnedBy` give the same slot, the `digimon.json` wins.
+- **Coexistence with `battle_loot`:** the content of the `d<nnn>/digimon.json` files is applied first and the `battle_loot` table (6.5) goes on top, so for an
+  enemy's `item` and `itemChance` `battle_loot` wins; whatever else the `digimon.json` changes stays.
+- **Only the `digimon.json` of `d<nnn>`:** its `model/` is never read, because no mod can replace an original's model (a new Digimon's, yes: 8.2; to start from an original one, `"from": "dw3:model/<id>"`). `--validate-mod` warns about a `d<nnn>/model/`.
 - **Removing the mod:** the game goes back to its values (nothing is stored in the save).
+- **Comparing balance:** `python3 -I tools/balance_compare.py "<disc>.bin" <mod folder> [--level N]` prints, for each partner form the mod defines (a new form, or
+  the `partner` of a `d<nnn>`), HP, MP, HP and MP growth per level, the six stats and each stat's growth column, next to the first form of the eight original partners; then a
+  projection to level N (30 by default: what a partner that keeps that form's growth from level 2 to N would have, with average rolls, by the rules of `STFGTREP_raiseStats`) and
+  each mod form's difference in percent against the mean of the eight. The originals are read from your disc when it runs and everything goes to stdout: do not store or upload
+  the output (9). The projection is for comparing, not predicting: a real game changes form (each form has its own growth) and the rolls vary. A form whose `base` is not a partner
+  form (an enemy) is skipped with one line.
 
-Complete example: `pc/examples/mods/sample-digimon`.
 
-#### New enemies (`"new"`)
+#### New enemies (`digimon/<key>/`)
 
-`digimon.json` can also declare **new enemies** with a `"new"` map, like items and techniques. The enemy is called
+A folder `digimon/<key>/` with a `digimon.json` declares a **new Digimon** (the key is a-z, 0-9, `-`, `_`; `d<nnn>` is reserved for the originals). The enemy is called
 `"<mod folder>:<key>"` and copies the battle table row of an original enemy (`"base"`):
 
 ```json
+// mymod/digimon/sproutmon/digimon.json
 {
-  "format": "digimon-v1",
-  "new": {
-    "sproutmon": {
-      "base": "dw3:digimon/4",
-      "model": "dw3:digimon/25",
-      "name": { "eng": "Sproutmon", "es-419": "Brotemon" },
-      "stats": { "attack": 120, "defense": 40 },
-      "item": "dw3:item/45", "itemChance": 1023
-    }
-  }
+  "format": "digimon-digimon-v1",
+  "name": "sproutmon",
+  "base": "dw3:digimon/4",
+  "model": "dw3:digimon/25",
+  "title": { "eng": "Sproutmon", "es-419": "Brotemon" },
+  "stats": { "attack": 120, "defense": 40 },
+  "item": "dw3:item/45", "itemChance": 1023
 }
 ```
 
@@ -981,13 +1174,15 @@ Complete example: `pc/examples/mods/sample-digimon`.
   `"<mod folder>:<path inside the mod>"` that reads a raw model file of the mod (what `tools/model_import.py` writes) and serves it from
   memory. The face list is empty (no blinking). If something does not resolve, the Digimon keeps sharing its template's row and the log
   says why. Each table keeps room for 63 own enemy rows and 201 own partner rows. The goal is the text form below.
-- **`"model": "<mod folder>:<key>"` (a model with your own art):** a neutral source (glTF + PNG + `model.json`) in `content/models/<key>/` of the same
-  or another mod; the port converts it on load and the Digimon gets its own row with that model, the donor's effects, and the template, height and
+- **`"model": "<mod folder>:<key>"` and the folder's `model/` (a model with your own art):** a neutral source (glTF + PNG + `model.json`) in
+  `digimon/<key>/model/`; if the `digimon.json` has **no** `"model"`, the `model/` of its own folder is its model (the normal case: one folder, one Digimon,
+  its model). With `"model"` the field wins: `"<mod folder>:<other key>"` uses the `model/` of another folder (of the same or another mod) and an original uses none.
+  The port converts it on load and the Digimon gets its own row with that model, the donor's effects, and the template, height and
   distance that the `model.json` says. Full guide: 8.2. `"dw3:model/<id>"` takes the model of an original fighter.
 - **Editable fields:** the `enemy` ones above (`stats`, `resistances`, `statusResists`, `family`, `techs`, `item`, `itemChance`),
   same rules. A technique needs its animation (`script`) in the effects archive of the chosen **model**; otherwise that slot keeps the
   `base`'s technique and the log says so (`its model ... has no script slot N`).
-- **`name` and `description`:** per language (`eng` required; `es-419` -> `spa` -> `eng`), as for items and techniques. The name
+- **`title` and `description`:** per language (`eng` required; `es-419` -> `spa` -> `eng`), as for items and techniques; the text goes in `title` because `name` is the folder's name. The name
   shows in battle through the name file (`DIGNAM`) that the text layer extends; the description is kept, but no screen shows an
   enemy's description yet.
 - **Ids:** deterministic, from **471** (above every original fighter, the highest is 470) in alphabetical order of the full name, **shared with
@@ -1001,28 +1196,26 @@ Complete example: `pc/examples/mods/sample-digimon`.
   (one log line). `battle_loot` (6.5) only knows the original enemies: a new one's loot goes in its own entry.
 - **Saves:** nothing saved holds an enemy id (the save keeps partners, cards, items, flags and progress; the next battle's
   encounter is not saved), so there is no name chunk and removing the mod leaves nothing dangling.
-- A new Digimon cannot be changed with `"change"` (its id depends on the mods): put it in `"new"`.
+- A new Digimon cannot be changed with a `d<nnn>` folder (its id depends on the mods): its fields go in its own `digimon.json`.
 - A new enemy does not appear by itself: place it in an encounter (next section).
 
-#### New partner forms (`"new"` with a partner `base`)
+#### New partner forms (`digimon/<key>/` with a partner `base`)
 
 When `"base"` is an **original partner form** (`"dw3:digimon/383"`; not one of the 3 empty rows) the entry is a new partner form: a
 new `DigimonData` row (a copy of the `base`'s) that the game can look up by id (`GET_DIGIMON`), name and take to battle:
 
 ```json
+// mymod/digimon/emberkote/digimon.json
 {
-  "format": "digimon-v1",
-  "new": {
-    "emberkote": {
-      "base": "dw3:digimon/383",
-      "model": "dw3:digimon/384",
-      "name": { "eng": "Embermon", "es-419": "Brasamon" },
-      "description": { "eng": "A partner form that burns bright." },
-      "hp": 220, "stats": { "strength": 90, "speed": 60 },
-      "skills": { "1": { "tech": "mymod:spark", "level": 1 } },
-      "evolution": { "partner": 0, "needs": [ { "digimon": "dw3:digimon/383", "level": 1 } ], "stat": "level", "value": 3 }
-    }
-  }
+  "format": "digimon-digimon-v1",
+  "name": "emberkote",
+  "base": "dw3:digimon/383",
+  "model": "dw3:digimon/384",
+  "title": { "eng": "Embermon", "es-419": "Brasamon" },
+  "description": { "eng": "A partner form that burns bright." },
+  "hp": 220, "stats": { "strength": 90, "speed": 60 },
+  "skills": { "1": { "tech": "mymod:spark", "level": 1 } },
+  "evolution": { "partner": 0, "needs": [ { "digimon": "dw3:digimon/383", "level": 1 } ], "stat": "level", "value": 3 }
 }
 ```
 
@@ -1046,7 +1239,7 @@ new `DigimonData` row (a copy of the `base`'s) that the game can look up by id (
   a fallback. `DIGINF` (the lab's description) gets the same entry with `description`.
 - **Ids:** the same as the new enemies' (above): one alphabetical list of every new Digimon from 471. A new form also takes a row
   of the Digimon table (row 55 on, in id order). `pairPartner` and `blastForms` keep
-  row + 1 in 16 bits (the port holds them apart from the disc's `u8`, U9), so a new form can be their value and rows go past 254 (up to
+  row + 1 in 16 bits (the port holds them apart from the disc's `u8`), so a new form can be their value and rows go past 254 (up to
   4096; `blast_forms` and `evolutions` accept any row that exists).
 - **How it is obtained (`"evolution"`):** after a battle the game checks each partner's evolution list in the report
   (`STFGTREP_learnDigimon`): the first form of the list that the partner does not have yet and whose requirements it meets is given to
@@ -1064,7 +1257,9 @@ new `DigimonData` row (a copy of the `base`'s) that the game can look up by id (
   status screen and the lab read the same accessor), fights with its stats, techniques and model when it is the active form and **is
   obtained in normal play** through `"evolution"`. To test without playing that far, the test harness has
   `DW3_SEED_PARTNER="<partner>.<entry>=<mod>:<key>[@<level>][/<slot>],..."`, which puts the form in a partner's entry and picks it as
-  the partner's battle form (the entry may be above 43: see the next item).
+  the partner's battle form (the entry may be above 43: see the next item). `@<level>` is the **form's** level; the partner's own is set by
+  `DW3_SEED_PARTNER_LEVEL="<partner>=<level>,..."` (2..98): it raises the stats level by level with the game's growth and leaves exactly the exp of the next level, so one won battle levels it up and teaches the form that waits
+  (once per run). `pc/review.sh betamon|seadramon|betamonpesca` use it to try `betamon-pack` with the real thresholds.
 - **More than 44 forms per partner:** `PartnerStats.entries[44]` lives in the saved `GAME` block. The first 44 entries stay there, as in
   the original; the following ones live in the port's own store, per partner, up to **256 entries in all** (a safety limit, not a
   design one; the lab, the report and the game's lookup use the current capacity). The lab (entry list, form change, recipe table) and
@@ -1082,15 +1277,18 @@ new `DigimonData` row (a copy of the `base`'s) that the game can look up by id (
   each case leaves a `[saves]` line. A picked form or the battle form that loses its mod becomes its original form only when the
   partner has it among the first 44 entries (the block's remap does not look at the `EXTP` ones), else 0.
 
-#### Where they appear (`"encounters"`)
+#### Where they appear (`content/encounters.json`)
 
-`"encounters"` places enemies (original or new, by name) in the game's **encounters** (the 335 rows of `FIELDSTG_encounters`;
+`content/encounters.json` (format `encounters-v1`) places enemies (original or new, by name) in the game's **encounters** (the 335 rows of `FIELDSTG_encounters`;
 `BATTLE_SETUP.battle` is that index, which also indexes `battle_rewards`):
 
 ```json
-"encounters": {
-  "34": { "2": { "enemy": "mymod:sproutmon", "level": 3, "hp": 60, "mp": 10, "strength": 16 } },
-  "35": { "1": { "enemy": "dw3:digimon/4", "level": 5, "hp": 90 } }
+{
+  "format": "encounters-v1",
+  "encounters": {
+    "34": { "2": { "enemy": "mymod:sproutmon", "level": 3, "hp": 60, "mp": 10, "strength": 16 } },
+    "35": { "1": { "enemy": "dw3:digimon/4", "level": 5, "hp": 90 } }
+  }
 }
 ```
 
@@ -1110,39 +1308,178 @@ new `DigimonData` row (a copy of the `base`'s) that the game can look up by id (
 - Values the original game already checks (like a story boss's `hp` or level) are not watched: a story encounter with a different
   enemy can change the fight in ways the script does not expect.
 
-Complete example: `pc/examples/mods/sample-enemy`.
+### 6.9b New partners and starter teams
+
+A **new** partner (a ninth, tenth... beside the game's eight) is declared by a content mod with one folder per partner, `partners/<key>/`: its `partner.json` (format
+`partners-partner-v1`, schema `schema/partner.schema.json`) is the registry record and its art goes beside it (6.2f). The game walks every mod's `partners/` once at startup;
+a folder with no `partner.json` is not a partner (it may be art only).
+A new **starter team** stays in `content/teams.json` (`teams-v1`, `schema/teams.schema.json`). Design: `docs/decisions/ADR-015-partner-registry.md` and, for the folder,
+`ADR-016-asset-layout.md` (Spanish). The partner's first form is a form of a `digimon/<key>/` folder (6.9) or an original one; its model, techniques and form name are declared there.
+Example files are in the Spanish guide (6.9b); the fields are:
+
+- **Header.** `"format": "partners-partner-v1"` (required) and `"name"` (optional; when present it is the folder's name, the key; `"$schema"` and `"notes"` are ignored). The other members
+  are the partner's fields, in the same object. The folder of an **original** (`agumon`, `gabumon`...: the lower-case English name of `data/partners/<name>/`) is **not** a new partner:
+  only its art is read there (6.2f) and its `partner.json`, if any, is not. The `partner.json` the game exports for an original (`<pref>/data/partners/<name>/partner.json`, the same format
+  name) is descriptive and never read: it carries `disc`, `portrait`, `icon`, `field`, `training` and a plain-text `title`, which a mod's `partner.json` does not use (if you copy it to make a
+  new one, change the folder's key and rewrite `title` as a per-language object). No file ever patched an original partner (`base` only gives art and equipment): a mod cannot change its record from here.
+- **Names and numbers.** `"<mod folder>:<key>"` (key: a-z, 0-9, `-`, `_`, up to 48; its folder's name). Its number in the game is **8 plus its place in the alphabetical order**
+  of all declared partners (a team: **3 plus** its place); the same mods always give the same numbers, which are never saved (a save keeps the name,
+  ADR-014). The original eight are `dw3:partner/<0..7>`. Safety limit: 256 partners.
+- **`base`** (required): an original partner (`0..7` or `"dw3:partner/<n>"`): its 2D art stands in for the new one until it has its own, and its bit of every item's
+  `partners` mask is the default equipment eligibility. **`firstForm`** (required): the form it starts as (an original `"dw3:digimon/<id>"` or a form of a `digimon/<key>/` folder);
+  HP, MP, stats, resistances and growth come from that row. A form that does not resolve rejects the whole partner.
+- **`title`** (required, `eng`) and **`description`** (optional), per language: the partner's name in the game (battle HUD, status, lab) and the starter screen's text
+  (`\n` between lines). They are extra entries of the `NAMEET` text file (31 entries on the disc).
+- **`equip`**: `like` (the original partner whose mask bit it reads), `allow` / `deny` (items by number, `"dw3:item/<id>"` or `"<mod>:<key>"`; deny wins). **`equipSet`**:
+  four items worn together and six bonuses (-999..999). The items' `partners` mask (0-255, §6.5b) only has a bit for each original partner.
+- **Its own art is in the same folder, `mods/<mod>/partners/<key>/`**, beside `partner.json` (`<key>` is what follows the colon in `"<mod>:<key>"`; there are **no** `art`, `icon` or `sprite` fields any more: such a
+  field is refused as unknown). The files are looked up through the asset layers (mods from the last to the first, then `data/`), one by one, and a missing one uses `base`'s.
+  `portrait.png`: an indexed PNG **32 high and 32 x N wide** (N = 1..8 cells, up to 16 colours, index 0 transparent; with more colours they are reduced to 16 with a warning): the portrait on every
+  screen that shows partners (starter team and confirmation, naming, lab, field menu, gym, battle report, memory card details); the animation walks the cells back and forth. `icon.png`: an indexed PNG of
+  **exactly 44x28**, up to 16 colours, index 0 transparent: the icon of the memory card list. `field/`: a `sprite-v1` sprite (6.3, `docs/stages.md` 11; `sprite.json` + one PNG per frame): the
+  character the partner **follows the player as in the field**. An invalid PNG keeps `base`'s with a `[partners]` line. `training/<training>/` is the partner's gym (6.2f, "A partner's gym"). Follower sprite template (measured in the decomp, `docs/formats.md` 4.12): **sets** `1` (stand), `5` (run) and `6` (stop, plays
+  once) are the only ones a follower asks for (a missing one falls back to the first in the list); **directions** are 5 (0 down, 1 down-left, 2 left, 3 up-left, 4 up; the
+  right-hand ones are mirrored by the game), and a set may name a single animation for all 5. **Frames** of any size up to 256x224 (16 colours, index 0 transparent); the port
+  gives the sprite a band slot sized for its largest frame (the game's own followers use 32 px wide and at most 64 high). Each step's `x`, `y` is the frame's offset from
+  the actor's feet (for example `-width/2`, `-height`). Optional `actor_width` (8..256). Minimal example: a `sprite.json` with 2 frames, 3 animations (stand, looping run,
+  stop with `"loop": false`) and sets `1`, `5`, `6`.
+- **`evolution`**: the forms it can learn after a battle: `digimon`, `needs` (up to 2 `{digimon, level}`), `stat`, `value`; same rules as a Digimon's `"evolution"` in its `digimon.json`.
+  A new partner has no original 44-entry list, only its own.
+- **Teams**: `partners` are exactly **three** different partners by name (originals allowed); `base` (`0..2`) is optional; `name`/`description` are the team's title and text.
+  The selection screen shows **any number** of teams: the three originals (A, B, C) and the mods' (D, E, ..., in the alphabetical order of their full name
+  `<mod>:<key>`). It shows up to six rows at a time (the three originals alone look as they always did); only with more than six teams does the column scroll with up/down and a bar in the left margin says where it is. A new
+  partner's portrait is its `base`'s until it has its own art. In tests `DW3_STARTER_SET=<number>` or `DW3_STARTER_SET=<mod>:<key>` picks the team `setParty` gives where it
+  used to give 0 (a `warp:` or `mode:` with no game yet). `GameState.partySet` keeps the team the game began with; only the event conditions compare it (`partner` op 0,
+  against 0..2 on the disc). A save keeps a mod's team **by name** (a `TEAM` section): loaded with other mods it is still the same team; if its mod is gone it reads as "no
+  team" (`-1`, which no disc condition equals) and the save still loads.
+- **When.** Mods are read **once at startup** (after the `digimon/` folders and `items.json`, before any save) and served from memory. A new partner gets a new game's starting data
+  (also when a loaded save did not hold it). Removing the mod: the save still loads, the partner is dropped with `[saves]` lines (ADR-014).
+- **Unlocking a partner with a mission.** A partner that is not in the chosen starter team is obtained like the originals: a talk (or an event) with the "unlock" action and the "still locked" condition.
+  They are two rows of `tables/special_conditions.json` whose `arg` is the partner's **name** (`"<mod>:<key>"`, or `"dw3:partner/<n>"` for an original), not its number (a new partner's number depends on which mods
+  are installed and moves). The port resolves it once, when the table is read; a name no mod defines rejects the field (`row "<row>" field "arg" rejected: no installed mod defines "<name>"`, which `--validate-mod`
+  shows) and the row never runs with a substitute value: an original row keeps its `arg`, and a mod's new row is not created (its name stays undefined, like an unknown condition).
+  ```json
+  { "format": "special_conditions-v1", "rows": {
+      "mymod:bee-free": { "primitive": 1, "op": 6, "arg": "mymod:bee" },
+      "mymod:give-bee": { "primitive": 1, "op": 3, "arg": "mymod:bee" } } }
+  ```
+  and in the stage's `stage.json`, the talk of the character who hands it over:
+  `{"text": "mymod:bee-arrives", "conditions": [["special", "mymod:bee-free", 1]], "actions": [["special", "mymod:give-bee", 1]]}` followed by a talk with no conditions for when the player already has it.
+  The unlocked state is saved **by name** with the rest of the partner's data (`PTNR` section, ADR-014): adding or removing mods before loading does not change who was unlocked. Op 9 ("all eight are
+  unlocked") still counts only the eight originals, because it is the disc's story logic (the extra chapter); op 7 ("every unlocked partner is level 45") does look at unlocked mod partners.
+- **Validation.** One `[partners]`/`[teams]` log line per rejection (`--validate-mod <folder>` shows them, from the game's own loader): a `partner.json` that is not JSON, has another `format` or a `name` that is not
+  the folder's, an invalid key, a `base` that is not an original, a `title` with no `eng`, a `firstForm` that does not resolve, an unknown field, an item or form that does not exist. It also warns about a
+  `partner.json` in a mod that is not `"kind": "content"` and a `partner.json` inside an original's folder (`never read`). The rest of `partners/<key>/` is checked too: the art with the game's own readers (`partners/<key>/portrait.png rejected: ...`, `icon.png`, `field rejected: frame N: ...`,
+  `training/<training>/training.json rejected: ...`, one line per file, with the path inside the mod), plus warnings for a file or folder nobody reads (`partners/<key>/notes.txt is ignored (a partner's folder holds partner.json, portrait.png, icon.png, field/ and training/)`, with a "did you mean" when it looks like one of those names),
+  a new partner's `field/` without `sprite.json`, a `training/<name>` that is no training or has no `training.json`, a folder that is neither an original's nor declared by a `partner.json` of an active content mod (`partners/<key> is ignored: ...`) and a shared folder:
+  `partners/<key>/ is shared by mods/b, mods/a, data/ (edited): mods/b wins (...)`, one line per key (on the report of the mod that wins; with `--validate-mod` of a single mod, on the report of every mod that shares it). A bad file in the losing layer is not read, so it does not show up: the game skips it.
+  Sharing is not an error (an assets mod may give art to another mod's partner), but those files shadow each other file by file.
+- **Art and model:** a new partner reuses its `base`'s 2D art until it brings its own (6.2f); its own 3D model is 8.2c and its balance is compared with `tools/balance_compare.py` (6.9).
+
+#### Making a partner pack (example: `pc/examples/mods/betamon-pack`)
+
+A complete pack is a content mod with these pieces; `betamon-pack` has all of them and is the template to copy (change the key of each folder and the names):
+
+1. **The forms** (`digimon/<form>/digimon.json`, one folder per form): `"base"` is an original partner form (it gives HP, stats, techniques and growth by default) and `"model"` as an object takes the model of a disc enemy **by reference**, copying
+   nothing from the disc: `{"from": "dw3:digimon/148", "model": "dw3:digimon/10", "motions": "dw3:digimon/10", "effects": "dw3:digimon/374"}`. `"from"` is the partner template (12 cameras): pick one of a **similar size** to the model (a big serpent with a small
+   Digimon's template sits on top of the camera; `betamon-pack` uses Renamon for Betamon and Imperialdramon for Seadramon and MegaSeadramon). The numbers come from `<pref>/data/content/digimon.json` (the list the game writes from your disc): Betamon is `dw3:digimon/4`,
+   Seadramon `10` and MegaSeadramon `61`. With a borrowed model the motion slots are the enemy's, and the extra ones a partner asks for (13, 20, 32) are not in that file: an empty slot makes the game read garbage (`getArchiveEntry` does not check bounds). So
+   `--validate-mod` warns about each slot the battle plays that the file leaves empty (the same `motion slot N (...) has no animation` line as a baked model), and the `"model"` object accepts `"fill": <slot 0..61>`: the port builds a copy of the
+   motions file (a virtual file, the disc is untouched) where **every** empty slot plays that donor slot; `betamon-pack` uses `"fill": 14` (the generic attack). Without `"fill"` the empty slots stay and the warning stays; if the `"fill"` slot is also empty in the donor it is rejected with one line.
+   If you want animations of your own for those slots, bake a model of your own (8.2c). A partner form with motions by reference always gets its own copy of the file, where the motions that the enemy leaves "hanging"
+   (the last step is `0x8000`, which loops the tail for ever: the attack `14` of Betamon, Seadramon and MegaSeadramon) end: a partner's script waits for each motion to finish (`battle_script.c:168`) and hung at the first attack.
+   The idle (0, 1) and the entrance and victory pose (12) keep holding.
+   **The effects: the donor.** A technique's animation is the script in slot `script` of the effects archive **of the fighter that casts it**, not of the technique; the visual effects and sounds are global. An enemy's effects archives only
+   have slots 0-5 and their scripts use enemy-side coordinates (that is why Seadramon's attack with its own enemy archive animated against itself, and a technique of another slot had no animation). So `betamon-pack` takes `"effects"` from a **related
+   original partner form**, the donor, and gives it the techniques that donor's archive animates (the donor's own are preferred, made for that archive): Betamon (starting stage) with Renamon `373`, Seadramon with Kyubimon `374` and MegaSeadramon
+   with Taomon `375` (an ice and lightning chain; the model, the motions and the water techniques stay the enemy's and the series'). The enemy's own techniques (`225`, `252`, `291`, all script 5) have no name and are not fit as they are for a partner
+   (they cost 0 MP): `content/techs.json` clones them with a name, cost and power of their own (`base` is the original) and the form's script 5 (the normal attack's and these techniques') is the **enemy's own**, mirrored to the partner side with `"scripts"` (next paragraph); the starting stage's signature (`skills.6`, `spark-bubble`) is a clone of the enemy's technique 225.
+   **Scripts of its own: `"scripts"`.** The `"model"` object accepts `"scripts": {"<slot 0..17>": {"from": "dw3:digimon/<id>", "slot": <0..17>}}`: that slot of the form's effects archive (the `"effects"` donor's) becomes another original fighter's script.
+   The port builds a copy of the effects file (a virtual file, the disc is untouched) with those slots replaced; the rest stay the donor's. When the `"from"` fighter is of the **other side** (an enemy for a partner form, or the reverse), the script is converted to the
+   form's side: the model type, the positions, the turns and the cameras by id are mirrored, and positions on the caster's half follow its place (height and distance of the form's row); the design and the commands are in `docs/formats.md` section 4.6 point 5c. The same side is copied as it is.
+   `betamon-pack` takes script 5 of Betamon (`4`), Seadramon (`10`) and MegaSeadramon (`61`) this way: Seadramon's water bubble and Betamon's and MegaSeadramon's lightning leave the form toward the enemy with the game's own choreography and cameras, in the normal attack and in the cloned
+   technique (`spark-bubble`, `tidal-arrow`, `thunder-justice`, all script 5). `--validate-mod` gives one error line per entry that cannot be honored, and that slot stays the donor's: a slot the row does not have (`unknown slot`), an empty slot in the source fighter
+   (`has no script in slot N`) and a command that cannot be mirrored (a camera with a view of its own, or camera 4). Scripts 6 and 8, which the code uses **instead of 5** with an action effect, a weapon of the foe's family or the triple hit (`techs.c:50-103`), are not touched (the pack leaves
+   them the donor's: in those rare cases the form animates like the donor); to keep the choreography there too, repeat the entry with the slots 6 and 8 (`"6": {"from": ..., "slot": 5}`), knowing that an enemy's script does not read the action's effect.
+   A starting stage only uses its slot 6 (`tech_menu.c`: the form that is the partner's base row lists only `skills[6]`).
+2. **The partner** (`partners/<key>/partner.json`): `"base"` (an original partner: its art and its equipment bit until you have your own), `"firstForm"` (the first form, above), `title`/`description` per language and `"evolution"`: one entry per form
+   it learns, with its requirements (`needs`: the previous form at a given form level, and `stat`/`value`: for example `"level"` >= 10, the partner's level). It is learned **after a battle** in which the partner earned experience (the report panel says so),
+   one form per report. The values of `betamon-pack` are of the order of the original list's (which asks for partner level 5, 15, 20 or 40 and form level 5 to 99).
+3. **The art** (`partners/<key>/portrait.png`, `icon.png`, `field/`, `training/`: 6.2f and 6.9b). `betamon-pack/tools/make_art.py` generates it from SpriteKiln models (an art tool only: the port does not depend on it; see "2D art with SpriteKiln" below); whoever prefers to draw by hand overwrites the PNGs one by one without touching the JSON.
+4. **The starter team** (`content/teams.json`): three partners by name; it shows up as one more row of the choice screen.
+5. **How to get it without choosing that team** (`stages/s330/stage.json`, `tables/special_conditions.json`, `tables/field_encounters.json`, `content/items.json`): a **DDNA quest**, shaped like the game's own (`wstag375`/`wstag450` Veemon, `wstag405` Agumon, `wstag420` Guilmon, `wstag330` Patamon and Renamon; the P16 record of the pack has the citations). The original pattern: (a) a giver character shows up in a **story window** (a progress-range row, primitive 3) and only asks for the quest while the **sum of the party's levels** is inside a window (primitive 1, op 5: reaches `arg * 15 + 30`; the originals use 30-59, 45-74 or 60-89; outside it a "I'm busy" line plays); (b) asking sets a flag; (c) a Digimon appears while the flag is set and the DDNA is not yours, and talking to it starts an **event battle** (`kind` 2, no running away) against its most advanced stage; (d) winning gives the DDNA (a `content/items.json` item whose `base` is an original DDNA, `dw3:item/35`, with the item-received signal); (e) the giver, seeing the DDNA with the partner still locked, unlocks it (the op 3 row) **without taking the DDNA**. In the mod: the fisher is `fisher` and the Digimon `river-digimon` (its own `sprite`), the windows are three rows (`story-window`, `levels-min`, `levels-max`), the flag is `["mod-flag", "betamon-pack:quest", 1]`, the battle is `["start-battle", "betamon-pack:megaseadramon", 1, <music>]` and the result is read with `["mod-flag", "dw3:battle-won/betamon-pack/megaseadramon", 1]`. Two differences from the original: actors are evaluated when the stage is made, so the request line ends with `["warp", 330, x, y, dir]` to the same stage for the Digimon to show up (the original changes stage); and there is no scene before the battle nor an event that hands the DDNA over on return (a second talk with the Digimon gives it).
+6. **Balance:** `python3 -I tools/balance_compare.py "<disc>.bin" pc/examples/mods/betamon-pack --level 30` prints each form against the eight originals; in `betamon-pack` every stat of every form is inside the range of the originals
+   (adjust `hp`, `stats` and `statGrowth` in each `digimon.json` until it is).
+7. **Test:** `boot "<disc>.bin" --validate-mod <mod>` (0 errors); to see the form in battle without playing up to the evolution, `DW3_STARTER_SET=<mod>:<team>`, `DW3_SEED_PARTNER="<n>.0=<mod>:<form>@20/0"` and `DW3_BATTLE_ENEMY=63` (6.9, "What a new form does today"). To play it: `pc/review.sh betamon` (first evolution), `seadramon` (second) and `betamonpesca` (the fisher), with its own copy of the pack and separate saves.
+
+#### 2D art with SpriteKiln (optional)
+
+[SpriteKiln](https://github.com/LucasJRamos/spritekiln) (MIT) is a local Python tool (numpy, Pillow and PyYAML; no GPU) that describes a character as a YAML model and renders it to pixel art in several directions and animations. It is a convenient way to make the 2D art of a partner (portrait, icon, field sprite, gym) or of a stage character without drawing frame by frame. **It is optional**: the port only reads PNGs and JSON; pixel art drawn by hand or with any other program works just the same, and SpriteKiln is never needed to play or to validate a mod.
+
+Install (once, pinned to the version the example uses, in a separate environment):
+
+```
+python3 -m venv ~/.cache/spritekiln-venv
+~/.cache/spritekiln-venv/bin/pip install spritekiln==0.3.0
+```
+
+Workflow, with `betamon-pack` as the example:
+
+1. The model is a YAML file in `tools/specs/` (`betamon.yaml`: body, head, legs and crest as shapes, ramps per material, animations by channels). The other YAML files in that folder extend it and only change the camera, the size and the poses: `betamon_portrait.yaml`, `betamon_icon.yaml`, `betamon_field.yaml`, `betamon_train.yaml` and `megaseadramon_river.yaml` (the river stage sprite).
+2. `~/.cache/spritekiln-venv/bin/python pc/examples/mods/betamon-pack/tools/make_art.py` renders, trims every frame, merges the colours down to 15 plus transparent and writes the indexed PNGs and the JSON (`sprite-v1`, `partners-training-v1`) at the exact sizes the game asks for. It is deterministic: two runs give the same bytes (`tools/test_make_art.py`).
+3. To change the art, edit the YAML (or the camera of that view) and run it again; `--validate-mod` confirms sizes and colours.
+
+What we learned doing it: (a) the field sprite must have a footprint like the original followers' (about 20-26 x 23-31 px): lower it with `camera.scale` in the field YAML, not in the model; (b) parts and channels with an `_L` suffix mirror to `_R` by themselves; (c) channel expressions are Python-like (`sin(p)`, `abs(...)`, comparisons such as `(f==1)`), not C-like: no `||`; (d) a portrait is cells 32 px high and the icon is 44x28: `make_art.py` fails with a message when the model does not fit, then raise `camera.scale`; (e) `spritekiln validate <yaml>` checks a model before rendering. Do not run `spritekiln update` (it changes the pinned version).
 
 ### 6.10 New content: cards
 
-A `"kind": "content"` mod can add **new cards** with `content/cards.json` (format `cards-v1`, the same `"new"` map as items). The card is
-named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabetical order of the full name, and that number is never saved
-(a save stores the name: section `EXTK`). Complete example: `pc/examples/mods/sample-card`.
+A `"kind": "content"` mod adds **new cards** with one folder per card, `cards/<key>/`: a `card.json` (format `cards-card-v1`) and, for art of its own, a `face.png`. The game
+walks every mod's `cards/` once at startup; a folder with no `card.json` is not a card. The card is named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabetical order of the full name, and that number is never saved
+(a save stores the name: section `EXTK`).
 
+```json
+// mymod/cards/test-card/card.json (+ mymod/cards/test-card/face.png, optional)
+{
+  "format": "cards-card-v1",
+  "base": "dw3:card/120",
+  "ap": 45, "hp": 40, "rank": 100, "price": 120,
+  "title": { "eng": "Test Card", "es-419": "Carta de ejemplo" },
+  "description": { "eng": "A new card from a mod." }
+}
+```
+
+- Header: `"format": "cards-card-v1"` (required) and `"name"` (optional; when present it is the folder's name, the key; `"$schema"` and `"notes"` are ignored). The other members
+  are the card's fields, in the same object. A `c<nnn>` folder is **not** a new card (see Art). The `card.json` the game exports for an original card
+  (`<pref>/data/cards/c<nnn>/card.json`, the same format name) is descriptive and never read: it carries `id`, `number` and `disc`, which a mod's `card.json` does not use.
+  A mod cannot change an original card's record from `cards/c<nnn>/card.json` (the game has no such patch; prices, shops, packs and effects are changed with the tables, 6.5b).
 - `"base"` (required): an original card (1..314), by name (`"dw3:card/120"`) or number; its record (colour, AP, HP, kind, points, level, rank and
   combo card) and, for cards 1..60 (the option cards), its effect are copied. The original names are in `<pref>/data/content/cards.json`
-  (`content-ref-v1`, written by the game from your disc).
+  (`content-ref-v1`, written by the game from your disc; it stays because the exported `card.json` carries no names or records).
 - Fields: `color` 1..6, `ap` and `hp` 0..99, `kind` 0..16 (1..14 option, 16 Digimon), `points` 0..99, `level` 0..9, `rank` 0..999, `comboCard` 0..314. A value out of
   range is rejected with a log line and the card keeps its base's.
 - `"effect"` (option cards): `{ "like": 1..60, "condition", "playCondition", "message", "target": 0..255, "script": [steps 1..174, up to 39] }`. `like` goes first and
   the other fields modify it; an invalid `script` is rejected whole. The game has 175 effect steps; new steps cannot be created.
-- `"name"` (with `eng`) and `"description"` (the effect text, in `CARDST`) per language, like items.
-- **Art:** `<mod>/card/<key>.png`, an indexed 32x32 PNG with up to 256 colours (the transparent index stays transparent, opaque black is written 0x8000); without a file the card
-  uses its base's art.
+- `"title"` (the card's name, with `eng`) and `"description"` (the effect text, in `CARDST`) per language, like an item's name and description. It is called `title`
+  because `name` is the header (the folder).
+- **Art:** `<mod>/cards/<key>/face.png` beside its `card.json`, an indexed 32x32 PNG with up to 256 colours (the transparent index stays transparent, opaque black is written 0x8000); without a file the card
+  uses its base's art. A `c<nnn>` folder is an original card's (6.2b), never a new card: only its `face.png` is read there, and its `card.json`, if any, is not.
+  `--validate-mod` checks every `card.json` with the game's own loader (header, `name`, required and unknown fields, valid key, ranges and the size of `face.png`: one line per case)
+  and warns about a `cards/` folder with no `card.json` (that is not `c<nnn>`), a `card.json` in a mod that is not `"kind": "content"`, a `card.json` inside `c<nnn>`, a `c<nnn>` outside
+  `c001`-`c316`, a `c<nnn>` with no `face.png` and a stray file in `cards/`.
 - **Where it shows:** the album grows (ids 315 and 316 appear as empty slots between the original and the new cards), the deck editor lists them once you own them, and the
   battle draws and plays them with their record and effect. Cards in decks and in the collection are saved by name; removing the mod drops the card when the save loads (line
   `[saves] card "..." is not defined by any installed mod`) and its place in a deck goes back to the starter deck's card.
-- **Price and shops (U8c):** `"price"` (0-32767, 1 when missing) is what the card shop charges for one copy. To sell it, a table of the same mod lists it by name:
+- **Price and shops:** `"price"` (0-32767, 1 when missing) is what the card shop charges for one copy. To sell it, a table of the same mod lists it by name:
   `tables/card_shop_stock.json` (`{"49": {"cards": {"add": ["my-mod:my-card"]}}}`), and to draw it from packs `tables/card_pack_slots.json` (`{"910": {"card1": "my-mod:my-card"}}`);
   `tables/card_opponents.json` and `tables/default_deck.json` put it in an opponent's deck or the default deck. The shop draws the card with its art, name and price.
-  See `pc/examples/mods/sample-card`.
 - **Limits:** up to 707 new cards (ids < 1024). The original ids 315 and 316 are not playable cards: no table accepts them and the album shows them as two empty slots
   (the same as any unseen card), so the album without mods looks identical and with mods the new cards start at slot 317.
-- The validator (`--validate-mod`) checks `cards.json` with the same rules and `docs/modding/schema/cards.schema.json` gives the editor completion.
+- The validator (`--validate-mod`) checks every `card.json` with the same rules and `docs/modding/schema/card.schema.json` gives the editor completion.
 
 ### 6.11 Characters and talks of a stage
 
-`stages/<nnn>.json` (`<nnn>` is the stage number, the one of `data/stages/<nnn>.json`) changes, adds or removes the characters of a field stage and what each one says. The format is
-`stage-patch-v1`; the details (fields, order, conflicts, what is skipped) are in `docs/stages.md` section 7 (Spanish) and the schema is `docs/modding/schema/stage-patch.schema.json`. Example: `pc/examples/mods/stage-npc`.
+`stages/s<nnn>/stage.json` (`s<nnn>` is the stage, the same path as the reference `stage-v1` copy in `data/stages/s<nnn>/stage.json`; the patch keeps its `stage-patch-v1` header) changes, adds or removes the characters of a field stage and what each one says. The format is
+`stage-patch-v1`; the details (fields, order, conflicts, what is skipped) are in `docs/stages.md` section 7 (Spanish) and the schema is `docs/modding/schema/stage-patch.schema.json`. Example: `pc/examples/mods/training-field`.
 
 ```json
 {
@@ -1157,7 +1494,7 @@ named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabet
 }
 ```
 
-- A character is named by its `index` in the stage's list (see it in `data/stages/<nnn>.json`, which the game writes from your disc) or by the key of one a patch added (`"<mod>:<key>"`).
+- A character is named by its `index` in the stage's list (see it in `data/stages/s<nnn>/stage.json`, which the game writes from your disc) or by the key of one a patch added (`"<mod>:<key>"`).
 - `patch` changes fields (`character`, `image`, `x`, `y`, `dir`, `conditions`, `talks`, `prependTalks`); `add` creates new characters (reuse a `character` and an `image` the stage already has); `remove` takes them out.
 - A talk is `{"entry": N, "conditions": [...], "actions": [...]}`: `entry` is a line of the stage's own text (or `"text": "<mod>:<name>"`, a text of the mod's own, see below), the first talk whose conditions hold is the one said, and the
   last one has no conditions. Conditions and actions use the vocabulary of `docs/stages.md` section 4: `["flag", "1A:1F", 1]`, `["item", "dw3:item/18", 1]`...
@@ -1170,19 +1507,26 @@ named `<mod folder>:<key>`; the port gives it an id from 317 up, in the alphabet
   name shows the English one, es-419 tries Spanish first): `{"format": "stage-text-v1", "texts": {"welcome": "..."}}`. The port appends the line to the stage's text and fits it to the talk box. Details and schema: `docs/stages.md` section 8 (Spanish), `docs/modding/schema/stage-text.schema.json`.
 - **Conditions of your own:** a new row in `tables/special_conditions.json` keyed `"<mod>:<name>"` (see `docs/data-tables.md` section 3.9) is used as `["special", "<mod>:<name>", 1]`; the money, progress-range and party-threshold tables are patchable too.
 - **New actions:** `["give-money", 500]`, `["take-money", 500]`, `["set-progress", 12]`, `["warp", 380, 1186, 874, 3]` (stage, x, y, direction) and `["sound", "teleport"]` (`docs/stages.md` section 9). Giving or taking a mod's item was already possible: `["item", "<mod>:<name>", 1]`.
+- **The item-received signal (rewards and quests).** The original plays no music and shows no extra message when it hands something over: its signal is the **icon that follows the player** (the "satellite", field task `0x16`), which
+  flashes with the item-obtained sound. A talk asks for it with the action `["special", "0x13", 1]` (special condition `0x13`, which the game calls `showActorIcon`), and it goes **last** in the action list, after the item, the money and the
+  flags: actions run when the text closes, so the flash comes when the reward is already given. Example (the one in `training-field`):
+  `"actions": [["give-money", 300], ["item", "dw3:item/47", 1], ["set-var", "mymod:quest", 2], ["special", "0x13", 1]]`. Nothing else: do not add `["sound", ...]` or other music to signal a reward, the original does not.
+  In an event script (`events`) the same flash is `["command", 813, 842, 2]` (command 842, `0x34A`, is "icon substate 3"; `["command", 813, 824, 2]` is substate 1, which also sounds, and `813, 825` is 2, which does not). There is no
+  alias under another name: these are the game's own numbers. It works in a patched original stage (`stages/s330/stage.json`) and in a new one (`stages/<name>/`). The icon exists only in stages whose
+  `fallback.stage` is before the new-game start (`MODE_NEW_GAME`, mode `0x2D7`: stage 330 works, stage 880 does not); without it the signal does nothing and leaves a `[field]` line in the log (it used to crash the game).
 - Several mods can patch the same stage: they apply in load order and the last one wins (the log says which field was overridden). An `index` that does not exist at the current story progress is skipped with a log
   line. With no patch the stage is identical to the original. `--validate-mod` checks the file.
 - **Exits, events and battles** (`docs/stages.md` section 10, Spanish): besides `actors`, the file may hold `slots`, `events` and `battles`.
   - `slots` (`patch` by `index` or `key`, `add`, `remove`): an exit has `type`, `arg`, `x`, `y`, `dir` and conditions; `"stage": 380` points the exit at that stage and `"event": "<mod>:<name>"` at an event. A new exit carries `"area": {"x", "y", "w", "h"}`, a rectangle of the map in pixels where it fires (this is the original stage's map: it is patched, not redrawn; for a map of your own use 6.11b).
   - `events` (`patch` by `id`, `add` with a key): `script` with the game's commands (`["wait", 20]`, `["talk", 0, "<mod>:<text>", 0, 4]`, `["walk", ...]`, `["leave", ...]`, always ending in `["end"]`). A talk or an exit starts it: `["run-event", "<mod>:<name>"]`. A new event has no C code.
-  - `battles` (`patch`, `add`): per map area, `rate`, and per battle `encounter` (a row of `field_encounters`), `stage` (the fight stage) and `music`; look at `battles` in `data/stages/<nnn>.json`. The action `["start-battle", encounter, fight_stage, music]` starts one from a talk.
+  - `battles` (`patch`, `add`): per map area, `rate`, and per battle `encounter` (a row of `field_encounters`), `stage` (the fight stage) and `music`; look at `battles` in `data/stages/s<nnn>/stage.json`. The action `["start-battle", encounter, fight_stage, music]` starts one from a talk.
 
 ### 6.11b Your first new stage
 
-`new-stages/<name>/` adds a whole field stage: a map you draw, its collision, its exits and its battles. The format is `stage-new-v1`; the detail (every field, every refusal, what was tested and what was not) is in `docs/stages.md` section 13 (Spanish) and the schema in `docs/modding/schema/stage-new.schema.json`. The stage is called `<mod>:<name>` (the folder's name) and that is how exits of other stages (`"stage": "<mod>:<name>"`) and the `warp` action name it.
+`stages/<name>/` adds a whole field stage: a map you draw, its collision, its exits and its battles. The format is `stage-new-v1`; the detail (every field, every refusal, what was tested and what was not) is in `docs/stages.md` section 13 (Spanish) and the schema in `docs/modding/schema/stage-new.schema.json`. The stage is called `<mod>:<name>` (the folder's name) and that is how exits of other stages (`"stage": "<mod>:<name>"`) and the `warp` action name it.
 
 ```
-new-stages/yard/
+stages/yard/
   stage.json       the header and the sections (like a stage-patch-v1, "add" only)
   background.png   the map's picture: indexed PNG (up to 256 colours), width and height multiples of 128 px, at most 255 tiles of 128 x 128
   floor.png        collision (required): the same size, one pixel per pixel of the map, the PNG's index is the value: 0 closed, 1 flat, 2-7 and 16-23 slopes
@@ -1210,7 +1554,7 @@ new-stages/yard/
 
 **Step by step** (the complete working example is `pc/examples/mods/training-field`; copy its layout):
 
-1. **Folder:** `mods/my-mod/new-stages/yard/` with `stage.json`, `background.png` and `floor.png` (the other two PNGs are optional). The mod needs its `mod.json` like any other (§4).
+1. **Folder:** `mods/my-mod/stages/yard/` with `stage.json`, `background.png` and `floor.png` (the other two PNGs are optional). The mod needs its `mod.json` like any other (§4).
 2. **Art:** an indexed `background.png` whose width and height are multiples of 128 (for example 1024 x 768 = 48 tiles; at most 255 tiles). With too many distinct blocks the stage is refused with the codec's reason.
 3. **Layers** (same size as the background, one layer pixel per map pixel; the value is the **index** of the indexed PNG, not the color):
    - `floor.png`: 0 closed (cannot walk), 1 open and flat, 2-7 slopes and 16-23 mirrored slopes (`docs/formats.md` 4.3). Any other value is refused.
@@ -1218,7 +1562,7 @@ new-stages/yard/
    - `areas.png`: 0 no battles; `n` is the n-th entry of `battles.add` (from 1).
 4. **Header:** `start` (required, inside the map and on walkable floor), `fallback`, `soundBank` and `music`, as in the example above.
 5. **Encounters of your own:** in `tables/field_encounters.json` add `<mod>:<name>` rows with their enemies and rewards (6.5b) and name them in `battles.add` (`"encounter": "my-mod:meadow"`). That way no original zone changes.
-6. **The entry:** a character on a game stage (`stages/330.json`, 6.11) whose talk has a `conditions` entry (for example `["item", "dw3:item/9", 1]`) and the action `["warp", "my-mod:yard", x, y, dir]`. The way back is a `slots.add` entry with `"stage": 330` and its `x`, `y`.
+6. **The entry:** a character on a game stage (`stages/s330/stage.json`, 6.11) whose talk has a `conditions` entry (for example `["item", "dw3:item/9", 1]`) and the action `["warp", "my-mod:yard", x, y, dir]`. The way back is a `slots.add` entry with `"stage": 330` and its `x`, `y`.
 7. **Check:** `boot "<disc>.bin" --validate-mod my-mod` must end with `ok` and exit code 0 (2c). Maps are read once at startup: restart the game after each change.
 
 **Common errors** (each one shows up as `[stages] <file> rejected: <reason>` and the stage is refused whole; the game never hangs):
@@ -1271,40 +1615,19 @@ Two mechanics of the game that your stage (new or patched) can fill with **your*
 
 ## 7. Examples
 
-25 example mods in `pc/examples/mods/`, at least one per type, all switched off when installed: `pc/examples/install_examples.sh [--only tables|content|media]
-[user folder]` copies them, generates what needs your `data/` (nothing from the game is in the repository) and adds them to `[mods] disabled`. Each has a
-`README.txt` saying what changes and where to see it; the install guide (Windows, Android, groups) is in `pc/examples/README.md`.
+Three complete mods and a template folder in `pc/examples/mods/`, all switched off when installed: `pc/examples/install_examples.sh [--only training-field|sample-model|betamon-pack]
+[user folder]` copies them and adds them to `[mods] disabled` (nothing is generated from your disc: all the art is original). Each has a `README.txt` saying what
+changes and where to see it; the install guide (Windows, Android) is in `pc/examples/README.md`. Everything else is explained with a minimal snippet in its own
+section (tables 6.5 and 6.5b, items 6.7, techniques 6.8, Digimon 6.9, cards 6.10, images 6.2 and 6.3, audio 8.1d, video 8.1b).
 
-| Mod | Type | What changes | Where to see it |
-|---|---|---|---|
-| `cheap-shops` | table | buy prices halved (`item_prices`) | item shop 0, BUY list |
-| `double-rewards` | table | EXP and money x2 (`battle_rewards`) | results screen of any battle |
-| `generous-loot` | table | loot chance x2 (`battle_loot`) | results of a battle (the item shows up) |
-| `shop-extra-item` | table | one more item in shop 0 (`shop_stock`) | shop 0, BUY, page 2 |
-| `fast-growth` | table (E5b) | double stats per level (`stat_gains`) | level up in a battle, then Status |
-| `field-encounters` | tables (E5c) | the two first Central Park enemies swap places and battles come twice as often (`field_enemies`, `battle_rates`) | walk in Central Park (stage 330) |
-| `gym-inn-prices` | tables (E5e) | inns at 1 BIT and half the gym intensity cost (`inns`, `gym_intensity_costs`) | talk to the innkeeper; train in the gym |
-| `card-rival-deck` | table (U8a) | every rival opens with ten copies of one card (`card_opponents`) | any card duel |
-| `strong-weapons` | table (E5a) | weapons with double attack (`weapon_data`) | item shop 0: select a weapon and the Details button (circle) |
-| `text-upper-items` | text | item names in capitals (made from your texts) | shop lists, bag and item menu |
-| `menu-frames-gold` | image (menu) | shop frames in gold (palette only; generated) | item shop |
-| `player-recolor` | field sprites | the protagonist's blue clothes turn red (generated) | walk in any field stage |
-| `stage-tiles` | stage tiles (E6b) | the Central Park map in purple (made from your `S330` export) | walk in Central Park |
-| `stage-objects` | stage objects (E6a) | the objects of stage 233 in purple (generated) | stage 233: the big screen over the platform |
-| `stage-npc` | stage characters (S4-S7) | a Central Park character moves next to the start and a new one appears that greets with a text of its own, gives 100 BIT once and changes the second time (the mod's own flag) | Central Park (stage 330), next to the start point |
-| `training-field` | new stages (T6) | two new floors (original art, made by `tools/make_art.py`) and a guide beside Leomon in Central Park; with the Seiryu Badge it takes you to the lower floor (new encounters of level 8 to 11); stairs lead up to the upper floor (13 to 16); an exit leads back to the park | Central Park (330), beside Leomon: talk to the guide (with and without the Seiryu Badge); walk in the grass |
-| `sfx-beep` | audio: effect (E3c) | sample 50 of the COMMON bank replaced by a synthetic beep | field menu (Start): the cursor sound |
-| `song-title-chime` | audio: song (E3d) | the title music replaced by a synthetic looping chime | title screen |
-| `video-bars` | video (E2b) | the opening movie replaced by synthetic colour bars | when the game starts, before the title |
-| `sample-item` | content | a new item, Test Gadget, sold in shop 0 and dropped by every enemy | shop 0 and after any battle |
-| `sample-tech` | content | a new technique learned by base form 3 | battle Tech menu |
-| `sample-card` | content | a new card with its own art: shop 49, booster 91 and a rival | card shop 49, album |
-| `sample-digimon` | content | changes the starting partner and an enemy and adds a new form | stats in battle, and the lab |
-| `sample-enemy` | content | a new enemy in two Central Park encounters | Central Park battles |
-| `sample-model` | content | an enemy with its own 3D model (a robot of boxes) | Central Park battles |
+| Mod | What it teaches | Where to see it |
+|---|---|---|
+| `training-field` | new stages (`stages/<name>/`: art, layers, exits, encounters, fishing, trees, a duel, a quest), a patch of a game stage (`stages/s330/stage.json`), a new sprite (`sprites/sign/`), new encounters (`tables/field_encounters.json`) and texts per language (`text/<language>/stages.json`); a `tools/` folder with the art generator | Central Park (330), beside Leomon: talk to the guide (with and without the Seiryu Badge); walk in the grass of the floors |
+| `sample-model` | a new enemy Digimon with a 3D model of its own (`digimon/boxbot/`: `digimon.json` and `model/` with glTF, PNG and `model.json`) and its place in two encounters (`content/encounters.json`), and a partner form with a model of its own (`digimon/boxpal/`, 8.2c) | Central Park random battles (encounters 34 and 35) |
+| `betamon-pack` | a new partner with three forms, a fourth starter team, a DDNA quest that unlocks it and art rendered from SpriteKiln models (6.9b, "Making a partner pack") | starter team screen (team D); Central Park (330), at the bottom where you arrive: the fisher (story progress 14-38 and the party's levels adding up to 45-74) and the river serpent |
+| `_template` | a minimal file of every mod type (what `--new-mod` copies) | not installed |
 
-`sample-enemy`, `sample-model` and `field-encounters` touch the same encounters: enable them one at a time. There is no raw-file example (E7, 6.4): there is no
-safe, visible change that does not mean editing undocumented bytes.
+No raw-file example (6.4): there is no safe, visible change without editing undocumented bytes.
 
 ## 8. Tools
 
@@ -1312,32 +1635,33 @@ safe, visible change that does not mean editing undocumented bytes.
 |---|---|
 | `tools/file_names.py "<disc>.bin"` | file number, sector and disc path (TSV on standard output) |
 | `tools/extract_disc.py "<disc>.bin" <out>` | extracts every disc file keeping paths |
-| `tools/image_atlas_preview.py <png or folder>` | draws pieces (`atlas-v1`) or frames and animations (`sprite-v1`); needs Pillow |
-| `tools/image_mod_palette.py` | makes an image mod changing **only the palette** (`--list`, `--to`, `--sprite`) |
+| `tools/image_atlas_preview.py <folder>` | draws the pieces of a screen (`menu.json`) or of a stage's objects (`objects.json`) over their pages, or the frames and animations of a sprite (`sprite.json`; `--anim`, `--set`, `--dir`, `--gif`); needs Pillow |
+| `tools/image_mod_palette.py` | makes an image mod changing **only the palette** of exported PNGs (`--list`, `--to`, `--sprite`; paths under `<data>` such as `menus/stshop`, `cards/c001`, `partners/<name>/portrait.png`) |
+| `tools/asset_dupes.py <data>` | duplicate report for an exported folder: repeated files and pixels, sheets, text (paths and counts only, `--json`); needs Pillow |
 | `tools/techcompat.py "<disc>.bin"` | which fighter can animate which technique (animation slots; `--json`, `--fighters`); reads your disc, stores no game data |
+| `tools/balance_compare.py "<disc>.bin" <mod>` | HP, MP, stats and growth of the mod's partner forms next to the eight originals and a projection to level N (`--level`); reads your disc, stores no game data |
 | `tools/model_export.py "<disc>.bin" <fighter> <out>` | exports a battle model to glTF 2.0 with skeleton and animations (`--all`, `--no-animations`, `--source`; the game does this by itself: see 8.1) |
 | `tools/model_import.py <source>.json --out <mod>` | turns glTF + PNG + metadata (`model-src-v1`) into a new battle model; to check a source or bake outside the game, since the port bakes it at load (see 8.2) |
 
 ### 8.1 Exporting a battle model to glTF
 
-**From the game (the normal way).** The port exports the original models from **your** disc to `data/models/<id>/` (in the user folder), one per fighter
-(`383` is Kotemon, the same number as `"dw3:digimon/<id>"`), four files each: `model.gltf` + `model.bin` + `model.png` + `model.json`. That is exactly the
-**neutral source of 8.2**: copy the folder unchanged to `mymod/content/models/<key>/` and it is a mod model (`model.json` carries the motion slots, the effects
+**From the game (the normal way).** The port exports the original models from **your** disc to `data/digimon/d<nnn>/model/` (in the user folder), one per fighter
+(`d383` is Kotemon: the number of `"dw3:digimon/<id>"` on three digits), four files each: `model.gltf` + `model.bin` + `model.png` + `model.json`. That is exactly the
+**neutral source of 8.2**: copy the `model/` folder unchanged to `mymod/digimon/<key>/model/` and it is the model of a mod's Digimon (`model.json` carries the motion slots, the effects
 donor and the template of that same fighter, and the height and distance of its `FighterInfo`). It is only done when you ask (all 248 are about 200 MB and
 take about 8 s):
 
 - **Menu:** *Options > System > Prepare modding files* (2b) exports all of them (no confirmation; the row's value shows `Models 12/248`). The game
   keeps running at full frame rate: it runs on a worker thread (built and written there; the game thread only hands it the disc files), a second press while it runs does nothing, and quitting in the middle stops it between two models (files are written atomically).
 - **`settings.ini`:** `[data]` / `export_models = all` or `export_models = 383, 12` exports them at start, before the window opens. A model already exported
-  with the same exporter version and with its four files in `data/models/<id>/` is **skipped without building it** (the
+  with the same exporter version and with its four files in `data/digimon/d<nnn>/model/` is **skipped without building it** (the
   first start takes about 8 s for all; later starts, nothing). An edited file counts as present and is not touched. To
-  redo one, delete its folder; the *Prepare modding files* button does not rebuild what is up to date. A `manifest.json` from an older
-  port (without the exporter version) is redone once.
-- **The `.new` rule** (like the rest of `data/`): `data/models/manifest.json` remembers what the port wrote. A file you edited is **kept** and the fresh one goes
+  redo one, delete its folder; the *Prepare modding files* button does not rebuild what is up to date.
+- **The `.new` rule** (like the rest of `data/`): `data/digimon/manifest.json` remembers what the port wrote (and, in `names`, which fighter each folder is: `"d012": "dw3:digimon/12"`). A file you edited is **kept** and the fresh one goes
   beside it as `<file>.new`; an untouched one is replaced.
-- **`data/content/digimon.json`** names each fighter's folder (`"model": "models/<id>/"`), exported yet or not.
+- **`data/content/digimon.json`** names each fighter's folder (`"model": "digimon/d<nnn>/model/"`), exported yet or not.
 - **Blender scale:** the glTF comes out at **1 m = 1000 game units** (Kotemon, 1886 tall, is about 1.9 m) and `model.json` says `"scale": 1000`: the importer undoes it by itself.
-  No manual scaling in Blender any more (it used to be `S 0.0025`); for a new model work in metres and set `"fitHeight"` (or `"scale"`) in `model.json` for the height you want in the game.
+  No manual scaling is needed in Blender; for a new model work in metres and set `"fitHeight"` (or `"scale"`) in `model.json` for the height you want in the game.
 - It is the same code as `tools/model_export.py --source` (portable C; only the menu's job thread uses SDL threads): the `.gltf`, `.bin` and `.json` are **byte for byte equal** and the PNG has the same pixels
   (checked by `pc/modeltest.c`; the PNG's deflate stream is the port's own). Limit: each motion's loop is in the animation's `extras`, not in `model.json`.
   To avoid copying the exported folder: `"from": "dw3:model/<id>"` in the mod's `model.json` (8.2).
@@ -1347,7 +1671,7 @@ take about 8 s):
 ```
 python3 -I tools/model_export.py "<disc>.bin" 383 out/ --source    # out/383/model.gltf ... model.json, at Blender scale
 python3 -I tools/model_export.py "<disc>.bin" --all out/ --source  # all 248
-python3 -I tools/model_export.py "<disc>.bin" 383 out/             # the earlier flat layout: fighter_383.gltf in game units
+python3 -I tools/model_export.py "<disc>.bin" 383 out/             # the flat layout: fighter_383.gltf in game units
 ```
 
 What the tool writes without `--source`:
@@ -1380,7 +1704,7 @@ They are only exported if you ask (the 14 take about 430 MB; with the disc it ta
 - **`.new` rule** (like the rest of `data/`): `data/video/manifest.json` remembers what the port wrote. An `.avi` you edited is **kept** and the new one goes beside it as `<NAME>.avi.new`; an untouched one is replaced.
 - **Aspect:** the stored pixels are 320x416, but the game shows them in a 640x416 display (each PS1 pixel is twice as wide as tall). Every AVI declares that with an OpenDML `vprp`
   chunk (frame aspect 20:13), so a player shows it at 640x416 with the pixels untouched. The mod replacement reader ignores that chunk: your own video can be 320x416 with or without
-  `vprp` (or another size, which is scaled; see below). Movies exported by older versions are rebuilt once by *Prepare modding files*.
+  `vprp` (or another size, which is scaled; see below).
 - **Format** (AVI 1.0 with `idx1`; the same for every file): **MJPEG** video (`MJPG`), 320x416 at 15 frames per second, one baseline JPEG per frame (sequential, 4:2:0, the standard Huffman tables of
   T.81 annex K, quality 85, JFIF, no restart markers); **16-bit PCM** audio at 37800 Hz with the channels of the disc's XA (stereo in all 14 of the EU disc). Each frame carries its audio just before it
   (2520 samples = 37800 / 15). The profile is fixed and simple on purpose: any decoder reads it, and the game itself plays it when a movie is replaced from a mod (below).
@@ -1463,6 +1787,12 @@ about 19 MB, and the whole export takes under a second. It is only exported if y
 
 ### 8.1d Replacing a sound effect or a song from a mod
 
+```
+mymod/audio/COMMON/vag_050.wav     # an effect: replaces sample 50 of the COMMON bank (16-bit WAV, mono or stereo)
+mymod/audio/TTLBGM/seq_0_00.wav    # a song: the title music, with an `smpl` loop (or a seq_0_00.json beside it)
+mymod/video/MOVIEOPN.avi           # a movie (8.1b): the opening one, in MJPEG
+```
+
 The files are the ones 8.1c exports, with the same names, in `mods/<mod>/audio/<BANK>/` (`<BANK>` is the bank's folder, `COMMON`, `BGM001`...). The last active mod that has the file wins.
 Without those files the game's sound plays exactly as before. The game does not change. A file the port cannot use is refused with one log line, `[audio] <mod>: <file> rejected: <why>` (once per run),
 and the mod before it, then the disc's sound, is tried; the game never stops for a bad file.
@@ -1508,15 +1838,15 @@ come from a **donor** fighter that the game resolves at run time.
 **Where it goes and how it is used.** The source is a folder of the content mod (`"kind": "content"`):
 
 ```
-mymod/content/models/<key>/model.json      # model-src-v1 metadata (below)
-mymod/content/models/<key>/model.gltf      # or .glb; with its .bin and its PNG next to it
-mymod/content/digimon.json                 # "model": "<mod folder>:<key>"
+mymod/digimon/<key>/digimon.json            # the Digimon's record (6.9); without "model" it uses the model/ of its folder
+mymod/digimon/<key>/model/model.json        # model-src-v1 metadata (below)
+mymod/digimon/<key>/model/model.gltf        # or .glb; with its .bin and its PNG next to it
 ```
 
 The key (a-z, 0-9, `-`, `_`) is named `"<mod folder>:<key>"`, and a new Digimon uses it as `"model": "<mod folder>:<key>"` (6.9): it gets its own
 `FighterInfo` row with the baked model and motions, the donor's effects, and the `template` (cameras, height) and `info` (`distance`, `height`) of
 `model.json`. It also works inside the `"model"` object as `{"file": "<mod>:<key>", "entry": 1}` (model; entry 0 is the motions). Original fighters are named
-`"dw3:digimon/<id>"` and, for the model only, `"dw3:model/<id>"` (it shares that fighter's row). A complete example: `pc/examples/mods/sample-model/`.
+`"dw3:digimon/<id>"` and, for the model only, `"dw3:model/<id>"` (it shares that fighter's row). A complete example: `pc/examples/mods/sample-model/` (`digimon/boxbot/`).
 If the source cannot be baked (a missing file, a broken PNG, an animation that does not exist...), the log says `[models] <mod>:<key> rejected: <why>`
 and the Digimon keeps its template's model: a bad model never takes the game down.
 
@@ -1533,8 +1863,8 @@ python3 -I tools/model_import.py mymodel/model.json --out mymod/ [--mod <mod nam
 python3 -I tools/test_model_import.py --demo out/     # a sample robot made of boxes (robot.gltf/.bin/.png + robot.json)
 ```
 
-With `--out` it writes `mymod/models/<name>.bin` and prints a `content/digimon.json` snippet using the object form of `"model"` (the raw file, which the
-port reads as `"<mod>:models/<name>.bin"`); it is the transition and debugging path: with the source in `content/models/` it is not needed.
+With `--out` it writes `mymod/digimon/<name>/model.bin` (beside that Digimon's `digimon.json`; the port reads any file of the mod by its path) and prints a `digimon/<name>/digimon.json` snippet using the object form of `"model"` (the raw file, which the
+port reads as `"<mod>:digimon/<name>/model.bin"`); it is the advanced and debugging path: with the source in `digimon/<key>/model/` it is not needed.
 
 **Exporting from Blender** (*File > Export > glTF 2.0*): *glTF Separate* (`.gltf` + `.bin` + textures) or `.glb`; *+Y Up*; tick *Normals*, *UVs*,
 *Materials* and *Images: PNG* (not JPEG); *Skinning* on; *Animation* on with the actions and *Always Sample*. The model faces glTF **+Z** (Blender's
@@ -1566,21 +1896,21 @@ rotation and uniform scale (Blender's "Armature") is absorbed, but a **non-unifo
 
 | Key | What for |
 |---|---|
-| `name` | file name (`models/<name>.bin`) and the Digimon's key in the snippet; letters, digits, `-` and `_` |
+| `name` | folder name (`digimon/<name>/model.bin`) and the Digimon's key in the snippet; letters, digits, `-` and `_` |
 | `scale` or `fitHeight` | game units per glTF unit, or the height (game units) the rest pose must have; not both. Original fighters are 1300 to 10 000 tall; Kotemon, 1886. With neither the scale is 1 and it warns if the model is under 50 or over 20 000 |
 | `yaw` | degrees of turn about the vertical axis (0 by default) |
 | `motions` | slot (0 to 61) to animation: a name, an object or a number (copies that other slot). Without `motions`, animations named `motion_NN` go to slot NN (what the exporter writes, 8.1) |
 | `fill` | animation (or an object as in `motions`) for **every** unassigned slot; without it an empty slot is a risk if an effect script asks for it |
 | `effects` | donor: `"dw3:digimon/<id>"` whose effects file the Digimon uses (the scripts only talk to the model by motion slot number) |
 | `template` | original fighter of the **same kind** (enemy or partner) that gives cameras, height and distance: put it in `"base"` and `"from"`; pick one of a similar size, cameras do not adjust themselves |
-| `info` | `"distance"` and `"height"` of the own row (6.9) if the model is much bigger or smaller than the template |
+| `info` | `"distance"` and `"height"` of the own row (6.9): they place the **model** at its resting place if it is much bigger or smaller than the template; they do not move the cameras (8.2c) |
 | `normals` | `"file"` (default, the glTF's; smooth if missing), `"smooth"` or `"flat"` |
 | `doubleSided` | `"duplicate"` adds the back faces of double-sided materials (the game draws one side; Blender marks them so by default) |
 | `from` | `"dw3:model/<id>"`: starts from the original fighter (see "Starting from an original"); whatever is missing comes from it |
 | `tolerance` | `{"position": units, "rotation": raw, "scale": raw}`: largest error when reducing keys (default 0.1 % of the height, 4 = 0.35 degrees, 16 = 0.4 %) |
 
-**Starting from an original: `"from"`.** A `model.json` may say `"from": "dw3:model/<fighter id>"` (the same number as in the exported `data/models/<id>`) and ship **only what it
-changes**: whatever is missing comes from the original fighter, which the port exports **in memory** at load (the same four files as `data/models/<id>/`, read from
+**Starting from an original: `"from"`.** A `model.json` may say `"from": "dw3:model/<fighter id>"` (the same number as in the exported `data/digimon/d<nnn>/`) and ship **only what it
+changes**: whatever is missing comes from the original fighter, which the port exports **in memory** at load (the same four files as `data/digimon/d<nnn>/model/`, read from
 your disc). The typical case is a retexture: the folder holds only `model.json` (`{"from": "dw3:model/383"}`) and your `model.png`. Rules:
 
 - **Files:** a `model.gltf`, `model.bin` or `model.png` the folder lacks comes from the original; the ones it has **win**. The exported glTF names `model.png`
@@ -1590,7 +1920,7 @@ your disc). The typical case is a retexture: the folder holds only `model.json` 
   replaced whole). Exception: `"motions"` is merged **per slot**: the slots you give win and the others stay the original's. If you bring a glTF with other
   animation names, redefine in `"motions"` every slot that used the original's names (a slot cannot be removed, only changed). `"format"`, `"name"` and `"gltf"` are inherited too.
 - **Rejections** (`[models] <mod>:<key> rejected: <why>`): a `"from"` that is not `"dw3:model/<n>"`, a fighter that is not on your disc, or no disc
-  available (in the tests, for instance). Here `"from"` belongs to `model.json`; do not mix it up with `digimon.json`'s own `"from"` (the template fighter).
+  available (in the tests, for instance). Here `"from"` belongs to `model.json`; do not mix it up with the `digimon.json`'s own `"from"` (the template fighter).
 - **Cache:** the key mixes the folder's files, the original's id and the exporter version (`MODEL_EXPORT_VERSION`), not the original's bytes: with a warm cache the original is not
   built (only the template and effects info is read from it when the `model.json` does not carry all of it). A port with another exporter bakes again.
 - `tools/model_import.py` does **not** read the disc: it rejects a `model.json` with `"from"` and tells you to export the folder first (*Prepare modding files* or `export_models`) or let the game bake it.
@@ -1612,8 +1942,102 @@ every fighter on screen; error from 90); about 3000 polygons as a warning (the b
 timeline of fewer than 30 000 frames and each has at most 0x640 steps. Not supported yet: vertex colours, UVs outside 0..1 (clamped), `KHR_texture_transform`, partial
 transparency (alpha is all or nothing), soft skinning, blinking (the face stays empty) and more than one model file per Digimon.
 
-**Using it.** Put the snippet in the mod's `content/digimon.json` (rename it and pick `"base"` and `"from"` of the same kind); the Digimon shows its model in battle. New enemies and
-partner forms are explained in 6.9. Today the baked file has to be inside the mod; the goal (ADR-011) is that the mod ships only the glTF and the port converts it on load.
+**Using it.** Put the snippet as the mod's `digimon/<key>/digimon.json` (the folder's name is the name; pick `"base"` and `"from"` of the same kind); the Digimon shows its model in battle. New enemies and
+partner forms are explained in 6.9. With the glTF source in `digimon/<key>/model/` nothing has to be baked separately: the port converts it on load (8.2, "Where it goes and how it is used").
+
+### 8.2b A partner portrait from a model (`tools/portrait_from_model.py`)
+
+Makes the `portrait.png` of a new partner (6.9b, `docs/formats.md` 4.12) by drawing its 3D model, so you do not have to paint the cells by hand. Python 3 standard library only.
+
+```
+python3 -I tools/portrait_from_model.py <model> <out.png> [--cells 1..8] [--icon] [--animation <name>] [--yaw 40] [--pitch 12]
+                                        [--front +z|-z|+x|-x] [--margin 1..2] [--colors 3..16] [--dither] [--preview view.png]
+```
+
+`<model>` is a folder with `model.json` (or a loose `.gltf`/`.glb`, or the `model.json`), `<mod folder>:<key>` (`digimon/<key>/model/`) or
+`dw3:digimon/<id>` for an original fighter **from your own disc**: `--data <the port's data folder>` (where "Export models" put `digimon/d<nnn>/model/`) or
+`--disc "<disc>.bin"` (runs `tools/model_export.py --source` into a temporary folder). **Run it on your own disc; the output stays on your machine**
+(do not upload or share it: it is art derived from the game, ADR-001). An already baked model file is not a valid input: the glTF source is needed.
+
+Output: a 4-bit indexed PNG, 32 high and 32 x N wide (4 cells by default), index 0 transparent, index 1 the 1 px dark outline and up to 14 more colours
+(median cut plus 4 k-means steps, no dithering unless `--dither`). The model is seen three-quarters, facing screen **left** (`--front` says which model axis is its
+front: glTF uses `+z`; if it comes out facing right or away, try another), fitted and bottom-anchored with a 1 px margin (`--margin`); cell *k* is the pose at *k*/N of the
+idle animation loop (motion 0 of `model.json`, or the first animation), and all cells share one scale and ground line, so the ping-pong `0 1 2 3 2 1` reads as breathing.
+`--icon` gives a single 44x28 frame for the memory card icon. Design: a software rasterizer of about 400 lines (draws at 8x and reduces with a 0.5 coverage
+threshold for crisp edges) on top of the glTF reader of `tools/model_import.py`; simpler and more portable than pulling triangles out of the C, and tested by
+`python3 -I tools/test_portrait_from_model.py` (`make -C pc portraittest`).
+
+### 8.2c A partner's own model
+
+A new partner form (6.9, "New partner forms") can ship its own glTF model just like an enemy (8.2): the `digimon/<key>/model/` folder of its `digimon.json` whose `"base"` is a partner. What differs from an enemy
+is what the game asks of a partner: more motion slots and 12 cameras instead of 3. A complete example, tested in battle: `pc/examples/mods/sample-model/digimon/boxpal/` (a robot made of boxes with a partner's animations;
+`python3 -I tools/test_model_import.py --demo-partner <folder>` generates it again).
+
+**Start from an original partner (on your machine).** Export one from **your** disc ("Prepare modding files" in the game, or
+`python3 -I tools/model_export.py "<disc>.bin" 383 <folder> --source` for Kotemon) and copy the `d383/model/` folder (`model.gltf`, `.bin`, `.png`, `model.json`) to `digimon/<key>/model/`
+(`d<nnn>/model/` is never read, 6.9). A partner's template comes out ready: `"template"` and `"effects"` of that fighter (its 12 cameras and its technique scripts), `"info"` with its distance and height, one
+`motion_NN` animation for every slot that fighter has and `"motions"` joining them. **It is data derived from the game: do not upload or share it** (ADR-001); replace the mesh and the texture with your own before publishing, and publish only
+your `model.json` and your animations. In Blender keep the animation names (`motion_NN`, the number is the slot) or give them your own and reassign them in `"motions"`.
+
+**A partner's `model.json`** (the example's; the animations are named after what they do and `"motions"` gives each one's slot):
+
+```json
+{
+  "format": "model-src-v1", "name": "partner", "gltf": "partner.gltf", "fitHeight": 1800,
+  "effects": "dw3:digimon/383", "template": "dw3:digimon/383",
+  "motions": {
+    "0": "idle", "1": "idle_weak", "2": "dodge", "3": "flinch", "4": "hit", "5": 4, "6": 4,
+    "10": { "animation": "ko", "end": "hold" }, "11": 4, "12": "cheer", "13": "blast", "14": "attack",
+    "15": 14, "16": 14, "17": 14, "20": 14, "32": 14
+  },
+  "fill": "attack"
+}
+```
+
+`"template"` must be an original **partner** (otherwise the Digimon keeps its `base`'s model and the log says so); without `"template"` the `base` is used. `"effects"` is the donor of the technique animations (usually the template's).
+A number in `"motions"` copies that other slot; `"fill"` gives one animation to **every** unassigned slot (the donor's technique slots among them).
+
+**Motion slots** (the 62 a fighter has; what was measured on the 248 fighters of the disc and the code that asks for them, with `path:line`, is in `docs/formats.md` 4.6, point 5b). The slot is the number in `"motions"`:
+
+| Slot | What the game asks it for | Partner | Enemy |
+|---|---|---|---|
+| 0 | idle (loop) | required | required |
+| 1 | weak idle: at a quarter of the HP or less | required | required |
+| 2 | dodge: the target of an attack that missed | yes | yes |
+| 3 | flinch: a hit that lands and is not the last of a multi-hit attack | yes | yes |
+| 4, 5, 6 | taking a hit (several fighters ask for 5 and 6, in that order) | 4 yes; 5 and 6 if the donor uses them | same |
+| 10 | fall: the hit that knocks out | yes | yes |
+| 11 | the last of taking a hit that does not knock out (what the original shows: unknown) | yes | yes |
+| 12 | entrance, and the victory pose and the entrance of a Digimon change (partner) | yes | yes |
+| 13 | entrance of the temporary form (blast digivolution) | only a blast form | does not exist |
+| 14 to 19 | generic attack ("Fight"): 14 and, in multi-hit attacks, the next ones | 14 yes | 14 yes |
+| 20, 32 | the generic attack switches to scripts 6 (an action effect or a weapon of the enemy's family) and 8 (triple hit) | yes (20 to 25, 32 to 37) | no |
+| 26 to 31, 38 to 39, 44 to 45, 50 to 55 | technique animations of the donor's scripts 7, 9, 10, 11 and 13 | the donor's that you use | same |
+| 56 to 58 | the donor's script 12, which acts on another model (unknown) | only if the donor uses it | no |
+
+Nothing asks for any other slot (7, 8, 9, 40 to 43, 46 to 49, 59 to 61). An empty slot (with no `"fill"`) makes the game read garbage if anything asks for it: **so
+`--validate-mod` gives one warning for every slot the game asks of a partner (0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 20 and 32) or of an enemy (0, 1, 2, 3, 4, 10, 11, 12 and 14) that the model leaves empty**, e.g.
+`sample-model:boxpal: motion slot 3 (flinch) has no animation: a hit of an attack that lands and is not the last (effect script 1)`. The donor's techniques ask for more slots (14 to 55): with `"fill"`
+they all exist; without it, map every one of the donor's that you use. A partner's attack that animates with script 5 can play 6 or 8 depending on the enemy (`techs.c:48-85`), hence slots 20 and 32.
+
+**Cameras (12 on a partner, 3 on an enemy).** They are not in the model: they are part of the record the Digimon copies from its `"template"` (`docs/formats.md` 4.6, point 5b):
+
+| Camera | What it sees |
+|---|---|
+| 0 to 5 | the **enemy**: the enemy's `cameraCount - 1` (1 to 6) is picked, read from the **partner's** record, so the partner decides how each enemy is framed |
+| 6, 7 | the partner (7 when weak) |
+| 8, 9, 10, 11 | the partner fighting (8), digivolving (9), entering and the closing shot (10) and a high view that only scripts ask for (11) |
+
+An own model **cannot** give it new cameras: it uses the template's (or the `base`'s without `"template"`); pick one of a **similar size** to your model (`fitHeight`; Kotemon is 1886 and its camera record is made for that).
+`"info": {"distance": ..., "height": ...}` does not move the cameras: it places the **model** at its resting place (`z = ∓(0x1400 + distance)`, `y = -height`; without `"info"` the template's are used). If the model is
+much bigger or smaller, adjust that and check the battle with the 4 framings (battle, attack, digivolution and victory).
+
+**Bake and check.** The port bakes it at load (8.2); without opening the game: `python3 -I tools/model_import.py digimon/<key>/model/model.json --check --partner` (`--partner` warns, one line per
+slot, of the ones a partner needs and lack; without it only the short enemy warning appears). With the game: `<boot> "<disc>.bin" --validate-mod <mod>` (0 errors and 0 warnings on the example).
+To see it in battle without playing up to the digivolution, the test harness seeds the form: `DW3_SEED_PARTNER="0.0=<mod>:<key>@1/0" DW3_BATTLE_ENEMY=63 <boot> "<disc>.bin" 5000 <capture.png> 0 "battle@30:cross,70,cross,..."` (6.9, "What a new form does today").
+
+**Limits.** Those of 8.2 (bones, polygons, 16 colours per island texture, rigid skin) and also: the cameras and the technique scripts are the template's and the donor's; the face stays empty (no blinking); the name the battle
+HUD shows is the partner's (`PartnerStats.name`: the name of its first form when the game starts, or the one the player gave it; the original does not change it on digivolving either, so this is on purpose), while the form's name appears in the battle report, the lab, the status screen and the digivolution lists; a new partner is obtained with `"evolution"` (6.9), not through its model.
 
 ## 9. Legal rules and etiquette
 
@@ -1629,13 +2053,45 @@ partner forms are explained in 6.9. Today the baked file has to be inside the mo
 
 | Phase | Content | Status |
 |---|---|---|
+| Asset layout (`asset-v1`, ADR-016) | one folder per topic and per asset, one JSON record per asset (`card.json`, `partner.json`, `digimon.json`, `stage.json`...), the same paths in `data/` and in `mods/<mod>/`, schemas in `schema/` and `--validate-mod` over everything but `text/` | **final for the next release**: the paths in this guide will not change shape before it |
 | 1. Resources | replace text, config, images, sprites and raw files; manifest with dependencies; this guide | **done** (review pending) |
-| 2. Data tables | the game's tables (Digimon, techniques, items, rewards, experience, shops, encounters) as JSON; patch by key and add rows with ids `<mod>:<name>` | **done** (`stageBattles` is part of the stage patches, S10, 6.11). Includes the card shop, gym, inns, card opponents and new cards (E5d, E5e, U8a-c), new items and techniques, changes to existing Digimon, new enemies, and new partner forms |
+| 2. Data tables | the game's tables (Digimon, techniques, items, rewards, experience, shops, encounters) as JSON; patch by key and add rows with ids `<mod>:<name>` | **done** (`stageBattles` is part of the stage patches, 6.11). Includes the card shop, gym, inns, card opponents and new cards, new items and techniques, changes to existing Digimon, new enemies, and new partner forms |
 | 3. Scripts | an embedded language (candidate Lua 5.4, sandboxed: no files, network or system) for events, quests, characters | planned (its own ADR) |
-| 4. New entities | new field stages from a mod (ADR-012, `stage-new-v1`, 6.11b, example `training-field`); new stage characters with talks and flags of their own already work (S4 and S5, 6.11, reusing the stage's sprites); their own sprites are S9; new Digimon already work (battle models in glTF, 8.2) | **in progress** (new stages done; trees and fishing as data still missing) |
+| 4. New entities | new field stages from a mod (ADR-012, `stage-new-v1`, 6.11b, example `training-field`); new stage characters with talks and flags of their own (6.11, with the stage's sprites or their own); new Digimon already work (battle models in glTF, 8.2) | **in progress** (new stages done; trees and fishing as data still missing) |
 | Asset formats | video (AVI), audio (WAV and MIDI export and replacement), images (PNG), battle models (glTF) and stage art (PNG) | **done** (§8) |
 
 Reserved for phases 2 to 4: `"kind": "content"` and the `<mod>:<name>` identifiers. Saves are no longer kept on a PS1
 card but in `<pref>/saves/default/slot<N>.dw3save` (ADR-008, option B: the game's original block as is, plus the
 extended state by name and a CRC32; a `.mcd` card placed in `import/` is imported once and never modified). `mod.json` keys and formats are versioned; an incompatible change creates a new version and the old
 one is still read for at least one more port version.
+
+## 11. Migrating from the previous format
+
+This guide describes only the current format (`asset-v1`, ADR-016). If you have a mod made for an earlier version of the port, or a `data/` folder that version exported,
+this section says where each thing lives today. Saves do not change: they store names and identities, not paths.
+
+**Rules**
+
+1. **There is no compatibility.** The port reads none of the paths in the table below and does not raise an error for them. `--validate-mod` warns (`folder <name>/ is never read`, `... is ignored`) about the most common
+   old folders and files, but it does not check the old images of `images/` one by one. Move the files to their new path by hand (the PNGs keep their format) and rewrite the records (below).
+2. **Export `data/` again.** The exporters neither migrate nor delete what was there: the old folders of `data/` stay on disk, unread (some leave one log line, e.g. `data/models/`).
+   Delete them by hand, or delete the whole `data/` and start with `--export-all` (2b) so it is rebuilt. A manifest in the old format (`stamp`) counts as missing and is exported again.
+3. **`name` becomes `title`.** In `card.json`, `partner.json` and `digimon.json` the per-language text (`{"eng": ..., "es-419": ...}`) now goes in `title`; `name`, when present, is the folder's name.
+
+| Before | Now | What to do |
+|---|---|---|
+| `images/<folder>/<file>/<NN>_<MM>.png` + `.json` (`atlas-v1`) of the menu screens (shop, status, memory card, name entry, gym...) | `menus/<screen>/<piece>.png` + `menu.json` (6.2g) | redo the edit by piece, with the real colors. Still in `images/`: `TLOGO*`, `TTCOMMPK`, `END__ALL`, `CNTSELWN`, `CARDDATA`, `FIELDCOM`, `STWMP0` and `STWMP1` (6.2) |
+| `images/field/stage/s<nnn>mask/` (a stage's objects) | `stages/s<nnn>/objects/<piece>.png` + `objects.json` (6.2h) | redo by piece. The backgrounds `s415bg01/02` and `s815bg01/02` stay in `images/field/stage/` (6.2c) |
+| `z_stage/s<nnn>pack/` (tiles) | `stages/s<nnn>/tiles/` + `tiles.json` (6.2d) | move the PNGs |
+| `stages/<n>.json` (a stage's data and a mod's patch) | `stages/s<nnn>/stage.json`, with `s` and three digits (6.11) | rename and move; one single `stages/manifest.json` |
+| `new-stages/<name>/` | `stages/<key>/` (6.11b) | move the folder; `s<nnn>` is reserved for the originals |
+| `images/field/sprt/<NAME>/` (and the copies of the followers `p003pken`...`p010pata`) | `sprites/<name>/<EEE>.png`, lower case (6.3); the 8 followers in `partners/<name>/field/` | move the frames; in an original's folder only the `NNN.png` files are read |
+| `images/card/cardpak<A>/<NN>.png` and a mod's `card/<key>.png` | `cards/c<nnn>/face.png` (originals) and `cards/<key>/face.png` (new) (6.2b, 6.10) | `<nnn>` is the card's number (`c001`-`c316`), not its position inside the `cardpak` |
+| `content/cards.json` (`"new"`) | `cards/<key>/card.json` (`cards-card-v1`) | each entry `"<key>": {...}` moves to its own file with `"format": "cards-card-v1"`; the `name` text becomes `title` |
+| `content/partners.json` and the `art`, `icon`, `sprite` fields | `partners/<key>/partner.json` (`partners-partner-v1`) beside `portrait.png`, `icon.png`, `field/` and `training/` (6.9b, 6.2f) | the same: one file per partner, `name` becomes `title`; the art fields go away (the art is looked up in the folder) |
+| portraits and icons spread over 7 screen sheets | `partners/<name>/portrait.png` and `icon.png` (6.2f) | edit the partner's PNG; the port writes it into every screen |
+| `content/digimon.json` (`"change"` and `"new"`) | `digimon/d<nnn>/digimon.json` (changes an original) and `digimon/<key>/digimon.json` (new) (6.9) | one file per Digimon; `name` becomes `title`; the placements move to `content/encounters.json` |
+| `content/models/<key>/` and `models/<id>/` | `digimon/<key>/model/` (new) and `digimon/d<nnn>/model/` (exported, 8.1) | move the folder; the `model/` of a mod's `d<nnn>` is not read |
+| one `stamp` per exporter and a `manifest.json` per family | one `manifest.json` per topic (`asset-manifest-v1`) | nothing: it is rebuilt on export; a mod does not write it |
+| `audio/`, `video/`, `text/`, `tables/`, `config/` | the same topics, with lower-case names | nothing to move in a mod |
+| `files/<disc path>` in `data/` | `raw/<disc path>` in `data/` (6.2e) | in a mod, raw files stay in `files/` (6.4) |

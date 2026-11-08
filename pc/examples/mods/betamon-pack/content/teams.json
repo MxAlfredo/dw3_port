@@ -1,0 +1,10 @@
+{
+  "format": "teams-v1",
+  "new": {
+    "river": {
+      "partners": ["dw3:partner/4", "betamon-pack:betamon", "dw3:partner/1"],
+      "name": { "eng": "River pack", "es-419": "Paquete Río" },
+      "description": { "eng": "Veemon, Betamon and Kumamon.", "es-419": "Veemon, Betamon y Kumamon." }
+    }
+  }
+}

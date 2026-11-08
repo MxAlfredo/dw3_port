@@ -28,18 +28,72 @@ int sprIsSpriteFile(const char *p)
     return n > pl + 4 && !strncmp(p, DISC_PREFIX, pl) && !strchr(p + pl, '/') && !strcmp(p + n - 4, ".BIN");
 }
 
+static const char *const kPartnerFiles[8] = {"P003PKEN", "P004KOGU", "P005KOET", "P006AGUM", "P007VMON", "P008GIRU", "P009RENA", "P010PATA"};
+
+const char *sprPartnerFile(int partner) { return partner >= 0 && partner < 8 ? kPartnerFiles[partner] : NULL; }
+
+static int ieq(const char *a, const char *b, size_t n)
+{
+    size_t i;
+
+    for (i = 0; i < n; i++) {
+        if (tolower((unsigned char)a[i]) != tolower((unsigned char)b[i])) return 0;
+        if (!a[i]) return 0;
+    }
+    return 1;
+}
+
+int sprPartnerOf(const char *p)
+{
+    const char *base;
+    int i;
+
+    if (!p) return -1;
+    for (base = p; *base && !ieq(base, "sprt/", 5) && !ieq(base, "sprites/", 8); base++) {
+    }
+    if (!*base) return -1;
+    base += ieq(base, "sprt/", 5) ? 5 : 8;
+    for (i = 0; i < 8; i++) {
+        size_t n = strlen(kPartnerFiles[i]);
+
+        if (ieq(base, kPartnerFiles[i], n) && (base[n] == '\0' || base[n] == '/' || base[n] == '.')) return i;
+    }
+    return -1;
+}
+
+int sprFolder(const char *discPath, char *out, size_t cap)
+{
+    size_t n, w;
+    if (!sprIsSpriteFile(discPath)) return -1;
+    n = strlen(discPath) - strlen(DISC_PREFIX) - 4; /* without the folder and ".BIN" */
+    if (n + 1 > cap) return -1;
+    for (w = 0; w < n; w++) out[w] = (char)tolower((unsigned char)discPath[strlen(DISC_PREFIX) + w]); /* ADR-010: the port writes lower case */
+    out[n] = '\0';
+    return 0;
+}
+
+int sprDiscOf(const char *folder, char *out, size_t cap)
+{
+    size_t n = strlen(folder), i;
+    if (n == 0 || n > 40) return -1;
+    for (i = 0; i < n; i++) {
+        if (!isalnum((unsigned char)folder[i]) && folder[i] != '_') return -1; /* a disc file name: no separators, no dots */
+    }
+    if (snprintf(out, cap, "%s", DISC_PREFIX) >= (int)cap) return -1;
+    for (i = 0; i < n; i++) out[strlen(DISC_PREFIX) + i] = (char)toupper((unsigned char)folder[i]);
+    if (strlen(DISC_PREFIX) + n + 5 > cap) return -1;
+    strcpy(out + strlen(DISC_PREFIX) + n, ".BIN");
+    return 0;
+}
+
 int sprName(const char *discPath, int entry, const char *what, char *out, size_t cap)
 {
-    size_t n;
+    char folder[48];
     int w;
-    if (!sprIsSpriteFile(discPath) || entry < 0 || entry >= SPR_MAX_ENTRIES) return -1;
-    n = strlen(discPath) - 8 - 4; /* without "AAA/DAT/" and ".BIN" */
-    if (n + 16 >= cap) return -1;
-    for (w = 0; (size_t)w < n; w++) out[w] = (char)tolower((unsigned char)discPath[8 + w]); /* ADR-010: the port writes lower case */
-    out[n++] = '/';
-    if (what) w = snprintf(out + n, cap - n, "%s", what);
-    else w = snprintf(out + n, cap - n, "%03d.png", entry);
-    return w > 0 && (size_t)w < cap - n ? 0 : -1;
+    if (entry < 0 || entry >= SPR_MAX_ENTRIES || sprFolder(discPath, folder, sizeof folder)) return -1;
+    if (what) w = snprintf(out, cap, "sprites/%s/%s", folder, what);
+    else w = snprintf(out, cap, "sprites/%s/%03d.png", folder, entry);
+    return w > 0 && (size_t)w < cap ? 0 : -1;
 }
 
 /* ---- text builder ---- */
@@ -228,7 +282,26 @@ static void freeAnims(Anim *a, int n)
     free(a);
 }
 
-static int process(ImgRun *run, const char *discPath, const uint8_t *file, size_t len, SprStats *st, char **jsonOut, size_t *jsonLen)
+/* Where the files of one extraction go: a callback with the names relative to the sprite's own folder ("004.png", "sprite.json"). The exporter of the
+   originals (sprite_export.c) writes them under sprites/<name>/ and the partner bundles (partner_export.c) under partners/<name>/field/; `format` is the format
+   name the sprite.json carries. */
+typedef struct Out {
+    SprEmitFn emit;
+    void *ctx;
+    const char *format;
+} Out;
+
+static int outOn(const Out *o) { return o->emit != NULL; }
+
+static int outPut(const Out *o, int entry, const char *what, const uint8_t *data, size_t len)
+{
+    char rel[160];
+    if (what) snprintf(rel, sizeof rel, "%s", what);
+    else snprintf(rel, sizeof rel, "%03d.png", entry);
+    return o->emit(o->ctx, rel, data, len);
+}
+
+static int process(const Out *out, const char *discPath, const uint8_t *file, size_t len, SprStats *st, char **jsonOut, size_t *jsonLen)
 {
     Ent *ent = (Ent *)calloc(SPR_MAX_ENTRIES, sizeof *ent);
     uint8_t *kind = NULL, *used = NULL;
@@ -283,7 +356,6 @@ static int process(ImgRun *run, const char *discPath, const uint8_t *file, size_
         ImgPic pic;
         uint8_t *png = NULL;
         size_t pl = 0;
-        char rel[160];
         if (kind[i] == K_ANIM) continue;
         if (imgDecodeTim(file + ent[i].off, ent[i].len, NULL, &pic)) {
             if (used[i]) {
@@ -299,22 +371,21 @@ static int process(ImgRun *run, const char *discPath, const uint8_t *file, size_
         fr[nFr].used = used[i];
         nFr++;
         if (!used[i]) loc.unused++;
-        if (run) {
-            if (sprName(discPath, i, NULL, rel, sizeof rel) || imgPicToPng(&pic, &png, &pl)) {
+        if (outOn(out)) {
+            if (imgPicToPng(&pic, &png, &pl) || outPut(out, i, NULL, png, pl)) {
                 plogLine("images", "cannot convert frame %d of %s\n", i, discPath);
                 loc.failed++;
             } else {
-                imgEmit(run, rel, png, pl);
-                free(png);
                 pngs++;
             }
+            free(png);
         }
         imgPicFree(&pic);
     }
     qsort(fr, (size_t)nFr, sizeof *fr, cmpFrame);
     qsort(an, (size_t)nAn, sizeof *an, cmpAnim);
 
-    sbf(&b, "{\n \"format\": \"sprite-v1\",\n \"source\": \"%s\",\n", discPath + 8);
+    sbf(&b, "{\n \"format\": \"%s\",\n \"source\": \"%s\",\n", out->format, discPath + 8);
     sbf(&b, " \"set_table\": %d,\n", hasSets ? n - 1 : -1);
     sbf(&b, " \"frames\": [");
     for (i = 0; i < nFr; i++) {
@@ -357,14 +428,8 @@ static int process(ImgRun *run, const char *discPath, const uint8_t *file, size_
             "horizontally and its x becomes -(w + x)). used: false marks a frame no animation of this file references. Edit the PNGs keeping each "
             "one's width and height and at most 16 colours; this file is information only and is regenerated from the disc.\"\n}\n");
     if (b.fail) goto done;
-    if (run) {
-        char rel[160];
-        if (sprName(discPath, 0, "sprite.json", rel, sizeof rel)) {
-            loc.failed++;
-        } else {
-            imgEmit(run, rel, (const uint8_t *)b.p, b.n);
-        }
-        run->images += pngs;
+    if (outOn(out)) {
+        if (outPut(out, 0, "sprite.json", (const uint8_t *)b.p, b.n)) loc.failed++;
     }
     st->files++;
     st->frames += nFr;
@@ -408,13 +473,20 @@ char *sprJson(const char *discPath, const uint8_t *file, size_t len, size_t *out
     SprStats tmp;
     char *j = NULL;
     memset(&tmp, 0, sizeof tmp);
-    process(NULL, discPath, file, len, st ? st : &tmp, &j, outLen);
+    Out none = {NULL, NULL, "sprite-v1"};
+    process(&none, discPath, file, len, st ? st : &tmp, &j, outLen);
     return j;
 }
 
-int sprExtractFile(ImgRun *run, const char *discPath, const uint8_t *file, size_t len, SprStats *st)
+int sprExtractTo(SprEmitFn emit, void *ctx, const char *discPath, const uint8_t *file, size_t len, SprStats *st)
 {
-    return process(run, discPath, file, len, st, NULL, NULL);
+    return sprExtractAs("sprite-v1", emit, ctx, discPath, file, len, st);
+}
+
+int sprExtractAs(const char *format, SprEmitFn emit, void *ctx, const char *discPath, const uint8_t *file, size_t len, SprStats *st)
+{
+    Out out = {emit, ctx, format};
+    return process(&out, discPath, file, len, st, NULL, NULL);
 }
 
 /* ================= sprites a mod brings (S9) ================= */
@@ -570,8 +642,8 @@ int sprBankAdd(SprBank *b, const char *json, size_t jsonLen, SprPngFn png, void 
     fr = extJsonGet(&root, "frames");
     an = extJsonGet(&root, "animations");
     st = extJsonGet(&root, "sets");
-    if (!fmt || fmt->t != 1 || strcmp(fmt->str, "sprite-v1")) {
-        why(w, wcap, "\"format\" must be \"sprite-v1\"");
+    if (!fmt || fmt->t != 1 || (strcmp(fmt->str, "sprites-sprite-v1") && strcmp(fmt->str, "sprite-v1"))) {
+        why(w, wcap, "\"format\" must be \"sprites-sprite-v1\" (or \"sprite-v1\", the one a partner's field/ folder writes)");
         goto done;
     }
     if (!fr || fr->t != 4 || fr->n < 1 || fr->n > 2048 || !an || an->t != 4 || an->n < 1 || an->n > 2048 || !st || st->t != 4 || st->n < 1 || st->n > 255) {

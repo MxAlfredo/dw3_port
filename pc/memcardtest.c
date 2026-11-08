@@ -104,7 +104,7 @@ static int wrSection(const char *name, void *buf, int ofs, int size) {
     return 0;
 }
 
-#define SKILL_AT(p, e, k) (offsetof(GameState, partners) + (size_t)(p) * sizeof(Partner) + offsetof(Partner, info) + \
+#define SKILL_AT(p, e, k) (offsetof(GameState, partnersCard) + (size_t)(p) * sizeof(Partner) + offsetof(Partner, info) + \
                            offsetof(PartnerStats, entries) + (size_t)(e) * sizeof(PartnerEntry) + offsetof(PartnerEntry, skills) + (size_t)(k) * 2)
 
 static void putSkill(unsigned char *g, int p, int e, int k, unsigned raw) {
@@ -128,7 +128,7 @@ static void makeGame(unsigned char *g, int seed) {
     }
     for (p = 0; p < PARTNER_COUNT; p++) {
         /* no id of a new technique or a new Digimon in the filler (a real block never holds one without its mod) */
-        size_t base = offsetof(GameState, partners) + (size_t)p * sizeof(Partner);
+        size_t base = offsetof(GameState, partnersCard) + (size_t)p * sizeof(Partner);
 
         for (e = 0; e < PARTNER_ENTRY_COUNT; e++) {
             size_t at = base + offsetof(Partner, info) + offsetof(PartnerStats, entries) + (size_t)e * sizeof(PartnerEntry);
@@ -225,7 +225,7 @@ static int formIdLater(const char *name) {
 static int formBase(int id) {
     return id == 471 ? 5 : id == 472 ? 6 : -1;
 }
-#define FORM_ID_AT(p, e) (offsetof(GameState, partners) + (p) * sizeof(Partner) + offsetof(Partner, info) + \
+#define FORM_ID_AT(p, e) (offsetof(GameState, partnersCard) + (p) * sizeof(Partner) + offsetof(Partner, info) + \
                           offsetof(PartnerStats, entries) + (e) * sizeof(PartnerEntry) + offsetof(PartnerEntry, id))
 static void putForm(unsigned char *g, int p, int e, int id) {
     g[FORM_ID_AT(p, e)] = (unsigned char)id;
@@ -702,14 +702,14 @@ static void virtualCardTests(const char *root, const char *pref) {
                 PartnerEntry *e;
 
                 memset(&g, 0, sizeof g);
-                e = pcPartnerEntryRef(&g.partners[0].info, 0, 44);
+                e = pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 44);
                 e->id = 471;
                 e->level = 7;
                 e->exp = 4321;
-                e = pcPartnerEntryRef(&g.partners[0].info, 0, 45);
+                e = pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 45);
                 e->id = 12;
                 e->level = 2;
-                e = pcPartnerEntryRef(&g.partners[5].info, 5, 44);
+                e = pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 5).info, 5, 44);
                 e->id = 9;
                 e->level = 4;
             }
@@ -734,8 +734,8 @@ static void virtualCardTests(const char *root, const char *pref) {
                 memset(&g, 0, sizeof g);
                 expect(pcPartnerEntryLimit(0) == 46 && pcPartnerEntryLimit(5) == 45 && pcPartnerEntryLimit(1) == 44,
                        "entries: the read brings the stored entries back");
-                expect(pcPartnerEntryRef(&g.partners[0].info, 0, 44)->id == 471 && pcPartnerEntryRef(&g.partners[0].info, 0, 44)->exp == 4321 &&
-                           pcPartnerEntryRef(&g.partners[0].info, 0, 45)->id == 12 && pcPartnerEntryRef(&g.partners[5].info, 5, 44)->level == 4,
+                expect(pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 44)->id == 471 && pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 44)->exp == 4321 &&
+                           pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 45)->id == 12 && pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 5).info, 5, 44)->level == 4,
                        "entries: with their form, level and experience");
             }
             /* the same slot read with another id for the form: renumbered by name */
@@ -748,7 +748,7 @@ static void virtualCardTests(const char *root, const char *pref) {
                 GameState g;
 
                 memset(&g, 0, sizeof g);
-                expect(pcPartnerEntryRef(&g.partners[0].info, 0, 44)->id == 480, "entries: x:fire has its new id");
+                expect(pcPartnerEntryRef(&PC_PARTNER_BLOCK(g, 0).info, 0, 44)->id == 480, "entries: x:fire has its new id");
             }
             /* a save made without stored entries has no section, and a read of it leaves none */
             pcPartnerEntriesReset();
@@ -766,6 +766,169 @@ static void virtualCardTests(const char *root, const char *pref) {
             expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE && pcPartnerEntryLimit(0) == 44,
                    "entries: reading it leaves no stored entries");
             pcExtStateSetDigimonHooks(NULL, NULL, NULL);
+        }
+        /* 12. partners by name (PTNR, ADR-014) and the card summaries (ICON): the file is format 2 and names the partners above the eight,
+           the party and the summary icons; a read in a run that registered them in another order follows the names; a removed mod
+           leaves a valid party and the stand-in's icon */
+        {
+            unsigned char gt[0x2700], x = 0;
+            size_t i;
+            char sp[1300];
+            long sz;
+            FILE *sf;
+            static unsigned char file[0x8000];
+            int party[3] = {8, 0, 9};
+            int icons[3] = {11, 3, 12}; /* slot 0's summary: x:a (8), partner 0, x:b (9) */
+
+            pcPartnersUnregister();
+            pcPartnerRegister("x:a", 55); /* 8 */
+            pcPartnerRegister("x:b", 3);  /* 9 */
+            memset(gt, 0, sizeof gt);
+            PC_PARTNER(8).unlocked = 11;
+            PC_PARTNER(8).info.stats[STAT_LEVEL] = 17;
+            PC_PARTNER(9).unlocked = 12;
+            PC_PARTNER(9).info.stats[STAT_LEVEL] = 21;
+            memcpy(gt + offsetof(GameState, party), party, sizeof party);
+            ((Partner *)(gt + offsetof(GameState, partnersCard)))[0].unlocked = 3;
+            for (i = 4; i < 0x26C4; i++) x ^= gt[i];
+            gt[0] = x;
+            makeInfo(info, 4);
+            memset(info + 8, 0, 3 * 0x44);
+            memcpy(info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, icons, sizeof icons);
+            expect(wrSection(NAME_EUR, info, INFO_OFS, 0x100) == ERR_NONE, "partners: info written");
+            expect(wrSection(NAME_EUR, gt, DATA_OFS(0), 0x2700) == ERR_NONE, "partners: data written");
+            snprintf(sp, sizeof(sp), "%s/slot0.dw3save", own);
+            sf = fopen(sp, "rb");
+            sz = sf != NULL ? (long)fread(file, 1, sizeof file, sf) : -1;
+            if (sf != NULL) fclose(sf);
+            expect(sz > 0x26C4 && memmem(file, (size_t)sz, "PTNR", 4) != NULL && memmem(file, (size_t)sz, "ICON", 4) != NULL &&
+                       memmem(file, (size_t)sz, "x:a", 3) != NULL && memmem(file, (size_t)sz, "EXTP", 4) == NULL && file[8] == 2,
+                   "partners: the slot file is format 2 with PTNR and ICON sections");
+            /* a run that registered them the other way round */
+            pcPartnersUnregister();
+            pcPartnerRegister("x:b", 3);  /* 8 */
+            pcPartnerRegister("x:a", 55); /* 9 */
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE, "partners: the data reads");
+            memcpy(party, out + offsetof(GameState, party), sizeof party);
+            expect(party[0] == 9 && party[1] == 0 && party[2] == 8, "partners: the party follows the names");
+            memcpy(&GAME, out, GAME_SAVE_SIZE);
+            pcPartnersImport();
+            expect(PC_PARTNER(9).info.stats[STAT_LEVEL] == 17 && PC_PARTNER(9).unlocked == 12 && PC_PARTNER(8).info.stats[STAT_LEVEL] == 21 &&
+                       PC_PARTNER(8).unlocked == 11,
+                   "partners: each partner's data follows its name, its unlocked mark is its own index + 3");
+            expect(rdSection(NAME_EUR, out, INFO_OFS, 0x100) == ERR_NONE, "partners: the info reads");
+            memcpy(icons, out + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, sizeof icons);
+            expect(icons[0] == 12 && icons[1] == 3 && icons[2] == 11, "partners: the summary icons follow the names");
+            /* x:a's mod removed */
+            pcPartnersUnregister();
+            pcPartnerRegister("x:b", 3); /* 8 */
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE, "partners: the data reads without x:a");
+            memcpy(party, out + offsetof(GameState, party), sizeof party);
+            expect(party[0] == 0 && party[1] == 8 && party[2] == -1, "partners: the removed partner leaves a packed, valid party");
+            {
+                unsigned char c = 0;
+
+                for (i = 4; i < 0x26C4; i++) c ^= out[i];
+                expect(out[0] == c, "partners: and the block's checksum is valid");
+            }
+            expect(rdSection(NAME_EUR, out, INFO_OFS, 0x100) == ERR_NONE, "partners: the info reads without x:a");
+            memcpy(icons, out + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, sizeof icons);
+            expect(icons[0] == 3 && icons[1] == 3 && icons[2] == 11, "partners: the removed partner's icon is its stand-in's");
+            /* no new partner at all: the section is not written, the file is format 1 */
+            pcPartnersUnregister();
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(wrSection(NAME_EUR, info, INFO_OFS, 0x100) == ERR_NONE && wrSection(NAME_EUR, gt, DATA_OFS(0), 0x2700) == ERR_NONE,
+                   "partners: a save of the eight is written");
+            sf = fopen(sp, "rb");
+            sz = sf != NULL ? (long)fread(file, 1, sizeof file, sf) : -1;
+            if (sf != NULL) fclose(sf);
+            expect(sz > 0x26C4 && memmem(file, (size_t)sz, "PTNR", 4) == NULL && file[8] == 1, "partners: and it is format 1 with no PTNR");
+            pcPartnersUnregister();
+        }
+        /* 13. the starter team by name (TEAM, ADR-015): GameState.partySet is a team's number, which changes with the mods; a save made with a
+           mod's team names it, a read in a run that numbered the teams another way follows the name, a removed mod leaves -1, and a save with an
+           original team writes no section */
+        {
+            unsigned char gt[0x2700], x = 0;
+            size_t i;
+            char sp[1300];
+            long sz;
+            FILE *sf;
+            static unsigned char file[0x8000];
+            static const unsigned char origTeams[3][3] = {{0, 6, 7}, {2, 3, 6}, {1, 5, 7}};
+            const int trio[3] = {0, 1, 2};
+            int set = 4, back;
+
+            pcPartnersUnregister();
+            pcStarterPartiesInit(origTeams, 3);
+            pcStarterPartyAdd("t:duo", trio);   /* 3 */
+            pcStarterPartyAdd("t:trio", trio);  /* 4 */
+            memset(gt, 0, sizeof gt);
+            memcpy(gt + offsetof(GameState, partySet), &set, sizeof set);
+            ((Partner *)(gt + offsetof(GameState, partnersCard)))[0].unlocked = 3;
+            for (i = 4; i < 0x26C4; i++) x ^= gt[i];
+            gt[0] = x;
+            makeInfo(info, 4);
+            expect(wrSection(NAME_EUR, info, INFO_OFS, 0x100) == ERR_NONE && wrSection(NAME_EUR, gt, DATA_OFS(0), 0x2700) == ERR_NONE, "team: info and data written");
+            snprintf(sp, sizeof(sp), "%s/slot0.dw3save", own);
+            sf = fopen(sp, "rb");
+            sz = sf != NULL ? (long)fread(file, 1, sizeof file, sf) : -1;
+            if (sf != NULL) fclose(sf);
+            expect(sz > 0x26C4 && memmem(file, (size_t)sz, "TEAM", 4) != NULL && memmem(file, (size_t)sz, "t:trio", 6) != NULL && memmem(file, (size_t)sz, "PTNR", 4) == NULL &&
+                       file[8] == 1,
+                   "team: the slot file has a TEAM section naming the team (and no PTNR: the partners are the eight)");
+            /* a run that numbers the teams the other way round */
+            pcStarterPartiesReset();
+            pcStarterPartyAdd("t:trio", trio); /* 3 */
+            pcStarterPartyAdd("t:duo", trio);  /* 4 */
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE, "team: the data reads");
+            memcpy(&back, out + offsetof(GameState, partySet), sizeof back);
+            expect(back == 3, "team: partySet follows the team's name");
+            {
+                unsigned char c = 0;
+
+                for (i = 4; i < 0x26C4; i++) c ^= out[i];
+                expect(out[0] == c, "team: and the block's checksum is valid");
+            }
+            /* the team's mod removed */
+            pcStarterPartiesReset();
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE, "team: the data reads without the mod");
+            memcpy(&back, out + offsetof(GameState, partySet), sizeof back);
+            expect(back == -1, "team: the removed team leaves no team (-1)");
+            /* an original team: no section, the number stays */
+            set = 2;
+            memcpy(gt + offsetof(GameState, partySet), &set, sizeof set);
+            for (x = 0, i = 4; i < 0x26C4; i++) x ^= gt[i];
+            gt[0] = x;
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(wrSection(NAME_EUR, info, INFO_OFS, 0x100) == ERR_NONE && wrSection(NAME_EUR, gt, DATA_OFS(0), 0x2700) == ERR_NONE, "team: a save with an original team is written");
+            sf = fopen(sp, "rb");
+            sz = sf != NULL ? (long)fread(file, 1, sizeof file, sf) : -1;
+            if (sf != NULL) fclose(sf);
+            expect(sz > 0x26C4 && memmem(file, (size_t)sz, "TEAM", 4) == NULL, "team: and it has no TEAM section");
+            restart();
+            MemCardAccept(0);
+            syncResult();
+            expect(rdSection(NAME_EUR, out, DATA_OFS(0), 0x2700) == ERR_NONE, "team: it reads back");
+            memcpy(&back, out + offsetof(GameState, partySet), sizeof back);
+            expect(back == 2, "team: with the original team's number");
+            pcStarterPartiesReset();
         }
         unsetenv("DW3_SAVES_DIR");
     }

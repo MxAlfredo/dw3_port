@@ -3,6 +3,7 @@
  */
 #include "port_config.h"
 
+#include "exp_core.h"
 #include "fast_transitions.h"
 #include "mods.h"
 #include "port_log.h"
@@ -155,14 +156,6 @@ static int loadFile(const Schema *s, const char *path, int logMissing)
     return applyFile(s, path, v, n) == 0;
 }
 
-static int fileExists(const char *path)
-{
-    FILE *f = fopen(path, "rb");
-    if (!f) return 0;
-    fclose(f);
-    return 1;
-}
-
 /* The reference copy: the defaults and a "notes" object, deterministic text (its hash is what the
    manifest records). malloc'ed. */
 static char *referenceText(const Schema *s)
@@ -252,23 +245,9 @@ void pcConfigLoad(const char *dataDir)
     int manDirty = 0, si, mi;
 
     memset(&man, 0, sizeof man);
-    snprintf(man.stamp, sizeof man.stamp, "config-v1");
     if (dataDir && dataDir[0]) {
-        uint8_t *mt;
-        size_t ml;
         snprintf(mpath, sizeof mpath, "%s/config/manifest.json", dataDir);
-        if (tdReadFile(mpath, &mt, &ml) == 0) {
-            TdManifest old;
-            char err[120];
-            memset(&old, 0, sizeof old);
-            if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-                tdManifestFree(&man);
-                man = old;
-            } else {
-                plogLine("config", "%s rejected: %s (its copies count as edited)\n", mpath, err);
-            }
-            free(mt);
-        }
+        manDirty = expManLoad("config", mpath, "config", &man);
     }
     for (si = 0; si < SCHEMA_COUNT; si++) {
         const Schema *s = &kSchemas[si];
@@ -284,17 +263,16 @@ void pcConfigLoad(const char *dataDir)
             }
         }
         for (mi = 0; mi < modsCount(); mi++) {
-            snprintf(path, sizeof path, "%s/config/%s.json", modsDirOf(mi), s->name);
-            if (fileExists(path) && loadFile(s, path, 1) && (size_t)len < sizeof sources - 80) {
+            char rel[80];
+            snprintf(rel, sizeof rel, "%s.json", s->name);
+            if (assetModFile(mi, "config", rel, path, sizeof path) && loadFile(s, path, 1) && (size_t)len < sizeof sources - 80) {
                 len += snprintf(sources + len, sizeof sources - (size_t)len, "+mods/%s", modsNameOf(mi));
             }
         }
         plogLine("config", "%s from %s\n", s->name, sources);
     }
     if (manDirty && dataDir && dataDir[0]) {
-        char *text = tdManifestFormat(&man);
-        if (!text || tdWriteFileAtomic(mpath, text, strlen(text))) plogLine("config", "cannot write %s\n", mpath);
-        free(text);
+        if (expManWrite("config", mpath, &man)) plogLine("config", "cannot write %s\n", mpath);
     }
     tdManifestFree(&man);
 }

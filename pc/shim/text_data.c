@@ -4,6 +4,7 @@
  */
 #include "text_data.h"
 
+#include "exp_core.h"
 #include "text_codec.h"
 #include "talk_box_wide.h"
 #include "text_fit.h"
@@ -14,6 +15,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -114,44 +116,150 @@ void tdHashHex(uint64_t h, char out[17])
 
 /* ---- manifest ---- */
 
-void tdMakeStamp(char *buf, size_t cap, const char *discHash, const char *overlayHash)
+const char *tdKvFind(const TdKvList *l, const char *key)
 {
-    snprintf(buf, cap, "disc=%s;overlay=%s;codec=%d", discHash, overlayHash, TD_CODEC_VERSION);
+    int i;
+    for (i = 0; i < l->count; i++) {
+        if (!strcmp(l->items[i].key, key)) return l->items[i].val;
+    }
+    return NULL;
+}
+
+int tdKvSet(TdKvList *l, const char *key, const char *val)
+{
+    int i;
+    if (strlen(key) >= sizeof l->items->key || strlen(val) >= sizeof l->items->val) return -1;
+    for (i = 0; i < l->count; i++) {
+        if (!strcmp(l->items[i].key, key)) {
+            strcpy(l->items[i].val, val);
+            return 0;
+        }
+    }
+    if (l->count == l->capacity) {
+        int cap = l->capacity ? 2 * l->capacity : 8;
+        TdKv *it = (TdKv *)realloc(l->items, (size_t)cap * sizeof *it);
+        if (!it) return -1;
+        l->items = it;
+        l->capacity = cap;
+    }
+    strcpy(l->items[l->count].key, key);
+    strcpy(l->items[l->count].val, val);
+    l->count++;
+    return 0;
+}
+
+void tdKvFree(TdKvList *l)
+{
+    free(l->items);
+    memset(l, 0, sizeof *l);
+}
+
+static int kvEqual(const TdKvList *a, const TdKvList *b)
+{
+    int i;
+    if (a->count != b->count) return 0;
+    for (i = 0; i < a->count; i++) {
+        const char *v = tdKvFind(b, a->items[i].key);
+        if (!v || strcmp(v, a->items[i].val)) return 0;
+    }
+    return 1;
+}
+
+int tdManifestSameRun(const TdManifest *a, const TdManifest *b)
+{
+    return !strcmp(a->topic, b->topic) && !strcmp(a->disc, b->disc) && kvEqual(&a->exporter, &b->exporter) &&
+           kvEqual(&a->inputs, &b->inputs);
 }
 
 void tdManifestFree(TdManifest *m)
 {
     free(m->files);
-    m->files = NULL;
-    m->count = 0;
+    free(m->slots);
+    tdKvFree(&m->exporter);
+    tdKvFree(&m->inputs);
+    tdKvFree(&m->names);
+    memset(m, 0, sizeof *m);
+}
+
+static unsigned pathHash(const char *path)
+{
+    unsigned h = 2166136261u; /* FNV-1a */
+    for (; *path; path++) h = (h ^ (unsigned char)*path) * 16777619u;
+    return h;
+}
+
+/* The slot of `path`: the one that holds it, or the empty one where it would go. Needs a non-empty index with a free slot. */
+static int findSlot(const TdManifest *m, const char *path)
+{
+    unsigned mask = (unsigned)m->nSlots - 1, at = pathHash(path) & mask;
+    while (m->slots[at] != 0 && strcmp(m->files[m->slots[at] - 1].path, path) != 0) at = (at + 1) & mask;
+    return (int)at;
+}
+
+/* Builds the index again for room for `want` files. 0, or -1 when memory ran out (the old index stays). */
+static int reindex(TdManifest *m, int want)
+{
+    int n = 16, i;
+    int *slots;
+    while (n < 2 * want) n *= 2;
+    slots = (int *)calloc((size_t)n, sizeof *slots);
+    if (!slots) return -1;
+    free(m->slots);
+    m->slots = slots;
+    m->nSlots = n;
+    for (i = 0; i < m->count; i++) m->slots[findSlot(m, m->files[i].path)] = i + 1;
+    return 0;
+}
+
+int tdManifestDrop(TdManifest *m, int (*drop)(const char *path))
+{
+    int i, k = 0;
+    for (i = 0; i < m->count; i++) {
+        if (drop(m->files[i].path)) continue;
+        if (k != i) m->files[k] = m->files[i];
+        k++;
+    }
+    i = m->count - k;
+    if (i == 0) return 0;
+    m->count = k;
+    if (m->nSlots > 0 && reindex(m, m->count > 0 ? m->count : 1)) { /* no memory: no index; the next set builds it again */
+        free(m->slots);
+        m->slots = NULL;
+        m->nSlots = 0;
+    }
+    return i;
 }
 
 const char *tdManifestFind(const TdManifest *m, const char *path)
 {
-    int i;
-    for (i = 0; i < m->count; i++) {
-        if (!strcmp(m->files[i].path, path)) return m->files[i].hash;
-    }
-    return NULL;
+    int slot;
+    if (m->nSlots == 0) return NULL;
+    slot = m->slots[findSlot(m, path)];
+    return slot ? m->files[slot - 1].hash : NULL;
 }
 
 int tdManifestSet(TdManifest *m, const char *path, const char *hash)
 {
-    int i;
-    TdManifestFile *f;
-    if (strlen(path) >= sizeof f->path || strlen(hash) >= sizeof f->hash) return -1;
-    for (i = 0; i < m->count; i++) {
-        if (!strcmp(m->files[i].path, path)) {
-            strcpy(m->files[i].hash, hash);
-            return 0;
-        }
+    int at;
+    if (strlen(path) >= sizeof m->files->path || strlen(hash) >= sizeof m->files->hash) return -1;
+    if (m->nSlots == 0 || 2 * (m->count + 1) > m->nSlots) {
+        if (reindex(m, m->count + 1)) return -1;
     }
-    f = (TdManifestFile *)realloc(m->files, (size_t)(m->count + 1) * sizeof *f);
-    if (!f) return -1;
-    m->files = f;
-    strcpy(f[m->count].path, path);
-    strcpy(f[m->count].hash, hash);
-    m->count++;
+    at = findSlot(m, path);
+    if (m->slots[at]) {
+        strcpy(m->files[m->slots[at] - 1].hash, hash);
+        return 0;
+    }
+    if (m->count == m->capacity) {
+        int cap = m->capacity ? 2 * m->capacity : 16;
+        TdManifestFile *f = (TdManifestFile *)realloc(m->files, (size_t)cap * sizeof *f);
+        if (!f) return -1;
+        m->files = f;
+        m->capacity = cap;
+    }
+    strcpy(m->files[m->count].path, path);
+    strcpy(m->files[m->count].hash, hash);
+    m->slots[at] = ++m->count;
     return 0;
 }
 
@@ -160,70 +268,176 @@ static void errf(char *err, size_t size, const char *msg)
     if (err && size) snprintf(err, size, "%s", msg);
 }
 
-/* Next JSON string token (no escapes: the manifest only holds plain names and hashes).
-   Returns 1 and advances *i, 0 at the end, -1 on a bad token. */
-static int nextToken(const char *s, size_t len, size_t *i, char *out, size_t cap)
+/* The manifest reader: strings without escapes (the file only holds plain names and hashes) and unsigned integers, in objects of one level. */
+typedef struct Cur {
+    const char *s;
+    size_t len, i;
+} Cur;
+
+static void skipWs(Cur *c)
 {
-    size_t j;
+    while (c->i < c->len && strchr(" \t\r\n", c->s[c->i]) && c->s[c->i]) c->i++;
+}
+
+static int eat(Cur *c, char ch)
+{
+    skipWs(c);
+    if (c->i < c->len && c->s[c->i] == ch) {
+        c->i++;
+        return 1;
+    }
+    return 0;
+}
+
+static int readStr(Cur *c, char *out, size_t cap)
+{
     size_t n = 0;
-    while (*i < len && s[*i] != '"') {
-        char c = s[*i];
-        if (!strchr("{}[]:, \t\r\n", c)) return -1; /* numbers etc. are not in the format */
-        (*i)++;
+    if (!eat(c, '"')) return 0;
+    while (c->i < c->len && c->s[c->i] != '"') {
+        if (c->s[c->i] == '\\' || (unsigned char)c->s[c->i] < 0x20 || n + 1 >= cap) return 0;
+        out[n++] = c->s[c->i++];
     }
-    if (*i >= len) return 0;
-    j = *i + 1;
-    while (j < len && s[j] != '"') {
-        if (s[j] == '\\' || (unsigned char)s[j] < 0x20 || n + 1 >= cap) return -1;
-        out[n++] = s[j++];
-    }
-    if (j >= len) return -1;
+    if (c->i >= c->len) return 0;
+    c->i++;
     out[n] = 0;
-    *i = j + 1;
     return 1;
+}
+
+static int readUint(Cur *c, char *out, size_t cap)
+{
+    size_t n = 0;
+    skipWs(c);
+    while (c->i < c->len && c->s[c->i] >= '0' && c->s[c->i] <= '9') {
+        if (n + 1 >= cap) return 0;
+        out[n++] = c->s[c->i++];
+    }
+    out[n] = 0;
+    return n > 0 && (n == 1 || out[0] != '0');
+}
+
+/* '{' "key": value, ... '}' where each value is a string, or a number when `numeric`; 1 when read. Into the list, or into the file index when `m` is set. */
+static int readObject(Cur *c, TdKvList *list, TdManifest *m, int numeric)
+{
+    char key[300], val[300];
+    if (!eat(c, '{')) return 0;
+    if (eat(c, '}')) return 1;
+    for (;;) {
+        if (!readStr(c, key, sizeof key) || !eat(c, ':')) return 0;
+        if (!(numeric ? readUint(c, val, sizeof val) : readStr(c, val, sizeof val))) return 0;
+        if (m ? tdManifestSet(m, key, val) : tdKvSet(list, key, val)) return 0;
+        if (eat(c, '}')) return 1;
+        if (!eat(c, ',')) return 0;
+    }
 }
 
 int tdManifestParse(const char *json, size_t len, TdManifest *m, char *err, size_t errSize)
 {
-    size_t i = 0;
-    char tok[300], key[300];
-    int r;
+    Cur c;
+    char key[64], tok[300];
+    int sawFormat = 0, sawFiles = 0;
     memset(m, 0, sizeof *m);
-    r = nextToken(json, len, &i, tok, sizeof tok);
-    if (r != 1 || strcmp(tok, "stamp")) { errf(err, errSize, "manifest: expected \"stamp\" first"); goto bad; }
-    r = nextToken(json, len, &i, tok, sizeof tok);
-    if (r != 1 || strlen(tok) >= sizeof m->stamp) { errf(err, errSize, "manifest: bad stamp"); goto bad; }
-    strcpy(m->stamp, tok);
-    r = nextToken(json, len, &i, tok, sizeof tok);
-    if (r != 1 || strcmp(tok, "files")) { errf(err, errSize, "manifest: expected \"files\""); goto bad; }
-    for (;;) {
-        r = nextToken(json, len, &i, key, sizeof key);
-        if (r == 0) break;
-        if (r < 0) { errf(err, errSize, "manifest: bad token"); goto bad; }
-        r = nextToken(json, len, &i, tok, sizeof tok);
-        if (r != 1 || tdManifestSet(m, key, tok)) { errf(err, errSize, "manifest: bad file entry"); goto bad; }
+    c.s = json;
+    c.len = len;
+    c.i = 0;
+    if (!eat(&c, '{')) { errf(err, errSize, "manifest: not a JSON object"); goto bad; }
+    if (!eat(&c, '}')) {
+        for (;;) {
+            if (!readStr(&c, key, sizeof key) || !eat(&c, ':')) { errf(err, errSize, "manifest: bad field"); goto bad; }
+            if (!strcmp(key, "format")) {
+                if (!readStr(&c, tok, sizeof tok) || strcmp(tok, TD_MANIFEST_FORMAT)) { errf(err, errSize, "manifest: format is not asset-manifest-v1"); goto bad; }
+                sawFormat = 1;
+            } else if (!strcmp(key, "topic")) {
+                if (!readStr(&c, tok, sizeof tok) || strlen(tok) >= sizeof m->topic) { errf(err, errSize, "manifest: bad topic"); goto bad; }
+                strcpy(m->topic, tok);
+            } else if (!strcmp(key, "disc")) {
+                if (!readStr(&c, tok, sizeof tok) || strlen(tok) >= sizeof m->disc) { errf(err, errSize, "manifest: bad disc"); goto bad; }
+                strcpy(m->disc, tok);
+            } else if (!strcmp(key, "exporter")) {
+                if (!readObject(&c, &m->exporter, NULL, 1)) { errf(err, errSize, "manifest: bad exporter"); goto bad; }
+            } else if (!strcmp(key, "inputs")) {
+                if (!readObject(&c, &m->inputs, NULL, 0)) { errf(err, errSize, "manifest: bad inputs"); goto bad; }
+            } else if (!strcmp(key, "names")) {
+                if (!readObject(&c, &m->names, NULL, 0)) { errf(err, errSize, "manifest: bad names"); goto bad; }
+            } else if (!strcmp(key, "files")) {
+                if (!readObject(&c, NULL, m, 0)) { errf(err, errSize, "manifest: bad file entry"); goto bad; }
+                sawFiles = 1;
+            } else {
+                errf(err, errSize, "manifest: unknown field (an old manifest?)");
+                goto bad;
+            }
+            if (eat(&c, '}')) break;
+            if (!eat(&c, ',')) { errf(err, errSize, "manifest: bad field"); goto bad; }
+        }
     }
+    skipWs(&c);
+    if (c.i != c.len) { errf(err, errSize, "manifest: text after the object"); goto bad; }
+    if (!sawFormat || !sawFiles) { errf(err, errSize, "manifest: missing format or files"); goto bad; }
     return 0;
 bad:
     tdManifestFree(m);
-    m->stamp[0] = 0;
     return -1;
+}
+
+/* appends to a malloc'ed buffer; 0 on a memory failure */
+typedef struct Buf {
+    char *p;
+    size_t n, cap;
+} Buf;
+
+static int bput(Buf *b, const char *fmt, ...)
+{
+    va_list ap;
+    int w;
+    for (;;) {
+        va_start(ap, fmt);
+        w = vsnprintf(b->p + b->n, b->cap - b->n, fmt, ap);
+        va_end(ap);
+        if (w < 0) return 0;
+        if ((size_t)w < b->cap - b->n) {
+            b->n += (size_t)w;
+            return 1;
+        }
+        {
+            size_t cap = b->cap * 2 + (size_t)w + 64;
+            char *np = (char *)realloc(b->p, cap);
+            if (!np) return 0;
+            b->p = np;
+            b->cap = cap;
+        }
+    }
+}
+
+static int putMap(Buf *b, const char *name, const TdKvList *l, int numeric)
+{
+    int i;
+    if (l->count == 0) return bput(b, "  \"%s\": {},\n", name);
+    if (!bput(b, "  \"%s\": {\n", name)) return 0;
+    for (i = 0; i < l->count; i++) {
+        if (!bput(b, numeric ? "    \"%s\": %s%s\n" : "    \"%s\": \"%s\"%s\n", l->items[i].key, l->items[i].val, i + 1 < l->count ? "," : "")) return 0;
+    }
+    return bput(b, "  },\n");
 }
 
 char *tdManifestFormat(const TdManifest *m)
 {
-    size_t cap = 512 + (size_t)m->count * 120;
-    char *out = (char *)malloc(cap);
-    size_t n;
-    int i;
-    if (!out) return NULL;
-    n = (size_t)snprintf(out, cap, "{\n  \"stamp\": \"%s\",\n  \"files\": {\n", m->stamp);
-    for (i = 0; i < m->count; i++) {
-        n += (size_t)snprintf(out + n, cap - n, "    \"%s\": \"%s\"%s\n", m->files[i].path, m->files[i].hash,
-                              i + 1 < m->count ? "," : "");
+    Buf b;
+    int i, ok;
+    b.cap = 1024 + (size_t)m->count * 120;
+    b.n = 0;
+    b.p = (char *)malloc(b.cap);
+    if (!b.p) return NULL;
+    ok = bput(&b, "{\n  \"format\": \"%s\",\n  \"topic\": \"%s\",\n", TD_MANIFEST_FORMAT, m->topic) && putMap(&b, "exporter", &m->exporter, 1) &&
+         bput(&b, "  \"disc\": \"%s\",\n", m->disc) && (m->inputs.count == 0 || putMap(&b, "inputs", &m->inputs, 0)) && putMap(&b, "names", &m->names, 0) &&
+         bput(&b, "  \"files\": {\n");
+    for (i = 0; ok && i < m->count; i++) {
+        ok = bput(&b, "    \"%s\": \"%s\"%s\n", m->files[i].path, m->files[i].hash, i + 1 < m->count ? "," : "");
     }
-    snprintf(out + n, cap - n, "  }\n}\n");
-    return out;
+    if (ok) ok = bput(&b, "  }\n}\n");
+    if (!ok) {
+        free(b.p);
+        return NULL;
+    }
+    return b.p;
 }
 
 /* ---- decisions ---- */
@@ -235,10 +449,10 @@ TdFileState tdFileState(int exists, const char *manifestHash, const char *curren
     return TD_FILE_EDITED;
 }
 
-TdExtractAction tdExtractAction(int stampMatches, TdFileState state)
+TdExtractAction tdExtractAction(int sameRun, TdFileState state)
 {
     if (state == TD_FILE_EDITED) return TD_X_WRITE_NEW;
-    if (state == TD_FILE_PRISTINE && stampMatches) return TD_X_SKIP;
+    if (state == TD_FILE_PRISTINE && sameRun) return TD_X_SKIP;
     return TD_X_WRITE;
 }
 
@@ -649,9 +863,10 @@ int tdModFiles(int lang, int k, char paths[][1200], long *mix)
     tdFileName(lang, k, name, sizeof name);
     name[strlen(name) - 4] = 0;
     lowerCase(name);
-    snprintf(rel, sizeof rel, "text/%s/%s.json", tdLangDir(lang), name);
-    for (i = modsCount() - 1; i >= 0; i--) {
-        if (!portPathsResolveCI(modsDirOf(i), rel, paths[n], 1200)) continue;
+    snprintf(rel, sizeof rel, "%s/%s.json", tdLangDir(lang), name);
+    for (i = 0; i < modsCount(); i++) { /* the mods only: data/text is the extracted base, read by the caller */
+        AssetLayer layer;
+        if (!assetLayerAt(i, &layer) || !assetLayerFile(&layer, "text", rel, paths[n], 1200)) continue;
         m = mtimeOf(paths[n], &exists);
         if (exists) {
             sum += m;
@@ -716,70 +931,30 @@ static void overlayIdentity(char out[17])
 }
 
 typedef struct Extract {
-    int written, kept, newFiles, failed;
-    int stampMatches;
+    ExpStats stats;
+    int failed;
+    int sameRun;
     TdManifest next; /* the manifest we are building */
 } Extract;
 
 /* Handle one generated file: decide, write, record */
 static void emit(Extract *x, int lang, int k, const char *fileName, const char *json)
 {
-    char rel[100], path[1200], hex[17], curHex[17];
-    uint8_t *cur = NULL;
-    size_t curLen = 0, jl = strlen(json);
-    int exists = 0;
-    const char *man;
-    TdFileState st;
-    TdExtractAction act;
-    char dir[1200];
+    char rel[100], dir[1200];
+    ExpSink sink;
 
+    (void)k;
     snprintf(rel, sizeof rel, "%s/%.*s.json", tdLangDir(lang), (int)strlen(fileName) - 4, fileName);
     lowerCase(rel);
-    snprintf(path, sizeof path, "%s/text/%s", gData, rel);
-    tdHashHex(tdHash(json, jl), hex);
-    if (readAll(path, &cur, &curLen) == 0) {
-        exists = 1;
-        tdHashHex(tdHash(cur, curLen), curHex);
-        free(cur);
-    } else {
-        curHex[0] = 0;
-    }
-    man = tdManifestFind(&gManifest, rel);
-    st = tdFileState(exists, man, exists ? curHex : NULL);
-    act = tdExtractAction(x->stampMatches, st);
-    (void)k;
-    if (act == TD_X_SKIP) {
-        x->kept++;
-        tdManifestSet(&x->next, rel, man);
-        return;
-    }
-    snprintf(dir, sizeof dir, "%s/text/%s", gData, tdLangDir(lang));
-    if (mkdirs(dir)) {
-        fprintf(stderr, "text: cannot create %s\n", dir);
-        x->failed++;
-        return;
-    }
-    if (act == TD_X_WRITE_NEW) {
-        char np[1210];
-        snprintf(np, sizeof np, "%s.new", path);
-        if (writeAtomic(np, json, jl)) x->failed++;
-        else {
-            x->newFiles++;
-            fprintf(stderr, "text: %s was edited, kept; the new version is %s.new\n", rel, rel);
-        }
-        if (man) tdManifestSet(&x->next, rel, man);
-        return;
-    }
-    if (exists && !strcmp(curHex, hex)) {
-        x->kept++; /* already what we would write */
-    } else if (writeAtomic(path, json, jl)) {
-        fprintf(stderr, "text: cannot write %s\n", path);
-        x->failed++;
-        return;
-    } else {
-        x->written++;
-    }
-    tdManifestSet(&x->next, rel, hex);
+    snprintf(dir, sizeof dir, "%s/text", gData);
+    sink.tag = "text";
+    sink.dir = dir;
+    sink.old = &gManifest;
+    sink.next = &x->next;
+    sink.dirty = NULL;
+    sink.sameRun = x->sameRun;
+    sink.stats = &x->stats;
+    if (expPut(&sink, rel, json, strlen(json))) x->failed++;
 }
 
 static int extractAll(Extract *x)
@@ -873,10 +1048,9 @@ static int extractAll(Extract *x)
 int tdStart(const TdDisc *disc, const char *dataDir, const char *l10nDir)
 {
     double t0 = nowSeconds();
-    char discHex[17], ovHex[17], stamp[256], path[1200];
-    uint8_t *mtxt = NULL;
-    size_t mlen = 0;
-    int haveOld = 0, stampOk, result = 0;
+    char textHex[17], ovHex[17], dec[16], path[1200];
+    TdManifest want;
+    int haveOld = 0, runOk, result = 0;
     Extract x;
 
     memset(&gManifest, 0, sizeof gManifest);
@@ -925,54 +1099,40 @@ int tdStart(const TdDisc *disc, const char *dataDir, const char *l10nDir)
     }
     if (!gHaveData) return 0;
 
-    discIdentity(discHex);
+    /* what this run's files derive from: the disc (the volume and path table, and the text files themselves), the overlay and the codec */
+    discIdentity(textHex);
     overlayIdentity(ovHex);
-    tdMakeStamp(stamp, sizeof stamp, discHex, ovHex);
+    expManInit(&want, "text");
+    snprintf(dec, sizeof dec, "%d", TD_CODEC_VERSION);
+    tdKvSet(&want.exporter, "text", dec);
+    tdKvSet(&want.inputs, "disc-text", textHex);
+    tdKvSet(&want.inputs, "overlay", ovHex);
 
     snprintf(path, sizeof path, "%s/text/manifest.json", gData);
-    if (readAll(path, &mtxt, &mlen) == 0) {
-        char err[120];
-        if (tdManifestParse((const char *)mtxt, mlen, &gManifest, err, sizeof err) == 0) haveOld = 1;
-        else fprintf(stderr, "text: manifest unreadable (%s); regenerating (edited files are kept)\n", err);
-        free(mtxt);
-    }
+    haveOld = expManRead("text", path, &gManifest);
     snprintf(path, sizeof path, "%s/text", gData);
-    stampOk = haveOld && !strcmp(gManifest.stamp, stamp) && isDir(path);
-    if (stampOk) {
-        fprintf(stderr, "text: data folder %s is current (stamp ok), %d files, %.3f s\n", gData, gManifest.count,
+    runOk = haveOld && tdManifestSameRun(&gManifest, &want) && isDir(path);
+    if (runOk) {
+        fprintf(stderr, "text: data folder %s is current (same run), %d files, %.3f s\n", gData, gManifest.count,
                 nowSeconds() - t0);
+        tdManifestFree(&want);
         return 0;
     }
 
     memset(&x, 0, sizeof x);
-    x.stampMatches = haveOld && !strcmp(gManifest.stamp, stamp);
-    snprintf(x.next.stamp, sizeof x.next.stamp, "%s", stamp);
+    x.sameRun = haveOld && tdManifestSameRun(&gManifest, &want);
+    x.next = want; /* the header of this run; the files come as they are written */
     extractAll(&x);
-    {
-        /* what this run did not regenerate (es-419 without the overlay folder, a file that failed)
-           keeps its old entry: its file on disk is still ours, not the user's */
-        int i;
-        for (i = 0; i < gManifest.count; i++) {
-            if (!tdManifestFind(&x.next, gManifest.files[i].path)) {
-                tdManifestSet(&x.next, gManifest.files[i].path, gManifest.files[i].hash);
-            }
-        }
-    }
-    {
-        char *text = tdManifestFormat(&x.next);
-        char dir[1200];
-        snprintf(dir, sizeof dir, "%s/text", gData);
-        if (!text || mkdirs(dir) || (snprintf(path, sizeof path, "%s/text/manifest.json", gData), writeAtomic(path, text, strlen(text)))) {
-            fprintf(stderr, "text: cannot write the manifest in %s\n", dir);
-            x.failed++;
-        }
-        free(text);
-    }
+    /* what this run did not regenerate (es-419 without the overlay folder, a file that failed)
+       keeps its old entry: its file on disk is still ours, not the user's */
+    expManCarry(&x.next, &gManifest);
+    snprintf(path, sizeof path, "%s/text/manifest.json", gData);
+    if (expManWrite("text", path, &x.next)) x.failed++;
     tdManifestFree(&gManifest);
     gManifest = x.next;
-    result = x.failed ? -1 : x.written;
+    result = x.failed ? -1 : x.stats.written;
     fprintf(stderr, "text: extracted %d files (%d kept, %d new beside edited, %d failed) into %s/text in %.3f s\n",
-            x.written, x.kept, x.newFiles, x.failed, gData, nowSeconds() - t0);
+            x.stats.written, x.stats.kept, x.stats.newFiles, x.failed, gData, nowSeconds() - t0);
     return result;
 }
 
@@ -1052,12 +1212,13 @@ typedef struct ExtText {
     int fitIgnoresRule;   /* fit the description to the box even when layout.json marks the file noreflow */
 } ExtText;
 
-enum { EXT_TEXT_ITEMS, EXT_TEXT_TECHS, EXT_TEXT_DIGIMON, EXT_TEXT_CARDS, EXT_TEXT_KINDS };
+enum { EXT_TEXT_ITEMS, EXT_TEXT_TECHS, EXT_TEXT_DIGIMON, EXT_TEXT_CARDS, EXT_TEXT_PARTNERS, EXT_TEXT_KINDS };
 static ExtText gExtText[EXT_TEXT_KINDS] = {
     {NULL, NULL, 403, "ITMNAM", "ITMINF", "item", 0}, /* PC_ITEM_ORIG_COUNT */
     {NULL, NULL, 444, "SKLNAM", "SKLINF", "tech", 1}, /* PC_TECH_FIRST_EXT_ID */
     {NULL, NULL, 251, "DIGNAM", "DIGINF", "digimon", 0}, /* the entries of DIGNAM (and DIGINF, the lab's description of a form) on the disc: the names of new enemies and new partner forms */
     {NULL, NULL, 317, "CARDNM", "CARDST", "card", 0}, /* PC_CARD_ORIG_COUNT: CARDNM entry = card id, CARDST the effect text of a card */
+    {NULL, NULL, 31, "NAMEET", NULL, "partner", 0}, /* PC_NAMEET_FIRST: the Digimon Online registration (the starter screen): a new partner's and team's texts after its 31 */
 };
 
 void tdSetItemTextHook(int (*count)(void), const char *(*text)(int index, const char *langDir, int desc))
@@ -1082,6 +1243,12 @@ void tdSetDigimonTextHook(int (*count)(void), const char *(*text)(int index, con
 {
     gExtText[EXT_TEXT_DIGIMON].count = count;
     gExtText[EXT_TEXT_DIGIMON].text = text;
+}
+
+void tdSetPartnerTextHook(int (*count)(void), const char *(*text)(int index, const char *langDir, int desc))
+{
+    gExtText[EXT_TEXT_PARTNERS].count = count;
+    gExtText[EXT_TEXT_PARTNERS].text = text;
 }
 
 static int fitWidth(const char *text)

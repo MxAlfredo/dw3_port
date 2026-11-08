@@ -4,8 +4,8 @@
  *
  * Why: the tiles of a stage's Z_STAGE PACK are read with CD_READER.read into a heap buffer and unpacked by the Decompressor, so they never
  * pass through FILE_CACHE and the image layer's substitution (tim_loader_pc.c -> imgOverrideTim) cannot see them. FIELDSTG_loadStreamSprites
- * hands the tile's TIM to the TimLoader; here it first asks stageModTim (shim/stage_mod.c) for a mod's PNG of that tile (mods/<mod>/z_stage/
- * <pack>/<RR>_<CC>.png) and loads that TIM instead. Without a replacement stageModTim returns NULL and the original TIM is loaded: the
+ * hands the tile's TIM to the TimLoader; here it first asks stageModTim (shim/stage_mod.c) for a mod's PNG of that tile (mods/<mod>/stages/
+ * s<nnn>/tiles/<RR>_<CC>.png) and loads that TIM instead. Without a replacement stageModTim returns NULL and the original TIM is loaded: the
  * behaviour is byte-identical. ADR-003 keeps the game's own src/ untouched, hence the copy, the same pattern as pc/field/file_loader.c.
  *
  * Keep this file in sync with the upstream unit: apart from the hook (and this comment) its body is copied verbatim from

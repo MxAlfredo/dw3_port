@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Draw the piece map (atlas-v1) of an extracted menu art PNG over the image (feature menu-art-png, T5), and
-the frames and animations (sprite-v1) of an extracted field sprite (feature field-sprites-png, T2).
+"""Draw the pieces of an exported menu screen or stage-object sheet over their pages (menus-menu-v1, stages-objects-v1),
+and the frames and animations of an exported sprite (sprites-sprite-v1 or sprite-v1).
 
-The port writes <NN>_<MM>.json next to every data/images/<dir>/<name>/<NN>_<MM>.png: the rectangles of that
-image that the game's sprite sheet uses. This tool reads the PNG and its JSON and draws every piece as a
-numbered rectangle into a preview image, so you can see what each region of the art is.
+The port writes one PNG per piece plus menu.json (data/menus/<screen>/) or objects.json
+(data/stages/s<nnn>/objects/): where each piece sits in the screen's pages (u, v, w, h) and where the game draws it.
+This tool reads the JSON and its PNGs, places every piece at its rectangle on a canvas the size of the pages and
+outlines it with a number, so you can see what each region of the art is. Pieces in 4-bit and 8-bit mode have their
+own canvas (the pages are 256 texels wide in 4 bits, 128 in 8 bits); the canvases are stacked in one preview.
 
-    python3 tools/image_atlas_preview.py <data>/images/screen/stshoptm/00_00.png
-    python3 tools/image_atlas_preview.py <png> --out /tmp/preview.png --scale 3
+    python3 tools/image_atlas_preview.py <data>/menus/stshop                 # the folder, its menu.json or any piece PNG
+    python3 tools/image_atlas_preview.py <data>/stages/s202/objects --out /tmp/preview.png --scale 3
 
-Field sprites: pass the folder, its sprite.json or any frame PNG of data/images/field/sprt/<name>/:
+Sprites: pass the folder, its sprite.json or any frame PNG of data/sprites/<name>/ (or a partner's field/ folder):
 
-    python3 tools/image_atlas_preview.py <data>/images/field/sprt/p001play            # every frame, numbered by id
-    python3 tools/image_atlas_preview.py <...>/P001PLAY --anim 146                    # animation 146 as a strip
-    python3 tools/image_atlas_preview.py <...>/P001PLAY --set 4 --dir 6 --gif         # walk set, facing 6 (mirrored), as a GIF
+    python3 tools/image_atlas_preview.py <data>/sprites/p001play              # every frame, numbered by id
+    python3 tools/image_atlas_preview.py <data>/sprites/p001play --anim 146   # animation 146 as a strip
+    python3 tools/image_atlas_preview.py <data>/sprites/p001play --set 4 --dir 6 --gif   # walk set, facing 6 (mirrored), as a GIF
 
 --anim takes an animation id of the file; --set and --dir pick it the way the game does (the set's slot for that
 facing, mirrored for the facings 5 to 7). A strip shows each step side by side on the actor's position (the cross);
@@ -22,8 +24,8 @@ facing, mirrored for the facings 5 to 7). A strip shows each step side by side o
 
 Without --out the preview goes to the system temp folder (never into data/); the path is printed. The numbers
 are the pieces' order in the JSON (0-based); the legend is printed on stdout. Pieces flagged "outside" are
-drawn in red, the others in yellow, and pieces the game reads in the other texture
-mode ("read_as") in cyan. Needs Pillow (python3 -m pip install pillow). Nothing from the game is stored here.
+drawn in red, pieces that could not be cut (file null) in cyan, the others in yellow. Needs Pillow
+(python3 -m pip install pillow). Nothing from the game is stored here.
 """
 import argparse
 import json
@@ -43,16 +45,28 @@ def default_out(path, tag, ext="png"):
     return os.path.join(tempfile.gettempdir(), f"{tag}_{name}.{ext}")
 
 
-def sprite_json_path(arg):
-    """The sprite.json an argument points at (a folder, the file, or a frame PNG next to it), or None."""
-    cand = [arg] if os.path.isfile(arg) and arg.endswith(".json") else [os.path.join(arg if os.path.isdir(arg) else os.path.dirname(arg) or ".", "sprite.json")]
+SPRITE_FORMATS = ("sprites-sprite-v1", "sprite-v1")
+PIECE_FORMATS = ("menus-menu-v1", "stages-objects-v1")
+# the facings of a sprite that has no "directions" member (a mod's own sprite.json): the engine's fixed table
+DEFAULT_DIRECTIONS = [{"dir": d, "slot": sl, "flip": fl} for d, (sl, fl) in enumerate([(0, False), (1, False), (2, False), (3, False), (4, False), (3, True), (2, True), (1, True)])]
+DOC_NAMES = ("sprite.json", "menu.json", "objects.json", "objects/objects.json")
+
+
+def find_doc(arg):
+    """(path, document) of the sprite.json, menu.json or objects.json an argument points at (a folder, the file, or a PNG next to it), or None."""
+    if os.path.isfile(arg) and arg.endswith(".json"):
+        cand = [arg]
+    else:
+        base = arg if os.path.isdir(arg) else os.path.dirname(arg) or "."
+        cand = [os.path.join(base, n) for n in DOC_NAMES]
     for c in cand:
         if os.path.isfile(c):
             try:
-                if json.load(open(c, encoding="utf-8")).get("format") == "sprite-v1":
-                    return c
+                doc = json.load(open(c, encoding="utf-8"))
             except (OSError, ValueError):
-                pass
+                continue
+            if doc.get("format") in SPRITE_FORMATS + PIECE_FORMATS:
+                return c, doc
     return None
 
 
@@ -105,7 +119,7 @@ def pick_animation(sprite, a):
         sets = {x["id"]: x for x in sprite["sets"]}
         if a.set not in sets:
             sys.exit(f"image_atlas_preview: no set {a.set}; sets: {sorted(sets)}")
-        dirs = {x["dir"]: x for x in sprite["directions"]}
+        dirs = {x["dir"]: x for x in sprite.get("directions") or DEFAULT_DIRECTIONS}
         if a.dir not in dirs:
             sys.exit("image_atlas_preview: --dir is 0 to 7")
         aid = sets[a.set]["animations"][dirs[a.dir]["slot"]]
@@ -118,7 +132,7 @@ def pick_animation(sprite, a):
 def render_animation(folder, sprite, a, sc, out):
     anim, flip = pick_animation(sprite, a)
     imgs = load_frames(folder, sprite)
-    sizes = {f["id"]: (f["w"], f["h"]) for f in sprite["frames"]}
+    sizes = {f["id"]: (f["w"], f["h"]) if "w" in f else imgs[f["id"]].size for f in sprite["frames"] if "w" in f or f["id"] in imgs}
     boxes = []
     for st in anim["steps"]:
         w, h = sizes.get(st["frame"], (0, 0))
@@ -144,12 +158,12 @@ def render_animation(folder, sprite, a, sc, out):
         d.line([cx - 4, cy, cx + 4, cy], fill=(255, 60, 60, 255))
         d.line([cx, cy - 4, cx, cy + 4], fill=(255, 60, 60, 255))
         tiles.append(t)
-    what = f"animation {anim['id']}" + (" mirrored" if flip else "") + (" (loops)" if anim["loop"] else " (plays once)")
+    what = f"animation {anim['id']}" + (" mirrored" if flip else "") + (" (loops)" if anim.get("loop", True) else " (plays once)")
     for n, st in enumerate(anim["steps"]):
         print(f"{n:3d}  frame {st['frame']:>3}  time {st['time']:>3}  x={st['x']} y={st['y']}")
     if a.gif:
         ms = [max(20, int(round(st["time"] * a.tick_ms))) for st in anim["steps"]]
-        tiles[0].convert("RGB").save(out, save_all=True, append_images=[t.convert("RGB") for t in tiles[1:]], duration=ms, loop=0 if anim["loop"] else 1)
+        tiles[0].convert("RGB").save(out, save_all=True, append_images=[t.convert("RGB") for t in tiles[1:]], duration=ms, loop=0 if anim.get("loop", True) else 1)
         print(f"preview: {out} ({what}, {len(tiles)} steps, {sum(ms)} ms)")
     else:
         strip = Image.new("RGBA", (cw * len(tiles) + 2 * (len(tiles) - 1), ch + 12), (40, 40, 40, 255))
@@ -161,58 +175,80 @@ def render_animation(folder, sprite, a, sc, out):
         print(f"preview: {out} ({what}, {len(tiles)} steps)")
 
 
+def render_pieces(folder, doc, sc, out):
+    """Each piece at its rectangle on a canvas the size of the pages (one canvas per pixel mode, stacked)."""
+    pieces = doc["pieces"]
+    pages = [p for p in doc.get("pages", []) if p]
+    texels = {"4bit": 4, "8bit": 2}  # texels per halfword
+    canvases = []
+    for mode in ("4bit", "8bit"):
+        used = [p for p in pieces if p["mode"] == mode]
+        if not used:
+            continue
+        wpx = sum(pg[0] for pg in pages) * texels[mode]
+        hpx = max([pg[1] for pg in pages] + [0])
+        wpx = max(wpx, max(p["u"] + p["w"] for p in used))
+        hpx = max(hpx, max(p["v"] + p["h"] for p in used))
+        canvases.append((mode, used, max(1, wpx), max(1, hpx)))
+    if not canvases:
+        sys.exit("image_atlas_preview: the file lists no pieces")
+    label, gap = 12, 6
+    width = max(c[2] for c in canvases) * sc
+    height = sum(c[3] * sc + label + gap for c in canvases)
+    sheet = Image.new("RGBA", (width, height), (40, 40, 40, 255))
+    d = ImageDraw.Draw(sheet)
+    y = 0
+    cut = 0
+    for mode, used, cw, ch in canvases:
+        d.text((2, y), f"{mode}: {len(used)} pieces, {cw}x{ch} texels", fill=(255, 255, 255, 255))
+        y += label
+        d.rectangle([0, y, cw * sc - 1, y + ch * sc - 1], fill=(96, 96, 96, 255))
+        for p in used:
+            n = pieces.index(p)
+            x0, y0 = p["u"] * sc, y + p["v"] * sc
+            if p.get("file"):
+                try:
+                    im = Image.open(os.path.join(folder, p["file"])).convert("RGBA")
+                    sheet.alpha_composite(im.resize((im.width * sc, im.height * sc), Image.NEAREST), (x0, y0))
+                    cut += 1
+                except OSError as e:
+                    print(f"warning: piece {n}: {e}", file=sys.stderr)
+            col = (255, 60, 60, 255) if p.get("outside") else (80, 255, 255, 255) if not p.get("file") else (255, 230, 0, 255)
+            d.rectangle([x0, y0, x0 + p["w"] * sc - 1, y0 + p["h"] * sc - 1], outline=col)
+            d.text((x0 + 2, y0 + 1), str(n), fill=col)
+            where = ", ".join(f"f{f['frame']}p{f['slot']}" for f in p["frames"][:4]) + (" ..." if len(p["frames"]) > 4 else "")
+            print(f"{n:3d}  {p.get('file') or 'no image':>12}  {mode} u={p['u']} v={p['v']} {p['w']}x{p['h']}  clut x={p['clut']['x']} row={p['clut']['row']}  frames {where}"
+                  + ("  outside" if p.get("outside") else "") + (f"  ({p['unexported']})" if p.get("unexported") else ""))
+        y += ch * sc + gap
+    sheet.convert("RGB").save(out)
+    print(f"preview: {out} ({len(pieces)} pieces, {cut} drawn)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("png", help="an extracted PNG (its .json is read from the same folder), or a field sprite folder / sprite.json")
+    ap.add_argument("path", help="a menu or stage-object folder (menu.json / objects.json), or a sprite folder (sprite.json), the JSON itself or a PNG next to it")
     ap.add_argument("--out", help="preview PNG (or GIF) to write (default: the system temp folder)")
     ap.add_argument("--scale", type=int, default=2, help="integer zoom of the preview (default 2)")
-    ap.add_argument("--anim", type=int, help="field sprite: draw this animation id as a strip of its steps")
-    ap.add_argument("--set", type=int, help="field sprite: the animation set (with --dir)")
-    ap.add_argument("--dir", type=int, default=0, help="field sprite: the facing 0 to 7 (default 0; 5 to 7 are mirrored)")
-    ap.add_argument("--flip", action="store_true", help="field sprite: mirror --anim as the facings 5 to 7 do")
-    ap.add_argument("--gif", action="store_true", help="field sprite: write an animated GIF instead of a strip")
-    ap.add_argument("--tick-ms", type=float, default=1000 / 60, help="field sprite: milliseconds of one time tick (default 1000/60, an assumption)")
+    ap.add_argument("--anim", type=int, help="sprite: draw this animation id as a strip of its steps")
+    ap.add_argument("--set", type=int, help="sprite: the animation set (with --dir)")
+    ap.add_argument("--dir", type=int, default=0, help="sprite: the facing 0 to 7 (default 0; 5 to 7 are mirrored)")
+    ap.add_argument("--flip", action="store_true", help="sprite: mirror --anim as the facings 5 to 7 do")
+    ap.add_argument("--gif", action="store_true", help="sprite: write an animated GIF instead of a strip")
+    ap.add_argument("--tick-ms", type=float, default=1000 / 60, help="sprite: milliseconds of one time tick (default 1000/60, an assumption)")
     a = ap.parse_args()
 
-    sj = sprite_json_path(a.png)
-    if sj:
-        sprite = json.load(open(sj, encoding="utf-8"))
-        folder = os.path.dirname(sj)
-        sc = max(1, a.scale)
-        if a.anim is not None or a.set is not None:
-            render_animation(folder, sprite, a, sc, a.out or default_out(sj, "anim", "gif" if a.gif else "png"))
-        else:
-            sprite_sheet(folder, sprite, sc, a.out or default_out(sj, "sprite"))
-        return
-    jpath = os.path.splitext(a.png)[0] + ".json"
-    try:
-        atlas = json.load(open(jpath, encoding="utf-8"))
-    except (OSError, ValueError) as e:
-        sys.exit(f"image_atlas_preview: cannot read {jpath}: {e}")
-    if atlas.get("format") != "atlas-v1":
-        sys.exit(f"image_atlas_preview: {jpath} is not atlas-v1")
-    img = Image.open(a.png).convert("RGBA")
-    if (img.width, img.height) != (atlas["width"], atlas["height"]):
-        print(f"warning: the PNG is {img.width}x{img.height} but the map says {atlas['width']}x{atlas['height']}", file=sys.stderr)
+    found = find_doc(a.path)
+    if not found:
+        sys.exit(f"image_atlas_preview: no sprite.json, menu.json or objects.json (sprites-sprite-v1, menus-menu-v1, stages-objects-v1) at {a.path}")
+    path, doc = found
+    folder = os.path.dirname(path)
     sc = max(1, a.scale)
-    bg = Image.new("RGBA", img.size, (96, 96, 96, 255))  # index 0 is transparent: show it as grey
-    bg.alpha_composite(img)
-    view = bg.resize((img.width * sc, img.height * sc), Image.NEAREST)
-    d = ImageDraw.Draw(view)
-    for n, p in enumerate(atlas["pieces"]):
-        col = (255, 60, 60, 255) if p.get("outside") else (80, 255, 255, 255) if "read_as" in p else (255, 230, 0, 255)
-        x0, y0 = p["x"] * sc, p["y"] * sc
-        x1, y1 = (p["x"] + p["w"]) * sc - 1, (p["y"] + p["h"]) * sc - 1
-        d.rectangle([x0, y0, x1, y1], outline=col)
-        d.text((x0 + 2, y0 + 1), str(n), fill=col)
-        print(f"{n:3d}  {p['id']:>8}  x={p['x']} y={p['y']} {p['w']}x{p['h']}  palette {p['palette']}  frames {p['frames']}"
-              + ("  outside" if p.get("outside") else "") + (f"  read_as {p['read_as']}" if "read_as" in p else ""))
-    out = a.out
-    if not out:
-        tag = "_".join(os.path.normpath(a.png).split(os.sep)[-3:]).replace(".png", "")
-        out = os.path.join(tempfile.gettempdir(), f"atlas_{tag}.png")
-    view.convert("RGB").save(out)
-    print(f"preview: {out} ({len(atlas['pieces'])} pieces)")
+    if doc["format"] in PIECE_FORMATS:
+        render_pieces(folder, doc, sc, a.out or default_out(path, "pieces"))
+    elif a.anim is not None or a.set is not None:
+        render_animation(folder, doc, a, sc, a.out or default_out(path, "anim", "gif" if a.gif else "png"))
+    else:
+        sprite_sheet(folder, doc, sc, a.out or default_out(path, "sprite"))
 
 
 if __name__ == "__main__":

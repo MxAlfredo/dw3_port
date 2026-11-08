@@ -59,11 +59,43 @@ static int setModsText(char **dst, const char *val, const char *what) {
 
 static const char *modsOrderStr(void) { return modsOrder != NULL ? modsOrder : ""; }
 static const char *modsDisabledStr(void) { return modsDisabled != NULL ? modsDisabled : ""; }
-static char exportModels[256]; /* [data] export_models = all | 383, 12 (model-import I7), kept so a save writes it back */
-static char exportVideos[256]; /* [data] export_videos = all | MOVIED01, MOVIEOPN (content-export E2a), kept so a save writes it back */
-static char exportAudio[256];  /* [data] export_audio = all | BGM001, COMMON (content-export E3a), kept so a save writes it back */
-static char exportStages[256]; /* [data] export_stages = all | S233, S330 (content-export E6b), kept so a save writes it back */
-static char exportRaw[256];    /* [data] export_raw = all | off | stage-map, battle-effect (content-export E7), kept so a save writes it back */
+/* The [data] export_* lines (one per exporter, B3): the value kept so a save writes it back, and the comment the exporter registered
+   (inputCfgRegisterExport) that goes above it. A row is made by the first of the two to name its key. */
+enum { EXPORT_ROWS = 16 };
+static struct {
+    char key[32];
+    const char *note;
+    int order; /* the position its exporter registered at (a save writes the rows in this order); -1: no exporter named it */
+    char value[256];
+} exportRows[EXPORT_ROWS];
+static int exportRowCount, exportRegistered;
+
+static int exportRowFind(const char *key) {
+    int i;
+
+    for (i = 0; i < exportRowCount; i++) {
+        if (strcmp(exportRows[i].key, key) == 0) {
+            return i;
+        }
+    }
+    if (exportRowCount >= EXPORT_ROWS || strlen(key) >= sizeof(exportRows[0].key)) {
+        return -1;
+    }
+    snprintf(exportRows[exportRowCount].key, sizeof(exportRows[0].key), "%s", key);
+    exportRows[exportRowCount].order = -1;
+    return exportRowCount++;
+}
+
+void inputCfgRegisterExport(const char *key, const char *note) {
+    int i = exportRowFind(key);
+
+    if (i >= 0) {
+        exportRows[i].note = note;
+        if (exportRows[i].order < 0) {
+            exportRows[i].order = exportRegistered++;
+        }
+    }
+}
 
 /* PsyCross (PsyX_main.cpp / PsyX_pad.cpp) */
 int PsyX_LookupKeyboardMapping(const char *str, int default_value);
@@ -366,33 +398,19 @@ int inputCfgFormat(const InputCfg *cfg, char *buf, int cap) {
                       "disabled = %s%s\n", modsDisabledStr(), "");
         }
     }
-    if (exportModels[0] != '\0' && !o.overflow) {
-        outPrintf(&o, "\n; Writes the original battle models to the data/models folder when the game starts: all, or fighter numbers "
-                  "separated by commas (383 is Kotemon).\n; Each start checks them again; delete the line once they are there.\n"
-                  "[data]\nexport_models = %s%s\n", exportModels, "");
-    }
-    if (exportVideos[0] != '\0' && !o.overflow) {
-        outPrintf(&o, "\n; Writes the game's movies as AVI files (MJPEG video, PCM audio) to the data/video folder when the game starts: "
-                  "all, or movie names separated by commas (MOVIEOPN is the opening).\n; Each start checks them again; delete the line "
-                  "once they are there.\n%sexport_videos = %s\n", exportModels[0] != '\0' ? "" : "[data]\n", exportVideos);
-    }
-    if (exportAudio[0] != '\0' && !o.overflow) {
-        outPrintf(&o, "\n; Writes the game's sound banks to the data/audio folder when the game starts: every sample as a WAV file (with its loop "
-                  "and root note), every sequence as a MIDI file and a JSON file per bank: all, or bank names separated by commas (BGM001, COMMON).\n"
-                  "; Each start checks them again; delete the line once they are there.\n%sexport_audio = %s\n",
-                  exportModels[0] != '\0' || exportVideos[0] != '\0' ? "" : "[data]\n", exportAudio);
-    }
-    if (exportStages[0] != '\0' && !o.overflow) {
-        outPrintf(&o, "\n; Writes the field stage tiles (the map art) as PNG files with a JSON file per stage to the data/z_stage folder when the "
-                  "game starts: all (about 12000 files), or stage names separated by commas (S233, S330).\n"
-                  "; Each start checks them again; delete the line once they are there.\n%sexport_stages = %s\n",
-                  exportModels[0] != '\0' || exportVideos[0] != '\0' || exportAudio[0] != '\0' ? "" : "[data]\n", exportStages);
-    }
-    if (exportRaw[0] != '\0' && !o.overflow) {
-        outPrintf(&o, "\n; Copies the disc files that have no open format yet (field collision maps, battle effects, overlays, ...) to the data/raw folder "
-                  "when the game starts (about 15 MB): all (the default when the line is absent), off, or kinds separated by commas (stage-map, "
-                  "battle-effect).\n; Each start checks them again; the files you edited are never overwritten.\n%sexport_raw = %s\n",
-                  exportModels[0] != '\0' || exportVideos[0] != '\0' || exportAudio[0] != '\0' || exportStages[0] != '\0' ? "" : "[data]\n", exportRaw);
+    {
+        int i, pass, any = 0;
+
+        for (pass = 0; pass <= exportRegistered && !o.overflow; pass++) { /* registered rows by position, then the others */
+            for (i = 0; i < exportRowCount && !o.overflow; i++) {
+                if (exportRows[i].value[0] == '\0' || (pass < exportRegistered ? exportRows[i].order != pass : exportRows[i].order >= 0)) {
+                    continue;
+                }
+                outPrintf(&o, "\n%s%s", exportRows[i].note != NULL ? exportRows[i].note : "", any ? "" : "[data]\n");
+                outPrintf(&o, "%s = %s\n", exportRows[i].key, exportRows[i].value);
+                any = 1;
+            }
+        }
     }
     if (discPath[0] != '\0' && !o.overflow) {
         outPrintf(&o, "\n; The disc image the game starts from (set by the first-run file picker).\n[disc]\npath = %s%s\n", discPath, "");
@@ -517,24 +535,13 @@ static const char *parseLine(char *line, Section *section, InputCfg *cfg) {
         return "unknown key";
     }
     if (section->dev == INPUT_SECTION_DATA) {
-        if (strcmp(key, "export_models") == 0) {
-            snprintf(exportModels, sizeof(exportModels), "%s", val);
-            return NULL;
-        }
-        if (strcmp(key, "export_videos") == 0) {
-            snprintf(exportVideos, sizeof(exportVideos), "%s", val);
-            return NULL;
-        }
-        if (strcmp(key, "export_audio") == 0) {
-            snprintf(exportAudio, sizeof(exportAudio), "%s", val);
-            return NULL;
-        }
-        if (strcmp(key, "export_stages") == 0) {
-            snprintf(exportStages, sizeof(exportStages), "%s", val);
-            return NULL;
-        }
-        if (strcmp(key, "export_raw") == 0) {
-            snprintf(exportRaw, sizeof(exportRaw), "%s", val);
+        if (strncmp(key, "export_", 7) == 0) {
+            int i = exportRowFind(key);
+
+            if (i < 0) {
+                return "too many export keys";
+            }
+            snprintf(exportRows[i].value, sizeof(exportRows[0].value), "%s", val);
             return NULL;
         }
         return "unknown key";
@@ -801,74 +808,19 @@ int inputCfgSetMods(const char *order, const char *disabled) {
     return 0;
 }
 
-/* The [data] export_models line of the settings file ("" -> 0): which original models to write to data/models at start */
-int inputCfgReadExportModels(char *out, int cap) {
+/* One [data] export_* line of the settings file ("" or absent -> 0): which items the exporter writes at start */
+int inputCfgReadExport(const char *key, char *out, int cap) {
     char path[1024];
     InputCfg scratch;
+    int i = exportRowFind(key);
 
-    if (!inputCfgResolvePath(path, sizeof(path))) {
+    if (i < 0 || !inputCfgResolvePath(path, sizeof(path))) {
         return 0;
     }
     inputCfgDefaults(&scratch);
-    exportModels[0] = '\0';
+    exportRows[i].value[0] = '\0';
     inputCfgLoadFile(path, &scratch, NULL);
-    return exportModels[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportModels) < cap;
-}
-
-/* The [data] export_videos line of the settings file ("" -> 0): which movies to write to data/video at start */
-int inputCfgReadExportVideos(char *out, int cap) {
-    char path[1024];
-    InputCfg scratch;
-
-    if (!inputCfgResolvePath(path, sizeof(path))) {
-        return 0;
-    }
-    inputCfgDefaults(&scratch);
-    exportVideos[0] = '\0';
-    inputCfgLoadFile(path, &scratch, NULL);
-    return exportVideos[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportVideos) < cap;
-}
-
-/* The [data] export_audio line of the settings file ("" -> 0): which sound banks to write to data/audio at start */
-int inputCfgReadExportAudio(char *out, int cap) {
-    char path[1024];
-    InputCfg scratch;
-
-    if (!inputCfgResolvePath(path, sizeof(path))) {
-        return 0;
-    }
-    inputCfgDefaults(&scratch);
-    exportAudio[0] = '\0';
-    inputCfgLoadFile(path, &scratch, NULL);
-    return exportAudio[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportAudio) < cap;
-}
-
-/* The [data] export_raw line of the settings file ("" -> 0): which kinds of raw disc files to copy to data/raw at start */
-int inputCfgReadExportRaw(char *out, int cap) {
-    char path[1024];
-    InputCfg scratch;
-
-    if (!inputCfgResolvePath(path, sizeof(path))) {
-        return 0;
-    }
-    inputCfgDefaults(&scratch);
-    exportRaw[0] = '\0';
-    inputCfgLoadFile(path, &scratch, NULL);
-    return exportRaw[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportRaw) < cap;
-}
-
-/* The [data] export_stages line of the settings file ("" -> 0): which stages to write to data/z_stage at start */
-int inputCfgReadExportStages(char *out, int cap) {
-    char path[1024];
-    InputCfg scratch;
-
-    if (!inputCfgResolvePath(path, sizeof(path))) {
-        return 0;
-    }
-    inputCfgDefaults(&scratch);
-    exportStages[0] = '\0';
-    inputCfgLoadFile(path, &scratch, NULL);
-    return exportStages[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportStages) < cap;
+    return exportRows[i].value[0] != '\0' && snprintf(out, (size_t)cap, "%s", exportRows[i].value) < cap;
 }
 
 int inputCfgLoadFile(const char *path, InputCfg *cfg, InputCfgLog log) {

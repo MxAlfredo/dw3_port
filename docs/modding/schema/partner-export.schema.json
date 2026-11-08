@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port partners/<name>/partner.json as exported (partners-partner-v1, descriptive)",
+  "description": "The partner.json the game exports for an ORIGINAL partner (data/partners/<name>/, beside portrait.png, icon.png, field/ and training/), from pc/shim/partner_export.c (partnerJson). Descriptive: never read; a folder named like an original only replaces art. The same format name is the registry record of a mod's NEW partner (partners/<key>/partner.json), which is a different set of members (base, title by language, equip, evolution...): see partner.schema.json for that one.",
+  "type": "object",
+  "required": [
+    "format",
+    "name",
+    "title",
+    "disc",
+    "firstForm",
+    "portrait",
+    "icon",
+    "field",
+    "training",
+    "notes"
+  ],
+  "properties": {
+    "format": {
+      "const": "partners-partner-v1"
+    },
+    "name": {
+      "type": "string",
+      "description": "The folder: the partner's English name as a slug (partner-<n> when the name cannot be read)."
+    },
+    "title": {
+      "type": "string",
+      "description": "The display name (a text, not the by-language object of a mod's record)."
+    },
+    "disc": {
+      "type": "object",
+      "required": [
+        "id",
+        "files"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^dw3:partner/[0-9]+$"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The disc files the art comes from: the field sprite and the memory-card sheet pair."
+        }
+      },
+      "additionalProperties": false
+    },
+    "firstForm": {
+      "type": "string",
+      "pattern": "^dw3:digimon/[0-9]+$",
+      "description": "The first form, named and not copied."
+    },
+    "portrait": {
+      "type": "object",
+      "required": [
+        "file",
+        "cell",
+        "cells",
+        "animation",
+        "offsets",
+        "sheetFrames",
+        "screens"
+      ],
+      "properties": {
+        "file": {
+          "const": "portrait.png"
+        },
+        "cell": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          },
+          "description": "Size of one cell in pixels."
+        },
+        "cells": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Cells side by side in the PNG."
+        },
+        "animation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Order the menus show the cells: forwards then back."
+        },
+        "offsets": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "description": "Where each cell sits in its frame, as the game places it."
+        },
+        "sheetFrames": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "The sheet frame each cell comes from."
+        },
+        "screens": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The menu screens that show the portrait."
+        }
+      },
+      "additionalProperties": false
+    },
+    "icon": {
+      "type": "object",
+      "required": [
+        "file",
+        "size",
+        "sheetFrame"
+      ],
+      "properties": {
+        "file": {
+          "const": "icon.png"
+        },
+        "size": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "sheetFrame": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "directory",
+        "format",
+        "character"
+      ],
+      "properties": {
+        "directory": {
+          "const": "field"
+        },
+        "format": {
+          "const": "sprite-v1"
+        },
+        "character": {
+          "type": "string",
+          "description": "The disc's sprite file name, such as P003PKEN."
+        }
+      },
+      "additionalProperties": false
+    },
+    "training": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "directory",
+          "set",
+          "rows"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "directory": {
+            "type": "string",
+            "description": "training/<name>: a folder with training.json (partner-training.schema.json) and its PNGs."
+          },
+          "set": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "The gym's training numbers that use it: the second is the Super variant."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

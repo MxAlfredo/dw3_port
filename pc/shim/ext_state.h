@@ -15,6 +15,11 @@
  * The code reaches these through PC_ITEM_COUNT / PC_ITEM_EQUIPPED (engine/item_access.h).
  */
 
+/* The exp a partner's total must EXCEED to reach `level` (2..99), as the game's growth decides it (STFGTREP_addExp: (level^3 + 5 level - 6) *
+   expRate / 10 + tierExp[tier], the tier 0 below level 5, 1 below 20, 2 below 40, else 3; tierExp is STFGTREP_levelExp); -1 outside 2..99.
+   The test harness (DW3_SEED_PARTNER_LEVEL) seeds a partner with exactly this much, so one more point levels it up. */
+int pcLevelExpToExceed(int level, int expRate, const int *tierExp);
+
 /* the original arrays' length (GameState.items[0x193]) */
 #define PC_ITEM_ORIG_COUNT 0x193
 
@@ -194,6 +199,46 @@ unsigned long pcExtStateEncodeEntries(unsigned char *out, unsigned long cap);
 /* replaces the stored entries by the chunk's (NULL/empty: none). Returns the entries dropped, or -1 when the chunk is damaged
    (then none are kept) */
 int pcExtStateDecodeEntries(const unsigned char *in, unsigned long len);
+
+/*
+ * Partners by name (ADR-014). The registry (pcPartnerRegister, engine/partner_access.h) gives each partner a stable name; the index
+ * is the registration order of the run. dw3save section "PTNR" holds every partner (the eight originals read from the GAME block
+ * `game`, the others from the port's array) with its stored entries, the party and the names of the new forms and techniques inside
+ * the records; it is written only when the port has more than eight partners (no mods: none, the file is as before).
+ *   pcExtStateEncodePartners   the section's size, written only when `cap` is enough; 0 when there is nothing to write
+ *   pcExtStateDecodePartners   stages the section for the import that follows the load (pcPartnersImport) and puts the stored entries
+ *                              in their stores; a partner whose name no mod defines is dropped with a [saves] line. Returns the number
+ *                              dropped, or -1 for a damaged section (nothing staged). NULL/empty: forgets what was staged.
+ *   pcExtStateRemapParty       rewrites GAME.party of a loaded block from the section's names and makes it valid (every slot a
+ *                              partner that exists or -1, members packed first, never empty); returns the members lost
+ */
+unsigned long pcExtStateEncodePartners(const unsigned char *game, unsigned long gameLen, unsigned char *out, unsigned long cap);
+int pcExtStateDecodePartners(const unsigned char *in, unsigned long len);
+int pcExtStateRemapParty(unsigned char *game, unsigned long gameLen, const unsigned char *chunk, unsigned long len);
+/*
+ * The starter team by name (P5, ADR-015). GameState.partySet is the NUMBER of the team the game began with (setParty); the three originals keep
+ * theirs (0..2, the disc's order), but a team a mod adds is 3 plus its place among the mods' teams, which changes with the mods installed. The
+ * only reader is checkPartner op 0 (src/engine/game/events.c:93: partySet == arg, the args of the disc's special conditions being 0..2), so
+ * what a save must keep for a mod team is which team it was, not a number: dw3save section "TEAM" (u32 version 1, the team's name), written only
+ * when partySet is a mod's team (a save with an original team has none, and is the same bytes as before).
+ *   pcExtStateEncodeTeam  the section's size, written only when `cap` is enough; 0 when partySet is an original team's
+ *   pcExtStateRemapTeam   rewrites partySet of a loaded block: the number the saved name has now; -1 when the team's mod is gone or the section
+ *                         is damaged. -1 equals no argument of any event condition, so the game reads it as "no team", the same as a mod's team
+ *                         (which no disc condition names). A block with no section is left as it is (an original team, or a number that
+ *                         matches no condition whatever it means). Returns 1 when changed.
+ */
+unsigned long pcExtStateEncodeTeam(const unsigned char *game, unsigned long gameLen, unsigned char *out, unsigned long cap);
+int pcExtStateRemapTeam(unsigned char *game, unsigned long gameLen, const unsigned char *chunk, unsigned long len);
+/* The card screen's summaries ("ICON" section): the partners of the three slots' parties by name, so the icon of a partner a mod adds
+   follows the name. Encode: the section's size from an info section (MemCardFile), 0 when no partner above the eight is named. Remap:
+   rewrites the loaded info's partner values; a partner whose mod is gone shows its stand-in's art. Returns the number replaced. */
+#define PC_INFO_USED 0xD4        /* sizeof(MemCardFile) */
+#define PC_INFO_MAGIC_OFS 4      /* offsetof(MemCardFile, magic): the checksum in byte 0 covers magic up to PC_INFO_USED */
+#define PC_INFO_SAVES_OFS 8      /* offsetof(MemCardFile, saves) */
+#define PC_INFO_SAVE_SIZE 0x44   /* sizeof(MemCardSave) */
+#define PC_INFO_PARTNERS_OFS 0x30 /* offsetof(MemCardSave, partners) */
+unsigned long pcExtStateEncodeIcons(const unsigned char *info, unsigned long infoLen, unsigned char *out, unsigned long cap);
+int pcExtStateRemapIcons(unsigned char *info, unsigned long infoLen, const unsigned char *chunk, unsigned long len);
 
 /*
  * Evolution lists (extended Digimon P3). STFGTREP_learnDigimon reads a partner's list through PC_EVOLUTION_LIST (battle/report.h):

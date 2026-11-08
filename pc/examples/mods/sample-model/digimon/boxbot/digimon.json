@@ -1,0 +1,8 @@
+{
+  "format": "digimon-digimon-v1",
+  "name": "boxbot",
+  "base": "dw3:digimon/4",
+  "title": { "eng": "Boxbot", "es-419": "Cajabot" },
+  "description": { "eng": "A robot made of boxes: the sample of a model that comes from a glTF." },
+  "stats": { "attack": 90, "defense": 30, "speed": 60 }
+}

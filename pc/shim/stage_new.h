@@ -4,7 +4,7 @@
 /*
  * The loader of the field stages that mods add (new-stages T5, ADR-012, docs/stages.md section 13).
  *
- * A mod's mods/<mod>/new-stages/<name>/ holds a stage-new-v1: stage.json (the header and the sections of the stage patch layer, "add" only) and PNGs of the map
+ * A mod's mods/<mod>/stages/<name>/ (a folder that is not s<nnn>; s<nnn> is an original stage) holds a stage-new-v1: stage.json (the header and the sections of the stage patch layer, "add" only) and PNGs of the map
  * (indexed, one pixel per pixel of the map): background.png cut into 128 px tiles (a Z_STAGE PACK, map_pack.h), floor.png, triggers.png and areas.png (the three
  * layers of the TMPK, map_layers.h). The stage is "<mod>:<name>", the folder name being the name.
  *
@@ -23,7 +23,7 @@
 
 #include "stage_mods.h"
 
-#define NS_DIR "new-stages"
+#define NS_DIR "stages" /* the topic of the original stages too; s<nnn> folders are the originals, any other folder is a new stage */
 #define NS_FILE "stage.json"
 #define NS_CELL 128         /* the size of a map tile, and the unit the map's size must be a multiple of */
 #define NS_MAX_TILES 255    /* MP_MAX_TILES: the streamer keeps a tile in a u8, 0xFF means none */

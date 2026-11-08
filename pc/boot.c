@@ -71,6 +71,7 @@
 #include "menus/country_select.h"
 #undef OVL_NAME
 #include "menus/item_shop.h"
+#include "menus/memory_card.h" /* the card screen's summaries (ICON section) */
 #undef OVL_NAME
 #include "cardgame/card_packs.h" /* content-export E5d: the layouts game_tables.c mirrors */
 #undef OVL_NAME
@@ -88,11 +89,14 @@
 #include "shim/save_view.h"
 #include "shim/tech_ext.h"
 #include "shim/digimon_ext.h"
+#include "shim/partner_ext.h"
+#include "shim/partner_art.h"
 #include "shim/field_ext.h"
 #include "shim/text_codec.h"
 #include "shim/text_data.h"
 #include "shim/host.h"
 #include "shim/options_system.h"
+#include "shim/exp_types.h"
 #include "shim/host_memcard.h"
 #include "shim/model_bake.h"
 #include "shim/model_export.h"
@@ -108,6 +112,15 @@
 #include "shim/mod_stages.h"
 #include "shim/options_language.h"
 #include "shim/raw_export.h"
+#include "shim/menu_export.h"
+#include "shim/card_export.h"
+#include "shim/sprite_export.h"
+#include "shim/stage_obj_export.h"
+#include "shim/menu_pack.h"
+#include "shim/stage_obj_pack.h"
+#include "shim/partner_export.h"
+#include "shim/partner_bundle.h"
+#include "shim/partner_train.h"
 #include "shim/image_data.h"
 #include "shim/sprite_data.h"
 #include "shim/port_fs.h"
@@ -121,18 +134,10 @@
 #include "shim/state_scope.h"
 #include "shim/table_mods.h"
 #include "shim/disc_fd.h"
+#include "shim/fault_report.h"
 
 #include <PsyX/PsyX_public.h>
 
-#if !defined(_WIN32) && !defined(__ANDROID__) /* Bionic has execinfo.h only from API 33 */
-#include <execinfo.h>
-#endif
-#ifdef __ANDROID__
-#include <android/log.h>
-#include <dlfcn.h>
-#include <unwind.h>
-#include <ucontext.h>
-#endif
 #include <limits.h>
 #include <stddef.h>
 #include <signal.h>
@@ -169,12 +174,7 @@ extern char *strrchr(const char *s, int c);
 extern unsigned char *pcCdReadDiscFile(int file, size_t *len); /* shim/host_cd.c: the disc bytes of a file number */
 /* U7: the [mods] order/disabled text as a heap string (no length limit; NULL when absent), freed by the caller */
 extern char *inputCfgReadModsOrderAlloc(void);
-extern int inputCfgReadExportModels(char *out, int cap);
 extern int inputCfgTakeFlag(int *argc, char **argv, const char *flag); /* shim/input_cfg.c */
-extern int inputCfgReadExportVideos(char *out, int cap);
-extern int inputCfgReadExportAudio(char *out, int cap);
-extern int inputCfgReadExportStages(char *out, int cap);
-extern int inputCfgReadExportRaw(char *out, int cap);
 extern int modsInit(const char *root, const char *order);
 extern char *strcpy(char *dst, const char *src);
 extern void pcCdSetVideoMod(const VideoModHooks *hooks); /* shim/host_cd.c */
@@ -213,7 +213,7 @@ static void pcItemDump(void) {
         int p, e, k;
 
         printf("[state] techs:");
-        for (p = 0; p < PARTNER_COUNT; p++) {
+        for (p = 0; p < PC_PARTNER_COUNT; p++) {
             for (e = 0; e < PC_PARTNER_ENTRY_LIMIT(p); e++) {
                 for (k = 0; k < 6; k++) {
                     int tech = PC_PARTNER_ENTRY(p, e).skills[k] & SKILL_ID;
@@ -229,8 +229,8 @@ static void pcItemDump(void) {
         printf("\n");
         /* new partner forms held by the partners' entries, picked forms and battle form: partner.entry=id(name) */
         printf("[state] forms:");
-        for (p = 0; p < PARTNER_COUNT; p++) {
-            const PartnerStats *ps = &GAME.partners[p].info;
+        for (p = 0; p < PC_PARTNER_COUNT; p++) {
+            const PartnerStats *ps = &PC_PARTNER(p).info;
 
             for (e = 0; e < PC_PARTNER_ENTRY_LIMIT(p); e++) {
                 if (PC_PARTNER_ENTRY(p, e).id >= PC_DIGIMON_FIRST_NEW_ID) {
@@ -242,14 +242,14 @@ static void pcItemDump(void) {
             for (k = 0; k < PARTNER_SLOT_COUNT; k++) {
                 if (ps->slots[k] >= PC_DIGIMON_FIRST_NEW_ID) printf(" %d.slot%d=%d", p, k, (int)ps->slots[k]);
             }
-            if (GAME.partners[p].battleDigivolve >= PC_DIGIMON_FIRST_NEW_ID) {
-                printf(" %d.battle=%d", p, (int)GAME.partners[p].battleDigivolve);
+            if (PC_PARTNER(p).battleDigivolve >= PC_DIGIMON_FIRST_NEW_ID) {
+                printf(" %d.battle=%d", p, (int)PC_PARTNER(p).battleDigivolve);
             }
         }
         printf("\n");
         /* how many Digimon each partner holds, and the entries it can hold now (more than 44 once it holds enough) */
         printf("[state] entries:");
-        for (p = 0; p < PARTNER_COUNT; p++) {
+        for (p = 0; p < PC_PARTNER_COUNT; p++) {
             int held = 0;
 
             for (e = 0; e < PC_PARTNER_ENTRY_LIMIT(p); e++) {
@@ -372,7 +372,7 @@ static void pcExportContentReference(void) {
     }
 }
 
-/* model-import I7: the original battle models as neutral sources in data/models/<id>/ (shim/model_export.c). The disc files come
+/* model-import I7: the original battle models as neutral sources in data/digimon/d<nnn>/model/ (shim/model_export.c). The disc files come
    through the plain disc reader (no mod layers); the exporter copies each file before it asks for the next. */
 static unsigned char *sExportFile;
 
@@ -393,46 +393,17 @@ static int pcModelOriginal(void *ud, int fighterId, ModelExportOut *out, char *e
     return modelExportBuild(&io, fighterId, MODEL_EXPORT_UNIT_SCALE, out, err, errCap);
 }
 
-static int pcExportAllModels(void) {
-    return modelExportStart("all", 1); /* the row is an explicit ask: rebuild (on a worker thread); the settings.ini key at start skips what is up to date */
-}
-
-/* the System tab's "Prepare modding files" row and --export-all: the same job, skipping what is up to date; and how many items failed */
-static int pcPrepModels(void) {
-    return modelExportStart("all", 0);
-}
-
-static int pcFailedModels(void) {
-    int done, failed, total;
-
-    modelExportCounts(&done, &failed, &total);
-    return failed;
-}
-
-static void pcExportModelsPump(void) {
-    modelExportPump(8); /* with a worker job running: feeds it the next fighters' disc files (the worker never reads the disc) */
-}
-
 static void pcInstallModelOriginals(void) {
     static const ModelOriginals originals = {pcModelOriginal, NULL};
     modelsSetOriginals(&originals);
 }
 
-static void pcInstallModelExport(const char *dataDir) {
-    static const OptSysExport hooks = {pcExportAllModels, pcExportModelsPump, modelExportStatus, modelExportActive, pcPrepModels, pcFailedModels};
+static void pcSetupModels(const char *dataDir) {
     ModelExportIo io;
-    char spec[256];
 
     io.file = pcExportDiscFile;
     io.ud = NULL;
     modelExportSetup(dataDir, &io);
-    atexit(modelExportShutdown); /* stops and joins the worker between two fighters; the files are written atomically */
-    optionsSystemSetExport(&hooks); /* the System tab's "Export models" row; before the tab's rows are added */
-    /* settings.ini [data] export_models = all | 383, 12: done now, before the window opens */
-    if (dataDir != NULL && inputCfgReadExportModels(spec, (int)sizeof(spec)) && modelExportRequest(spec) > 0) {
-        while (modelExportPump(1000)) {
-        }
-    }
 }
 
 /* content-export E2a: the movies as MJPEG AVI in data/video/ (shim/video_export.c). The exporter reads the raw sectors through a
@@ -476,72 +447,25 @@ static int pcVideoModLba(void *ud, const char *name, long *lba) {
     return pcVideoMovie(NULL, name, lba, &sectors);
 }
 
-static int pcVideoModCount(void *ud) {
-    (void)ud;
-    return modsCount();
-}
-
-static const char *pcVideoModName(void *ud, int i) {
-    (void)ud;
-    return modsNameOf(i);
-}
-
-static const char *pcVideoModDir(void *ud, int i) {
-    (void)ud;
-    return modsDirOf(i);
-}
-
 static void pcInstallVideoMod(void) {
     static VideoModIo io;
 
     io.movieLba = pcVideoModLba;
-    io.modCount = pcVideoModCount;
-    io.modName = pcVideoModName;
-    io.modDir = pcVideoModDir;
     io.ud = NULL;
     videoModSetup(&io);
     pcCdSetVideoMod(videoModHooks());
 }
 
-static int pcExportAllVideos(void) {
-    return videoExportStart("all", 1); /* the row is an explicit ask: rebuild; the settings.ini key at start skips what is up to date */
-}
-
-/* the System tab's "Prepare modding files" row and --export-all: the same job, skipping what is up to date; and how many items failed */
-static int pcPrepVideos(void) {
-    return videoExportStart("all", 0);
-}
-
-static int pcFailedVideos(void) {
-    int done, failed, total;
-
-    videoExportCounts(&done, &failed, &total);
-    return failed;
-}
-
-static void pcExportVideosPump(void) {
-    videoExportPump(8); /* with a worker job running it only joins the worker once it is done */
-}
-
-static void pcInstallVideoExport(const char *dataDir) {
-    static const OptSysExport hooks = {pcExportAllVideos, pcExportVideosPump, videoExportStatus, videoExportActive, pcPrepVideos, pcFailedVideos};
+static void pcSetupVideos(const char *dataDir) {
     VideoExportIo io;
-    char spec[256];
 
     io.movie = pcVideoMovie;
     io.read = pcVideoRead;
     io.ud = NULL;
     videoExportSetup(dataDir, &io);
-    atexit(videoExportShutdown); /* stops and joins the worker between two sectors; the partial file is removed */
-    optionsSystemSetExportVideos(&hooks); /* the System tab's "Export videos" row; before the tab's rows are added */
-    /* settings.ini [data] export_videos = all | MOVIED01, MOVIEOPN: done now, before the window opens */
-    if (dataDir != NULL && inputCfgReadExportVideos(spec, (int)sizeof(spec)) && videoExportRequest(spec) > 0) {
-        while (videoExportPump(1000)) {
-        }
-    }
 }
 
-/* content-export E6b: the field stage tiles as PNG and JSON in data/z_stage/ (shim/stage_export.c) and a mod's PNG in place of a tile (shim/stage_mod.c).
+/* content-export E6b: the field stage tiles as PNG and JSON in data/stages/s<nnn>/tiles/ (shim/stage_export.c) and a mod's PNG in place of a tile (shim/stage_mod.c).
    The PACKs are AAA/DAT/Z_STAGE/S<nnn>PACK.BIN of the disc directory of port_fs. The exporter reads the raw sectors through a handle of its own and
    only the thread that runs the job calls it. */
 #define PC_STAGE_DIR "AAA/DAT/Z_STAGE/"
@@ -580,26 +504,6 @@ static int pcStageRead(void *ud, long lba, unsigned char *frame) {
     return fseek(sStageDisc, lba * 2352L, SEEK_SET) == 0 && fread(frame, 1, 2352, sStageDisc) == 2352;
 }
 
-static int pcExportAllStages(void) {
-    return stageExportStart("all", 1); /* the row is an explicit ask: rebuild; the settings.ini key at start skips what is up to date */
-}
-
-/* the System tab's "Prepare modding files" row and --export-all: the same job, skipping what is up to date; and how many items failed */
-static int pcPrepStages(void) {
-    return stageExportStart("all", 0);
-}
-
-static int pcFailedStages(void) {
-    int done, failed, total;
-
-    stageExportCounts(&done, &failed, &total);
-    return failed;
-}
-
-static void pcExportStagesPump(void) {
-    stageExportPump(8); /* with a worker job running it only joins the worker once it is done */
-}
-
 /* the stage mod: the PACK that starts at `lba` (its lower-case key, "s233pack") and its header sector, from the disc directory */
 static int pcStageModPack(void *ud, long lba, char *name, size_t cap) {
     const PfsFile *v[1024];
@@ -636,29 +540,20 @@ static int pcStageModHeader(void *ud, long lba, uint8_t *sector) {
     return 1;
 }
 
-static void pcInstallStages(const char *dataDir) {
-    static const OptSysExport hooks = {pcExportAllStages, pcExportStagesPump, stageExportStatus, stageExportActive, pcPrepStages, pcFailedStages};
+static void pcSetupStages(const char *dataDir) {
     static const StageModIo modIo = {pcStageModPack, pcStageModHeader, NULL};
     StageExportIo io;
-    char spec[256];
 
     stageModSetup(dataDir, &modIo); /* the hook in pc/field/stream.c asks it for every tile */
     io.pack = pcStagePack;
     io.read = pcStageRead;
     io.ud = NULL;
     stageExportSetup(dataDir, &io);
-    atexit(stageExportShutdown); /* stops and joins the worker between two tiles; the files are written atomically */
-    optionsSystemSetExportStages(&hooks); /* the System tab's "Export stages" row; before the tab's rows are added */
-    /* settings.ini [data] export_stages = all | S233, S330: done now, before the window opens */
-    if (dataDir != NULL && inputCfgReadExportStages(spec, (int)sizeof(spec)) && stageExportRequest(spec) > 0) {
-        while (stageExportPump(1000)) {
-        }
-    }
 }
 
 /* port-close S2: every field stage as data (shim/stage_data.c, docs/stages.md). Each stage's own setupStage() fills FIELDSTG_state with what the stage
    is made of; it is run here, before the first mode, once for every story progress 0-99 to see what depends on it, and the progress-0 run is read
-   into an SdStage and written to <data>/stages/<nnn>.json. The game's state around it is saved and restored (setupStage sets FIELDSTG_state, the
+   into an SdStage and written to <data>/stages/s<nnn>/stage.json. The game's state around it is saved and restored (setupStage sets FIELDSTG_state, the
    map files and GAME.mapIndex). Skipped when the folder holds the current exporter version. */
 
 /* The rows of SPECIAL_CONDITIONS (and a mod's), for the symbolic comments of the codes */
@@ -1169,6 +1064,8 @@ static void pcExportStageData(const char *dataDir) {
     static FieldState savedState;
     static FieldMap savedMap;
     static GameState savedGame;
+    Partner *savedPartners; /* the port's partners are not inside GAME (ADR-013) */
+    int savedPartnerCount = PC_PARTNER_COUNT;
     SdExportStats st;
     SdCounts total;
     int numbers[512], count = 0, done = 0, failed = 0, mismatches = 0, savedLanguage = 0, savedVariant = 0, setLanguage = 0, setVariant = 0;
@@ -1202,6 +1099,8 @@ static void pcExportStageData(const char *dataDir) {
     memcpy(&savedState, &FIELDSTG_state, sizeof savedState);
     memcpy(&savedMap, &FIELDSTG_map, sizeof savedMap);
     memcpy(&savedGame, &GAME, sizeof savedGame);
+    savedPartners = (Partner *)malloc(sizeof(Partner) * (size_t)savedPartnerCount);
+    if (savedPartners != NULL) memcpy(savedPartners, pcPartners, sizeof(Partner) * (size_t)savedPartnerCount);
     statics.total = pcStaticsWalk(NULL, 0, NULL);
     statics.buf = (char *)malloc(statics.total > 0 ? statics.total : 1);
     if (statics.buf != NULL) {
@@ -1291,6 +1190,10 @@ static void pcExportStageData(const char *dataDir) {
         free(statics.buf);
     }
     memcpy(&GAME, &savedGame, sizeof savedGame);
+    if (savedPartners != NULL) {
+        memcpy(pcPartners, savedPartners, sizeof(Partner) * (size_t)savedPartnerCount);
+        free(savedPartners);
+    }
     memcpy(&FIELDSTG_map, &savedMap, sizeof savedMap);
     memcpy(&FIELDSTG_state, &savedState, sizeof savedState);
     LANGUAGE = savedLanguage;
@@ -1781,6 +1684,7 @@ static int pcBattlesInstall(const SdStage *s, PcStageBuf *b) {
     }
     return 1;
 }
+static void pcSeedTechs(void); /* below: seeds the techs and, first, the partners and their levels */
 
 /* extended-state T2, test harness only: DW3_SEED_ITEMS="id=count,id=count" gives items before the card screen opens (a save then carries them;
    ids above the original range live in the extension). T6: a field stage's own start also applies it (a run that warps into a stage and talks to a
@@ -2076,7 +1980,7 @@ static void pcInstallStageMods(void) {
     host.newCheck = nsCheck; /* a stage a mod adds: its map and its sections have to agree (shim/stage_new.h) */
     host.stageRefused = nsRefuse;
     msReset();
-    nsScan(&host); /* new-stages T5: reads mods/<mod>/new-stages/<name>/ (stage.json and the PNGs) and registers the stages that are valid */
+    nsScan(&host); /* new-stages T5: reads mods/<mod>/stages/<name>/ (stage.json and the PNGs) and registers the stages that are valid */
     msSeal(); /* from here the names of the registered stages resolve to modes */
     smSetActRunner(pcActRun); /* the port actions of the patches' talks (S7) */
     tdSetStageTextHook(smTextCount, smTextOf); /* the named texts of the patches' talks are appended to the stage's text file (S6) */
@@ -2139,7 +2043,14 @@ static int sImageBufNow;
 static int pcSpriteAdd(const char *dir, const char *label, SmSprite *out, char *why, size_t cap) {
     SprInfo in;
 
+    char disc[128];
+    const char *slash = strrchr(dir, '/');
+
     (void)label;
+    /* a folder named like an original sprite (mods/<mod>/sprites/p001play/) holds that sprite's frames (image_data.c), not a new sprite */
+    if (slash != NULL && sprDiscOf(slash + 1, disc, sizeof disc) == 0 && pfsFindPath(disc) != NULL) {
+        return 1;
+    }
     if (sBank == NULL && (sBank = sprBankNew()) == NULL) {
         snprintf(why, cap, "out of memory");
         return -1;
@@ -2235,6 +2146,93 @@ static int pcCharacterFrame(int character, int *w, int *h) {
     return 0;
 }
 
+static void pcInstallCharWrappers(void) {
+    if (FIELDSTG_state.getFileEntry != pcFileEntryOf) {
+        sOrigFileEntry = FIELDSTG_state.getFileEntry;
+        sOrigActorWidth = FIELDSTG_state.getActorWidth;
+        FIELDSTG_state.getFileEntry = pcFileEntryOf;
+        FIELDSTG_state.getActorWidth = pcActorWidthOf;
+    }
+}
+
+/* ---- the followers' sprites (P7) ----
+   A partner a mod adds can bring a sprite folder (the removed partner.json "sprite" field; now partners/<key>/field/): its character is SM_SPRITE_CHAR_BASE + k, and the follower needs an ActorImage
+   for it. The game's own followers use images 1..3 of the stage's table, three slots of 32 px by at most 64 rows (fieldstg.c FIELDSTG_images); a mod sprite's
+   frames can be bigger, so each distinct sprite gets a slot of the port's band sized for its largest frame. The slots are allocated first, partner by
+   partner, from an empty band: pcImagesInstall does the same before its extras, so a stage with and without patches puts a sprite in the same place. */
+typedef struct FollowSlot {
+    int character;
+    ActorImage image;
+} FollowSlot;
+static FollowSlot sFollow[PC_PARTNER_LIMIT];
+static int sFollowCount;
+static int sFollowBuilt;
+
+static int pcFollowerSprite(int partner) {
+    const char *name = pcPartnerSpriteName(partner);
+
+    return name != NULL && sBankFile >= 0 ? smSpriteFind(name) : -1;
+}
+
+static void pcFollowersBuild(SprVram *v) {
+    int p, i;
+
+    sFollowCount = 0;
+    for (p = PARTNER_COUNT; p < pcPartnerCount; p++) {
+        int c = pcFollowerSprite(p), fw, fh;
+        SprSlot sl;
+
+        if (c < 0) continue;
+        for (i = 0; i < sFollowCount && sFollow[i].character != c; i++) {
+        }
+        if (i < sFollowCount) continue;
+        if (!pcCharacterFrame(c, &fw, &fh) || sprVramAlloc(v, fw, fh, &sl) != 0) {
+            plogLine("stages", "partner %s: its sprite gets no slot in the port's band: the base's character stands in\n", pcPartnerName(p));
+            continue;
+        }
+        sFollow[sFollowCount].character = c;
+        sFollow[sFollowCount].image.x = (s16)sl.x;
+        sFollow[sFollowCount].image.y = (s16)sl.y;
+        sFollow[sFollowCount].image.imageX = (s16)sl.imageX;
+        sFollow[sFollowCount].image.imageY = (s16)sl.imageY;
+        sFollow[sFollowCount].image.u = (s16)sl.u;
+        sFollow[sFollowCount].image.v = (s16)sl.v;
+        sFollow[sFollowCount].image.clutX = (s16)sl.clutX;
+        sFollow[sFollowCount].image.clutY = (s16)sl.clutY;
+        PLOG("stages", PLOG_MODS, "follower sprite %s: character %d at VRAM (%d, %d), frames up to %dx%d\n", smSpriteName(c), c, sl.imageX, sl.imageY, fw, fh);
+        sFollowCount++;
+    }
+    sFollowBuilt = 1;
+}
+
+ActorImage *pcFollowerImage(int character) {
+    int i;
+
+    if (character < SM_SPRITE_CHAR_BASE) return NULL;
+    if (!sFollowBuilt) {
+        SprVram v;
+
+        sprVramReset(&v);
+        pcFollowersBuild(&v);
+    }
+    for (i = 0; i < sFollowCount; i++) {
+        if (sFollow[i].character == character) return &sFollow[i].image;
+    }
+    return NULL;
+}
+
+/* The character a partner follows the player as: its mod sprite when it has one that fits the band, else its stand-in's own (never another NPC) */
+int pcPartnerFollowerCharacter(int partner) {
+    int c = partner >= PARTNER_COUNT ? pcFollowerSprite(partner) : -1;
+
+    if (c >= 0 && pcFollowerImage(c) != NULL) {
+        pcInstallCharWrappers();
+    } else {
+        c = -1;
+    }
+    return pcPartnerFieldCharacter(partner, c, FIELD_CHARACTER_PARTNERS);
+}
+
 /* The extra actor images of a patched stage (S9): a copy of the stage's table with a slot of the band for each, FIELDSTG_state.images pointing at it.
    An actor whose character has no slot (no room, a file the port cannot read) is dropped from the list. */
 static void pcImagesInstall(SdStage *s) {
@@ -2255,6 +2253,7 @@ static void pcImagesInstall(SdStage *s) {
     }
     memcpy(buf, FIELDSTG_state.images.actors, (size_t)copy * sizeof *buf);
     sprVramReset(&vram);
+    pcFollowersBuild(&vram); /* the followers' slots first: the same places whatever the stage */
     for (k = 0; k < total; k++) {
         int fw, fh;
         SprSlot sl;
@@ -2302,12 +2301,7 @@ static void pcImagesInstall(SdStage *s) {
     sImageBuf[sImageBufNow ^ 1] = buf;
     sImageBufNow ^= 1;
     FIELDSTG_state.images.actors = buf;
-    if (FIELDSTG_state.getFileEntry != pcFileEntryOf) {
-        sOrigFileEntry = FIELDSTG_state.getFileEntry;
-        sOrigActorWidth = FIELDSTG_state.getActorWidth;
-        FIELDSTG_state.getFileEntry = pcFileEntryOf;
-        FIELDSTG_state.getActorWidth = pcActorWidthOf;
-    }
+    pcInstallCharWrappers();
 }
 
 static Task *pcModStageStart(void *owner);
@@ -2375,6 +2369,7 @@ void pcStagePatchHook(void) {
         }
         if (rep.patched + rep.added + rep.removed > 0 && pcActorsInstall(&s)) {
             pcSeedItems();
+            pcSeedTechs(); /* harness: and the seeded partners and levels, so a talk's level condition sees them before any menu or battle opens */
             if (plogOn("stages", PLOG_TRACE)) {
                 pcActorsTrace(stageName, &sActorBuf[sActorBufNow], s.nactors);
             }
@@ -2526,6 +2521,18 @@ s32 pcModStagePick(s32 mode, FieldState *state) {
     return 1;
 }
 
+/* The "item received" signal, `["special", "0x13", 1]` of a talk (events.c showActorIcon) or the icon commands 824, 825 and 842 of an event script (`["command", 813, 842, 2]`)
+   (commands.c): the player's icon (FIELDSTG's task 0x16) is told to play an animation. `found` says whether it exists; it is made only in the modes
+   before MODE_NEW_GAME (actor_icon.c), so a mod stage whose fallback is a later stage has none and the signal does nothing (a line in the log, always:
+   a mod author should know). The sound is the icon's own, on entering its substate 1 or 3 (SOUND_ITEM_GET). */
+void pcActorIconSignal(s32 found) {
+    if (found) {
+        PLOG("field", PLOG_TRACE, "actor icon: told to play (special 0x13 or an icon command)\n");
+    } else {
+        plogLine("field", "the player icon was asked to play (special 0x13 or an icon command) but the stage has none: the fallback stage of a mod stage must be before MODE_NEW_GAME\n");
+    }
+}
+
 s32 pcModeAsOriginal(s32 mode) {
     int fbMode, x, y, dir;
 
@@ -2640,24 +2647,97 @@ static int pcRawRead(void *ud, long lba, unsigned char *frame) {
     return fseek(sRawDisc, lba * 2352L, SEEK_SET) == 0 && fread(frame, 1, 2352, sRawDisc) == 2352;
 }
 
-static void pcInstallRaw(const char *dataDir) {
+static void pcSetupRaw(const char *dataDir) {
     RawExportIo io;
-    char spec[256];
 
     if (dataDir == NULL) {
-        return;
-    }
-    if (!inputCfgReadExportRaw(spec, (int)sizeof(spec))) {
-        snprintf(spec, sizeof(spec), "all"); /* the line is absent: the default */
-    }
-    if (strcmp(spec, "off") == 0) {
         return;
     }
     io.list = pcRawList;
     io.read = pcRawRead;
     io.ud = NULL;
     rawExportSetup(dataDir, &io);
-    rawExportRun(spec);
+}
+
+/* readable-assets A3: one bundle per original partner in data/partners (shim/partner_export.c). The file list and the sector reader are raw_export's:
+   the disc directory of port_fs and a handle of its own. */
+static void pcSetupPartners(const char *dataDir) {
+    PartnerExportIo io;
+
+    if (dataDir == NULL) {
+        return;
+    }
+    io.list = pcRawList;
+    io.read = pcRawRead;
+    io.ud = NULL;
+    partnerExportSetup(dataDir, &io);
+}
+
+/* readable-assets A5.2: the menus by piece in data/menus (shim/menu_export.c), through the same file list and sector reader. */
+static void pcSetupMenus(const char *dataDir) {
+    MenuExportIo io;
+
+    if (dataDir == NULL) {
+        return;
+    }
+    io.list = pcRawList;
+    io.read = pcRawRead;
+    io.ud = NULL;
+    menuExportSetup(dataDir, &io);
+}
+
+/* readable-assets A6.2: the map objects of the stages by piece in data/stages/s<nnn>/objects (shim/stage_obj_export.c). The same file list and sector reader; the
+   game's file number of a stage's sprite sheet (its sheetEntry, read from data/stages/s<nnn>/stage.json) becomes a disc path through port_fs's number map. */
+static int pcStageObjFileName(void *ud, int file, char *path, size_t cap) {
+    const char *name = pfsName(file);
+    (void)ud;
+    if (name == NULL) {
+        return 0;
+    }
+    snprintf(path, cap, "AAA/%s", name);
+    return 1;
+}
+
+static void pcSetupStageObjects(const char *dataDir) {
+    StageObjIo io;
+
+    if (dataDir == NULL) {
+        return;
+    }
+    io.disc.list = pcRawList;
+    io.disc.read = pcRawRead;
+    io.disc.ud = NULL;
+    io.fileName = pcStageObjFileName;
+    stageObjExportSetup(dataDir, &io);
+}
+
+/* readable-assets A7.4: the original cards in data/cards/c<nnn> (shim/card_export.c), through the same file list and sector reader. */
+static void pcSetupCards(const char *dataDir) {
+    MenuExportIo io;
+
+    if (dataDir == NULL) {
+        return;
+    }
+    io.list = pcRawList;
+    io.read = pcRawRead;
+    io.ud = NULL;
+    cardExportSetup(dataDir, &io);
+}
+
+/* readable-assets A7.5: the original field sprites in data/sprites/<name> (shim/sprite_export.c), through the same file list and sector reader. */
+static void pcSetupSprites(const char *dataDir) {
+    MenuExportIo io;
+
+    if (dataDir == NULL) {
+        return;
+    }
+    io.list = pcRawList;
+    io.read = pcRawRead;
+    io.ud = NULL;
+    spriteExportSetup(dataDir, &io);
+}
+
+static void pcRawAfter(void) {
     if (sRawDisc != NULL) {
         fclose(sRawDisc);
         sRawDisc = NULL;
@@ -2752,43 +2832,77 @@ static int pcAudioFile(void *ud, int file, unsigned char **bytes, size_t *len) {
     return 1;
 }
 
-static int pcExportAllAudio(void) {
-    return audioExportStart("all", 1); /* the row is an explicit ask: rebuild; the settings.ini key at start skips what is up to date */
-}
-
-/* the System tab's "Prepare modding files" row and --export-all: the same job, skipping what is up to date; and how many items failed */
-static int pcPrepAudio(void) {
-    return audioExportStart("all", 0);
-}
-
-static int pcFailedAudio(void) {
-    int done, failed, total;
-
-    audioExportCounts(&done, &failed, &total);
-    return failed;
-}
-
-static void pcExportAudioPump(void) {
-    audioExportPump(8); /* with a worker job running it only joins the worker once it is done */
-}
-
-static void pcInstallAudioExport(const char *dataDir) {
-    static const OptSysExport hooks = {pcExportAllAudio, pcExportAudioPump, audioExportStatus, audioExportActive, pcPrepAudio, pcFailedAudio};
+static void pcSetupAudio(const char *dataDir) {
     AudioExportIo io;
-    char spec[256];
 
     io.bank = pcAudioBank;
     io.file = pcAudioFile;
     io.ud = NULL;
     audioExportSetup(dataDir, &io);
-    atexit(audioExportShutdown); /* stops and joins the worker between two files; the files are written atomically */
-    optionsSystemSetExportAudio(&hooks); /* the System tab's "Export audio" row; before the tab's rows are added */
-    /* settings.ini [data] export_audio = all | BGM001, COMMON: done now, before the window opens */
-    if (dataDir != NULL && inputCfgReadExportAudio(spec, (int)sizeof(spec)) && audioExportRequest(spec) > 0) {
-        while (audioExportPump(1000)) {
-        }
-    }
 }
+
+/* B3: every exporter, once. The order is the System tab's "Prepare modding files" row and the order the settings.ini keys run in. A new
+   exporter is one row here (plus its own module): the keys, the row, --export-all and the shutdown at exit all walk this table. */
+#define EXP_JOB_FNS(p) p##ExportStart, p##ExportPump, p##ExportActive, p##ExportCounts, p##ExportStatus, p##ExportShutdown
+static const ExpType kExporters[] = {
+    {"export_videos", "Videos",
+     "; Writes the game's movies as AVI files (MJPEG video, PCM audio) to the data/video folder when the game starts: all, or movie names "
+     "separated by commas (MOVIEOPN is the opening).\n; Each start checks them again; delete the line once they are there.\n",
+     NULL, pcSetupVideos, videoExportRun, NULL, EXP_JOB_FNS(video)},
+    {"export_audio", "Audio",
+     "; Writes the game's sound banks to the data/audio folder when the game starts: every sample as a WAV file (with its loop and root note), "
+     "every sequence as a MIDI file and a JSON file per bank: all, or bank names separated by commas (BGM001, COMMON).\n"
+     "; Each start checks them again; delete the line once they are there.\n",
+     NULL, pcSetupAudio, audioExportRun, NULL, EXP_JOB_FNS(audio)},
+    {"export_models", "Models",
+     "; Writes the original battle models to the data/digimon/d<nnn>/model folders when the game starts: all, or fighter numbers separated by commas "
+     "(383 is Kotemon).\n; Each start checks them again; delete the line once they are there.\n",
+     NULL, pcSetupModels, modelExportRun, NULL, EXP_JOB_FNS(model)},
+    {"export_stages", "Stages",
+     "; Writes the field stage tiles (the map art) as PNG files with a tiles.json per stage to the data/stages/s<nnn>/tiles folders when the game starts: "
+     "all (about 12000 files), or stage names separated by commas (S233, S330).\n"
+     "; Each start checks them again; delete the line once they are there.\n",
+     NULL, pcSetupStages, stageExportRun, NULL, EXP_JOB_FNS(stage)},
+    /* only at start (about 15 MB, skipped by exporter version afterwards): no on-demand job */
+    {"export_raw", "Raw",
+     "; Copies the disc files that have no open format yet (field collision maps, battle effects, overlays, ...) to the data/raw folder when "
+     "the game starts (about 15 MB): all (the default when the line is absent), off, or kinds separated by commas (stage-map, battle-effect).\n"
+     "; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupRaw, rawExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* only at start (about 6000 small files, skipped by exporter version afterwards): no on-demand job. Runs after raw, whose `after` closes the disc handle
+       the two share. */
+    {"export_partners", "Partners",
+     "; Writes the eight original partners as readable bundles to the data/partners folder when the game starts: portrait, memory card icon, field sprite and the\n"
+     "; gym training scene of each (and the effects they share to data/menus/gym/effects): all (the default when the line is absent), off, or partner names\n"
+     "; separated by commas (agumon, veemon).\n; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupPartners, partnerExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* only at start (about 700 files, skipped by exporter version afterwards): no on-demand job. Shares data/menus/manifest.json with the gym effects of the partners. */
+    {"export_menus", "Menus",
+     "; Writes the game's screens by piece to the data/menus folder when the game starts: one PNG per piece with the colours the game draws it with, and a menu.json\n"
+     "; per screen: all (the default when the line is absent), off, or screen names separated by commas (stmcrd, stdglb).\n"
+     "; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupMenus, menuExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* only at start (about 5000 files, skipped by exporter version afterwards): no on-demand job. Reads data/stages/s<nnn>/stage.json, which pcExportStageData writes before the
+       settings.ini keys run. Shares data/stages/manifest.json with the stage data. */
+    {"export_stage_objects", "Stage objects",
+     "; Writes the map objects of every field stage by piece to the data/stages/s<nnn>/objects folders when the game starts: one PNG per piece with the colours the game\n"
+     "; draws it with, and an objects.json per stage: all (the default when the line is absent), off, or stage names separated by commas (s202, s920).\n"
+     "; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupStageObjects, stageObjExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* only at start (about 630 small files, skipped by exporter version afterwards): no on-demand job. */
+    {"export_cards", "Cards",
+     "; Writes the game's cards to the data/cards folder when the game starts: a c<nnn> folder per card (the game's own card number) with its face.png and a card.json:\n"
+     "; all (the default when the line is absent), off, or card numbers separated by commas (c012, 12).\n"
+     "; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupCards, cardExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* only at start (about 170 sprites, skipped by exporter version afterwards): no on-demand job. */
+    {"export_sprites", "Sprites",
+     "; Writes the game's field sprites (characters, NPCs, objects) to the data/sprites folder when the game starts: a folder per sprite (the lower case name of its disc file)\n"
+     "; with one PNG per frame and a sprite.json with its animations: all (the default when the line is absent), off, or sprite names separated by commas (p001play).\n"
+     "; Each start checks them again; the files you edited are never overwritten.\n",
+     "all", pcSetupSprites, spriteExportRun, pcRawAfter, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+#undef EXP_JOB_FNS
 
 /* content-export E3c/E3d: a mod's mods/<mod>/audio/<BANK>/ files in place of the bank's samples and songs (shim/audio_mod.c). The bank of a
    sound slot is the one the game's loader put in SOUND.banks[slot].id just before it opens the VAB (src/engine/sound/sound.c). */
@@ -2811,9 +2925,6 @@ static void pcInstallAudioMod(void) {
     static AudioModIo io;
 
     io.slotBank = pcAudioModSlotBank;
-    io.modCount = pcVideoModCount;
-    io.modName = pcVideoModName;
-    io.modDir = pcVideoModDir;
     io.ud = NULL;
     audioModSetup(&io);
 }
@@ -2961,6 +3072,10 @@ static int pcFighterSlotProbe(int digimon, int slot) {
 _Static_assert(sizeof(Evolution) == sizeof(PcEvolution) && offsetof(Evolution, needs) == offsetof(PcEvolution, needs) &&
                    offsetof(Evolution, stat) == offsetof(PcEvolution, stat) && offsetof(Evolution, value) == offsetof(PcEvolution, value),
                "ext_state.c keeps the evolution lists as PcEvolution");
+_Static_assert(sizeof(MemCardFile) == PC_INFO_USED && offsetof(MemCardFile, magic) == PC_INFO_MAGIC_OFS &&
+                   offsetof(MemCardFile, saves) == PC_INFO_SAVES_OFS && sizeof(MemCardSave) == PC_INFO_SAVE_SIZE &&
+                   offsetof(MemCardSave, partners) == PC_INFO_PARTNERS_OFS,
+               "ext_state.c reads the card screen's summaries (ICON section) at these offsets");
 _Static_assert(sizeof(BattleTableEntry) == PC_BATTLE_ROW_SIZE, "digimon_ext.c reads BattleTableEntry as bytes");
 
 /* Slice 2 D3: new enemies are rows of the battle table and entries of the fighters file. Both files are served from memory,
@@ -3015,7 +3130,7 @@ _Static_assert(sizeof(GameTrainInfo) == sizeof(TrainInfo) && offsetof(GameTrainI
                    offsetof(GameTrainInfo, desc) == offsetof(TrainInfo, desc) && offsetof(GameTrainInfo, icons) == offsetof(TrainInfo, icons),
                "game_tables.c reads TrainInfo as GameTrainInfo");
 
-/* Slice 2 D4: the "encounters" of digimon.json. The encounter table is the FIELDSTG overlay's data, restored on every entry to
+/* Slice 2 D4: the "encounters" of content/encounters.json. The encounter table is the FIELDSTG overlay's data, restored on every entry to
    the field, so the placements go on right after that (the "fieldstg" scope's onEnter hook), pointing an encounter's slot at a
    row the content owns; the original rows are never written, and with no mod nothing is registered. */
 static void pcApplyEncounterPlacements(StateScope *scope, void *user) {
@@ -3095,11 +3210,49 @@ static void pcInstallFieldRows(void) {
     }
 }
 
+/* the mods' partners' art and gym sets, forgotten at a reload (the originals' edited sets stay: pbStart made them) */
+static void pcPartnerArtsResetAll(void) {
+    pcPartnerArtsReset();
+    ptReset(8);
+}
+
+/* partners/<name>/ of a mod, <name> an original partner's folder (the slug of its English name): art only, no registry record (partner_ext.h) */
+static int pcPartnerKeyIsOriginal(const char *key) {
+    int p;
+
+    for (p = 0; p < 8; p++) {
+        const char *k = pbOriginalKey(p);
+
+        if (k != NULL && strcmp(k, key) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int pcPartnerCountNow(void) {
+    return pcPartnerCount;
+}
+
+/* Betamon pack P4: the partners and starter teams of the content mods. After the forms (digimon/<key>/digimon.json) and the items exist, and before any
+   save is read: the registry is filled here, so a save loads against it (ADR-014). The special-condition rows check their partner `arg`
+   against the count the registry now has. */
+static void pcInstallPartners(void) {
+    static const PartnerExtHooks hooks = {digimonExtRowRef, itemExtByName, pcPartnerArtLoad, pcPartnerArtsResetAll, pcPartnerIconLoad, ptLoadMod, pcPartnerKeyIsOriginal};
+
+    ptSetBase(pcPartnerArt); /* a partner without a training of its own shows its base's (readable-assets A4b) */
+    partnerExtSetHooks(&hooks);
+    gameTablesSetPartnerCount(pcPartnerCountNow);
+    gameTablesSetPartnerFind(pcPartnerFind);
+    partnerExtLoad();
+}
+
 static void pcInstallDigimon(void) {
     size_t len = 0;
     unsigned char *file;
 
     pfsClearVirtualFiles(); /* a reload: the numbers start again from the base (digimonExtLoad forgets the names) */
+    digimonExtSetDiscReader(pcCdReadDiscFile); /* the motions a model takes by reference are checked and filled against the disc */
     file = pcCdReadDiscFile(FILE_BATTLE_TABLE, &len);
 
     digimonExtSetEnemyTable(file, len);
@@ -3111,6 +3264,7 @@ static void pcInstallDigimon(void) {
     digimonExtLoad();
     pcServeNewEnemyFiles();
     pcInstallFieldRows();
+    pcInstallPartners();
 }
 
 /* extended techs T2/T3: the techniques of the content mods (store, ids, learnedBy, names). After the disc is open: the
@@ -3124,7 +3278,24 @@ static void pcInstallTechs(void) {
     pcInstallDigimon();
 }
 
+/* harness: where the party and the unlocked partners stand when the run ends (names are the registry's, not the game's text) */
+static void pcPartyNote(void) {
+    int p;
+    const char *team = pcStarterPartyName((int)GAME.partySet);
+
+    printf("boot: final party %d,%d,%d; starter team %d (%s); partners registered %d; unlocked:", (int)GAME.party[0], (int)GAME.party[1], (int)GAME.party[2],
+           (int)GAME.partySet, team != NULL ? team : "none", PC_PARTNER_COUNT);
+    for (p = 0; p < PC_PARTNER_COUNT; p++) {
+        if (PC_PARTNER(p).unlocked != 0 || p >= PARTNER_COUNT) { /* a partner a mod adds is shown even locked: its starting data is the point */
+            printf(" %d(%s)%s level %d exp %d hp %d/%d form-row %d;", p, pcPartnerName(p), PC_PARTNER(p).unlocked != 0 ? "" : " locked", (int)PC_PARTNER(p).info.stats[STAT_LEVEL],
+                   (int)PC_PARTNER(p).info.exp, (int)PC_PARTNER(p).info.stats[STAT_HP], (int)PC_PARTNER(p).info.stats[STAT_MAX_HP], PC_PARTNER_ROW(p));
+        }
+    }
+    printf("\n");
+}
+
 static void pcBootExitNote(void) {
+    pcPartyNote();
     pcItemDump();
     printf("boot: the run ended after %d presented frame(s); a missing "
            "'presented N frames' summary means the game window was "
@@ -3209,6 +3380,41 @@ static Task *pcStartFieldMenu(void) {
     return STSTATUS_start();
 }
 
+/* test harness only: DW3_SEED_PARTNER_LEVEL="<partner>=<level>,..." puts a partner at that level (its stats raised level by level with the game's own
+   growth, STFGTREP_raiseStats) with exactly the exp the NEXT level needs, so ONE more point of exp from a battle levels it up and, with the evolution
+   lists, teaches the form that waits at level+1 (STFGTREP_learnDigimon). Runs with DW3_SEED_PARTNER, before the battle, the field menu, the lab or
+   the card screen opens, once per run. DW3_SEED_PARTNER's "@<level>" is the level of a FORM (one entry); this is the partner's own level (stats[STAT_LEVEL]). */
+static void pcSeedPartnerLevel(void) {
+    static int done; /* once per run: later screens must not take back the exp a battle gave */
+    const char *seed = done ? NULL : getenv("DW3_SEED_PARTNER_LEVEL");
+
+    done = 1;
+    while (seed != NULL && *seed != '\0') {
+        char *end;
+        long p = strtol(seed, &end, 10), level;
+
+        if (end == seed || *end != '=') {
+            break;
+        }
+        level = strtol(end + 1, &end, 10);
+        if (p >= 0 && p < PC_PARTNER_COUNT && level >= 2 && level <= 98) {
+            PartnerStats *ps = &PC_PARTNER(p).info;
+
+            while (ps->stats[STAT_LEVEL] < level) {
+                ps->stats[STAT_LEVEL]++;
+                STFGTREP_raiseStats((s32)p, ps->stats[STAT_LEVEL]);
+            }
+            ps->stats[STAT_HP] = ps->stats[STAT_MAX_HP]; /* raiseStats only lifts the maxima: a partner that fights must not enter at its level-1 HP/MP */
+            ps->stats[STAT_MP] = ps->stats[STAT_MAX_MP];
+            ps->exp = pcLevelExpToExceed((int)level + 1, PC_DIGIMON(PC_PARTNER_ROW(p)).expRate, STFGTREP_levelExp);
+            fprintf(stderr, "seed: partner %ld at level %ld with exp %d (one more point levels it up)\n", p, level, (int)ps->exp);
+        } else {
+            fprintf(stderr, "seed: DW3_SEED_PARTNER_LEVEL entry \"%.20s\" is not <partner>=<level 2..98>\n", seed);
+        }
+        seed = (*end == ',') ? end + 1 : end;
+    }
+}
+
 /* new partner forms P2, test harness only: DW3_SEED_PARTNER="<partner>.<entry>=<name>[@<level>][/<slot>],..." puts a Digimon (a new
    form by its "<mod>:<key>", or an original id) into a partner's entry (level 1 unless given) and picks it as the partner's form
    <slot> (0..2, default 0); the slot 0 form is also the one the next battle starts as (Partner.battleDigivolve). It runs before the
@@ -3216,6 +3422,8 @@ static Task *pcStartFieldMenu(void) {
    then this is how a form gets into a save. */
 static void pcSeedPartner(void) {
     const char *seed = getenv("DW3_SEED_PARTNER");
+
+    pcSeedPartnerLevel();
 
     while (seed != NULL && *seed != '\0') {
         char *end, name[96];
@@ -3244,9 +3452,9 @@ static void pcSeedPartner(void) {
         if (id < 0) {
             id = (int)strtol(name, NULL, 10);
         }
-        if (p >= 0 && p < PARTNER_COUNT && e >= 0 && e < PC_PARTNER_ENTRY_MAX && slot >= 0 && slot < PARTNER_SLOT_COUNT &&
+        if (p >= 0 && p < PC_PARTNER_COUNT && e >= 0 && e < PC_PARTNER_ENTRY_MAX && slot >= 0 && slot < PARTNER_SLOT_COUNT &&
             id >= FIRST_ENTRY_ID && GET_DIGIMON(id) != NULL) {
-            PartnerStats *ps = &GAME.partners[p].info;
+            PartnerStats *ps = &PC_PARTNER(p).info;
 
             while (pcPartnerEntryLimit(p) <= e && pcPartnerEntryGrow(p) >= 0) {
             }
@@ -3264,7 +3472,7 @@ static void pcSeedPartner(void) {
             }
             ps->slots[slot] = (s16)id;
             if (slot == 0) {
-                GAME.partners[p].battleDigivolve = id;
+                PC_PARTNER(p).battleDigivolve = id;
             }
         } else {
             fprintf(stderr, "seed: DW3_SEED_PARTNER \"%s\" is no Digimon here\n", name);
@@ -3311,7 +3519,7 @@ static void pcSeedTechs(void) {
         if (id < 0) {
             id = (int)strtol(name, NULL, 10);
         }
-        if (p >= 0 && p < PARTNER_COUNT && k >= 0 && k < 6 && id > 0) {
+        if (p >= 0 && p < PC_PARTNER_COUNT && k >= 0 && k < 6 && id > 0) {
             if (e >= 0 && e < PC_PARTNER_ENTRY_LIMIT(p)) {
                 PC_PARTNER_ENTRY(p, e).skills[k] = (s16)(id | SKILL_KNOWN);
             } else if (e == -2) {
@@ -3319,7 +3527,7 @@ static void pcSeedTechs(void) {
 
                 for (j = 0; j < PARTNER_SLOT_COUNT; j++) {
                     for (c = 0; c < PC_PARTNER_ENTRY_LIMIT(p); c++) {
-                        if (GAME.partners[p].info.slots[j] != 0 && PC_PARTNER_ENTRY(p, c).id == GAME.partners[p].info.slots[j]) {
+                        if (PC_PARTNER(p).info.slots[j] != 0 && PC_PARTNER_ENTRY(p, c).id == PC_PARTNER(p).info.slots[j]) {
                             PC_PARTNER_ENTRY(p, c).skills[k] = (s16)(id | SKILL_KNOWN);
                         }
                     }
@@ -4258,122 +4466,13 @@ static void pcWindowSize(int *width, int *height) {
 }
 
 /*
- * A fault's own report: on SIGSEGV/SIGFPE/SIGBUS/SIGILL the run prints the
- * signal and the native backtrace (function names via -rdynamic, source lines
- * with addr2line on the -g build) to stderr before dying, so an owner's crash
- * in a long interactive run names its function without gdb. unistd.h's
- * write clashes with the PsyQ headers' own, so the header line goes through
- * stdio; backtrace_symbols_fd writes straight to fd 2.
+ * A fault's own report (R1, shim/fault_report.c): on SIGSEGV/SIGFPE/SIGBUS/SIGILL/SIGABRT the run writes the signal, the fault address,
+ * the thread and the backtrace (module+offset per frame, plus the modules' build ids) to the game's log file before dying (to stderr
+ * when the log is the terminal, and to logcat on Android), so an owner's crash names its place without gdb or a lucky logcat.
+ * unistd.h's write clashes with the PsyQ headers' own, which is why the handler lives in its own unit.
  */
-#if defined(__ANDROID__)
-/* No backtrace() on Bionic below API 33: the report walks the stack with the unwinder (_Unwind_Backtrace) and names each frame with
-   dladdr as lib+offset (llvm-addr2line -f -e <unstripped libmain.so> <offset> for the line) and the fault address, PC, LR and SP
-   from the ucontext. It goes to logcat directly: stderr's pipe reader (plogTeeToLogcat) may not run before the process dies. The
-   handler runs on its own stack (sigaltstack, SA_ONSTACK): a stack overflow has no stack left to report on. */
-typedef struct { int n; } PcUnwindState;
-
-static _Unwind_Reason_Code pcUnwindStep(struct _Unwind_Context *ctx, void *arg) {
-    PcUnwindState *st = (PcUnwindState *)arg;
-    uintptr_t pc = (uintptr_t)_Unwind_GetIP(ctx);
-    Dl_info info;
-
-    if (pc == 0 || st->n >= 40) {
-        return _URC_END_OF_STACK;
-    }
-    if (dladdr((void *)pc, &info) && info.dli_fname != NULL) {
-        const char *base = info.dli_fname;
-        const char *q;
-
-        for (q = info.dli_fname; *q != '\0'; q++) {
-            if (*q == '/') {
-                base = q;
-            }
-        }
-        if (*base == '/') {
-            base++;
-        }
-
-        __android_log_print(ANDROID_LOG_FATAL, "dw3", "  #%02d pc %016lx %s+0x%lx %s", st->n, (unsigned long)pc,
-                            base, (unsigned long)(pc - (uintptr_t)info.dli_fbase),
-                            info.dli_sname != NULL ? info.dli_sname : "");
-    } else {
-        __android_log_print(ANDROID_LOG_FATAL, "dw3", "  #%02d pc %016lx", st->n, (unsigned long)pc);
-    }
-    st->n++;
-    return _URC_NO_REASON;
-}
-
-static void pcFaultReport(int sig, siginfo_t *si, void *uctx) {
-    PcUnwindState st = {0};
-    ucontext_t *uc = (ucontext_t *)uctx;
-
-    fflush(stdout);
-    __android_log_print(ANDROID_LOG_FATAL, "dw3", "boot: fatal signal %d code %d fault addr %p", sig, si->si_code, si->si_addr);
-#if defined(__aarch64__)
-    __android_log_print(ANDROID_LOG_FATAL, "dw3", "boot: pc %016llx lr %016llx sp %016llx",
-                        (unsigned long long)uc->uc_mcontext.pc, (unsigned long long)uc->uc_mcontext.regs[30],
-                        (unsigned long long)uc->uc_mcontext.sp);
-#else
-    (void)uc;
-#endif
-    _Unwind_Backtrace(pcUnwindStep, &st);
-    signal(sig, SIG_DFL);
-    raise(sig);
-}
-#elif defined(_WIN32)
-/* No backtrace() on Windows (MinGW has no execinfo.h): the handler only names the signal. */
-static void pcFaultReport(int sig) {
-    fflush(stdout);
-    fprintf(stderr, "\nboot: fatal signal %d\n", sig);
-    fflush(stderr);
-    signal(sig, SIG_DFL);
-    raise(sig);
-}
-#else
-static void pcFaultReport(int sig) {
-    static const char head[] = "\nboot: fatal signal, backtrace follows "
-                               "(addr2line -e pc/build/boot <addr> for lines)\n";
-    void *frames[48];
-    int count;
-
-    fflush(stdout);
-    fputs(head, stderr);
-    fflush(stderr);
-    count = backtrace(frames, 48);
-    backtrace_symbols_fd(frames, count, 2);
-    signal(sig, SIG_DFL);
-    raise(sig);
-}
-#endif
-
 static void pcInstallFaultReport(void) {
-#ifdef _WIN32
-    static const int sigs[] = { SIGSEGV, SIGFPE, SIGILL };
-#else
-    static const int sigs[] = { SIGSEGV, SIGFPE, SIGBUS, SIGILL };
-#endif
-    unsigned i;
-
-#ifdef __ANDROID__
-    static char altStack[64 * 1024];
-    stack_t ss;
-    struct sigaction sa = {0};
-
-    ss.ss_sp = altStack;
-    ss.ss_size = sizeof(altStack);
-    ss.ss_flags = 0;
-    sigaltstack(&ss, NULL); /* per thread: the one that runs the game (SDL's thread) installs it here */
-    sa.sa_sigaction = pcFaultReport;
-    sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
-    sigemptyset(&sa.sa_mask);
-    for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++) {
-        sigaction(sigs[i], &sa, NULL);
-    }
-#else
-    for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++) {
-        signal(sigs[i], pcFaultReport);
-    }
-#endif
+    faultReportInstall();
 }
 
 /* W2: shim/disc_picker.c (declared here: its header pulls in time.h and stdint.h next to the game's) */
@@ -4388,6 +4487,34 @@ static int pcValidateDiscHas(void *ud, const char *discPath) {
     (void)ud;
     return pfsFindPath(discPath) != NULL;
 }
+
+/* a sprites/<name> folder of a mod: 1 an original sprite of the disc, 2 an original partner's follower, 0 a new sprite (shim/mod_tools.c) */
+static int pcValidateSpriteKind(void *ud, const char *folder) {
+    char disc[128];
+
+    (void)ud;
+    if (sprDiscOf(folder, disc, sizeof disc) != 0 || pfsFindPath(disc) == NULL) {
+        return 0;
+    }
+    return sprPartnerOf(disc) >= 0 ? 2 : 1;
+}
+
+static int pcValidatePartnerOriginal(void *ud, const char *name) {
+    (void)ud;
+    return pcPartnerKeyIsOriginal(name);
+}
+
+static int pcValidatePartnerTraining(void *ud, const char *name) {
+    (void)ud;
+    return ptTrainingNamed(name);
+}
+
+static int pcValidatePartnerDataEdited(void *ud, const char *key) {
+    (void)ud;
+    return pbDataFolderEdited(key);
+}
+
+static int pcValidateStageOnDisc(const char *discPath) { return pfsFindPath(discPath) != NULL; }
 
 static void pcValidateRun(void *ud) {
     const char *dataDir = (const char *)ud;
@@ -4409,7 +4536,9 @@ static void pcValidateRun(void *ud) {
         gameTablesPatchCardOpponents(file, len); /* the row checks of card_opponents */
         free(file);
     }
+    menuPackValidating(1); /* the menu plans also report the files no piece takes and the pieces two mods ship */
     imgValidateMods();
+    stageObjPackValidate(pcValidateStageOnDisc);
     for (i = 0; i < modsCount(); i++) {
         audioModValidate(modsDirOf(i), modsNameOf(i));
         videoModValidate(modsDirOf(i), modsNameOf(i));
@@ -4423,7 +4552,11 @@ static int pcValidateMods(const char *target, const char *dataDir) {
     memset(&layers, 0, sizeof layers);
     layers.run = pcValidateRun;
     layers.discHas = pcValidateDiscHas;
-    layers.covered = "config,content,card,tables,images,audio,video,stages,new-stages";
+    layers.spriteKind = pcValidateSpriteKind;
+    layers.partnerOriginal = pcValidatePartnerOriginal;
+    layers.partnerTraining = pcValidatePartnerTraining;
+    layers.partnerDataEdited = pcValidatePartnerDataEdited;
+    layers.covered = "config,content,cards,digimon,tables,images,menus,partners,audio,video,stages,sprites";
     layers.ud = (void *)dataDir;
     fflush(stdout);
     return modToolsValidate(target, &layers, stdout);
@@ -4464,6 +4597,7 @@ int main(int argc, char **argv) {
     int captureIndices[PC_BOOT_MAX_CAPTURES];
     int captureCount = 0;
     int exportAll;
+    const char *crashKind;
     ModToolsCmd tool;
     int haveTool;
     char toolRoot[1024], toolName[300];
@@ -4488,6 +4622,7 @@ int main(int argc, char **argv) {
 
         optionsSystemSetCardImport(&cardImport);
     }
+    crashKind = faultReportTakeCrashArg(&argc, argv); /* R1: --crash-test[=segv|abort|fpe|bus|ill] forces a fault once the log is open (a test of the report) */
     exportAll = inputCfgTakeFlag(&argc, argv, "--export-all"); /* U4: export the heavy files and exit; the rest of the command line is as before */
     toolRoot[0] = '\0';
     haveTool = modToolsTakeArgs(&argc, argv, &tool); /* U5: --list-mods, --new-mod, --validate-mod(s): no game */
@@ -4552,6 +4687,10 @@ int main(int argc, char **argv) {
         argc = 2;
         frames = 2000000000;
         playerStart = 1;
+    }
+    if (crashKind != NULL && !faultReportCrash(crashKind)) {
+        fprintf(stderr, "boot: --crash-test=%s is not one of segv, abort, fpe, bus, ill\n", crashKind);
+        return 2;
     }
     if (argc < 2 || argc > 8) {
         fprintf(stderr,
@@ -4621,6 +4760,7 @@ int main(int argc, char **argv) {
         char dataDir[1024], l10nDir[1024], modsDir[1024];
         char *modsOrder;
         int haveData = portPath(PP_DATA, dataDir, (int)sizeof(dataDir));
+        assetSetData(haveData ? dataDir : NULL); /* the last asset layer (mods.h) */
 
         modsDir[0] = '\0';
 
@@ -4650,19 +4790,21 @@ int main(int argc, char **argv) {
 #endif
         pcCdTextInit(haveData ? dataDir : NULL,
                      portPathsL10n(l10nDir, (int)sizeof(l10nDir)) ? l10nDir : NULL);
+        pbStart(); /* the edited originals' portraits and icons, and the hooks of the image layer (readable-assets A4a); the disc directory is open now */
+        menuPackStart(); /* the edited pieces of the menus/ folders go into the screens' pages (readable-assets A5.3); read when a screen is first built */
+        ptStartOriginals(); /* and the training scenes of the originals the user edited (A4b) */
         pcInstallCards();
         pcInstallModelOriginals(); /* before the Digimon load below bakes a model that says "from" */
         pcInstallTechs();
         pcExportContentReference();
-        pcInstallModelExport(haveData ? dataDir : NULL);
-        pcInstallVideoExport(haveData ? dataDir : NULL);
-        pcInstallAudioExport(haveData ? dataDir : NULL);
+        expTypesSet(kExporters, (int)(sizeof kExporters / sizeof kExporters[0])); /* the System tab's row; before its rows are added */
+        expTypesSetup(haveData ? dataDir : NULL);
         pcInstallModStageStatus();
-        pcInstallStages(haveData ? dataDir : NULL);
         gameTablesRegisterEvents(); /* S3: the condition tables (the executable's data, patched once) and the mods' own special conditions, which the patches below name */
         pcInstallStageMods();
         pcExportStageData(haveData ? dataDir : NULL);
-        pcInstallRaw(haveData ? dataDir : NULL);
+        expTypesRunSettings(haveData ? dataDir : NULL); /* settings.ini [data] export_*: done now, before the window opens */
+        stageObjPackStart(); /* the stages with edited objects/ pieces: indexed once, packed into their MASK file when loaded (readable-assets A6.3); after the export, which writes the pieces and their manifest */
         pcInstallVideoMod();
         pcInstallAudioMod();
         if (haveTool) {

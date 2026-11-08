@@ -65,12 +65,12 @@ static inline void addFighters(BattleMenu *task, BattleMenuChildren *children) {
 
     partner = GAME.funcs.getPartyMember(0);
     if (WFIGHTMN_rollAmbush() != 0) {
-        digimon = PC_DIGIMON(partner).id;
+        digimon = PC_DIGIMON(PC_PARTNER_ROW(partner)).id;
         task->counter = 1;
-    } else if (GAME.funcs.getPartnerSlots(partner, slots) > 0 && GAME.partners[partner].battleDigivolve != 0) {
-        digimon = GAME.partners[partner].battleDigivolve;
+    } else if (GAME.funcs.getPartnerSlots(partner, slots) > 0 && PC_PARTNER(partner).battleDigivolve != 0) {
+        digimon = PC_PARTNER(partner).battleDigivolve;
     } else {
-        digimon = PC_DIGIMON(partner).id;
+        digimon = PC_DIGIMON(PC_PARTNER_ROW(partner)).id;
     }
     children->models->add(children->models, 0, digimon, 1);
     children->models->face(children->models, 0);
@@ -548,15 +548,15 @@ void WFIGHTMN_endBattle(BattleMenu *task, BattleMenuChildren *children) {
             partner = GAME.funcs.getPartyMember(member);
             if (partner >= 0) {
                 if ((FIGHTSTG_battle.state.fighters[0] + member)->hp <= 0) {
-                    GAME.partners[partner].info.stats[STAT_HP] = 1;
+                    PC_PARTNER(partner).info.stats[STAT_HP] = 1;
                     BATTLE_RESULT.partners[member].fought = 0;
                     BATTLE_RESULT.partners[member].used[0] = 0;
                     BATTLE_RESULT.partners[member].used[1] = 0;
                     BATTLE_RESULT.partners[member].used[2] = 0;
                 } else {
-                    GAME.partners[partner].info.stats[STAT_HP] = (FIGHTSTG_battle.state.fighters[0] + member)->hp;
+                    PC_PARTNER(partner).info.stats[STAT_HP] = (FIGHTSTG_battle.state.fighters[0] + member)->hp;
                 }
-                GAME.partners[partner].info.stats[STAT_MP] = (FIGHTSTG_battle.state.fighters[0] + member)->mp;
+                PC_PARTNER(partner).info.stats[STAT_MP] = (FIGHTSTG_battle.state.fighters[0] + member)->mp;
             }
         }
         end = FIGHTSTG_createFader();
@@ -932,7 +932,7 @@ void WFIGHTMN_blast(BattleMenu *task, BattleMenuChildren *children) {
                 tier = 4;
             }
             unit = &FIGHTSTG_battle.state.fighters[0][FIGHTSTG_battle.state.active[0]];
-            digimon = GET_DIGIMON(PC_DIGIMON(partner).id);
+            digimon = GET_DIGIMON(PC_DIGIMON(PC_PARTNER_ROW(partner)).id);
             unit->prevId = unit->id;
             unit->id = PC_DIGIMON(PC_DIGIMON_BLAST(digimon, tier) - 1).id;
             unit->temporary = 1;
@@ -1211,7 +1211,7 @@ void WFIGHTMN_digidevolve(BattleMenu *task, BattleMenuChildren *children) {
         units = battle->state.fighters[0];
         index = GAME.funcs.getPartyMember(battle->state.active[0]);
         unit = units + battle->state.active[0];
-        unit->id = PC_DIGIMON(index).id;
+        unit->id = PC_DIGIMON(PC_PARTNER_ROW(index)).id;
         unit->charge = 0;
         WFIGHTMN_cancelBlast();
         actions = &FIGHTSTG_events;

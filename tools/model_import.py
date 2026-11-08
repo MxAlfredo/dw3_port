@@ -2,11 +2,14 @@
 """Bake a neutral model source (glTF 2.0 + PNG + metadata JSON) into a Digimon World 3 battle model file.
 
 Usage:
-  python3 -I tools/model_import.py <source.json> --out <mod dir> [--mod <mod name>] [--check]
+  python3 -I tools/model_import.py <source.json> --out <mod dir> [--mod <mod name>] [--check] [--partner]
 
 <source.json> is a `model-src-v1` file (docs/modding/README.md, section "Hacer un modelo nuevo"). The blob is
-written to <mod dir>/models/<name>.bin and a digimon.json snippet is printed. --check validates and reports
-without writing. Pure Python 3 standard library; nothing from the disc is needed or read: the effect scripts
+written to <mod dir>/digimon/<name>/model.bin (next to the digimon.json of the Digimon <name>) and a digimon/<name>/digimon.json
+snippet that points at it as "<mod>:digimon/<name>/model.bin" is printed. This raw file is the advanced route; the usual one
+is the source itself in digimon/<name>/model/ (the game bakes it at load, no tool needed). --check validates and reports
+without writing. --partner checks the motion slots a partner's battle code plays (one warning per missing slot; the
+generic warning of enemies is the default). Pure Python 3 standard library; nothing from the disc is needed or read: the effect scripts
 come from a donor fighter that the game resolves at run time (`"effects": "dw3:digimon/<id>"`).
 A model.json with `"from": "dw3:model/<id>"` (the game completes it from an original at load) is rejected here: the tool
 never reads the disc. Export the folder first (the game's "Export models" row), or let the game bake it.
@@ -38,6 +41,25 @@ FORMAT = "model-src-v1"
 SENTINEL = 30000                # last key frame of every track
 SLOTS = 62                      # motion slots of a fighter
 MIN_SLOTS = (0, 1, 2, 3, 4, 10, 11, 12, 14)     # the safe minimum of docs/formats.md 4.6
+# the motion slots the battle code plays on every fighter of a facet (slot, name, who plays it): docs/formats.md 4.6, "Ranuras de movimiento".
+# The same table is in pc/shim/model_bake.c (kEnemyNeeds, kPartnerNeeds); a Digimon whose model lacks one gets one line each
+_COMMON_NEEDS = (
+    (0, "idle", "the idle loop (Model.idleFrames)"),
+    (1, "weak idle", "the idle loop while the fighter has a quarter of its HP or less (WFIGHTMN_setIdleMotion)"),
+    (2, "miss", "the target of an attack that missed (effect script 4)"),
+    (3, "flinch", "a hit of an attack that lands and is not the last (effect script 1)"),
+    (4, "hit", "the target of a hit (effect scripts 2 and 3)"),
+    (10, "knock out", "the hit that knocks the fighter out (effect script 3)"),
+    (11, "survived hit", "played by effect script 2, a hit the fighter survives"),
+    (12, "entrance", "the entrance of every fighter, and the partner's victory pose and digimon change (entrance.c, menu.c, digimon_change.c)"),
+)
+ENEMY_NEEDS = _COMMON_NEEDS + ((14, "attack", "effect script 5, the generic attack"),)
+PARTNER_NEEDS = _COMMON_NEEDS + (
+    (13, "blast entrance", "the temporary (blast) form coming in (digimon_change.c); only a form that is a blast form of a partner"),
+    (14, "attack", "effect script 5, the generic attack"),
+    (20, "attack, script 6", "effect script 6, which the battle code uses instead of 5 (choosePartnerScript)"),
+    (32, "attack, script 8", "effect script 8, which the battle code uses instead of 5 (choosePartnerScript)"),
+)
 MAX_STEPS = 0x640               # Model.keyframes capacity
 TEX_W, TEX_H = 256, 240         # texel area; rows 240..255 hold the CLUTs (4 per row)
 MAX_CLUTS = 64
@@ -1250,8 +1272,9 @@ def clamp16(v, what):
 
 # ---------------------------------------------------------------- the driver
 
-def bake(meta, base_dir):
-    """Validate and convert one `model-src-v1` description. -> dict(blob, entries, snippet, info, warnings, stats)."""
+def bake(meta, base_dir, partner=False):
+    """Validate and convert one `model-src-v1` description. -> dict(blob, entries, snippet, info, warnings, stats).
+    partner: the Digimon is a partner form, so the slots a partner plays are checked, one warning each."""
     infos, warns = [], []
     seen = set()
 
@@ -1405,10 +1428,10 @@ def bake(meta, base_dir):
         if i and not bn.top:
             bn.k = bones[bn.parent].k
 
-    return finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info, warn)
+    return finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info, warn, partner)
 
 
-def finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info, warn):
+def finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info, warn, partner=False):
     """Textures, animations, encoding."""
     sc, g = b.scene, b.g
     # ---- polygons -> quantized local geometry
@@ -1574,10 +1597,15 @@ def finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info,
     for slot in (0, 1):
         if slot not in slot_steps:
             raise ModelImportError("motion slot %d (idle) is required: map an animation to it" % slot)
-    missing = [x for x in MIN_SLOTS if x not in slot_steps]
-    if missing:
-        warn("motion slots %s are not mapped: fighters need %s (the effect scripts of the donor play them; see \"fill\")"
-             % (missing, list(MIN_SLOTS)))
+    if partner:
+        for n_, label, why in PARTNER_NEEDS:
+            if n_ not in slot_steps:
+                warn("motion slot %d (%s) has no animation: %s" % (n_, label, why))
+    else:
+        missing = [x for x in MIN_SLOTS if x not in slot_steps]
+        if missing:
+            warn("motion slots %s are not mapped: fighters need %s (the effect scripts of the donor play them; see \"fill\")"
+                 % (missing, list(MIN_SLOTS)))
     # ---- keys per bone
     allclips = sorted(clips.values(), key=lambda c: c.base)
     pos_tracks = []
@@ -1682,7 +1710,7 @@ def finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info,
     # ---- snippet
     fight = {}
     mod = meta.get("mod", "<mod>")
-    ref = lambda e: {"file": "%s:models/%s.bin" % (mod, name), "entry": e}   # noqa: E731
+    ref = lambda e: {"file": "%s:digimon/%s/model.bin" % (mod, name), "entry": e}   # noqa: E731
     fight["from"] = meta.get("template")
     fight["model"] = ref(1)
     fight["motions"] = ref(0)
@@ -1694,9 +1722,8 @@ def finish(meta, b, bones, prims, s, height, infos, warns, name, base_dir, info,
         if k in meta.get("info", {}):
             fight[k] = meta["info"][k]
     fight = {k: v for k, v in fight.items() if v is not None}
-    snippet = {"format": "digimon-v1", "new": {name: {"base": meta.get("template", "dw3:digimon/4"),
-                                                      "name": {"eng": meta.get("displayName", name)},
-                                                      "model": fight}}}
+    snippet = {"format": "digimon-digimon-v1", "name": name, "base": meta.get("template", "dw3:digimon/4"),
+               "title": {"eng": meta.get("displayName", name)}, "model": fight}
     stats = dict(bones=nbones, polys=total_polys, bytes=len(blob), clips=len(clips), slots=len(slot_steps),
                  height=height * s, **tstats)
     return dict(blob=blob, entries=len(entries), snippet=snippet, info=infos, warnings=warns, stats=stats,
@@ -1762,6 +1789,9 @@ def parse_motions(meta, anims):
 def main(argv):
     args = list(argv)
     check = "--check" in args
+    partner = "--partner" in args
+    if partner:
+        args.remove("--partner")
     if check:
         args.remove("--check")
     mod = None
@@ -1787,7 +1817,7 @@ def main(argv):
     if mod:
         meta["mod"] = mod
     try:
-        r = bake(meta, os.path.dirname(path))
+        r = bake(meta, os.path.dirname(path), partner)
     except ModelImportError as e:
         sys.exit("error: %s" % e)
     for s in r["info"]:
@@ -1798,12 +1828,12 @@ def main(argv):
     print("blob: %d bytes, %d entries, %d bones, %d polygons, %d motions in %d clips; texture: %d islands, %d palettes, rms %.1f"
           % (st["bytes"], r["entries"], st["bones"], st["polys"], st["slots"], st["clips"], st["islands"], st["palettes"], st["rms"]))
     if not check:
-        dest = os.path.join(out, "models", meta["name"] + ".bin")
+        dest = os.path.join(out, "digimon", meta["name"], "model.bin")
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         with open(dest, "wb") as fh:
             fh.write(r["blob"])
         print("wrote %s" % dest)
-    print("digimon.json snippet (rename the key, pick \"base\"/\"from\" among the original fighters of the same kind):")
+    print("digimon/<key>/digimon.json snippet (the folder's name is the key and \"name\"; pick \"base\"/\"from\" among the original fighters of the same kind):")
     print(json.dumps(r["snippet"], indent=2))
     return 0
 

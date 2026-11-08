@@ -129,17 +129,11 @@ int inputCfgResolvePath(char *path, int cap);
 
 /* W2: the disc image remembered under [disc] path (the settings file's, read before the window exists) */
 int inputCfgReadDisc(char *out, int cap);
-/* The [data] export_models value ("all" or fighter numbers), "" -> 0: read at start, before the window opens */
-int inputCfgReadExportModels(char *out, int cap);
-/* The [data] export_videos value ("all" or movie names), "" -> 0: read at start, before the window opens (content-export E2a) */
-int inputCfgReadExportVideos(char *out, int cap);
-/* The [data] export_audio value ("all" or sound bank names), "" -> 0: read at start, before the window opens (content-export E3a) */
-int inputCfgReadExportAudio(char *out, int cap);
-/* The [data] export_stages value ("all" or stage names like S233), "" -> 0: read at start, before the window opens (content-export E6b) */
-int inputCfgReadExportStages(char *out, int cap);
-/* The [data] export_raw value ("all", "off" or kinds like stage-map), "" -> 0: read at start, before the window opens; the caller treats an absent
-   line as "all" (content-export E7) */
-int inputCfgReadExportRaw(char *out, int cap);
+/* One [data] export_* value (the exporter's key, "export_models"): "all", item names or the exporter's own words; "" or absent -> 0. Read at
+   start, before the window opens. Any key that starts with export_ is accepted in [data] (shim/exp_types.h makes one per exporter). */
+int inputCfgReadExport(const char *key, char *out, int cap);
+/* The comment a save writes above the key (lines starting "; ", each ended by "\n"); `note` must outlive the program. */
+void inputCfgRegisterExport(const char *key, const char *note);
 /* The [mods] lines as the one text modsInit takes: the order, then each [mods] disabled name as "-name" ("" -> 0, also when it
    would not fit `cap`); inputCfgReadModsOrder is this after loading the file */
 int inputCfgModsText(char *out, int cap);

@@ -48,6 +48,44 @@
 #define FILE_MAX (64 * 1024 * 1024)
 
 static const int MIN_SLOTS[9] = {0, 1, 2, 3, 4, 10, 11, 12, 14};
+
+/* the slots the battle code plays on every fighter of a facet; the same table as tools/model_import.py (COMMON_NEEDS and PARTNER_NEEDS) */
+#define COMMON_NEEDS \
+    {0, "idle", "the idle loop (Model.idleFrames)"}, \
+    {1, "weak idle", "the idle loop while the fighter has a quarter of its HP or less (WFIGHTMN_setIdleMotion)"}, \
+    {2, "miss", "the target of an attack that missed (effect script 4)"}, \
+    {3, "flinch", "a hit of an attack that lands and is not the last (effect script 1)"}, \
+    {4, "hit", "the target of a hit (effect scripts 2 and 3)"}, \
+    {10, "knock out", "the hit that knocks the fighter out (effect script 3)"}, \
+    {11, "survived hit", "played by effect script 2, a hit the fighter survives"}, \
+    {12, "entrance", "the entrance of every fighter, and the partner's victory pose and digimon change (entrance.c, menu.c, digimon_change.c)"}
+static const ModelSlotNeed kEnemyNeeds[] = {COMMON_NEEDS, {14, "attack", "effect script 5, the generic attack"}};
+static const ModelSlotNeed kPartnerNeeds[] = {
+    COMMON_NEEDS,
+    {13, "blast entrance", "the temporary (blast) form coming in (digimon_change.c); only a form that is a blast form of a partner"},
+    {14, "attack", "effect script 5, the generic attack"},
+    {20, "attack, script 6", "effect script 6, which the battle code uses instead of 5 (choosePartnerScript)"},
+    {32, "attack, script 8", "effect script 8, which the battle code uses instead of 5 (choosePartnerScript)"}};
+
+int modelSlotNeeds(int partner, const ModelSlotNeed **out) {
+    *out = partner ? kPartnerNeeds : kEnemyNeeds;
+    return partner ? (int)(sizeof kPartnerNeeds / sizeof kPartnerNeeds[0]) : (int)(sizeof kEnemyNeeds / sizeof kEnemyNeeds[0]);
+}
+
+uint64_t modelBlobSlots(const uint8_t *blob, size_t len) {
+    uint32_t at;
+    uint64_t mask = 0;
+    int i;
+
+    if (blob == NULL || len < 8) return 0;
+    at = (uint32_t)blob[0] | (uint32_t)blob[1] << 8 | (uint32_t)blob[2] << 16 | (uint32_t)blob[3] << 24; /* entry 0: the motions' archive */
+    if (at == 0 || (size_t)at + 4 * SLOTS > len) return 0;
+    for (i = 0; i < SLOTS; i++) {
+        const uint8_t *q = blob + at + 4 * i;
+        if (q[0] | q[1] | q[2] | q[3]) mask |= (uint64_t)1 << i;
+    }
+    return mask;
+}
 static const double C_AXES[3] = {-1.0, -1.0, 1.0};
 static const double WEIGHTS[3] = {2.0, 3.0, 1.0};
 #define PI_ 3.14159265358979323846
@@ -3639,6 +3677,7 @@ int modelSourceInfoFrom(const char *dir, const char *metaFile, const ModelOrigin
 static struct {
     char name[96];
     int file;
+    uint64_t slots;
 } sBaked[MODEL_NAMES];
 static int sBakedN;
 static ModelOriginals sOriginals; /* for "from": set by the host once the disc reader exists; empty without a disc */
@@ -3648,20 +3687,31 @@ void modelsSetOriginals(const ModelOriginals *orig) {
     else memset(&sOriginals, 0, sizeof sOriginals);
 }
 
-/* "<mod>:<key>" -> mods/<mod>/content/models/<key> (a content mod's folder), 1 when model.json is there */
+/* a folder d<nnn> of digimon/ is original fighter <nnn>'s: there is no way to replace an original's model, so its model/ is never read as a source */
+static int keyIsOriginal(const char *key) {
+    int i;
+
+    if (key[0] != 'd' || strlen(key) != 4) return 0;
+    for (i = 1; i < 4; i++) {
+        if (key[i] < '0' || key[i] > '9') return 0;
+    }
+    return 1;
+}
+
+/* "<mod>:<key>" -> mods/<mod>/digimon/<key>/model (a content mod's folder), 1 when model.json is there */
 static int sourceDir(const char *name, char *dir, size_t cap) {
     const char *colon = strchr(name, ':'), *key;
     char mod[96], sub[160];
     int m;
     if (colon == NULL || colon == name || (size_t)(colon - name) >= sizeof mod) return 0;
     key = colon + 1;
-    if (!extValidKey(key)) return 0;
+    if (!extValidKey(key) || keyIsOriginal(key)) return 0;
     memcpy(mod, name, (size_t)(colon - name));
     mod[colon - name] = '\0';
     for (m = 0; m < modsCount() && strcmp(modsNameOf(m), mod) != 0; m++) {}
     if (m == modsCount() || strcmp(modsKindOf(m), "content") != 0) return 0;
-    snprintf(sub, sizeof sub, "content/models/%s", key);
-    if (!portJoin(dir, cap, modsDirOf(m), sub)) return 0;
+    snprintf(sub, sizeof sub, "%s/model", key);
+    if (!assetModDir(m, "digimon", sub, dir, cap)) return 0;
     snprintf(sub, sizeof sub, "%s/model.json", dir);
     return portIsFile(sub);
 }
@@ -3775,7 +3825,7 @@ int modelsFile(const char *name) {
     sBaked[sBakedN].file = -1;
     sBakedN++;
     if (!sourceDir(name, dir, sizeof dir)) {
-        plogLine("models", "%s rejected: no model source of that name (mods/<mod>/content/models/<key>/model.json)\n", name);
+        plogLine("models", "%s rejected: no model source of that name (mods/<mod>/digimon/<key>/model/model.json)\n", name);
         return -1;
     }
     hooks.get = cacheGet;
@@ -3791,6 +3841,7 @@ int modelsFile(const char *name) {
         plogLine("models", "%s rejected: no room for another virtual file\n", name);
     } else {
         sBaked[sBakedN - 1].file = file;
+        sBaked[sBakedN - 1].slots = modelBlobSlots(baked.blob, baked.len);
         if (baked.cached)
             plogLine("models", "%s: %lu bytes from the cache in %.1f ms (virtual file %d)\n", name, (unsigned long)baked.len,
                      (double)(clock() - t0) * 1000.0 / CLOCKS_PER_SEC, file);
@@ -3801,6 +3852,17 @@ int modelsFile(const char *name) {
     }
     modelBakedFree(&baked);
     return file;
+}
+
+int modelsSlots(const char *name, uint64_t *mask) {
+    int i;
+    for (i = 0; i < sBakedN; i++) {
+        if (strcmp(sBaked[i].name, name) == 0 && sBaked[i].file >= 0) {
+            *mask = sBaked[i].slots;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void modelsReset(void) {

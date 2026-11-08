@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port partners/<key>/partner.json (partners-partner-v1)",
+  "description": "One new partner of a content mod (the folder partners/<key>/ with partner.json beside its art: portrait.png, icon.png, field/, training/). Derived from pc/shim/partner_ext.c and content.c. A partner is <mod folder>:<key>; its index in the game is 8 plus its place in the alphabetical order of all declared partners. The partner.json the game exports for an original partner (data/partners/<name>/partner.json) uses the same format name but is descriptive and never read; a mod folder named like an original partner only replaces art.",
+  "type": "object",
+  "required": [
+    "format",
+    "base",
+    "firstForm",
+    "title"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "partners-partner-v1"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]{1,48}$",
+      "description": "Optional header: the folder's name, which is the partner's key (the partner is <mod folder>:<key>). A folder named like an original partner (the slug of its English name, e.g. agumon) is that partner's art folder and is never a new partner."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free text, ignored."
+    },
+    "base": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        {
+          "type": "string",
+          "pattern": "^dw3:partner/[0-7]$"
+        }
+      ],
+      "description": "An original partner: its 2D art stands in for the new partner until it has its own, and its bit of every item's partners mask is the equipment eligibility unless equip.like says another."
+    },
+    "firstForm": {
+      "type": "string",
+      "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$",
+      "description": "The form the partner starts as (its stats, growth and battle model). An original partner form or a new form of digimon.json."
+    },
+    "title": {
+      "type": "object",
+      "description": "The partner's name per language folder: eng, fra, ita, ger, spa, es-419 (es-419 falls back to spa, then eng). eng is required. It is called title because name is the header (the folder).",
+      "properties": {
+        "eng": {
+          "type": "string"
+        },
+        "fra": {
+          "type": "string"
+        },
+        "ita": {
+          "type": "string"
+        },
+        "ger": {
+          "type": "string"
+        },
+        "spa": {
+          "type": "string"
+        },
+        "es-419": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "description": {
+      "type": "object",
+      "description": "The starter screen's text for the partner (a few lines, \\n between them). Optional.",
+      "properties": {
+        "eng": {
+          "type": "string"
+        },
+        "fra": {
+          "type": "string"
+        },
+        "ita": {
+          "type": "string"
+        },
+        "ger": {
+          "type": "string"
+        },
+        "spa": {
+          "type": "string"
+        },
+        "es-419": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "equip": {
+      "type": "object",
+      "description": "Equipment eligibility beyond the u8 mask the original items carry (a bit for each of the first eight partners).",
+      "properties": {
+        "like": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            {
+              "type": "string",
+              "pattern": "^dw3:partner/[0-7]$"
+            }
+          ],
+          "description": "The original partner whose mask bit it reads (default: base)."
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "pattern": "^(dw3:item/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+              }
+            ],
+            "description": "An item: its number, dw3:item/<id>, or <mod>:<key> of a new item."
+          },
+          "description": "Items it can wear whatever the mask says."
+        },
+        "deny": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "pattern": "^(dw3:item/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+              }
+            ],
+            "description": "An item: its number, dw3:item/<id>, or <mod>:<key> of a new item."
+          },
+          "description": "Items it cannot wear (wins over allow and the mask)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "equipSet": {
+      "type": "object",
+      "description": "Four items worn together and what wearing them whole adds (EQUIP_SETS / EQUIP_SET_BONUSES).",
+      "required": [
+        "items",
+        "bonuses"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "pattern": "^(dw3:item/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$"
+              }
+            ],
+            "description": "An item: its number, dw3:item/<id>, or <mod>:<key> of a new item."
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "bonuses": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": -999,
+            "maximum": 999
+          },
+          "minItems": 6,
+          "maxItems": 6,
+          "description": "Added to the six battle stats."
+        }
+      },
+      "additionalProperties": false
+    },
+    "evolution": {
+      "type": "array",
+      "description": "The forms the partner can learn after a battle: its evolution list (the Evolution struct, include/battle/report.h), first match wins, one per report.",
+      "items": {
+        "type": "object",
+        "required": [
+          "digimon"
+        ],
+        "properties": {
+          "digimon": {
+            "type": "string",
+            "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$",
+            "description": "The form it learns."
+          },
+          "needs": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "required": [
+                "digimon"
+              ],
+              "properties": {
+                "digimon": {
+                  "type": "string",
+                  "pattern": "^(dw3:digimon/[0-9]+|[A-Za-z0-9._-]+:[a-z0-9_-]+)$",
+                  "description": "A partner form: dw3:digimon/<id> of an original partner form, or <mod>:<key> of a form in digimon.json."
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 99
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "stat": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 14
+              },
+              {
+                "enum": [
+                  "strength",
+                  "defense",
+                  "spirit",
+                  "wisdom",
+                  "speed",
+                  "charisma",
+                  "level"
+                ]
+              }
+            ],
+            "description": "1-6 the battle stats, 7 level, 8-14 the resistances."
+          },
+          "value": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32767,
+            "description": "The least that stat must be (default 1 with a stat)."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  }
+}

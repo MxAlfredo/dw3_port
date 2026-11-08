@@ -1,0 +1,14 @@
+{
+  "format": "stage-text-v1",
+  "about": "Las líneas del pescador y del Digimon del río en el Parque Central (es-419, texto propio de este mod).",
+  "texts": {
+    "intro": "¡Hola! Soy el pescador de aquí.\nEstudio a los Digimon de este río.",
+    "busy": "Hoy no pican los peces...\nHáblame en otro momento.",
+    "request": "¿Has visto a MegaSeadramon? Vive en lo profundo del río.\nSi lo vences, obtendrás el DDNA de Betamon.\n¡Tráemelo y te daré a Betamon!",
+    "give": "¡Ese es el DDNA de Betamon! ¡Venciste a MegaSeadramon!\nEntonces Betamon es tuyo. ¡Cuídalo!\nLo verás en la lista de compañeros del laboratorio.",
+    "already": "A Betamon le encanta el agua.\n¡Y quiere todavía más a su Tamer!",
+    "challenge": "Una enorme sombra sale del agua...\n¡MegaSeadramon quiere poner a prueba a tu equipo!",
+    "defeated": "MegaSeadramon agacha la cabeza y se hunde en el río.\n¡Deja tras de sí un brillante DDNA!",
+    "gone": "Solo quedan ondas en el agua."
+  }
+}

@@ -17,7 +17,7 @@
  * files with localization/es-419 applied); JPN and USA are never read by TEXT_FILE() on this disc.
  *
  * Layout (<data> = DW3_DATA_DIR, else <user folder>/data; names in lower case, ADR-010):
- *     <data>/text/manifest.json            stamp + content hash of every generated file
+ *     <data>/text/manifest.json            the manifest: header + content hash of every generated file
  *     <data>/text/<lang>/<file>.json       generated, whole files (lang: eng fra ita ger spa es-419)
  *     <user folder>/mods/<mod>/text/<lang>/<file>.json  a mod's overrides (ADR-005), in mod order, last wins, the
  *                                          name in any case; mods win over everything else
@@ -57,19 +57,48 @@ typedef struct TdManifestFile {
     char hash[17];
 } TdManifestFile;
 
+/* A short ordered key -> value list (the header maps of a manifest). */
+typedef struct TdKv {
+    char key[96];
+    char val[64];
+} TdKv;
+typedef struct TdKvList {
+    TdKv *items;
+    int count, capacity;
+} TdKvList;
+const char *tdKvFind(const TdKvList *l, const char *key); /* value or NULL */
+int tdKvSet(TdKvList *l, const char *key, const char *val); /* 0, or -1 (too long, no memory) */
+void tdKvFree(TdKvList *l);
+
+/* One `asset-manifest-v1` file (ADR-016 4): {"format","topic","exporter","disc","inputs","names","files"}.
+   `exporter` maps a unit (the exporter, or one thing it exports: a bank, a fighter) to the version that wrote its files, a decimal number in the file;
+   `disc` is the hash of the disc's volume descriptor and path table; `inputs` holds any other hash the outputs derive from (the text overlay); `names` maps a
+   folder to its disc identity (filled by the exporters that have one). The files are in the order they were first set (that is the order of the written
+   file), found by path through a hash index: a find or a set costs the same for 10 files and for 10 000. A manifest starts as all zeros; callers read the
+   header, count and files, and only the functions below change them. */
 typedef struct TdManifest {
-    char stamp[256];
+    char topic[32];
+    char disc[20];
+    TdKvList exporter, inputs, names;
     int count;
     TdManifestFile *files;
+    int capacity;  /* room in files */
+    int *slots;    /* the index: open addressing over the path's hash, each slot the position in files plus one (0: empty) */
+    int nSlots;    /* a power of two, at least twice count */
 } TdManifest;
 
-/* "disc=<hash>;overlay=<hash|none>;codec=<n>" */
-void tdMakeStamp(char *buf, size_t cap, const char *discHash, const char *overlayHash);
+#define TD_MANIFEST_FORMAT "asset-manifest-v1"
+
+/* Parses a manifest. Anything that is not exactly this format (an old `stamp` manifest, a damaged file, an unknown field) is an error: -1 and `m` empty. */
 int tdManifestParse(const char *json, size_t len, TdManifest *m, char *err, size_t errSize);
 char *tdManifestFormat(const TdManifest *m); /* malloc'ed */
 const char *tdManifestFind(const TdManifest *m, const char *path); /* hash or NULL */
 int tdManifestSet(TdManifest *m, const char *path, const char *hash);
-void tdManifestFree(TdManifest *m);
+/* 1 when both headers say the same: topic, disc, every exporter version and every input. The files are not compared. */
+int tdManifestSameRun(const TdManifest *a, const TdManifest *b);
+/* Removes every file whose path `drop` says 1 to, keeping the order of the others (a layout an exporter no longer writes). Returns how many went. */
+int tdManifestDrop(TdManifest *m, int (*drop)(const char *path));
+void tdManifestFree(TdManifest *m); /* frees and zeroes everything, header included */
 
 /* ---- decisions ---- */
 typedef enum TdFileState {
@@ -84,7 +113,7 @@ typedef enum TdExtractAction {
     TD_X_WRITE,     /* write the file and record its hash */
     TD_X_WRITE_NEW  /* the user's file stays; write <FILE>.json.new beside it */
 } TdExtractAction;
-TdExtractAction tdExtractAction(int stampMatches, TdFileState state);
+TdExtractAction tdExtractAction(int sameRun, TdFileState state);
 
 typedef enum TdSource {
     TD_SRC_DISC,
@@ -156,7 +185,7 @@ typedef struct TdDisc {
     int (*locate)(void *ctx, int index, long *lba, int *sectors);   /* 1 on success */
 } TdDisc;
 
-/* Resolve the data folder and the extraction: checks the stamp, extracts when needed (log with
+/* Resolve the data folder and the extraction: checks the manifest header (disc, codec, overlay), extracts when needed (log with
    timings on stderr), loads the manifest. dataDir / l10nDir may be NULL (no folder: the layer
    still serves es-419 from memory when l10nDir is set). Fail soft: returns the number of files
    written, 0 when nothing was needed, -1 when something failed (the game runs from the disc). */
@@ -187,6 +216,11 @@ void tdSetTechTextHook(int (*count)(void), const char *(*text)(int index, const 
    PC_DIGIMON_NAME (engine/digimon_access.h). The description file (DIGINF, shown by the lab for a form; the layout rule keeps
    its own line breaks) gets the same entries. NULL, NULL removes the hook. */
 void tdSetDigimonTextHook(int (*count)(void), const char *(*text)(int index, const char *langDir, int desc));
+
+/* The texts of the partners and starter teams mods add (partner_ext.c): the registration file (NAMEET, the starter screen) has 31 entries on the disc;
+   the hook's entries follow them (31, 32, ...): text(i, langDir, 0) is entry 31 + i, whatever it holds (a name, a description: the caller lays them
+   out). Served in every language. NULL, NULL removes the hook. */
+void tdSetPartnerTextHook(int (*count)(void), const char *(*text)(int index, const char *langDir, int desc));
 
 /* Named texts for the stage talks (port-close S6, stage_mods.c): the talk files of the field stages (TALKnn) are indexed by entry, and a stage patch's
    `"text": "<mod>:<name>"` needs an entry of its own, so every copy of a talk file served (any language, with or without a mod's text) gets

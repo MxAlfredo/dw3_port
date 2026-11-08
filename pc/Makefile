@@ -243,7 +243,7 @@ SHIM_CORE_OBJS := $(BUILD)/heap.o $(BUILD)/task_registry.o
 # CD reader needs it (and, for host_xa.c's own OpenAL sink, PSYCROSS_LIBS).
 # host_st.o joins for the same reason as of T38: those commands also arm, start
 # and stop the St video pump.
-SHIM_CD_OBJS := $(BUILD)/host_cd.o $(BUILD)/disc_fd.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/host_gfx.o $(BUILD)/host_xa.o $(BUILD)/snd_vol.o $(BUILD)/host_st.o $(BUILD)/file_cache_pc.o
+SHIM_CD_OBJS := $(BUILD)/host_cd.o $(BUILD)/disc_fd.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/host_gfx.o $(BUILD)/host_xa.o $(BUILD)/snd_vol.o $(BUILD)/host_st.o $(BUILD)/file_cache_pc.o
 SHIM_TIM_OBJS := $(BUILD)/host_tim.o
 
 # Milestone 3: the game's own drawing unit. text_window.c is compiled against
@@ -513,9 +513,9 @@ BOOT_ENGINE_OBJS := $(FILE_OBJS) $(TEXT_OBJS) $(SHIM_CORE_OBJS) $(BUILD)/task.o 
 	$(BUILD)/pad.o $(BUILD)/port.o $(BUILD)/demo.o $(BUILD)/sound.o \
 	$(BUILD)/memcard.o $(BUILD)/random.o $(BUILD)/eu_settings.o $(BUILD)/all_files_pattern.o \
 	$(BUILD)/get_digimon.o $(BUILD)/matrices.o $(BOOT_FIELD_ENGINE_OBJS)
-BOOT_SHIM_OBJS := $(BUILD)/gym_labels.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/game_tables.o $(BUILD)/tech_ext.o $(BUILD)/digimon_ext.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/video_export.o $(BUILD)/stage_export.o $(BUILD)/stage_mod.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_new.o $(BUILD)/field_ext.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/raw_export.o $(BUILD)/audio_export.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/save_view.o $(BUILD)/save_file.o $(BUILD)/talk_box_wide.o $(BUILD)/text_fit.o $(BUILD)/host_cd.o $(BUILD)/file_cache_pc.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/port_config.o $(BUILD)/table_mods.o $(BUILD)/host_gte.o $(BUILD)/host_gs.o $(BUILD)/host_snd.o $(BUILD)/snd_spu.o $(BUILD)/app_lifecycle.o $(BUILD)/app_lifecycle_sdl.o $(BUILD)/touch_pad.o $(BUILD)/touch_router.o $(BUILD)/touch_menu.o $(BUILD)/touch_tap.o $(BUILD)/touch_sdl.o \
+BOOT_SHIM_OBJS := $(BUILD)/script_mirror.o $(BUILD)/gym_labels.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/game_tables.o $(BUILD)/tech_ext.o $(BUILD)/digimon_ext.o $(BUILD)/partner_ext.o $(BUILD)/partner_art.o $(BUILD)/partner_art_vram.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/video_export.o $(BUILD)/stage_export.o $(BUILD)/stage_mod.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_new.o $(BUILD)/field_ext.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/raw_export.o $(BUILD)/partner_export.o $(BUILD)/menu_export.o $(BUILD)/stage_obj_export.o $(BUILD)/card_export.o $(BUILD)/sprite_export.o $(BUILD)/menu_pack.o $(BUILD)/stage_obj_pack.o $(BUILD)/partner_bundle.o $(BUILD)/partner_train.o $(BUILD)/audio_export.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/save_view.o $(BUILD)/save_file.o $(BUILD)/talk_box_wide.o $(BUILD)/text_fit.o $(BUILD)/host_cd.o $(BUILD)/file_cache_pc.o $(BUILD)/text_data.o $(BUILD)/exp_job.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/port_log.o $(BUILD)/fault_report.o $(BUILD)/port_fs.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/port_config.o $(BUILD)/table_mods.o $(BUILD)/host_gte.o $(BUILD)/host_gs.o $(BUILD)/host_snd.o $(BUILD)/snd_spu.o $(BUILD)/app_lifecycle.o $(BUILD)/app_lifecycle_sdl.o $(BUILD)/touch_pad.o $(BUILD)/touch_router.o $(BUILD)/touch_menu.o $(BUILD)/touch_tap.o $(BUILD)/touch_sdl.o \
 	$(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/host_xa.o $(BUILD)/host_press.o $(BUILD)/host_mdec.o \
-	$(BUILD)/host_st.o $(BUILD)/host_overlay.o $(BUILD)/host_battle.o $(BUILD)/host_memcard.o $(BUILD)/card_image.o $(BUILD)/input_cfg.o $(BUILD)/port_paths_sdl.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o \
+	$(BUILD)/host_st.o $(BUILD)/host_overlay.o $(BUILD)/host_battle.o $(BUILD)/host_memcard.o $(BUILD)/card_image.o $(BUILD)/input_cfg.o $(BUILD)/port_paths_sdl.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/exp_types.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o \
 	$(BUILD)/input_device.o $(BUILD)/prompt_icons.o $(BUILD)/prompt_atlas_data.o $(BUILD)/text_icons.o $(BUILD)/menu_frame.o \
 	$(BUILD)/disc_picker.o $(BUILD)/disc_fd.o $(BUILD)/tinyfiledialogs.o
 ifeq ($(TARGET),android)
@@ -617,7 +617,7 @@ $(BUILD)/stage_setups.c: $(FIELD_STAGE_OBJS) Makefile
 		b=$$(basename $$o .o); \
 		case $$b in wstag[0-9][0-9][0-9]) ;; *) continue;; esac; \
 		S=$$(echo $$b | tr a-z A-Z); num=$${b#wstag}; su=0; st=0; list=""; \
-		for f in $$($(NM) --defined-only $$o | awk '$$2 ~ /^[Tt]$$/ { print $$3 }' | sort -u); do \
+		for f in $$($(NM) --defined-only $$o | awk '$$2 ~ /^[Tt]$$/ { print $$3 }' | LC_ALL=C sort -u); do \
 			case $$f in \
 				$${S}_setupStage) su=1;; \
 				$${S}_startStage) st=1;; \
@@ -1220,9 +1220,9 @@ $(BUILD)/host_memcard.o: shim/host_memcard.c
 memcardtest: $(BUILD)/memcardtest
 	$(BUILD)/memcardtest
 
-$(BUILD)/memcardtest: memcardtest.c shim/mod_stages.h shim/host_memcard.c shim/save_file.h shim/save_view.h shim/ext_state.h shim/card_image.h shim/host_memcard.h $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
+$(BUILD)/memcardtest: memcardtest.c shim/mod_stages.h shim/host_memcard.c shim/save_file.h shim/save_view.h shim/ext_state.h shim/card_image.h shim/host_memcard.h $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
 	@mkdir -p $(dir $@)
-	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) $(SDL_CFLAGS) -I. memcardtest.c $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o -o $@
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) $(SDL_CFLAGS) -I. memcardtest.c $(BUILD)/ext_state.o $(BUILD)/save_file.o $(BUILD)/save_view.o $(BUILD)/text_codec.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/card_image.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o -o $@
 
 # extended-state T2 (ADR-008 option B): dw3save-v1, the port's own save file (shim/save_file.c; plain C, no game headers) and its
 # host test (container, CRC, torn-write fallback) together with the extension chunk of shim/ext_state.c.
@@ -1254,7 +1254,7 @@ $(BUILD)/tech_ext.o: shim/tech_ext.c shim/tech_ext.h shim/content.h shim/ext_sta
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -c $< -o $@
 
 # Digimon slice 1 (ADR-009): changes to existing Digimon from content mods (shim/digimon_ext.c).
-$(BUILD)/digimon_ext.o: shim/digimon_ext.c shim/digimon_ext.h shim/model_bake.h shim/content.h shim/tech_ext.h shim/item_ext.h shim/mods.h shim/text_data.h shim/port_log.h $(ROOT)/include/engine/tech_access.h
+$(BUILD)/digimon_ext.o: shim/digimon_ext.c shim/digimon_ext.h shim/script_mirror.h shim/model_bake.h shim/content.h shim/tech_ext.h shim/item_ext.h shim/mods.h shim/text_data.h shim/port_log.h $(ROOT)/include/engine/tech_access.h
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -c $< -o $@
 
@@ -1321,9 +1321,9 @@ $(BUILD)/host_xa.o: shim/host_xa.c shim/host_xa.h shim/snd_internal.h
 .PHONY: sndtest
 sndtest: $(BUILD)/sndtest
 
-$(BUILD)/sndtest: $(BUILD)/sndtest.o $(BUILD)/snd_spu.o $(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/host_snd.o $(BUILD)/host_xa.o $(BUILD)/audio_mod.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/port_log.o psycross
+$(BUILD)/sndtest: $(BUILD)/sndtest.o $(BUILD)/snd_spu.o $(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/host_snd.o $(BUILD)/host_xa.o $(BUILD)/audio_mod.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/port_log.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o psycross
 	$(CC) $(BUILD)/sndtest.o $(BUILD)/snd_spu.o $(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/host_snd.o \
-		$(BUILD)/audio_mod.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/port_log.o $(BUILD)/host_xa.o $(PSYCROSS_BUILD)/libpsycross.a $(PSYCROSS_LIBS) -o $@
+		$(BUILD)/audio_mod.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/port_log.o $(BUILD)/host_xa.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(PSYCROSS_BUILD)/libpsycross.a $(PSYCROSS_LIBS) -o $@
 
 # SDL's own headers (nothing else in pc/ includes SDL.h directly). The input
 # units include no game header, so they skip psx_compat.h and the game's
@@ -1355,7 +1355,12 @@ $(BUILD)/options_video.o: shim/options_video.c shim/options_video.h shim/options
 	$(CC) $(INPUT_CFLAGS) $(GAME_DEFS) $(DRAW_INC) $(SDL_CFLAGS) -c $< -o $@
 
 # system-menu: the System tab (Restart game, Quit game) and its confirmation model (inputtest drives it)
-$(BUILD)/options_system.o: shim/options_system.c shim/options_system.h shim/options_mods.h shim/controls_screen.h shim/input_cfg.h
+$(BUILD)/options_system.o: shim/options_system.c shim/options_system.h shim/options_mods.h shim/controls_screen.h shim/input_cfg.h shim/exp_types.h
+	@mkdir -p $(dir $@)
+	$(CC) $(INPUT_CFLAGS) $(GAME_DEFS) $(DRAW_INC) $(SDL_CFLAGS) -c $< -o $@
+
+# B3: the table of exporter types (the System tab's row, the settings.ini keys; inputtest drives it)
+$(BUILD)/exp_types.o: shim/exp_types.c shim/exp_types.h shim/input_cfg.h
 	@mkdir -p $(dir $@)
 	$(CC) $(INPUT_CFLAGS) $(GAME_DEFS) $(DRAW_INC) $(SDL_CFLAGS) -c $< -o $@
 
@@ -1446,9 +1451,9 @@ $(BUILD)/inputtest.o: inputtest.c shim/disc_picker.h shim/input_cfg.h shim/contr
 .PHONY: inputtest
 inputtest: $(BUILD)/inputtest
 
-$(BUILD)/inputtest: $(BUILD)/inputtest.o $(BUILD)/disc_fd.o $(BUILD)/disc_picker.o $(BUILD)/tinyfiledialogs.o $(BUILD)/input_cfg.o $(BUILD)/port_paths.o $(BUILD)/port_paths_sdl.o $(BUILD)/port_log.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o $(BUILD)/snd_vol.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o \
+$(BUILD)/inputtest: $(BUILD)/inputtest.o $(BUILD)/disc_fd.o $(BUILD)/disc_picker.o $(BUILD)/tinyfiledialogs.o $(BUILD)/input_cfg.o $(BUILD)/port_paths.o $(BUILD)/port_paths_sdl.o $(BUILD)/port_log.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/exp_types.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o $(BUILD)/snd_vol.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o \
 		$(BUILD)/input_device.o $(BUILD)/prompt_icons.o $(BUILD)/prompt_atlas_data.o $(BUILD)/text_icons.o $(BUILD)/menu_frame.o psycross
-	$(CC) $(BUILD)/inputtest.o $(BUILD)/disc_fd.o $(BUILD)/disc_picker.o $(BUILD)/tinyfiledialogs.o $(BUILD)/input_cfg.o $(BUILD)/port_paths.o $(BUILD)/port_paths_sdl.o $(BUILD)/port_log.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o $(BUILD)/snd_vol.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o \
+	$(CC) $(BUILD)/inputtest.o $(BUILD)/disc_fd.o $(BUILD)/disc_picker.o $(BUILD)/tinyfiledialogs.o $(BUILD)/input_cfg.o $(BUILD)/port_paths.o $(BUILD)/port_paths_sdl.o $(BUILD)/port_log.o $(BUILD)/controls_screen.o $(BUILD)/options_video.o $(BUILD)/options_language.o $(BUILD)/options_audio.o $(BUILD)/options_system.o $(BUILD)/exp_types.o $(BUILD)/options_mods.o $(BUILD)/auto_text.o $(BUILD)/battle_speed.o $(BUILD)/stage_banner.o $(BUILD)/fast_transitions.o $(BUILD)/state_scope.o $(BUILD)/snd_vol.o $(BUILD)/mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o \
 		$(BUILD)/input_device.o $(BUILD)/prompt_icons.o $(BUILD)/prompt_atlas_data.o $(BUILD)/text_icons.o $(BUILD)/menu_frame.o $(PSYCROSS_BUILD)/libpsycross.a \
 		$(PSYCROSS_LIBS) $(HARNESS_GL_LIB) -o $@
 
@@ -1458,7 +1463,7 @@ $(BUILD)/restarttest.o: restarttest.c shim/options_system.h
 	@mkdir -p $(dir $@)
 	$(CC) $(INPUT_CFLAGS) $(GAME_DEFS) $(DRAW_INC) $(SDL_CFLAGS) -I. -c $< -o $@
 
-$(BUILD)/restarttest$(EXE): $(BUILD)/restarttest.o $(BUILD)/options_system.o
+$(BUILD)/restarttest$(EXE): $(BUILD)/restarttest.o $(BUILD)/options_system.o $(BUILD)/exp_types.o
 	$(CC) $^ -L$(DW3_WIN_CACHE)/sdl2/lib -lSDL2 -o $@
 
 .PHONY: check-restart
@@ -1508,7 +1513,7 @@ $(BUILD)/texttest.o: texttest.c shim/talk_box_wide.h shim/text_fit.h shim/text_c
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
-$(BUILD)/texttest: $(BUILD)/texttest.o $(BUILD)/text_codec.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o
+$(BUILD)/texttest: $(BUILD)/texttest.o $(BUILD)/text_codec.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_reflow.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # ADR-005: the mods scan and the flat JSON reader (shim/mods.c) and the config files (shim/port_config.c).
@@ -1655,6 +1660,22 @@ $(BUILD)/port_log.o: shim/port_log.c shim/port_log.h
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
+# R1: the fatal-signal report (shim/fault_report.c): the signal-safe formatter and a forked child that crashes into a log file.
+$(BUILD)/fault_report.o: shim/fault_report.c shim/fault_report.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: faulttest
+faulttest: $(BUILD)/faulttest
+	$(BUILD)/faulttest
+
+$(BUILD)/faulttest.o: faulttest.c shim/fault_report.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/faulttest: $(BUILD)/faulttest.o $(BUILD)/fault_report.o $(BUILD)/port_log.o
+	$(CC) $^ -o $@ -rdynamic
+
 .PHONY: logtest
 logtest: $(BUILD)/logtest
 	$(BUILD)/logtest
@@ -1680,7 +1701,23 @@ $(BUILD)/extstatetest.o: extstatetest.c shim/ext_state.h shim/content.h shim/ite
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/extstatetest: $(BUILD)/extstatetest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/extstatetest: $(BUILD)/extstatetest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+	$(CC) $^ -o $@
+
+# Host test of the partner registry from content mods (Betamon pack P4): partners/<key>/partner.json, teams.json, ids, equipment, evolution, texts.
+.PHONY: partnerexttest
+partnerexttest: $(BUILD)/partnerexttest
+	$(BUILD)/partnerexttest
+
+$(BUILD)/partner_ext.o: shim/partner_ext.c shim/partner_ext.h shim/content.h shim/ext_state.h shim/mods.h shim/text_data.h shim/port_log.h $(ROOT)/include/engine/partner_access.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -c $< -o $@
+
+$(BUILD)/partnerexttest.o: partnerexttest.c shim/partner_ext.h shim/ext_state.h shim/content.h shim/mods.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
+
+$(BUILD)/partnerexttest: $(BUILD)/partnerexttest.o $(BUILD)/partner_ext.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # Host test of the field-healing accessor (pcTechIsFieldHeal): original ids and mod techniques based on them.
@@ -1692,7 +1729,7 @@ $(BUILD)/fieldtechtest.o: fieldtechtest.c shim/ext_state.h $(ROOT)/include/engin
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/fieldtechtest: $(BUILD)/fieldtechtest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/fieldtechtest: $(BUILD)/fieldtechtest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # Host test of the item base accessor (pcItemBase): original ids and mod items based on them.
@@ -1704,7 +1741,7 @@ $(BUILD)/itembasetest.o: itembasetest.c shim/ext_state.h $(ROOT)/include/engine/
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/itembasetest: $(BUILD)/itembasetest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/itembasetest: $(BUILD)/itembasetest.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/card_ext.o $(BUILD)/png_read.o $(BUILD)/png_write.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # Host test of the armory's equip guard (STITSHOP_canEquip on a non-equipment item), with stubbed item data.
@@ -1716,7 +1753,7 @@ $(BUILD)/shopguardtest.o: shop_guard_test.c
 	@mkdir -p $(dir $@)
 	$(CC) $(FMENU_CFLAGS) $(GAME_DEFS) $(DRAW_INC) -I. -c $< -o $@
 
-$(BUILD)/shopguardtest: $(BUILD)/shopguardtest.o $(BUILD)/ishop/equip.o
+$(BUILD)/shopguardtest: $(BUILD)/shopguardtest.o $(BUILD)/ishop/equip.o $(BUILD)/ext_state.o $(BUILD)/port_log.o
 	$(CC) $^ -o $@
 
 # Host test of the Digimon content type: validation, patching and restoring DIGIMON_DATA, the battle table patch.
@@ -1728,13 +1765,13 @@ $(BUILD)/digimontest.o: digimontest.c shim/digimon_ext.h shim/content.h shim/ite
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/digimontest: $(BUILD)/digimontest.o $(BUILD)/digimon_ext.o $(BUILD)/model_bake.o $(BUILD)/png_read.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/digimontest: $(BUILD)/digimontest.o $(BUILD)/digimon_ext.o $(BUILD)/script_mirror.o $(BUILD)/model_bake.o $(BUILD)/png_read.o $(BUILD)/table_mods.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/item_ext.o $(BUILD)/tech_ext.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@ -lm
 
 # Model baker (model-import I5, ADR-011): the neutral source (glTF + PNG + model.json) to the game's battle model at load. It is
 # a port of tools/model_import.py that must give the same bytes: no FMA contraction, so every double operation rounds as
 # Python's does.
-$(BUILD)/model_export.o: shim/model_export.c shim/model_export.h shim/port_log.h shim/text_data.h
+$(BUILD)/model_export.o: shim/model_export.c shim/model_export.h shim/port_log.h shim/text_data.h shim/exp_job.h
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -ffp-contract=off -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -MMD -MP -g $(WIN_DEFS) $(SDL_CFLAGS) -I. -Ishim -c $< -o $@
 
@@ -1742,8 +1779,25 @@ $(BUILD)/model_bake.o: shim/model_bake.c shim/model_bake.h shim/model_export.h s
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -ffp-contract=off -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -MMD -MP -g $(WIN_DEFS) -I. -Ishim -c $< -o $@
 
+# P17a: a battle script for the other side (shim/script_mirror.c): the converter alone, with hand-made scripts.
+$(BUILD)/script_mirror.o: shim/script_mirror.c shim/script_mirror.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -Wno-unused-parameter -MMD -MP -g -I. -Ishim -c $< -o $@
+
+.PHONY: scriptmirrortest
+scriptmirrortest: $(BUILD)/scriptmirrortest
+	$(BUILD)/scriptmirrortest
+
+$(BUILD)/scriptmirrortest: scriptmirrortest.c $(BUILD)/script_mirror.o
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -Wno-unused-parameter -g -I. $^ -o $@
+
 # Host test of the model baker: the committed demo robot against the blob tools/model_import.py makes, the parity cases that the
 # tool's test file writes (every conversion branch, if python3 is there), the cache, the registry, bad input and a byte-flip fuzz.
+.PHONY: portraittest
+portraittest:
+	python3 -I $(ROOT)/tools/test_portrait_from_model.py
+
 .PHONY: modeltest
 modeltest: $(BUILD)/modeltest
 	@if command -v python3 >/dev/null 2>&1; then \
@@ -1756,7 +1810,7 @@ $(BUILD)/modeltest.o: modeltest.c shim/model_export.h shim/model_bake.h shim/con
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -Wno-unused-parameter -MMD -MP -g $(WIN_DEFS) $(SDL_CFLAGS) -I. -Ishim -c $< -o $@
 
-$(BUILD)/modeltest: $(BUILD)/modeltest.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/png_read.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/modeltest: $(BUILD)/modeltest.o $(BUILD)/model_bake.o $(BUILD)/model_export.o $(BUILD)/exp_job.o $(BUILD)/png_read.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@ -lm -lSDL2
 
 # content core (ADR-009, content-core C1/C2): the shared machinery of the content types, with a made-up type.
@@ -1768,7 +1822,19 @@ $(BUILD)/contenttest.o: contenttest.c shim/content.h shim/mods.h
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/contenttest: $(BUILD)/contenttest.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/contenttest: $(BUILD)/contenttest.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+	$(CC) $^ -o $@
+
+# assettest: the asset layers (B4): the lookup order of mods and data/ in one place (scratch under $$TMPDIR).
+.PHONY: assettest
+assettest: $(BUILD)/assettest
+	$(BUILD)/assettest
+
+$(BUILD)/assettest.o: assettest.c shim/mods.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/assettest: $(BUILD)/assettest.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # configtest: defaults, reference copies, merge across data and mods in order, rejections (scratch under $$TMPDIR).
@@ -1780,7 +1846,7 @@ $(BUILD)/configtest.o: configtest.c shim/mods.h shim/mod_tools.h shim/table_mods
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
-$(BUILD)/configtest: $(BUILD)/configtest.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/table_mods.o $(BUILD)/port_log.o $(BUILD)/port_config.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+$(BUILD)/configtest: $(BUILD)/configtest.o $(BUILD)/mods.o $(BUILD)/mod_tools.o $(BUILD)/table_mods.o $(BUILD)/port_log.o $(BUILD)/port_config.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
 	$(CC) $^ -o $@
 
 # ADR-007: the data table patch engine (shim/table_mods.c). Pure stdlib plus mods.h and the file helpers of text_data.c.
@@ -1810,7 +1876,7 @@ $(BUILD)/tabletest.o: tabletest.c shim/mods.h shim/table_mods.h shim/text_data.h
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -O2 -Wextra -Wno-unused-parameter -I. -c $< -o $@
 
-$(BUILD)/tabletest: $(BUILD)/tabletest.o $(BUILD)/game_tables.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/table_mods.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/tabletest: $(BUILD)/tabletest.o $(BUILD)/game_tables.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/table_mods.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # content-export E2a: the movie export (shim/jpeg_write.c, avi_write.c, video_export.c). videotest builds a synthetic raw disc (DC-only MDEC
@@ -1849,7 +1915,7 @@ $(BUILD)/video_mod.o: shim/video_mod.c shim/video_mod.h shim/avi_read.h shim/jpe
 	@mkdir -p $(dir $@)
 	$(CC) $(VIDEO_CFLAGS) -c $< -o $@
 
-$(BUILD)/video_export.o: shim/video_export.c shim/video_export.h shim/jpeg_write.h shim/avi_write.h shim/host_mdec.h shim/host_xa.h shim/port_log.h shim/text_data.h
+$(BUILD)/video_export.o: shim/video_export.c shim/video_export.h shim/jpeg_write.h shim/avi_write.h shim/host_mdec.h shim/host_xa.h shim/port_log.h shim/text_data.h shim/exp_job.h
 	@mkdir -p $(dir $@)
 	$(CC) $(VIDEO_CFLAGS) -c $< -o $@
 
@@ -1857,12 +1923,12 @@ $(BUILD)/videotest.o: videotest.c shim/video_export.h shim/jpeg_write.h shim/avi
 	@mkdir -p $(dir $@)
 	$(CC) $(VIDEO_CFLAGS) -c $< -o $@
 
-$(BUILD)/videotest: $(BUILD)/videotest.o $(BUILD)/video_export.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/host_mdec.o $(BUILD)/host_xa.o $(BUILD)/snd_vol.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/mods.o
+$(BUILD)/videotest: $(BUILD)/videotest.o $(BUILD)/video_export.o $(BUILD)/exp_job.o $(BUILD)/jpeg_write.o $(BUILD)/avi_write.o $(BUILD)/jpeg_read.o $(BUILD)/avi_read.o $(BUILD)/video_mod.o $(BUILD)/host_mdec.o $(BUILD)/host_xa.o $(BUILD)/snd_vol.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/mods.o
 	$(CC) $^ -o $@ -lSDL2 -lopenal -lpthread -lm
 
 # videotest again with AddressSanitizer and UndefinedBehaviorSanitizer: the fuzz of the JPEG decoder, the AVI reader and the movie
 # replacement (flipped and cut bytes) then shows a bad read or write instead of passing by luck. Builds everything in one go.
-VIDEO_ASAN_SRC := videotest.c shim/video_export.c shim/jpeg_write.c shim/avi_write.c shim/jpeg_read.c shim/avi_read.c shim/video_mod.c shim/host_mdec.c shim/host_xa.c shim/snd_vol.c shim/port_log.c shim/text_data.c shim/port_paths.c shim/text_codec.c shim/text_reflow.c shim/port_fs.c shim/mods.c
+VIDEO_ASAN_SRC := videotest.c shim/video_export.c shim/exp_job.c shim/exp_core.c shim/jpeg_write.c shim/avi_write.c shim/jpeg_read.c shim/avi_read.c shim/video_mod.c shim/host_mdec.c shim/host_xa.c shim/snd_vol.c shim/port_log.c shim/text_data.c shim/port_paths.c shim/text_codec.c shim/text_reflow.c shim/port_fs.c shim/mods.c
 
 .PHONY: videotest-asan
 videotest-asan:
@@ -1909,7 +1975,7 @@ $(BUILD)/midi_write.o: shim/midi_write.c shim/midi_write.h
 	@mkdir -p $(dir $@)
 	$(CC) $(AUDIO_CFLAGS) -c $< -o $@
 
-$(BUILD)/audio_export.o: shim/audio_export.c shim/audio_export.h shim/wav_write.h shim/midi_write.h shim/snd_internal.h shim/port_log.h shim/text_data.h
+$(BUILD)/audio_export.o: shim/audio_export.c shim/audio_export.h shim/wav_write.h shim/midi_write.h shim/snd_internal.h shim/port_log.h shim/text_data.h shim/exp_job.h
 	@mkdir -p $(dir $@)
 	$(CC) $(AUDIO_CFLAGS) -c $< -o $@
 
@@ -1917,8 +1983,22 @@ $(BUILD)/audiotest.o: audiotest.c shim/audio_export.h shim/wav_write.h shim/midi
 	@mkdir -p $(dir $@)
 	$(CC) $(AUDIO_CFLAGS) -c $< -o $@
 
-$(BUILD)/audiotest: $(BUILD)/audiotest.o $(BUILD)/audio_export.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/snd_spu.o $(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/mods.o psycross
+$(BUILD)/audiotest: $(BUILD)/audiotest.o $(BUILD)/audio_export.o $(BUILD)/exp_job.o $(BUILD)/wav_write.o $(BUILD)/wav_read.o $(BUILD)/vag_encode.o $(BUILD)/audio_mod.o $(BUILD)/midi_write.o $(BUILD)/snd_spu.o $(BUILD)/snd_sep.o $(BUILD)/snd_vol.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/mods.o psycross
 	$(CC) $(filter %.o,$^) $(PSYCROSS_BUILD)/libpsycross.a $(PSYCROSS_LIBS) -lpthread -o $@
+
+# PsyCross's SPU voices (external/psycross/src/audio/PsyX_SPUAL.cpp): the sample each key-on puts in OpenAL's buffer, on the null
+# device (the Android falling-tiles crash: odd-looking loops, see spualtest.c). It links the PsyCross library only.
+.PHONY: spualtest
+spualtest: $(BUILD)/spualtest
+	ALSOFT_DRIVERS=null SDL_AUDIODRIVER=dummy $(BUILD)/spualtest
+	ALSOFT_DRIVERS=null SDL_AUDIODRIVER=dummy $(BUILD)/spualtest --exit
+
+$(BUILD)/spualtest.o: spualtest.c
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -g -I$(PSYCROSS_ROOT)/include -I$(PSYCROSS_ROOT)/src/audio -idirafter $(PSYCROSS_ROOT)/include/psx -MMD -MP -c $< -o $@
+
+$(BUILD)/spualtest: $(BUILD)/spualtest.o psycross
+	$(CC) $< $(PSYCROSS_BUILD)/libpsycross.a $(PSYCROSS_LIBS) -lpthread -lstdc++ -o $@
 
 # Port-filesystem T1: the common file layer (shim/port_fs.c): the number -> disc path map, the raw overrides
 # of mods/<mod>/files/ and the precedence over the text and image layers. Pure stdlib plus mods.h.
@@ -1935,7 +2015,7 @@ $(BUILD)/fstest.o: fstest.c shim/mods.h shim/port_fs.h shim/text_data.h
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
-$(BUILD)/fstest: $(BUILD)/fstest.o $(BUILD)/port_fs.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+$(BUILD)/fstest: $(BUILD)/fstest.o $(BUILD)/port_fs.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
 	$(CC) $^ -o $@
 
 # Menu art as PNG (feature menu-art-png T2): the indexed PNG writer and the TIM extraction. Pure stdlib
@@ -1961,7 +2041,7 @@ $(BUILD)/sprite_data.o: shim/sprite_data.c shim/sprite_data.h shim/image_data.h
 # synthetic PACK files (RLEN and plain tiles) on a raw disc image in memory; SDL is linked for the worker thread only.
 STAGE_CFLAGS := $(VIDEO_CFLAGS)
 
-$(BUILD)/stage_export.o: shim/stage_export.c shim/stage_export.h shim/image_data.h shim/port_log.h shim/text_data.h
+$(BUILD)/stage_export.o: shim/stage_export.c shim/stage_export.h shim/image_data.h shim/port_log.h shim/text_data.h shim/exp_job.h
 	@mkdir -p $(dir $@)
 	$(CC) $(STAGE_CFLAGS) -c $< -o $@
 
@@ -1977,7 +2057,7 @@ $(BUILD)/stagetest.o: stagetest.c shim/stage_export.h shim/stage_mod.h shim/imag
 	@mkdir -p $(dir $@)
 	$(CC) $(STAGE_CFLAGS) -c $< -o $@
 
-$(BUILD)/stagetest: $(BUILD)/stagetest.o $(BUILD)/stage_export.o $(BUILD)/stage_mod.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+$(BUILD)/stagetest: $(BUILD)/stagetest.o $(BUILD)/stage_export.o $(BUILD)/exp_job.o $(BUILD)/stage_mod.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
 	$(CC) $^ -o $@ -lSDL2 -lpthread -lm
 
 # port-close S1/S2: the stage code vocabulary and the stage data model (shim/stage_codes.c, shim/stage_data.c); portable C, no game. stagedatatest
@@ -1998,7 +2078,7 @@ $(BUILD)/stagedatatest.o: stagedatatest.c shim/stage_data.h shim/stage_codes.h s
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/stagedatatest: $(BUILD)/stagedatatest.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/stagedatatest: $(BUILD)/stagedatatest.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # new-stages T2: the SnnnTMPK.BIN map layer codec (shim/map_layers.c); portable C99, no game header, no other port file. maplayertest checks
@@ -2049,7 +2129,7 @@ $(BUILD)/stagemodtest.o: stagemodtest.c shim/stage_mods.h shim/stage_data.h shim
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/stagemodtest: $(BUILD)/stagemodtest.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/stagemodtest: $(BUILD)/stagemodtest.o $(BUILD)/stage_mods.o $(BUILD)/mod_stages.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # new-stages T5b: the new field encounters of the mods (shim/field_ext.c; portable C, no game header: it reads tables/field_encounters.json of the active
@@ -2066,7 +2146,7 @@ $(BUILD)/fieldexttest.o: fieldexttest.c shim/field_ext.h shim/mods.h
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/fieldexttest: $(BUILD)/fieldexttest.o $(BUILD)/field_ext.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+$(BUILD)/fieldexttest: $(BUILD)/fieldexttest.o $(BUILD)/field_ext.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
 	$(CC) $^ -o $@
 
 # new-stages T4: the registry of the stages that mods add (shim/mod_stages.c; portable C, no game function: it needs port_fs.h for the virtual files, ext_state.h
@@ -2084,10 +2164,10 @@ $(BUILD)/modstagetest.o: modstagetest.c shim/mod_stages.h shim/stage_mods.h shim
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/modstagetest: $(BUILD)/modstagetest.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
+$(BUILD)/modstagetest: $(BUILD)/modstagetest.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o
 	$(CC) $^ -o $@
 
-# new-stages T5: the loader of the stages that mods add (shim/stage_new.c; portable C: stage.json and the PNGs of a mod's new-stages/<name>/ into a TMPK, a PACK and a
+# new-stages T5: the loader of the stages that mods add (shim/stage_new.c; portable C: stage.json and the PNGs of a mod's stages/<name>/ into a TMPK, a PACK and a
 # registered stage). newstagetest builds a stage from generated PNGs, round-trips its layers and pack, and checks the refusals and the checks of the map against the sections.
 $(BUILD)/stage_new.o: shim/stage_new.c shim/stage_new.h shim/stage_mods.h shim/mod_stages.h shim/map_layers.h shim/map_pack.h shim/png_read.h shim/mods.h shim/port_fs.h shim/port_log.h shim/stage_codes.h
 	@mkdir -p $(dir $@)
@@ -2101,7 +2181,7 @@ $(BUILD)/newstagetest.o: newstagetest.c shim/stage_new.h shim/mod_stages.h shim/
 	@mkdir -p $(dir $@)
 	$(CC) $(HOST_CFLAGS) $(GAME_DEFS) $(GAME_INC) -I. -c $< -o $@
 
-$(BUILD)/newstagetest: $(BUILD)/newstagetest.o $(BUILD)/stage_new.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/png_read.o $(BUILD)/png_write.o
+$(BUILD)/newstagetest: $(BUILD)/newstagetest.o $(BUILD)/stage_new.o $(BUILD)/mod_stages.o $(BUILD)/stage_mods.o $(BUILD)/stage_data.o $(BUILD)/stage_codes.o $(BUILD)/ext_state.o $(BUILD)/content.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o $(BUILD)/map_layers.o $(BUILD)/map_pack.o $(BUILD)/png_read.o $(BUILD)/png_write.o
 	$(CC) $^ -o $@
 
 # content-export E7: the disc files no other exporter covers, as raw copies (shim/raw_export.c). rawtest builds a synthetic raw disc image in
@@ -2118,8 +2198,191 @@ $(BUILD)/rawtest.o: rawtest.c shim/raw_export.h shim/text_data.h
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
-$(BUILD)/rawtest: $(BUILD)/rawtest.o $(BUILD)/raw_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+$(BUILD)/rawtest: $(BUILD)/rawtest.o $(BUILD)/raw_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
 	$(CC) $^ -o $@
+
+# readable-assets A3: the partner bundles (shim/partner_export.c). partnerexptest builds synthetic sheets, pages, training files and a raw disc image in
+# memory; no SDL, no retail bytes.
+$(BUILD)/partner_export.o: shim/partner_export.c shim/partner_export.h shim/image_data.h shim/sprite_data.h shim/exp_core.h shim/text_codec.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: partnerexptest
+partnerexptest: $(BUILD)/partnerexptest
+	$(BUILD)/partnerexptest
+
+$(BUILD)/partnerexptest.o: partnerexptest.c shim/partner_export.h shim/exp_core.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/partnerexptest: $(BUILD)/partnerexptest.o $(BUILD)/partner_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A5.2: the menus by piece (shim/menu_export.c). menuexptest builds a synthetic screen (pages and sheet) and a synthetic raw disc in memory;
+# no SDL, no retail bytes.
+$(BUILD)/menu_export.o: shim/menu_export.c shim/menu_export.h shim/image_data.h shim/sprite_data.h shim/exp_core.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: menuexptest
+menuexptest: $(BUILD)/menuexptest
+	$(BUILD)/menuexptest
+
+$(BUILD)/menuexptest.o: menuexptest.c shim/menu_export.h shim/exp_core.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/menuexptest: $(BUILD)/menuexptest.o $(BUILD)/menu_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A7.4: the original cards, one folder each (shim/card_export.c). cardexptest runs the exporter over a synthetic raw disc in memory; no SDL, no retail bytes.
+$(BUILD)/card_export.o: shim/card_export.c shim/card_export.h shim/menu_export.h shim/image_data.h shim/exp_core.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: cardexptest
+cardexptest: $(BUILD)/cardexptest
+	$(BUILD)/cardexptest
+
+$(BUILD)/cardexptest.o: cardexptest.c shim/card_export.h shim/menu_export.h shim/exp_core.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/cardexptest: $(BUILD)/cardexptest.o $(BUILD)/card_export.o $(BUILD)/menu_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A7.5: the original field sprites, one folder each (shim/sprite_export.c). sprexptest runs the exporter over a synthetic raw disc in memory; no SDL, no retail bytes.
+$(BUILD)/sprite_export.o: shim/sprite_export.c shim/sprite_export.h shim/sprite_data.h shim/menu_export.h shim/exp_core.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: sprexptest
+sprexptest: $(BUILD)/sprexptest
+	$(BUILD)/sprexptest
+
+$(BUILD)/sprexptest.o: sprexptest.c shim/sprite_export.h shim/sprite_data.h shim/menu_export.h shim/exp_core.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/sprexptest: $(BUILD)/sprexptest.o $(BUILD)/sprite_export.o $(BUILD)/menu_export.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A6.2: the map objects of the stages by piece (shim/stage_obj_export.c, on the menus' cutting). stageobjexptest builds a synthetic MASK and TMPK (the
+# sheet in entry 1) and a synthetic raw disc in memory; no SDL, no retail bytes.
+$(BUILD)/stage_obj_export.o: shim/stage_obj_export.c shim/stage_obj_export.h shim/menu_export.h shim/map_layers.h shim/image_data.h shim/exp_core.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: stageobjexptest
+stageobjexptest: $(BUILD)/stageobjexptest
+	$(BUILD)/stageobjexptest
+
+$(BUILD)/stageobjexptest.o: stageobjexptest.c shim/stage_obj_export.h shim/menu_export.h shim/exp_core.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/stageobjexptest: $(BUILD)/stageobjexptest.o $(BUILD)/stage_obj_export.o $(BUILD)/menu_export.o $(BUILD)/map_layers.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A5.3: the packer of the menus by piece (shim/menu_pack.c, the ImgMenuHooks of image_data.c). menupacktest cuts a synthetic screen into pieces with
+# the exporter, edits them in a scratch data folder and mods, and reads the pages back; no SDL, no disc, no retail bytes.
+$(BUILD)/menu_pack.o: shim/menu_pack.c shim/menu_pack.h shim/menu_export.h shim/image_data.h shim/partner_art.h shim/png_read.h shim/mods.h shim/exp_core.h shim/port_log.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: menupacktest
+menupacktest: $(BUILD)/menupacktest
+	$(BUILD)/menupacktest
+
+$(BUILD)/menupacktest.o: menupacktest.c shim/menu_pack.h shim/menu_export.h shim/image_data.h shim/exp_core.h shim/mods.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/menupacktest: $(BUILD)/menupacktest.o $(BUILD)/menu_pack.o $(BUILD)/menu_export.o $(BUILD)/partner_art.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A6.3: the packer of the stage objects by piece (shim/stage_obj_pack.c, on menu_pack.c and the stage hooks of image_data.c). stageobjpacktest builds
+# a synthetic MASK and TMPK (the sheet in entry 1), cuts its pieces with the exporter and edits them in a scratch folder; no SDL, no disc, no retail bytes.
+$(BUILD)/stage_obj_pack.o: shim/stage_obj_pack.c shim/stage_obj_pack.h shim/menu_pack.h shim/stage_obj_export.h shim/image_data.h shim/mods.h shim/port_log.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: stageobjpacktest
+stageobjpacktest: $(BUILD)/stageobjpacktest
+	$(BUILD)/stageobjpacktest
+
+$(BUILD)/stageobjpacktest.o: stageobjpacktest.c shim/stage_obj_pack.h shim/menu_pack.h shim/stage_obj_export.h shim/image_data.h shim/exp_core.h shim/mods.h shim/png_read.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/stageobjpacktest: $(BUILD)/stageobjpacktest.o $(BUILD)/stage_obj_pack.o $(BUILD)/menu_pack.o $(BUILD)/stage_obj_export.o $(BUILD)/menu_export.o $(BUILD)/map_layers.o $(BUILD)/partner_art.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A4a: importing the partner bundle (shim/partner_bundle.c, the colour reducer of partner_art.c, partner_ext.c's bundle lookup).
+# partnerbundletest builds synthetic sheets and page images and a scratch data folder with mods; no SDL, no disc, no retail bytes.
+$(BUILD)/partner_bundle.o: shim/partner_bundle.c shim/partner_bundle.h shim/partner_export.h shim/partner_art.h shim/image_data.h shim/mods.h shim/exp_core.h shim/port_fs.h shim/port_log.h shim/sprite_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: partnerbundletest
+partnerbundletest: $(BUILD)/partnerbundletest
+	$(BUILD)/partnerbundletest
+
+$(BUILD)/partnerbundletest.o: partnerbundletest.c shim/partner_bundle.h shim/partner_export.h shim/partner_art.h shim/image_data.h shim/mods.h shim/png_read.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/partnerbundletest: $(BUILD)/partnerbundletest.o $(BUILD)/partner_bundle.o $(BUILD)/partner_export.o $(BUILD)/partner_art.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# readable-assets A4b: importing a partner's gym training scene (shim/partner_train.c, include/pc/train_set.h). partnertraintest exports a synthetic training
+# file with the exporter of A3 and compares the rebuilt set with it frame by frame; no SDL, no disc, no retail bytes.
+$(BUILD)/partner_train.o: shim/partner_train.c shim/partner_train.h shim/partner_bundle.h shim/partner_export.h shim/png_read.h shim/content.h shim/mods.h shim/exp_core.h shim/port_fs.h shim/port_log.h $(ROOT)/include/pc/train_set.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -I$(ROOT)/include -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: partnertraintest
+partnertraintest: $(BUILD)/partnertraintest
+	$(BUILD)/partnertraintest
+
+$(BUILD)/partnertraintest.o: partnertraintest.c shim/partner_train.h shim/partner_bundle.h shim/partner_export.h shim/image_data.h shim/mods.h shim/png_read.h $(ROOT)/include/pc/train_set.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -I$(ROOT)/include -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/partnertraintest: $(BUILD)/partnertraintest.o $(BUILD)/partner_train.o $(BUILD)/partner_bundle.o $(BUILD)/partner_export.o $(BUILD)/partner_art.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+	$(CC) $^ -o $@
+
+# B1: the write policy and the manifest every exporter shares (shim/exp_core.c). exptest runs it in a scratch folder; no SDL, no disc.
+$(BUILD)/exp_core.o: shim/exp_core.c shim/exp_core.h shim/text_data.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+.PHONY: exptest
+exptest: $(BUILD)/exptest
+	$(BUILD)/exptest
+
+$(BUILD)/exptest.o: exptest.c shim/exp_core.h shim/text_data.h
+	@mkdir -p $(dir $@)
+	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -Ishim -MMD -MP -g $(WIN_DEFS) -c $< -o $@
+
+$(BUILD)/exptest: $(BUILD)/exptest.o $(BUILD)/exp_core.o $(BUILD)/text_data.o $(BUILD)/port_log.o $(BUILD)/port_paths.o $(BUILD)/mods.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o $(BUILD)/port_fs.o
+	$(CC) $^ -o $@
+
+# B2: the job engine every on-demand exporter shares (shim/exp_job.c). jobtest runs it with fake items; SDL only for the worker thread.
+$(BUILD)/exp_job.o: shim/exp_job.c shim/exp_job.h shim/port_log.h
+	@mkdir -p $(dir $@)
+	$(CC) $(VIDEO_CFLAGS) -c $< -o $@
+
+.PHONY: jobtest
+jobtest: $(BUILD)/jobtest
+	$(BUILD)/jobtest
+
+$(BUILD)/jobtest.o: jobtest.c shim/exp_job.h
+	@mkdir -p $(dir $@)
+	$(CC) $(VIDEO_CFLAGS) -c $< -o $@
+
+$(BUILD)/jobtest: $(BUILD)/jobtest.o $(BUILD)/exp_job.o $(BUILD)/port_log.o $(BUILD)/port_paths.o
+	$(CC) $^ -o $@ -lSDL2 -lpthread -lm
 
 .PHONY: imagetest
 imagetest: $(BUILD)/imagetest
@@ -2129,7 +2392,7 @@ $(BUILD)/imagetest.o: imagetest.c shim/image_data.h shim/sprite_data.h shim/png_
 	@mkdir -p $(dir $@)
 	$(CC) -std=gnu11 -O2 -Wall -Wextra -I. -MMD -MP -g $(WIN_DEFS) -c $< -o $@
 
-$(BUILD)/imagetest: $(BUILD)/imagetest.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
+$(BUILD)/imagetest: $(BUILD)/imagetest.o $(BUILD)/image_data.o $(BUILD)/sprite_data.o $(BUILD)/content.o $(BUILD)/png_write.o $(BUILD)/png_read.o $(BUILD)/mods.o $(BUILD)/port_log.o $(BUILD)/port_fs.o $(BUILD)/text_data.o $(BUILD)/exp_core.o $(BUILD)/port_paths.o $(BUILD)/text_codec.o $(BUILD)/text_reflow.o
 	$(CC) $^ -o $@
 
 # T37/T39: the MDEC decoder (shim/host_mdec.c). mdectest and sttest drive it
@@ -2400,3 +2663,23 @@ $(BUILD)/file_cache_pc_test.o: shim/file_cache_pc.c shim/stage_timing.h shim/por
 
 $(BUILD)/filecachetest: $(FILE_OBJS) $(SHIM_CORE_OBJS) $(filter-out $(BUILD)/file_cache_pc.o,$(SHIM_CD_OBJS)) $(BUILD)/file_cache_pc_test.o
 	$(CC) $^ $(PSYCROSS_LIBS) -o $@
+
+# Host test of a partner's own 2D art (Betamon pack R4): PNG cells -> texels and palette, the cell animation, the one-frame sheet.
+.PHONY: partnerarttest
+partnerarttest: $(BUILD)/partnerarttest
+	$(BUILD)/partnerarttest
+
+$(BUILD)/partner_art.o: shim/partner_art.c shim/partner_art.h shim/png_read.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) -c $< -o $@
+
+$(BUILD)/partnerarttest.o: partnerarttest.c shim/partner_art.h shim/png_read.h
+	@mkdir -p $(dir $@)
+	$(CC) $(HOST_CFLAGS) -I. -c $< -o $@
+
+$(BUILD)/partnerarttest: $(BUILD)/partnerarttest.o $(BUILD)/partner_art.o $(BUILD)/png_read.o
+	$(CC) $^ -o $@
+
+$(BUILD)/partner_art_vram.o: shim/partner_art_vram.c shim/partner_art.h shim/sprite_data.h shim/port_log.h shim/text_data.h $(ROOT)/include/engine/partner_access.h $(CURDIR)/psx_compat.h
+	@mkdir -p $(dir $@)
+	$(CC) $(DRAW_CFLAGS) $(GAME_DEFS) $(DRAW_INC) -Ishim -c $< -o $@

@@ -6,10 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 
-#include <SDL2/SDL.h>
-
+#include "exp_core.h"
+#include "exp_job.h"
 #include "image_data.h"
 #include "port_log.h"
 #include "text_data.h"
@@ -284,138 +285,50 @@ static void jsonTile(Sb *b, int width, const TileInfo *ti, int first) {
 
 static char sDataDir[1024];
 static StageExportIo sIo;
-static char (*sQueue)[16];
-static long *sQLba, *sQSize;
-static int sCount, sNext, sDone, sFailed, sBuilt;
-static int sForce;
+static struct {
+    char name[16];
+    long lba, size;
+} sPacks[MAX_PACKS]; /* the packs a request found; the queue holds indexes into it */
 static StageExportStats sTotals;
-static TdManifest sMan;
-static int sManLoaded;
-static char sStatus[96], sStatusOut[96];
-static SDL_mutex *sMu;
-static SDL_Thread *sThread;
-static volatile int sStop;
-static int sWorkerDone;
+static ExpManifest sMan;
+static ExpJob sJob;
 
-static void lockMu(void) {
-    if (sMu != NULL) SDL_LockMutex(sMu);
+/* the stage's folder name ("s233") and the version key of its tiles in the manifest header ("stage-tiles/s233") from a pack key ("s233pack") */
+static void stageName(const char *key, char *out, size_t cap) { snprintf(out, cap, "%.4s", key); }
+static void unitKey(const char *key, char *out, size_t cap) { snprintf(out, cap, "stage-tiles/%.4s", key); }
+
+static void manifestFree(void) { expManFree(&sMan); }
+
+/* the topic's manifest, <data>/stages/manifest.json, shared with the stage data and the objects: read once per job (the job's thread owns it) and written when
+   the job flushes */
+static void manifestLoad(void) {
+    char mp[1300];
+
+    if (sMan.loaded) return;
+    snprintf(mp, sizeof mp, "%s/stages/manifest.json", sDataDir);
+    expManOpen(&sMan, "stages", mp, "stages");
 }
 
-static void unlockMu(void) {
-    if (sMu != NULL) SDL_UnlockMutex(sMu);
-}
-
-static void packDir(const char *key, char *out, size_t cap) { snprintf(out, cap, "%s/z_stage/%s", sDataDir, key); }
-
-static void manifestFree(void) {
-    if (sManLoaded) tdManifestFree(&sMan);
-    sManLoaded = 0;
-}
-
-/* the manifest of one pack: <data>/z_stage/<key>/manifest.json (small, so the game reads it only for the stage it enters) */
-static void manifestLoad(const char *key) {
-    char mp[1300], dir[1200];
-    uint8_t *mt;
-    size_t ml;
-
-    manifestFree();
-    memset(&sMan, 0, sizeof sMan);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "stage-v1");
-    packDir(key, dir, sizeof dir);
-    snprintf(mp, sizeof mp, "%s/manifest.json", dir);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
-    sManLoaded = 1;
-}
-
-static int manifestSave(const char *key) {
-    char mp[1300], dir[1200];
-    char *text;
-    int rc;
-
-    packDir(key, dir, sizeof dir);
-    snprintf(mp, sizeof mp, "%s/manifest.json", dir);
-    text = tdManifestFormat(&sMan);
-    rc = (text == NULL || tdMakeDirs(dir) || tdWriteFileAtomic(mp, text, strlen(text))) ? -1 : 0;
-    if (rc) plogLine("stages", "cannot write %s\n", mp);
-    free(text);
-    return rc;
-}
-
-static int fileExists(const char *p) {
-    FILE *f = fopen(p, "rb");
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
+static void flushManifest(void *ud) {
+    (void)ud;
+    expManSave(&sMan, 1);
 }
 
 /* STAGE_FILE_REV counts changes of the PNG bytes the shared encoder writes (png_write.c): rev 2 is real deflate, so a stage written
    with stored blocks (rev 1) is rebuilt once and shrinks. It lives here because stage_export.h keeps the layout version. */
 #define STAGE_FILE_REV 2
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)STAGE_EXPORT_VERSION | ((unsigned)STAGE_FILE_REV << 8)); }
+#define STAGE_VERSION ((unsigned)STAGE_EXPORT_VERSION | ((unsigned)STAGE_FILE_REV << 8))
 
 /* written by this version and the descriptor is there (an edited file still counts): nothing to build */
 static int upToDate(const char *key) {
-    char path[1400], dir[1200], hex[17];
-    const char *have;
+    char path[1400], unit[40], stg[8];
 
-    manifestLoad(key);
-    have = tdManifestFind(&sMan, "exporter");
-    versionHex(hex);
-    if (have == NULL || strcmp(have, hex)) return 0;
-    packDir(key, dir, sizeof dir);
-    snprintf(path, sizeof path, "%s/%s.json", dir, key);
-    return fileExists(path);
-}
-
-/* One generated file under the manifest rule of ADR-005: an unedited copy is replaced, an edited one stays and the new version goes
-   beside it as <file>.new. 0 when handled, -1 on a write failure. */
-static int placeFile(const char *key, const char *rel, const uint8_t *bytes, size_t len, StageExportStats *st) {
-    char dir[1200], path[1400], np[1450], hex[17], curHex[17] = "";
-    uint8_t *cur = NULL;
-    size_t curLen = 0;
-    int exists = 0;
-    const char *man = tdManifestFind(&sMan, rel);
-
-    packDir(key, dir, sizeof dir);
-    snprintf(path, sizeof path, "%s/%s", dir, rel);
-    tdHashHex(tdHash(bytes, len), hex);
-    if (tdReadFile(path, &cur, &curLen) == 0) {
-        exists = 1;
-        tdHashHex(tdHash(cur, curLen), curHex);
-        free(cur);
-    }
-    if (exists && !strcmp(curHex, hex)) {
-        st->kept++;
-        tdManifestSet(&sMan, rel, hex);
-        return 0;
-    }
-    if (exists && tdFileState(1, man, curHex) == TD_FILE_EDITED) {
-        snprintf(np, sizeof np, "%s.new", path);
-        if (tdWriteFileAtomic(np, bytes, len)) { /* the folder exists: the edited file is in it */
-            plogLine("stages", "cannot write %s\n", np);
-            return -1;
-        }
-        st->newFiles++;
-        plogLine("stages", "%s/%s was edited, kept; the new version is %s.new\n", key, rel, rel);
-        return 0;
-    }
-    if (tdMakeDirs(dir) || tdWriteFileAtomic(path, bytes, len)) {
-        plogLine("stages", "cannot write %s\n", path);
-        return -1;
-    }
-    tdManifestSet(&sMan, rel, hex);
-    st->written++;
-    st->bytes += (long)len;
-    return 0;
+    manifestLoad();
+    unitKey(key, unit, sizeof unit);
+    if (!expManIsCurrent(&sMan, unit, STAGE_VERSION)) return 0;
+    stageName(key, stg, sizeof stg);
+    snprintf(path, sizeof path, "%s/stages/%s/tiles/tiles.json", sDataDir, stg);
+    return expFileExists(path);
 }
 
 /* Reads `sectors` sectors from `lba` through the disc reader into out (sectors * 2048 bytes); 1 when read */
@@ -430,24 +343,33 @@ static int readSectors(const StageExportIo *io, long lba, int sectors, uint8_t *
     return 1;
 }
 
-/* One PACK to files. 0: built, -1: something failed (the stage keeps no version mark, so the next request tries again) */
-static int exportPack(int index, int force, StageExportStats *total) {
-    const char *name = sQueue[index];
-    long lba = sQLba[index], size = sQSize[index];
-    char key[24], err[200], dir[1200], rel[48], hex[17];
+/* One PACK to files, an EXP_JOB_ value. A pack with failures keeps no version mark, so the next request tries again. */
+static int exportPack(void *ud, int pos, int index, int force) {
+    const char *name = sPacks[index].name;
+    long lba = sPacks[index].lba, size = sPacks[index].size;
+    StageExportStats *total = &sTotals;
+    char key[24], err[200], dir[1200], rel[64], stg[8], unit[40];
     uint8_t head[USER_BYTES], *buf = NULL;
     PackHeader pk;
     TileInfo *tiles = NULL;
     int nTiles = 0, i, sectorsPerTile, failed = 0;
     StageExportStats st;
+    ExpStats es;
+    ExpSink sink;
     Sb js = {0};
     clock_t t0 = clock();
 
+    (void)ud;
+    (void)pos;
     memset(&st, 0, sizeof st);
+    memset(&es, 0, sizeof es);
     if (!stagePackKey(name, key, sizeof key)) return -1;
     if (!force && upToDate(key)) return 0;
-    manifestLoad(key);
-    packDir(key, dir, sizeof dir);
+    manifestLoad();
+    stageName(key, stg, sizeof stg);
+    unitKey(key, unit, sizeof unit);
+    snprintf(dir, sizeof dir, "%s/stages", sDataDir);
+    expSinkInPlace(&sink, "stages", dir, &sMan, &es);
     if (size < USER_BYTES || !readSectors(&sIo, lba, 1, head) || stagePackParse(head, sizeof head, &pk, err, sizeof err)) {
         plogLine("stages", "%s not exported: %s\n", name, size < USER_BYTES ? "empty file" : "the header cannot be read");
         if (size >= USER_BYTES && readSectors(&sIo, lba, 1, head)) plogLine("stages", "%s: %s\n", name, err);
@@ -462,12 +384,13 @@ static int exportPack(int index, int force, StageExportStats *total) {
         plogLine("stages", "%s not exported: out of memory\n", name);
         return -1;
     }
-    for (i = 0; i < pk.width * pk.height && !sStop; i++) {
+    for (i = 0; i < pk.width * pk.height && !*expJobStopping(&sJob); i++) {
         TileInfo *ti;
         ImgPic pic;
         uint8_t *png;
         size_t pngLen;
         PackTile t;
+        char tname[24];
         long sector = (long)i * sectorsPerTile + 1;
         long avail = (size + USER_BYTES - 1) / USER_BYTES - sector; /* the last tile may be cut short by the end of the file */
         int n = avail < sectorsPerTile ? (int)avail : sectorsPerTile;
@@ -498,8 +421,9 @@ static int exportPack(int index, int force, StageExportStats *total) {
             failed++;
             continue;
         }
-        stageTileName(pk.width, i, rel, sizeof rel);
-        if (placeFile(key, rel, png, pngLen, &st)) failed++;
+        stageTileName(pk.width, i, tname, sizeof tname);
+        snprintf(rel, sizeof rel, "%s/tiles/%s", stg, tname);
+        if (expPut(&sink, rel, png, pngLen)) failed++;
         free(png);
         ti = &tiles[nTiles++];
         ti->frame = i;
@@ -512,106 +436,54 @@ static int exportPack(int index, int force, StageExportStats *total) {
         imgPicFree(&pic);
         stageTileFree(&t);
     }
-    if (sStop) {
+    if (*expJobStopping(&sJob)) {
         free(buf);
         free(tiles);
-        manifestFree();
         return -1;
     }
     /* the descriptor */
     js.cap = 4096;
     js.p = (char *)malloc(js.cap);
-    sbPrintf(&js, "{\n  \"format\": \"stage-pack-v1\",\n  \"pack\": \"%s\",\n  \"width\": %d,\n  \"height\": %d,\n  \"tileBytes\": %d,\n"
+    sbPrintf(&js, "{\n  \"format\": \"stages-tiles-v1\",\n  \"pack\": \"%s\",\n  \"width\": %d,\n  \"height\": %d,\n  \"tileBytes\": %d,\n"
                   "  \"tileCount\": %d,\n  \"tiles\": [\n",
              name, pk.width, pk.height, pk.tileBytes, nTiles);
     for (i = 0; i < nTiles; i++) jsonTile(&js, pk.width, &tiles[i], i == 0);
     sbPrintf(&js, "\n  ]\n}\n");
-    snprintf(rel, sizeof rel, "%s.json", key);
-    if (js.p == NULL || placeFile(key, rel, (const uint8_t *)js.p, js.n, &st)) failed++;
+    snprintf(rel, sizeof rel, "%s/tiles/tiles.json", stg);
+    if (js.p == NULL || expPut(&sink, rel, js.p, js.n)) failed++;
     free(js.p);
     free(buf);
     free(tiles);
+    st.written = es.written;
+    st.kept = es.kept;
+    st.newFiles = es.newFiles;
+    st.bytes = es.bytes;
     st.failed = failed;
-    if (!failed) {
-        versionHex(hex);
-        tdManifestSet(&sMan, "exporter", hex);
-    }
-    if (manifestSave(key)) st.failed++;
+    if (!failed) expManMark(&sMan, unit, STAGE_VERSION);
     plogLine("stages", "%s: %d tiles, %d files written, %d kept, %d new beside edited, %d failed, %ld bytes, %.1f s\n", name, st.tiles, st.written,
              st.kept, st.newFiles, st.failed, st.bytes, (double)(clock() - t0) / CLOCKS_PER_SEC);
-    lockMu();
-    sBuilt++;
+    expJobLock(&sJob);
     total->tiles += st.tiles;
     total->written += st.written;
     total->kept += st.kept;
     total->newFiles += st.newFiles;
     total->failed += st.failed;
     total->bytes += st.bytes;
-    unlockMu();
-    return st.failed ? -1 : 0;
+    expJobUnlock(&sJob);
+    return st.failed ? EXP_JOB_BUILT_FAILED : EXP_JOB_BUILT; /* the stage was built, some files were not */
 }
 
-static void finishStatus(void) {
-    if (sFailed) snprintf(sStatus, sizeof sStatus, "Done, %d failed", sFailed);
-    else snprintf(sStatus, sizeof sStatus, "Done (%d)", sDone);
-    plogLine("stages", "Done: %d stages in %s/z_stage, %d failed, %d tiles, %d files written, %ld bytes\n", sDone, sDataDir, sFailed, sTotals.tiles,
+static void logDone(void *ud, int done, int failed) {
+    (void)ud;
+    plogLine("stages", "Done: %d stages in %s/stages, %d failed, %d tiles, %d files written, %ld bytes\n", done, sDataDir, failed, sTotals.tiles,
              sTotals.written, sTotals.bytes);
 }
 
-static int workerMain(void *arg) {
-    int j;
-    (void)arg;
-    for (j = 0; j < sCount && !sStop; j++) {
-        int r = exportPack(j, sForce, &sTotals);
-        SDL_LockMutex(sMu);
-        if (r == 0) sDone++;
-        else if (!sStop) sFailed++;
-        sNext = j + 1;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-        SDL_UnlockMutex(sMu);
-    }
-    SDL_LockMutex(sMu);
-    if (j >= sCount) finishStatus();
-    sWorkerDone = 1;
-    SDL_UnlockMutex(sMu);
-    return 0;
-}
-
-static int workerBusy(void) {
-    int busy;
-    if (sThread == NULL) return 0;
-    lockMu();
-    busy = !sWorkerDone;
-    unlockMu();
-    return busy;
-}
-
-/* the queue's memory; the counts stay for the status and the totals */
-static void freeQueue(void) {
-    free(sQueue);
-    free(sQLba);
-    free(sQSize);
-    sQueue = NULL;
-    sQLba = sQSize = NULL;
-}
-
-static void dropJob(void) {
-    freeQueue();
-    sCount = sNext = 0;
-}
-
-static void reap(void) {
-    if (sThread == NULL) return;
-    SDL_WaitThread(sThread, NULL);
-    sThread = NULL;
-    freeQueue();
-}
+static const ExpJobKind kKind = {"stages", "dw3-stage-export", 1, 20, NULL, exportPack, NULL, flushManifest, logDone, NULL, NULL, NULL, NULL};
 
 void stageExportSetup(const char *dataDir, const StageExportIo *io) {
-    stageExportShutdown();
-    dropJob();
+    expJobSetup(&sJob, &kKind);
     manifestFree();
-    sStatus[0] = '\0';
     snprintf(sDataDir, sizeof sDataDir, "%s", dataDir != NULL ? dataDir : "");
     if (io != NULL) sIo = *io;
     else memset(&sIo, 0, sizeof sIo);
@@ -620,19 +492,22 @@ void stageExportSetup(const char *dataDir, const StageExportIo *io) {
 int stageExportRequest(const char *spec) { return stageExportRequestEx(spec, 0); }
 
 int stageExportRequestEx(const char *spec, int force) {
-    char (*q)[16];
-    long *ql, *qs;
+    int *q;
     char want[MAX_PACKS][24];
     int nWant = 0, all = 0, n = 0, i;
     const char *p;
 
-    if (workerBusy()) return -1; /* one job at a time: a press while one runs changes nothing */
-    reap();
-    dropJob();
-    sDone = sFailed = sBuilt = 0;
+    if (expJobBegin(&sJob, force) < 0) return -1; /* one job at a time: a press while one runs changes nothing */
     memset(&sTotals, 0, sizeof sTotals);
-    sForce = force;
-    sStatus[0] = '\0';
+    manifestFree(); /* a job reads the manifest again: another exporter wrote to it since */
+    if (sDataDir[0]) {
+        struct stat sb;
+        char old[1200];
+
+        snprintf(old, sizeof old, "%s/z_stage", sDataDir);
+        if (stat(old, &sb) == 0 && S_ISDIR(sb.st_mode))
+            plogLine("stages", "%s is the old layout of the tiles and is not read any more (they are in stages/s<nnn>/tiles); you can delete it\n", old);
+    }
     if (!sDataDir[0] || sIo.pack == NULL || sIo.read == NULL || spec == NULL) return -1;
     p = spec;
     while (*p == ' ' || *p == '\t') p++;
@@ -663,15 +538,8 @@ int stageExportRequestEx(const char *spec, int force) {
         }
         if (nWant == 0) return -1;
     }
-    q = (char(*)[16])malloc(sizeof *q * MAX_PACKS);
-    ql = (long *)malloc(sizeof(long) * MAX_PACKS);
-    qs = (long *)malloc(sizeof(long) * MAX_PACKS);
-    if (q == NULL || ql == NULL || qs == NULL) {
-        free(q);
-        free(ql);
-        free(qs);
-        return -1;
-    }
+    q = (int *)malloc(sizeof(int) * MAX_PACKS);
+    if (q == NULL) return -1;
     for (i = 0; n < MAX_PACKS; i++) {
         char name[16], key[24];
         long lba, size;
@@ -685,9 +553,10 @@ int stageExportRequestEx(const char *spec, int force) {
             if (k == nWant) continue;
             want[k][0] = '\0'; /* found */
         }
-        snprintf(q[n], sizeof q[n], "%s", name);
-        ql[n] = lba;
-        qs[n] = size;
+        snprintf(sPacks[n].name, sizeof sPacks[n].name, "%s", name);
+        sPacks[n].lba = lba;
+        sPacks[n].size = size;
+        q[n] = n;
         n++;
     }
     for (i = 0; !all && i < nWant; i++) {
@@ -695,95 +564,34 @@ int stageExportRequestEx(const char *spec, int force) {
     }
     if (n == 0) {
         free(q);
-        free(ql);
-        free(qs);
         return -1;
     }
-    sQueue = q;
-    sQLba = ql;
-    sQSize = qs;
-    sCount = n;
-    sNext = 0;
-    snprintf(sStatus, sizeof sStatus, "Exporting 1/%d", n);
+    return expJobQueue(&sJob, q, n);
+}
+
+int stageExportRun(const char *spec) {
+    int n = stageExportRequest(spec);
+
+    if (n > 0) expJobRun(&sJob);
     return n;
 }
 
 int stageExportStart(const char *spec, int force) {
     int n = stageExportRequestEx(spec, force);
 
-    if (n <= 0) return -1;
-    if (sMu == NULL) sMu = SDL_CreateMutex();
-    if (sMu != NULL) {
-        sStop = 0;
-        sWorkerDone = 0;
-        sThread = SDL_CreateThread(workerMain, "dw3-stage-export", NULL);
-    }
-    if (sThread == NULL) {
-        plogLine("stages", "the export thread cannot start: %s\n", SDL_GetError());
-        dropJob();
-        return -1;
-    }
+    if (n <= 0 || expJobStart(&sJob) < 0) return -1;
     return n;
 }
 
-void stageExportShutdown(void) {
-    if (sThread == NULL) return;
-    sStop = 1;
-    reap();
-    sStop = 0;
-}
-
-int stageExportActive(void) {
-    if (sThread != NULL) return workerBusy();
-    return sQueue != NULL && sNext < sCount;
-}
-
-void stageExportCounts(int *done, int *failed, int *total) {
-    lockMu();
-    if (done) *done = sDone;
-    if (failed) *failed = sFailed;
-    if (total) *total = sCount;
-    unlockMu();
-}
-
-int stageExportBuilt(void) {
-    int n;
-    lockMu();
-    n = sBuilt;
-    unlockMu();
-    return n;
-}
+void stageExportShutdown(void) { expJobShutdown(&sJob); }
+int stageExportActive(void) { return expJobActive(&sJob); }
+void stageExportCounts(int *done, int *failed, int *total) { expJobCounts(&sJob, done, failed, total); }
+int stageExportBuilt(void) { return expJobBuilt(&sJob); }
+const char *stageExportStatus(void) { return expJobStatus(&sJob); }
+int stageExportPump(unsigned budgetMs) { return expJobPump(&sJob, budgetMs); }
 
 void stageExportTotals(StageExportStats *out) {
-    lockMu();
+    expJobLock(&sJob);
     *out = sTotals;
-    unlockMu();
-}
-
-const char *stageExportStatus(void) {
-    lockMu();
-    snprintf(sStatusOut, sizeof sStatusOut, "%s", sStatus);
-    unlockMu();
-    return sStatusOut;
-}
-
-int stageExportPump(unsigned budgetMs) {
-    clock_t start = clock();
-
-    if (sThread != NULL) {
-        if (workerBusy()) return 1;
-        reap();
-        return 0;
-    }
-    if (!stageExportActive()) return 0;
-    do {
-        if (exportPack(sNext, sForce, &sTotals) == 0) sDone++;
-        else sFailed++;
-        sNext++;
-        if (sNext < sCount) snprintf(sStatus, sizeof sStatus, "Exporting %d/%d", sNext + 1, sCount);
-    } while (sNext < sCount && (unsigned)((clock() - start) * 1000 / CLOCKS_PER_SEC) < budgetMs);
-    if (sNext < sCount) return 1;
-    finishStatus();
-    freeQueue();
-    return 0;
+    expJobUnlock(&sJob);
 }

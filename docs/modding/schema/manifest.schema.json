@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port <topic>/manifest.json (asset-manifest-v1)",
+  "description": "The manifest of one topic folder of the exported data (data/<topic>/manifest.json, one per topic; mods do not write it). It records which files the exporter wrote and their hash, so a file the user edited is never overwritten. Derived from pc/shim/text_data.c (tdManifestParse, tdManifestFormat: the parser refuses an unknown member, a text after the object, a manifest without format or files, and a version that is not a plain decimal number; a refused manifest counts as absent and the topic is exported again) and the exporters' use of it (pc/shim/exp_core.c). Informational for a modder: do not edit it.",
+  "type": "object",
+  "required": [
+    "format",
+    "files"
+  ],
+  "properties": {
+    "format": {
+      "const": "asset-manifest-v1"
+    },
+    "topic": {
+      "type": "string",
+      "maxLength": 31,
+      "description": "The topic folder: partners, digimon, sprites, stages, menus, cards, audio, video, images, text, raw."
+    },
+    "exporter": {
+      "type": "object",
+      "description": "Exporter unit -> version (a decimal number without leading zeros). The version goes up when the bytes an exporter writes change; a different number makes the topic export again. The unit is an exporter (partners, menus, stage-data, stage-objects, images, text) or a piece of one versioned apart: a battle bank by name, a fighter by folder (d003), a scene's tiles (stage-tiles/s202), a raw/ kind. A topic two exporters share (stages, menus) has one entry for each.",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "disc": {
+      "type": "string",
+      "maxLength": 19,
+      "description": "Hash (16 lowercase hex digits) of the disc's volume descriptor and path table; the same in every topic. With another disc the files still belong to the manifest but the versions do not count and the topic is exported again. May be empty."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Optional: other hashes the files depend on. Only text/ writes it: overlay (the es-419 overlay's hash, or none) and disc-text.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "names": {
+      "type": "object",
+      "description": "Folder -> identity, such as \"c001\": \"dw3:card/1\" (cards/). {} until an exporter has its map.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "files": {
+      "type": "object",
+      "description": "Path relative to the topic folder -> hash of the file as the exporter wrote it (FNV-1a 64 bit over the bytes, 16 lowercase hex digits; tdHash in pc/shim/text_data.c). A file whose hash differs is the user's and is kept: the new bytes go to <file>.new.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{16}$"
+      }
+    }
+  },
+  "additionalProperties": false
+}

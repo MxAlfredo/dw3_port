@@ -455,18 +455,17 @@ static void rawScan(RawSlot *s, int file)
     s->checked = nowSeconds();
     s->init = 1;
     if (!name) return;
-    for (i = modsCount() - 1; i >= 0; i--) {
+    for (i = 0; i < modsCount(); i++) { /* the mods only; the disc is the base (mods.h asset layers) */
+        AssetLayer layer;
         struct stat st;
-        char rel[400];
-        snprintf(rel, sizeof rel, "files/%s", name);
         /* the disc's names are upper case; a mod may spell them any way (ADR-010 section 3) */
-        if (!portPathsResolveCI(modsDirOf(i), rel, path, sizeof path)) continue;
-        if (stat(path, &st) != 0 || !S_ISREG(st.st_mode)) continue;
+        if (!assetLayerAt(i, &layer) || !assetLayerFile(&layer, "files", name, path, sizeof path)) continue;
+        if (stat(path, &st) != 0) continue;
         if (st.st_size <= 0) {
             plogLine("files", "%s rejected: empty file\n", path);
             continue;
         }
-        if (s->bytes && s->mod == i && s->mtime == (long)st.st_mtime && s->size == (long)st.st_size) return; /* unchanged */
+        if (s->bytes && s->mod == layer.mod && s->mtime == (long)st.st_mtime && s->size == (long)st.st_size) return; /* unchanged */
         {
             uint8_t *b = NULL;
             if (readWhole(path, (long)st.st_size, &b)) {
@@ -476,10 +475,10 @@ static void rawScan(RawSlot *s, int file)
             free(s->bytes);
             s->bytes = b;
             s->len = (size_t)st.st_size;
-            s->mod = i;
+            s->mod = layer.mod;
             s->mtime = (long)st.st_mtime;
             s->size = (long)st.st_size;
-            winner = i;
+            winner = layer.mod;
             mt = s->mtime;
             sz = s->size;
             break;

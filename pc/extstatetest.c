@@ -50,6 +50,13 @@ static int failures;
         } \
     } while (0)
 
+/* a blank game: GAME zeroed and the port's partner array synced from it (what newGame does) */
+static void clearGame(void)
+{
+    memset(&GAME, 0, sizeof GAME);
+    pcPartnersImport();
+}
+
 static int gameIsClean(void)
 {
     static const GameState zero;
@@ -145,7 +152,7 @@ static void testItemRegistry(void)
     CHECK(itemExtInfo(405) == ITEM_FUNCS.get(405));
 
     /* the lists the menus build: the bag's usable items include the ones the player has */
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
     CHECK(ITEM_FUNCS.list(1, out) == 0);
     PC_ITEM_COUNT(405) = 2;
@@ -541,7 +548,7 @@ static int loadTechMods(void)
     return techExtLoad();
 }
 
-#define SKILL_OFF(p, e, k) (offsetof(GameState, partners) + (size_t)(p) * sizeof(Partner) + offsetof(Partner, info) + \
+#define SKILL_OFF(p, e, k) (offsetof(GameState, partnersCard) + (size_t)(p) * sizeof(Partner) + offsetof(Partner, info) + \
                             offsetof(PartnerStats, entries) + (size_t)(e) * sizeof(PartnerEntry) + offsetof(PartnerEntry, skills) + (size_t)(k) * 2)
 
 static void setSkill(unsigned char *blk, int p, int e, int k, unsigned raw)
@@ -738,7 +745,7 @@ static int formBase(int id) {
     return -1;
 }
 
-#define ENTRY_ID(p, e) GAME.partners[p].info.entries[e].id
+#define ENTRY_ID(p, e) PC_PARTNER(p).info.entries[e].id
 
 static void testNewForms(void) {
     static unsigned char blk[GAME_SAVE_SIZE], copy[GAME_SAVE_SIZE], chunk[256];
@@ -774,14 +781,15 @@ static void testNewForms(void) {
     pcExtStateSetDigimonHooks(formName, formId, formBase);
     memset(blk, 0, sizeof blk);
     ENTRY_ID(0, 0) = 3;
-    ENTRY_ID(0, 1) = 471; GAME.partners[0].info.entries[1].level = 12;
-    ENTRY_ID(2, 0) = 472; GAME.partners[2].info.entries[0].level = 5;
-    GAME.partners[0].info.slots[0] = 471;
-    GAME.partners[0].info.slots[1] = 3;
-    GAME.partners[0].battleDigivolve = 471;
-    GAME.partners[2].info.slots[0] = 472;
+    ENTRY_ID(0, 1) = 471; PC_PARTNER(0).info.entries[1].level = 12;
+    ENTRY_ID(2, 0) = 472; PC_PARTNER(2).info.entries[0].level = 5;
+    PC_PARTNER(0).info.slots[0] = 471;
+    PC_PARTNER(0).info.slots[1] = 3;
+    PC_PARTNER(0).battleDigivolve = 471;
+    PC_PARTNER(2).info.slots[0] = 472;
+    pcPartnersExport();
     memcpy(blk, &GAME, sizeof GAME < sizeof blk ? sizeof GAME : sizeof blk);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     CHECK(pcExtStateEncodeDigimon(blk, sizeof blk, NULL, 0) > 8);
     need = pcExtStateEncodeDigimon(blk, sizeof blk, chunk, sizeof chunk);
     CHECK(need > 8 && need <= sizeof chunk && contentGet32(chunk) == 1 && contentGet32(chunk + 4) == 2);
@@ -804,12 +812,13 @@ static void testNewForms(void) {
     memcpy(copy, blk, sizeof copy);
     CHECK(pcExtStateRemapDigimon(copy, sizeof copy, chunk, need) == 0);
     memcpy(&GAME, copy, sizeof GAME < sizeof copy ? sizeof GAME : sizeof copy);
-    CHECK(ENTRY_ID(0, 1) == 480 && ENTRY_ID(2, 0) == 471 && ENTRY_ID(0, 0) == 3 && GAME.partners[0].info.entries[1].level == 12);
-    CHECK(GAME.partners[0].info.slots[0] == 480 && GAME.partners[0].info.slots[1] == 3 && GAME.partners[0].battleDigivolve == 480);
-    CHECK(GAME.partners[2].info.slots[0] == 471);
+    pcPartnersImport();
+    CHECK(ENTRY_ID(0, 1) == 480 && ENTRY_ID(2, 0) == 471 && ENTRY_ID(0, 0) == 3 && PC_PARTNER(0).info.entries[1].level == 12);
+    CHECK(PC_PARTNER(0).info.slots[0] == 480 && PC_PARTNER(0).info.slots[1] == 3 && PC_PARTNER(0).battleDigivolve == 480);
+    CHECK(PC_PARTNER(2).info.slots[0] == 471);
     for (x = 0, i = 4; i < sizeof copy; i++) x ^= copy[i];
     CHECK(copy[0] == x);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
 
     /* a removed mod: the entry becomes its base form (keeping what it learned), the picks follow; if the partner already has
        the base the entry is emptied and the picks point at it */
@@ -818,9 +827,10 @@ static void testNewForms(void) {
     memcpy(copy, blk, sizeof copy);
     CHECK(pcExtStateRemapDigimon(copy, sizeof copy, chunk, need) == 1);
     memcpy(&GAME, copy, sizeof GAME < sizeof copy ? sizeof GAME : sizeof copy);
-    CHECK(ENTRY_ID(2, 0) == 6 && GAME.partners[2].info.entries[0].level == 5 && GAME.partners[2].info.slots[0] == 6);
-    CHECK(ENTRY_ID(0, 1) == 471 && GAME.partners[0].info.slots[0] == 471);
-    memset(&GAME, 0, sizeof GAME);
+    pcPartnersImport();
+    CHECK(ENTRY_ID(2, 0) == 6 && PC_PARTNER(2).info.entries[0].level == 5 && PC_PARTNER(2).info.slots[0] == 6);
+    CHECK(ENTRY_ID(0, 1) == 471 && PC_PARTNER(0).info.slots[0] == 471);
+    clearGame();
     gFormNow[0] = 471;
     gFormNow[1] = 472;
     gFormBase[0] = 3; /* partner 0 already has form 3: the chunk records that base */
@@ -830,9 +840,10 @@ static void testNewForms(void) {
     memcpy(copy, blk, sizeof copy);
     CHECK(pcExtStateRemapDigimon(copy, sizeof copy, chunk, need) == 2);
     memcpy(&GAME, copy, sizeof GAME < sizeof copy ? sizeof GAME : sizeof copy);
-    CHECK(ENTRY_ID(0, 1) == 0 && GAME.partners[0].info.entries[1].level == 0 && ENTRY_ID(0, 0) == 3);
-    CHECK(GAME.partners[0].info.slots[0] == 3 && GAME.partners[0].battleDigivolve == 3 && GAME.partners[0].info.slots[1] == 3);
-    memset(&GAME, 0, sizeof GAME);
+    pcPartnersImport();
+    CHECK(ENTRY_ID(0, 1) == 0 && PC_PARTNER(0).info.entries[1].level == 0 && ENTRY_ID(0, 0) == 3);
+    CHECK(PC_PARTNER(0).info.slots[0] == 3 && PC_PARTNER(0).battleDigivolve == 3 && PC_PARTNER(0).info.slots[1] == 3);
+    clearGame();
     gFormBase[0] = 5;
     gFormNow[0] = 471;
     gFormNow[1] = 472;
@@ -843,16 +854,18 @@ static void testNewForms(void) {
     dropped = pcExtStateRemapDigimon(copy, sizeof copy, NULL, 0);
     CHECK(dropped == 0);
     memcpy(&GAME, copy, sizeof GAME < sizeof copy ? sizeof GAME : sizeof copy);
-    CHECK(ENTRY_ID(0, 1) == 0 && ENTRY_ID(2, 0) == 0 && GAME.partners[0].info.slots[0] == 0 && GAME.partners[0].battleDigivolve == 0 &&
+    pcPartnersImport();
+    CHECK(ENTRY_ID(0, 1) == 0 && ENTRY_ID(2, 0) == 0 && PC_PARTNER(0).info.slots[0] == 0 && PC_PARTNER(0).battleDigivolve == 0 &&
           ENTRY_ID(0, 0) == 3);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     gFormNow[0] = 471;
     gFormNow[1] = 472;
     memcpy(copy, blk, sizeof copy);
     CHECK(pcExtStateRemapDigimon(copy, sizeof copy, chunk, need - 3) == -1);
     memcpy(&GAME, copy, sizeof GAME < sizeof copy ? sizeof GAME : sizeof copy);
+    pcPartnersImport();
     CHECK(ENTRY_ID(0, 1) == 0 && ENTRY_ID(2, 0) == 0);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
 
     /* an id with no name is not recorded */
     gFormNow[0] = 900;
@@ -861,7 +874,7 @@ static void testNewForms(void) {
     gFormNow[0] = 471;
     pcExtStateSetDigimonHooks(NULL, NULL, NULL);
     CHECK(pcExtStateEncodeDigimon(blk, sizeof blk, chunk, sizeof chunk) > 0); /* both unnamed: nothing to write but a log */
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
 }
 
 /* ---- partner entries beyond 44 and the evolution lists (P3) ---- */
@@ -879,13 +892,13 @@ static void testPartnerEntries(void) {
     unsigned long need;
     int i, at;
 
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcPartnerEntriesReset();
 
     /* the first 44 are GAME's own, exactly as before; nothing is stored until something asks for room */
     CHECK(pcPartnerEntryLimit(0) == 44 && PC_PARTNER_ENTRY_LIMIT(3) == 44);
     PC_PARTNER_ENTRY(2, 43).id = 77;
-    CHECK(GAME.partners[2].info.entries[43].id == 77 && &PC_PARTNER_ENTRY(2, 43) == &GAME.partners[2].info.entries[43]);
+    CHECK(PC_PARTNER(2).info.entries[43].id == 77 && &PC_PARTNER_ENTRY(2, 43) == &PC_PARTNER(2).info.entries[43]);
     CHECK(pcExtStateEncodeEntries(NULL, 0) == 0); /* nothing stored: no chunk */
 
     /* an entry past 44 is the store's: the limit grows one at a time, up to the maximum, and GAME is not touched */
@@ -898,18 +911,18 @@ static void testPartnerEntries(void) {
     for (i = 45; i < PC_PARTNER_ENTRY_MAX; i++) CHECK(pcPartnerEntryGrow(2) == i);
     CHECK(pcPartnerEntryLimit(2) == PC_PARTNER_ENTRY_MAX && pcPartnerEntryGrow(2) == -1); /* the port's maximum */
     CHECK(PC_PARTNER_ENTRY(2, 44).id == 480 && PC_PARTNER_ENTRY(2, 255).id == 0); /* growing keeps what was there; new ones are empty */
-    CHECK(GAME.partners[2].info.entries[43].id == 77 && GAME.partners[3].info.entries[0].id == 0);
+    CHECK(PC_PARTNER(2).info.entries[43].id == 77 && PC_PARTNER(3).info.entries[0].id == 0);
     CHECK(pcPartnerEntryGrow(-1) == -1 && pcPartnerEntryGrow(PARTNER_COUNT) == -1);
 
     /* outside the limit: a scratch entry that reads zero and drops writes */
-    e = pcPartnerEntryRef(&GAME.partners[1].info, 1, 44);
+    e = pcPartnerEntryRef(&PC_PARTNER(1).info, 1, 44);
     e->id = 5;
-    CHECK(pcPartnerEntryRef(&GAME.partners[1].info, 1, 44)->id == 0 && pcPartnerEntryRef(&GAME.partners[1].info, 1, -1)->id == 0);
-    CHECK(pcPartnerEntryRef(&GAME.partners[2].info, 2, PC_PARTNER_ENTRY_MAX)->id == 0);
+    CHECK(pcPartnerEntryRef(&PC_PARTNER(1).info, 1, 44)->id == 0 && pcPartnerEntryRef(&PC_PARTNER(1).info, 1, -1)->id == 0);
+    CHECK(pcPartnerEntryRef(&PC_PARTNER(2).info, 2, PC_PARTNER_ENTRY_MAX)->id == 0);
 
     /* the chunk: names, not ids, for the form and the technique; the level, exp and skills come back */
     pcPartnerEntriesReset();
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateSetDigimonHooks(formName, formId, formBase);
     pcExtStateSetTechHooks(entTechName, entTechId);
     gFormNow[0] = 471;
@@ -972,7 +985,7 @@ static void testPartnerEntries(void) {
     pcPartnerEntriesReset();
     pcExtStateSetDigimonHooks(NULL, NULL, NULL);
     pcExtStateSetTechHooks(NULL, NULL);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
 }
 
 static void testEvolutionStore(void) {
@@ -1049,6 +1062,15 @@ static int loadCardMods(void)
     return cardExtLoad();
 }
 
+/* mods/<mod>/cards/<key>/card.json: the header and `fields` (the rest of the members, no braces) */
+static void putCard(const char *mod, const char *key, const char *fields)
+{
+    char rel[200], text[1600];
+    snprintf(rel, sizeof rel, "mods/%s/cards/%s/card.json", mod, key);
+    snprintf(text, sizeof text, "{\"format\":\"cards-card-v1\",\"name\":\"%s\",%s}", key, fields);
+    putFile(rel, text);
+}
+
 static void putCardArt(const char *rel)
 {
     uint8_t px[32 * 32], rgb[3 * 4] = {0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 255}, alpha[1] = {0}, *png = NULL;
@@ -1090,25 +1112,35 @@ static void testCardRegistry(void)
 
     modJson("zeta", "content");
     modJson("alpha", "content");
-    putFile("mods/zeta/content/cards.json",
-            "{\"format\":\"cards-v1\",\"new\":{"
-            "\"b-card\":{\"base\":120,\"ap\":30,\"hp\":25,\"rank\":150,\"price\":250,\"name\":{\"eng\":\"Bee Card\",\"spa\":\"Carta Abeja\"}},"
-            "\"a-card\":{\"base\":12,\"effect\":{\"like\":5,\"message\":9,\"script\":[3,7]},\"description\":{\"eng\":\"Does a thing\"},"
-            "\"name\":{\"eng\":\"Ay Card\"}},"
-            "\"bad-base\":{\"base\":9999,\"name\":{\"eng\":\"x\"}},"
-            "\"bad-ap\":{\"base\":120,\"ap\":100,\"price\":40000,\"name\":{\"eng\":\"Bad AP\"}},"
-            "\"bad-script\":{\"base\":12,\"effect\":{\"script\":[0,200]},\"name\":{\"eng\":\"Bad Script\"}},"
-            "\"no-name\":{\"base\":120}}}");
-    putFile("mods/alpha/content/cards.json",
-            "{\"format\":\"cards-v1\",\"new\":{\"z-card\":{\"base\":\"dw3:card/120\",\"name\":{\"eng\":\"Zed Card\"}}}}");
-    putCardArt("mods/zeta/card/b-card.png");
+    /* A8.1: a card is mods/<mod>/cards/<key>/card.json (format cards-card-v1, "name" the folder, "title" the display name) + face.png */
+    putCard("zeta", "b-card", "\"base\":120,\"ap\":30,\"hp\":25,\"rank\":150,\"price\":250,\"title\":{\"eng\":\"Bee Card\",\"spa\":\"Carta Abeja\"}");
+    putCard("zeta", "a-card", "\"base\":12,\"effect\":{\"like\":5,\"message\":9,\"script\":[3,7]},\"description\":{\"eng\":\"Does a thing\"},"
+                              "\"title\":{\"eng\":\"Ay Card\"}");
+    putCard("zeta", "bad-base", "\"base\":9999,\"title\":{\"eng\":\"x\"}");
+    putCard("zeta", "bad-ap", "\"base\":120,\"ap\":100,\"price\":40000,\"title\":{\"eng\":\"Bad AP\"}");
+    putCard("zeta", "bad-script", "\"base\":12,\"effect\":{\"script\":[0,200]},\"title\":{\"eng\":\"Bad Script\"}");
+    putCard("zeta", "c050", "\"base\":120,\"title\":{\"eng\":\"Looks Original\"}");
+    putCard("zeta", "no-name", "\"base\":120");
+    putCard("zeta", "unknown-field", "\"base\":120,\"colour\":2,\"notes\":\"free text\",\"title\":{\"eng\":\"Unknown Field\"}");
+    putFile("mods/zeta/cards/wrong-format/card.json", "{\"format\":\"cards-v1\",\"base\":120,\"title\":{\"eng\":\"Wrong\"}}");
+    putFile("mods/zeta/cards/other-name/card.json", "{\"format\":\"cards-card-v1\",\"name\":\"not-this\",\"base\":120,\"title\":{\"eng\":\"Other\"}}");
+    putFile("mods/zeta/cards/Bad Key/card.json", "{\"format\":\"cards-card-v1\",\"base\":120,\"title\":{\"eng\":\"Bad Key\"}}");
+    putFile("mods/zeta/cards/art-only/face.png", "x"); /* a folder with no card.json is no card */
+    putCard("alpha", "z-card", "\"base\":\"dw3:card/120\",\"title\":{\"eng\":\"Zed Card\"}");
+    /* the old registry is not read any more */
+    putFile("mods/zeta/content/cards.json", "{\"format\":\"cards-v1\",\"new\":{\"old-card\":{\"base\":120,\"name\":{\"eng\":\"Old\"}}}}");
+    putCardArt("mods/zeta/cards/b-card/face.png");
+    putCardArt("mods/zeta/card/a-card.png");       /* the old route is not read */
+    putCardArt("mods/zeta/cards/c050/face.png");   /* c<nnn> is the folder of original card 50: not the art of a new card, and its card.json is not a card */
 
-    CHECK(loadCardMods() == 5); /* alpha:z-card, zeta:a-card, zeta:b-card, zeta:bad-ap and zeta:bad-script (only their bad field is refused) */
+    CHECK(loadCardMods() == 6); /* alpha:z-card, zeta:a-card, zeta:b-card, zeta:bad-ap, zeta:bad-script (only their bad field is refused) and zeta:unknown-field (its unknown field is refused) */
+    CHECK(cardExtIdOf("zeta:c050") == -1 && cardExtIdOf("zeta:old-card") == -1 && cardExtIdOf("zeta:wrong-format") == -1 && cardExtIdOf("zeta:other-name") == -1);
+    CHECK(cardExtIdOf("zeta:Bad Key") == -1 && cardExtIdOf("zeta:art-only") == -1);
     CHECK(cardExtIdOf("alpha:z-card") == 317 && cardExtIdOf("zeta:a-card") == 318 && cardExtIdOf("zeta:b-card") == 319);
     CHECK(cardExtIdOf("zeta:bad-base") == -1 && cardExtIdOf("zeta:no-name") == -1);
     CHECK(strcmp(cardExtNameOf(319), "zeta:b-card") == 0 && cardExtNameOf(316) == NULL);
-    CHECK(pcCardTotal() == PC_CARD_ORIG_COUNT + 5);
-    /* U8c: the shop's price is the card's own: its cards.json "price" (a number out of range is refused and the default stays), else 1 */
+    CHECK(pcCardTotal() == PC_CARD_ORIG_COUNT + 6);
+    /* U8c: the shop's price is the card's own: its card.json "price" (a number out of range is refused and the default stays), else 1 */
     CHECK(pcCardPrice(319) == 250 && pcCardPrice(317) == 1 && pcCardPrice(318) == 1);
     CHECK(pcCardPrice(cardExtIdOf("zeta:bad-ap")) == 1);
     CHECK(pcCardPrice(5) == 1 && pcCardPrice(400) == 1);
@@ -1126,6 +1158,9 @@ static void testCardRegistry(void)
     CHECK(img[12 + 8 + 0x20C + 12 + 5] == 1 && img[12 + 8 + 0x20C + 12 + 6] == 2); /* the pixels are the PNG's indices */
     CHECK(pcCardImage(319) == (CardImage *)img && pcCardImage(316) == NULL && pcCardImage(5) == NULL && pcCardImage(400) == NULL);
     CHECK(cardExtImageBytes(317)[12] == 0x77); /* no PNG: the base's art */
+    CHECK(cardExtImageBytes(318)[12] == 0x77 && cardExtImageBytes(318)[12 + 8 + 12 + 2] == cardExtImageBytes(317)[12 + 8 + 12 + 2]); /* a-card's PNG is at the old card/ route: not read */
+    CHECK(cardExtIdOf("zeta:unknown-field") == 322 && cardExtImageBytes(322)[12 + 8 + 0x20C + 12 + 5] != 1 && cardExtImageBytes(322)[1] == 120 % 50);
+    CHECK(cardExtKeyIsOriginal("c050") && !cardExtKeyIsOriginal("b-card") && !cardExtKeyIsOriginal("c05") && !cardExtKeyIsOriginal("c0500"));
     CHECK(cardExtImageBytes(318)[1] == 12 % 50 && cardExtImageBytes(318)[2] == 7);
     CHECK(cardExtImageBytes(321)[1] == 12 % 50); /* bad-script keeps its base's stats */
     CHECK(cardExtImageBytes(320)[1] == 120 % 50); /* bad-ap: the field is refused, the base's AP stays */
@@ -1145,7 +1180,7 @@ static void testCardRegistry(void)
     CHECK(strcmp(cardExtText(1, "eng", 1), "Does a thing") == 0);
 
     /* ownership: originals in GAME, new ids in the store, out of range scratch */
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
     PC_CARD_COUNT(5) = 4;
     PC_CARD_SEEN(5) = 1;
@@ -1176,7 +1211,7 @@ static void testCardRegistry(void)
     CHECK(contentGet32(chunk) == 1 && contentGet32(chunk + 4) == 3); /* 317 and 318 (counts), 319 (deck only) */
 
     /* the same mods: nothing changes */
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
     CHECK(pcExtStateDecodeCards(chunk, need) == 0);
     CHECK(PC_CARD_COUNT(318) == 3 && PC_CARD_SEEN(318) == 1 && PC_CARD_COUNT(317) == 1 && PC_CARD_COUNT(319) == 0);
@@ -1185,11 +1220,15 @@ static void testCardRegistry(void)
 
     /* the zeta mod loses a-card (and so b-card moves to id 318): the counts follow the names, the deck is remapped, the lost card's
        slot becomes the starter deck's card, the save stays loadable */
-    putFile("mods/zeta/content/cards.json",
-            "{\"format\":\"cards-v1\",\"new\":{\"b-card\":{\"base\":120,\"name\":{\"eng\":\"Bee Card\"}}}}");
+    {
+        char cmd[800];
+        snprintf(cmd, sizeof cmd, "rm -rf '%s/mods/zeta/cards'", gRoot);
+        if (system(cmd)) {}
+    }
+    putCard("zeta", "b-card", "\"base\":120,\"title\":{\"eng\":\"Bee Card\"}");
     CHECK(loadCardMods() == 2);
     CHECK(cardExtIdOf("alpha:z-card") == 317 && cardExtIdOf("zeta:b-card") == 318 && pcCardTotal() == PC_CARD_ORIG_COUNT + 2);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
     CHECK(pcExtStateDecodeCards(chunk, need) == 1); /* a-card dropped */
     CHECK(PC_CARD_COUNT(317) == 1 && PC_CARD_COUNT(318) == 0 && PC_CARD_COUNT(319) == 0);
@@ -1208,7 +1247,7 @@ static void testCardRegistry(void)
     /* all the mods gone (a save with cards, no mod): everything dropped, every deck slot readable, the chunk of a damaged save */
     modsInit(NULL, NULL);
     CHECK(cardExtLoad() == 0 && pcCardTotal() == 315);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
     CHECK(pcExtStateDecodeCards(chunk, need) == 3);
     CHECK(PC_CARD_COUNT(317) == 0);
@@ -1285,13 +1324,592 @@ static void testCardResults(void)
     pcExtVarsReset();
 }
 
+/* the partners (ADR-013): one growable array behind PC_PARTNER; GAME's eight are only the block mirror */
+static void testPartnerArray(void) {
+    static unsigned char before[sizeof(GameState)], after[sizeof(GameState)];
+    int i, first;
+
+    clearGame();
+    CHECK(PC_PARTNER_COUNT == PARTNER_COUNT && PC_PARTNER_COUNT == 8);
+
+    /* a write through the accessor is in the array, not in the mirror, until the export */
+    PC_PARTNER(3).unlocked = 6;
+    PC_PARTNER(3).info.stats[STAT_LEVEL] = 17;
+    PC_PARTNER(7).info.entries[43].id = 99;
+    CHECK(GAME.partnersCard[3].unlocked == 0 && &PC_PARTNER(3) == &pcPartners[3]);
+    CHECK(&PC_PARTNER(5) == &PC_PARTNER(4) + 1); /* contiguous */
+    pcPartnersExport();
+    CHECK(GAME.partnersCard[3].unlocked == 6 && GAME.partnersCard[3].info.stats[STAT_LEVEL] == 17 && GAME.partnersCard[7].info.entries[43].id == 99);
+
+    /* load -> save is byte-identical: a pattern in the whole saved part, import, export into a cleared mirror */
+    for (i = 0; i < GAME_SAVE_SIZE; i++) ((unsigned char *)&GAME)[i] = (unsigned char)(i * 7 + (i >> 8) + 1);
+    memcpy(before, &GAME, GAME_SAVE_SIZE);
+    pcPartnersImport();
+    memset(&GAME.partnersCard, 0, sizeof GAME.partnersCard);
+    pcPartnersExport();
+    memcpy(after, &GAME, GAME_SAVE_SIZE);
+    CHECK(memcmp(before, after, GAME_SAVE_SIZE) == 0);
+    CHECK(memcmp(&PC_PARTNER(6), &GAME.partnersCard[6], sizeof(Partner)) == 0);
+
+    /* growth: more than eight, old ones kept, new ones zeroed, the export still writes only the original eight */
+    clearGame();
+    PC_PARTNER(2).unlocked = 5;
+    first = pcPartnersGrow(11);
+    CHECK(first == 8 && PC_PARTNER_COUNT == 11 && PC_PARTNER(2).unlocked == 5 && PC_PARTNER(10).unlocked == 0);
+    PC_PARTNER(10).unlocked = 13;
+    CHECK(pcPartnersGrow(9) == 11 && PC_PARTNER_COUNT == 11); /* never shrinks */
+    memcpy(before, &GAME, sizeof GAME);
+    pcPartnersExport();
+    GAME.progress = 1234;
+    memset(&GAME.partnersCard[2], 0, sizeof(Partner));
+    pcPartnersExport();
+    CHECK(GAME.partnersCard[2].unlocked == 5 && GAME.progress == 1234);
+    CHECK(pcPartnersGrow(PC_PARTNER_LIMIT) == 11 && PC_PARTNER_COUNT == PC_PARTNER_LIMIT && PC_PARTNER(10).unlocked == 13);
+    CHECK(pcPartnersGrow(PC_PARTNER_LIMIT + 1) == -1 && PC_PARTNER_COUNT == PC_PARTNER_LIMIT);
+
+    /* the row of a partner's first form: the identity for the original eight, the row a mod gave a new one (-1: none yet) */
+    for (i = 0; i < PARTNER_COUNT; i++) CHECK(PC_PARTNER_ROW(i) == i);
+    CHECK(PC_PARTNER_ROW(10) == -1 && PC_PARTNER_ROW(2) == 2);
+    pcPartnerSetRow(10, 57);
+    CHECK(PC_PARTNER_ROW(10) == 57 && PC_PARTNER_ROW(3) == 3);
+    pcPartnerSetRow(3, 9); /* the original eight are fixed */
+    CHECK(PC_PARTNER_ROW(3) == 3);
+    CHECK(PC_PARTNER_ROW(10) == 57 && PC_PARTNER_ROW(PC_PARTNER_LIMIT - 1) == -1); /* kept through the growth; the new ones have none */
+
+    /* an import (a load, a new game) clears the partners above the eight but keeps them registered (ADR-014); unregistering goes back to eight */
+    memset(&GAME.partnersCard, 0, sizeof GAME.partnersCard);
+    pcPartnersImport();
+    CHECK(PC_PARTNER_COUNT == PC_PARTNER_LIMIT && PC_PARTNER(2).unlocked == 0 && PC_PARTNER(10).unlocked == 0 && PC_PARTNER_ROW(10) == 57);
+    pcPartnersUnregister();
+    CHECK(PC_PARTNER_COUNT == 8 && PC_PARTNER(2).unlocked == 0);
+    pcPartnersGrow(11);
+    CHECK(PC_PARTNER(10).unlocked == 0 && PC_PARTNER_ROW(10) == -1);
+    pcPartnersUnregister();
+    CHECK(PC_PARTNER_COUNT == 8);
+}
+
+
+/* ---- partners by name (ADR-014): the registry, the section that holds every partner, the party and the card summaries ---- */
+
+static void fillPartner(int p, int unlocked, int level, int form) {
+    PC_PARTNER(p).unlocked = unlocked;
+    PC_PARTNER(p).info.stats[STAT_LEVEL] = (s16)level;
+    PC_PARTNER(p).info.entries[0].id = (s16)form;
+    PC_PARTNER(p).info.entries[0].level = (s8)level;
+}
+
+/* Betamon pack P4: what the game reads about a partner a mod adds beside the array: the starter teams, the digimon lab's list, the text entries
+   and the equipment rules (partner.json fills them; here they are set directly) */
+static void testPartnerTables(void) {
+    static const unsigned char orig[3][3] = {{0, 6, 7}, {2, 3, 6}, {1, 5, 7}};
+    const int duo[3] = {0, 8, 7};
+    const int items[4] = {5, 6, 7, 8}, bonus[6] = {1, 2, 3, 4, 5, 6};
+    int *lab;
+
+    pcPartnersUnregister();
+    pcStarterPartiesReset();
+    clearGame();
+    /* starter teams: the table starts from the game's (setParty / the player-name screen read it through one accessor) */
+    pcStarterPartiesInit(orig, 3);
+    CHECK(pcStarterPartyCount() == 3 && pcStarterParty(1)[0] == 2 && pcStarterParty(1)[1] == 3 && pcStarterParty(1)[2] == 6);
+    CHECK(pcStarterParty(3)[0] == -1 && pcStarterParty(-1)[2] == -1); /* a team nobody added reads as empty, inside the table */
+    CHECK(pcStarterPartyAdd("t:duo", duo) == 3 && pcStarterPartyCount() == 4 && pcStarterParty(3)[1] == 8 && pcStarterParty(0)[1] == 6);
+    CHECK(PC_STARTER_SET_PARTNER(3, 2) == 7 && PC_STARTER_CHOICE(3)[0] == 0 && PC_STARTER_PARTY_COUNT == 4);
+    {
+        int k;
+        for (k = 0; k < 20; k++) {
+            char nm[16];
+            snprintf(nm, sizeof nm, "t:n%d", k);
+            CHECK(pcStarterPartyAdd(nm, duo) == 4 + k); /* no fixed number of teams */
+        }
+    }
+    pcStarterPartiesReset();
+    CHECK(pcStarterPartyCount() == 3 && pcStarterParty(2)[1] == 5);
+
+    /* P5: a team has a stable name; the originals' are dw3:team/<i>, a mod's is what it registered under */
+    CHECK(!strcmp(pcStarterPartyName(0), "dw3:team/0") && !strcmp(pcStarterPartyName(2), "dw3:team/2") && pcStarterPartyName(3) == NULL && pcStarterPartyName(-1) == NULL);
+    CHECK(pcStarterPartyFind("dw3:team/1") == 1 && pcStarterPartyFind("dw3:team/3") == -1 && pcStarterPartyFind("t:duo") == -1 && pcStarterPartyFind(NULL) == -1);
+    CHECK(pcStarterPartyAdd("t:duo", duo) == 3 && pcStarterPartyAdd("t:trio", duo) == 4);
+    CHECK(!strcmp(pcStarterPartyName(3), "t:duo") && !strcmp(pcStarterPartyName(4), "t:trio") && pcStarterPartyFind("t:trio") == 4 && pcStarterPartyFind("t:duo") == 3);
+    pcStarterPartiesReset();
+    CHECK(pcStarterPartyFind("t:duo") == -1 && pcStarterPartyName(3) == NULL);
+
+    /* P5: the team page's cursor over any number of teams with three rows: `choice` is the team, `top` the first row shown */
+    {
+        int c = 0, t = 0, k;
+
+        pcStarterPageMove(&c, &t, 1, 3, 3); /* three teams: as the original (clamped, never scrolls) */
+        CHECK(c == 1 && t == 0);
+        pcStarterPageMove(&c, &t, 1, 3, 3);
+        pcStarterPageMove(&c, &t, 1, 3, 3);
+        CHECK(c == 2 && t == 0);
+        pcStarterPageMove(&c, &t, -1, 3, 3);
+        pcStarterPageMove(&c, &t, -1, 3, 3);
+        pcStarterPageMove(&c, &t, -1, 3, 3);
+        CHECK(c == 0 && t == 0);
+        c = t = 0; /* seven teams: the window follows the cursor down and back up */
+        for (k = 0; k < 2; k++) pcStarterPageMove(&c, &t, 1, 7, 3);
+        CHECK(c == 2 && t == 0); /* still on the first page */
+        pcStarterPageMove(&c, &t, 1, 7, 3);
+        CHECK(c == 3 && t == 1);
+        for (k = 0; k < 10; k++) pcStarterPageMove(&c, &t, 1, 7, 3);
+        CHECK(c == 6 && t == 4); /* the last team in the last row, no blank row under it */
+        pcStarterPageMove(&c, &t, -1, 7, 3);
+        pcStarterPageMove(&c, &t, -1, 7, 3);
+        CHECK(c == 4 && t == 4); /* going up inside the window keeps it still */
+        pcStarterPageMove(&c, &t, -1, 7, 3);
+        CHECK(c == 3 && t == 3);
+        for (k = 0; k < 10; k++) pcStarterPageMove(&c, &t, -1, 7, 3);
+        CHECK(c == 0 && t == 0);
+        c = 9; t = 9; /* a cursor from a state that no longer fits (a mod gone): pulled inside */
+        pcStarterPageMove(&c, &t, 0, 4, 3);
+        CHECK(c == 3 && t == 1);
+        c = -2; t = -1;
+        pcStarterPageMove(&c, &t, 0, 4, 3);
+        CHECK(c == 0 && t == 0);
+        c = 0; t = 0; /* fewer teams than rows, and none */
+        pcStarterPageMove(&c, &t, 1, 2, 3);
+        pcStarterPageMove(&c, &t, 1, 2, 3);
+        CHECK(c == 1 && t == 0);
+        pcStarterPageMove(&c, &t, 1, 0, 3);
+        CHECK(c == 0 && t == 0);
+
+        /* rows shown: all the teams up to six, then six */
+        CHECK(pcStarterRowsShown(3, 6) == 3 && pcStarterRowsShown(1, 6) == 1 && pcStarterRowsShown(6, 6) == 6);
+        CHECK(pcStarterRowsShown(7, 6) == 6 && pcStarterRowsShown(40, 6) == 6 && pcStarterRowsShown(0, 6) == 0 && pcStarterRowsShown(-2, 6) == 0);
+        /* a window of six: six teams never scroll, seven scroll by one row */
+        c = t = 0;
+        for (k = 0; k < 9; k++) pcStarterPageMove(&c, &t, 1, 6, 6);
+        CHECK(c == 5 && t == 0);
+        c = t = 0;
+        for (k = 0; k < 5; k++) pcStarterPageMove(&c, &t, 1, 7, 6);
+        CHECK(c == 5 && t == 0); /* the sixth row is still the first page */
+        pcStarterPageMove(&c, &t, 1, 7, 6);
+        CHECK(c == 6 && t == 1);
+        pcStarterPageMove(&c, &t, 1, 7, 6);
+        CHECK(c == 6 && t == 1); /* the last team stays in the last row */
+        for (k = 0; k < 5; k++) pcStarterPageMove(&c, &t, -1, 7, 6);
+        CHECK(c == 1 && t == 1);
+        pcStarterPageMove(&c, &t, -1, 7, 6);
+        CHECK(c == 0 && t == 0);
+        c = t = 0; /* thirteen teams: the window slides with the cursor */
+        for (k = 0; k < 12; k++) pcStarterPageMove(&c, &t, 1, 13, 6);
+        CHECK(c == 12 && t == 7);
+    }
+
+    /* the lab's list has room for every partner and one more (the empty pick), however many there are */
+    lab = pcLabPartnerBuffer();
+    lab[7] = 77;
+    CHECK(lab != NULL && lab[7] == 77);
+    pcPartnerRegister("x:a", 55);
+    pcPartnerRegister("x:b", 56);
+    pcPartnerRegister("x:c", 57);
+    lab = pcLabPartnerBuffer();
+    lab[PC_PARTNER_COUNT] = 1; /* index 11: past the old eight */
+    CHECK(PC_PARTNER_COUNT == 11 && lab[PC_PARTNER_COUNT] == 1);
+
+    /* text entries: NAMEET has 31 on the disc; a new partner's name and description come after, then the teams' */
+    CHECK(PC_NAMEET_FIRST == 31 && pcPartnerTextEntry(8, 0) == 31 && pcPartnerTextEntry(8, 1) == 32 && pcPartnerTextEntry(10, 1) == 36);
+    CHECK(pcStarterTextEntry(3, 0) == 31 + 6 && pcStarterTextEntry(4, 1) == 31 + 6 + 2 + 1);
+    CHECK(PC_STARTER_NAME_ENTRY(4) == 5 && PC_STARTER_TEXT_ENTRY(4) == 17 && PC_STARTER_NAME_ENTRY(9) == 33 && PC_STARTER_TEXT_ENTRY(9) == 34);
+    CHECK(PC_STARTER_PACK_NAME_ENTRY(1) == 11 && PC_STARTER_PACK_TEXT_ENTRY(2) == 28 && PC_STARTER_PACK_NAME_ENTRY(3) == 37);
+
+    /* equipment: the original eight read the mask bit; a new partner reads the bit of the partner it is like unless told otherwise */
+    CHECK(PC_CAN_EQUIP(1, 0x20, 5) == 1 && PC_CAN_EQUIP(1, 0x20, 4) == 0);
+    CHECK(PC_CAN_EQUIP(1, 0x20, 8) == 0); /* partner 8 is like partner 0 (the default: its first form's row, 55 -> the stand-in 0) */
+    pcPartnerSetEquipLike(8, 5);
+    CHECK(PC_CAN_EQUIP(1, 0x20, 8) == 1 && PC_CAN_EQUIP(1, 0x01, 8) == 0);
+    CHECK(pcPartnerEquipRule(8, 1, 0) == 0 && PC_CAN_EQUIP(1, 0x20, 8) == 0); /* refused beats the bit */
+    CHECK(pcPartnerEquipRule(8, 2, 1) == 0 && PC_CAN_EQUIP(2, 0, 8) == 1);    /* allowed with no bit */
+    CHECK(pcPartnerEquipRule(3, 2, 1) == -1 && pcPartnerEquipRule(40, 2, 1) == -1 && pcPartnerEquipRule(8, 0, 1) == -1); /* only a new partner, a real item */
+    CHECK(PC_CAN_EQUIP(2, 0xFF, 40) == 0); /* no such partner */
+    /* sets: the original eight keep the game's tables (PC_HAS_EQUIP_SET is 1), a new partner has one only when it was given */
+    CHECK(PC_HAS_EQUIP_SET(3) == 1 && PC_HAS_EQUIP_SET(8) == 0 && pcPartnerEquipSetItem(8, 0) == 0);
+    pcPartnerSetEquipSet(8, items, bonus);
+    CHECK(PC_HAS_EQUIP_SET(8) == 1 && pcPartnerEquipSetItem(8, 3) == 8 && pcPartnerEquipSetBonus(8, 5) == 6 && pcPartnerEquipSetItem(8, 4) == 0);
+    pcPartnerSetEquipSet(3, items, bonus); /* an original keeps the game's */
+    CHECK(pcPartnerEquipSetItem(3, 0) == 0);
+    pcPartnersUnregister(); /* the rules go with the partner */
+    CHECK(PC_PARTNER_COUNT == 8 && PC_HAS_EQUIP_SET(8) == 0 && PC_CAN_EQUIP(2, 0xFF, 8) == 0);
+    pcPartnerRegister("x:a", 55); /* registered again: a clean slate, not the old rules */
+    CHECK(PC_HAS_EQUIP_SET(8) == 0 && PC_CAN_EQUIP(1, 0x20, 8) == 0 && PC_CAN_EQUIP(2, 0, 8) == 0);
+    pcPartnersUnregister();
+}
+
+/* P5: GameState.partySet by the team's name: a mod team's number changes with the mods, so the save names it ("TEAM") */
+static void testTeamByName(void) {
+    static unsigned char blk[GAME_SAVE_SIZE], chunk[256];
+    static const unsigned char orig[3][3] = {{0, 6, 7}, {2, 3, 6}, {1, 5, 7}};
+    const int duo[3] = {0, 1, 2};
+    unsigned long n;
+    int set;
+    unsigned char x;
+    unsigned long i;
+
+    pcStarterPartiesReset();
+    pcStarterPartiesInit(orig, 3);
+    pcStarterPartyAdd("t:duo", duo); /* 3 */
+    pcStarterPartyAdd("t:trio", duo); /* 4 */
+    memset(blk, 0, sizeof blk);
+    set = 4;
+    memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+    n = pcExtStateEncodeTeam(blk, GAME_SAVE_SIZE, NULL, 0);
+    CHECK(n > 4 && n <= sizeof chunk && pcExtStateEncodeTeam(blk, GAME_SAVE_SIZE, chunk, n) == n);
+    CHECK(pcExtStateEncodeTeam(blk, GAME_SAVE_SIZE, chunk, n - 1) == n && pcExtStateEncodeTeam(blk, 8, NULL, 0) == 0 && pcExtStateEncodeTeam(NULL, 0, NULL, 0) == 0);
+    for (set = -1; set < 3; set++) { /* an original team (or none yet): nothing to name, the save is the same bytes as before */
+        memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+        CHECK(pcExtStateEncodeTeam(blk, GAME_SAVE_SIZE, NULL, 0) == 0);
+    }
+    set = 9; /* a number no team has: nothing to name either */
+    memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+    CHECK(pcExtStateEncodeTeam(blk, GAME_SAVE_SIZE, NULL, 0) == 0);
+
+    /* another run, the mods give the same teams other numbers: the name leads to the new one (and the block's checksum is made again) */
+    pcStarterPartiesReset();
+    pcStarterPartyAdd("t:trio", duo); /* 3 now */
+    pcStarterPartyAdd("t:other", duo);
+    pcStarterPartyAdd("t:duo", duo); /* 5 now */
+    set = 4;
+    memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+    CHECK(pcExtStateRemapTeam(blk, GAME_SAVE_SIZE, chunk, n) == 1);
+    memcpy(&set, blk + offsetof(GameState, partySet), sizeof set);
+    CHECK(set == 3);
+    for (x = 0, i = 4; i < GAME_SAVE_SIZE; i++) x ^= blk[i];
+    CHECK(blk[0] == x);
+    CHECK(pcExtStateRemapTeam(blk, GAME_SAVE_SIZE, chunk, n) == 0); /* already right: left alone */
+
+    /* the mod is gone: no team (-1), which no event condition names, and a valid block */
+    pcStarterPartiesReset();
+    set = 4;
+    memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+    CHECK(pcExtStateRemapTeam(blk, GAME_SAVE_SIZE, chunk, n) == 1);
+    memcpy(&set, blk + offsetof(GameState, partySet), sizeof set);
+    CHECK(set == -1);
+    for (x = 0, i = 4; i < GAME_SAVE_SIZE; i++) x ^= blk[i];
+    CHECK(blk[0] == x);
+
+    /* no section: the block is left as it is (an original team's number is stable; any other matches no condition), a damaged section as no team */
+    for (set = -1; set < 8; set++) {
+        int got;
+
+        memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+        CHECK(pcExtStateRemapTeam(blk, GAME_SAVE_SIZE, NULL, 0) == 0);
+        memcpy(&got, blk + offsetof(GameState, partySet), sizeof got);
+        CHECK(got == set);
+    }
+    set = 1;
+    memcpy(blk + offsetof(GameState, partySet), &set, sizeof set);
+    CHECK(pcExtStateRemapTeam(blk, GAME_SAVE_SIZE, chunk, 3) == 1); /* cut short: the section says nothing usable */
+    memcpy(&set, blk + offsetof(GameState, partySet), sizeof set);
+    CHECK(set == -1);
+    pcStarterPartiesReset();
+}
+
+static void testPartnerNames(void) {
+    static unsigned char blk[sizeof(GameState)], tmp[sizeof(GameState)], sect[32768], info[0x100];
+    static unsigned char icon[256];
+    unsigned long n, in;
+    int a, b, i, s32party[3];
+    GameState *g = (GameState *)tmp;
+
+    /* the registry: the original eight have fixed names, a new name takes the next index, a known name gives its index back */
+    pcPartnersUnregister();
+    clearGame();
+    CHECK(strcmp(pcPartnerName(3), "dw3:partner/3") == 0 && pcPartnerFind("dw3:partner/7") == 7 && pcPartnerFind("x:a") == -1 && pcPartnerName(8) == NULL);
+    a = pcPartnerRegister("x:a", 55);
+    b = pcPartnerRegister("x:b", 3);
+    CHECK(a == 8 && b == 9 && PC_PARTNER_COUNT == 10 && PC_PARTNER_ROW(8) == 55 && PC_PARTNER_ROW(9) == 3);
+    CHECK(pcPartnerRegister("x:a", 56) == 8 && PC_PARTNER_ROW(8) == 56 && PC_PARTNER_COUNT == 10);
+    CHECK(pcPartnerRegister("dw3:partner/2", 0) == 2 && PC_PARTNER_ROW(2) == 2); /* an original: the same index, row unchanged */
+    CHECK(pcPartnerRegister("", 0) == -1 && pcPartnerRegister(NULL, 0) == -1 && PC_PARTNER_COUNT == 10);
+    /* art: a new partner reads an original's art (its first form's if it reuses one, else the first) until it has its own */
+    CHECK(PC_PARTNER_ART(5) == 5 && PC_PARTNER_ART(8) == 0 && PC_PARTNER_ART(9) == 3 && PC_PARTNER_ART(200) == 0);
+    pcPartnerSetIconBase(8, 6);
+    CHECK(PC_PARTNER_ART(8) == 6);
+    {
+        /* the one animation table every screen reads (P6): the original eight's rows, a new partner's is its stand-in's */
+        static const int rows[8][7] = {{7, 8, 9, 10, 9, 8, -1}, {14, 15, 16, 15, -1, -1, -1}, {11, 12, 13, 12, -1, -1, -1}, {3, 4, 5, 6, 5, 4, -1},
+                                       {25, 26, 27, 28, 27, 26, -1}, {0, 1, 2, 1, -1, -1, -1}, {17, 18, 19, 20, 19, 18, -1}, {21, 22, 23, 24, 23, 22, -1}};
+        int p, k, same = 1;
+
+        for (p = 0; p < 8; p++) {
+            for (k = 0; k < 7; k++) same &= pcPartnerAnim(p)->frames[k] == rows[p][k] && PC_PARTNER_STEPS(0, p)[k] == rows[p][k];
+        }
+        CHECK(same);
+        for (k = 0; k < 7; k++) same &= pcPartnerAnim(8)->frames[k] == rows[6][k] && pcPartnerAnim(200)->frames[k] == rows[0][k]; /* 8 stands in as 6 */
+        CHECK(same);
+        /* the next step of a loop: wraps at the -1 (or the row's end) */
+        CHECK(pcPartnerAnimNext(0, 0) == 1 && pcPartnerAnimNext(0, 5) == 0 && pcPartnerAnimNext(1, 3) == 0 && pcPartnerAnimNext(5, 2) == 3);
+    }
+    pcPartnerSetIconBase(8, 9); /* not an original: refused */
+    CHECK(PC_PARTNER_ART(8) == 6);
+    /* the per-partner stores follow the count: no fixed eight */
+    CHECK(pcPartnerEntryGrow(9) == 44 && pcPartnerEntryLimit(9) == 45 && pcPartnerEntryLimit(8) == 44 && pcPartnerEntryGrow(10) == -1);
+    {
+        PcEvolution ev, orig[PARTNER_COUNT][PC_EVOLUTION_ORIG_COUNT];
+        PcEvolution *list;
+
+        memset(&ev, 0, sizeof ev);
+        memset(orig, 0, sizeof orig);
+        pcEvolutionSetOriginal(orig);
+        CHECK(pcEvolutionCount(9) == 0 && pcEvolutionList(9, NULL) != NULL); /* a new partner has an empty list, never an original's */
+        ev.digimon = 60;
+        CHECK(pcEvolutionExtend(9, &ev) == 0 && pcEvolutionCount(9) == 1 && pcEvolutionCount(8) == 0);
+        list = pcEvolutionList(9, NULL);
+        CHECK(list[0].digimon == 60);
+        pcEvolutionSetOriginal(NULL);
+    }
+    pcPartnersUnregister();
+    CHECK(PC_PARTNER_COUNT == 8 && pcPartnerFind("x:a") == -1 && pcPartnerEntryLimit(9) == 44 && pcEvolutionCount(9) == 0);
+
+    /* nothing is written for the eight alone */
+    clearGame();
+    pcPartnersExport();
+    memcpy(blk, &GAME, GAME_SAVE_SIZE);
+    CHECK(pcExtStateEncodePartners(blk, GAME_SAVE_SIZE, NULL, 0) == 0);
+
+    /* two new partners with data: forms and techniques by name, stored entries, a party that holds both */
+    pcExtStateSetDigimonHooks(formName, formId, formBase);
+    pcExtStateSetTechHooks(entTechName, entTechId);
+    gFormNow[0] = 471;
+    gFormNow[1] = 472;
+    clearGame();
+    pcPartnerRegister("x:a", 55);
+    pcPartnerRegister("x:b", 3);
+    fillPartner(2, 5, 30, 3);
+    fillPartner(8, 11, 17, 471);
+    fillPartner(9, 12, 21, 5);
+    PC_PARTNER(8).battleDigivolve = 471;
+    PC_PARTNER(8).info.slots[0] = 471;
+    PC_PARTNER(8).info.entries[0].skills[0] = (s16)(447 | SKILL_KNOWN);
+    CHECK(pcPartnerEntryGrow(8) == 44 && pcPartnerEntryGrow(8) == 45);
+    PC_PARTNER_ENTRY(8, 44).id = 12;
+    PC_PARTNER_ENTRY(8, 44).level = 4;
+    PC_PARTNER_ENTRY(8, 45).id = 472;
+    PC_PARTNER_ENTRY(8, 45).level = 2;
+    GAME.party[0] = 8;
+    GAME.party[1] = 2;
+    GAME.party[2] = 9;
+    pcPartnersExport();
+    memcpy(blk, &GAME, GAME_SAVE_SIZE);
+    n = pcExtStateEncodePartners(blk, GAME_SAVE_SIZE, NULL, 0);
+    CHECK(n > 10 * (unsigned long)sizeof(Partner) && n <= sizeof sect);
+    CHECK(pcExtStateEncodePartners(blk, GAME_SAVE_SIZE, sect, n) == n && pcExtStateEncodePartners(blk, GAME_SAVE_SIZE, sect, 8) == n);
+    CHECK(memmem(sect, n, "x:a", 3) != NULL && memmem(sect, n, "x:b", 3) != NULL && memmem(sect, n, "mymod:spark", 11) != NULL);
+
+    /* the same save in a run that registered the partners in the other order (and numbered the form otherwise): data follows names */
+    pcPartnersUnregister();
+    pcPartnerRegister("x:b", 3);  /* 8 */
+    pcPartnerRegister("x:a", 55); /* 9 */
+    gFormNow[0] = 480;
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect, n) == 0);
+    memcpy(tmp, blk, GAME_SAVE_SIZE);
+    CHECK(pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, n) == 0);
+    memcpy(&GAME, tmp, GAME_SAVE_SIZE);
+    pcPartnersImport();
+    CHECK(GAME.party[0] == 9 && GAME.party[1] == 2 && GAME.party[2] == 8);
+    CHECK(PC_PARTNER(9).info.stats[STAT_LEVEL] == 17 && PC_PARTNER(9).unlocked == 12); /* x:a: its own new index + 3 */
+    CHECK(PC_PARTNER(9).info.entries[0].id == 480 && PC_PARTNER(9).battleDigivolve == 480 && PC_PARTNER(9).info.slots[0] == 480);
+    CHECK(PC_PARTNER(9).info.entries[0].skills[0] == (s16)(447 | SKILL_KNOWN));
+    CHECK(PC_PARTNER(8).info.stats[STAT_LEVEL] == 21 && PC_PARTNER(8).unlocked == 11 && PC_PARTNER(8).info.entries[0].id == 5);
+    CHECK(PC_PARTNER(2).unlocked == 5 && PC_PARTNER(2).info.stats[STAT_LEVEL] == 30);
+    CHECK(pcPartnerEntryLimit(9) == 46 && PC_PARTNER_ENTRY(9, 44).id == 12 && PC_PARTNER_ENTRY(9, 44).level == 4 &&
+          PC_PARTNER_ENTRY(9, 45).id == 472 && pcPartnerEntryLimit(8) == 44);
+
+    /* the same index again: identical (the fresh state of another boot, same registration) */
+    pcPartnersUnregister();
+    pcPartnerRegister("x:a", 55);
+    pcPartnerRegister("x:b", 3);
+    gFormNow[0] = 471;
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect, n) == 0);
+    memcpy(tmp, blk, GAME_SAVE_SIZE);
+    pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, n);
+    CHECK(memcmp(tmp, blk, GAME_SAVE_SIZE) == 0); /* same order: the block is untouched, not even its checksum */
+    memcpy(&GAME, tmp, GAME_SAVE_SIZE);
+    pcPartnersImport();
+    pcPartnersExport();
+    CHECK(PC_PARTNER(8).info.stats[STAT_LEVEL] == 17 && PC_PARTNER(9).info.stats[STAT_LEVEL] == 21 && GAME.party[0] == 8 && GAME.party[2] == 9);
+
+    /* P11: the unlocked state of a mod partner outside the party follows its name; a locked one stays locked (the numbers swap in this run) */
+    {
+    static unsigned char blk2[sizeof(GameState)], sect2[32768];
+    unsigned long n2;
+
+    pcPartnersUnregister();
+    pcPartnerRegister("x:a", 55); /* 8 */
+    pcPartnerRegister("x:b", 3);  /* 9 */
+    clearGame();
+    fillPartner(9, 12, 21, 5);    /* x:b unlocked by a mission, x:a still locked */
+    PC_PARTNER(8).unlocked = 0;
+    GAME.party[0] = 2;
+    GAME.party[1] = -1;
+    GAME.party[2] = -1;
+    pcPartnersExport();
+    memcpy(blk2, &GAME, GAME_SAVE_SIZE);
+    n2 = pcExtStateEncodePartners(blk2, GAME_SAVE_SIZE, sect2, sizeof sect2);
+    CHECK(n2 > 0);
+    pcPartnersUnregister();
+    pcPartnerRegister("x:b", 3);  /* 8 */
+    pcPartnerRegister("x:a", 55); /* 9 */
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect2, n2) == 0);
+    memcpy(tmp, blk2, GAME_SAVE_SIZE);
+    pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect2, n2);
+    memcpy(&GAME, tmp, GAME_SAVE_SIZE);
+    pcPartnersImport();
+    CHECK(PC_PARTNER(8).unlocked == 11 && PC_PARTNER(8).info.stats[STAT_LEVEL] == 21 && PC_PARTNER(9).unlocked == 0);
+    }
+    /* the registry is back to the state the later blocks of this test expect */
+    pcPartnersUnregister();
+    pcPartnerRegister("x:a", 55);
+    pcPartnerRegister("x:b", 3);
+    clearGame();
+
+    /* x:a's mod is removed: its data is dropped with a line, the party loses it (the others pack), x:b follows its name */
+    pcPartnersUnregister();
+    pcPartnerRegister("x:b", 3); /* 8 */
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect, n) == 1);
+    memcpy(tmp, blk, GAME_SAVE_SIZE);
+    CHECK(pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, n) == 1);
+    memcpy(&GAME, tmp, GAME_SAVE_SIZE);
+    pcPartnersImport();
+    CHECK(GAME.party[0] == 2 && GAME.party[1] == 8 && GAME.party[2] == -1);
+    CHECK(PC_PARTNER_COUNT == 9 && PC_PARTNER(8).info.stats[STAT_LEVEL] == 21 && PC_PARTNER(8).unlocked == 11);
+    for (i = 0; i < GAME.party[1] + 1; i++) CHECK(GAME.party[i] < PC_PARTNER_COUNT);
+    /* the checksum byte is valid after the rewrite (XOR of byte 4 on) */
+    {
+        unsigned char x = 0;
+
+        for (i = 4; i < GAME_SAVE_SIZE; i++) x ^= tmp[i];
+        CHECK(tmp[0] == x);
+    }
+
+    /* every new partner removed: the eight are the same, and a party that held only new partners gets an original one that is unlocked */
+    pcPartnersUnregister();
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect, n) == 2);
+    memcpy(tmp, blk, GAME_SAVE_SIZE);
+    g->party[0] = 8;
+    g->party[1] = 9;
+    g->party[2] = -1;
+    CHECK(pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, n) == 2); /* the names in the section decide: its party is 8, 2, 9 */
+    memcpy(s32party, tmp + offsetof(GameState, party), sizeof s32party);
+    CHECK(s32party[0] == 2 && s32party[1] == -1 && s32party[2] == -1); /* the section says x:a, original 2, x:b: only 2 is left */
+    {
+        /* a section whose party was only new partners: write that block and section by hand through the encoder */
+        pcPartnerRegister("x:a", 55);
+        pcPartnerRegister("x:b", 3);
+        clearGame();
+        fillPartner(8, 11, 17, 471);
+        fillPartner(2, 5, 30, 3);
+        GAME.party[0] = 8;
+        GAME.party[1] = 9;
+        GAME.party[2] = -1;
+        pcPartnersExport();
+        memcpy(blk, &GAME, GAME_SAVE_SIZE);
+        n = pcExtStateEncodePartners(blk, GAME_SAVE_SIZE, sect, sizeof sect);
+        CHECK(n > 0);
+        pcPartnersUnregister();
+        clearGame();
+        memcpy(tmp, blk, GAME_SAVE_SIZE);
+        CHECK(pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, n) == 2);
+        memcpy(s32party, tmp + offsetof(GameState, party), sizeof s32party);
+        CHECK(s32party[0] == 2 && s32party[1] == -1 && s32party[2] == -1); /* partner 2 is the first the block has unlocked */
+    }
+
+    /* a damaged section stages nothing, forgets the new partners and leaves a valid party */
+    pcPartnerRegister("x:a", 55);
+    pcPartnerRegister("x:b", 3);
+    clearGame();
+    CHECK(pcExtStateDecodePartners(sect, n - 5) == -1);
+    pcPartnersImport();
+    CHECK(PC_PARTNER(8).unlocked == 0 && PC_PARTNER(9).unlocked == 0 && pcPartnerEntryLimit(8) == 44);
+    CHECK(pcExtStateDecodePartners(NULL, 0) == 0);
+    CHECK(pcExtStateDecodePartners(sect, 3) == -1);
+    memcpy(tmp, blk, GAME_SAVE_SIZE);
+    pcExtStateRemapParty(tmp, GAME_SAVE_SIZE, sect, 3);
+    memcpy(s32party, tmp + offsetof(GameState, party), sizeof s32party);
+    for (i = 0; i < 3; i++) CHECK(s32party[i] >= -1 && s32party[i] < PC_PARTNER_COUNT);
+
+    /* staged data does not leak into a new game */
+    pcPartnerEntriesReset();
+    CHECK(pcExtStateDecodePartners(sect, n) >= 0);
+    pcPartnersStageClear();
+    memset(&GAME, 0, sizeof GAME);
+    pcPartnersImport();
+    CHECK(PC_PARTNER(8).unlocked == 0 && PC_PARTNER(8).info.stats[STAT_LEVEL] == 0);
+
+    /* the card summaries: the icon of a partner above the eight follows its name; a removed mod shows the stand-in's art */
+    pcPartnersUnregister();
+    pcPartnerRegister("x:a", 55); /* 8, stand-in 0 */
+    pcPartnerRegister("x:b", 3);  /* 9, stand-in 3 */
+    memset(info, 0, sizeof info);
+    {
+        int v[9] = {5, 11, 12, 6, 0, 0, 3, 9, 5}; /* slot 0: 2, x:a, x:b; slot 1: 3, none, none; slot 2: 0, 6, 2 */
+
+        memcpy(info + PC_INFO_SAVES_OFS + 0 * PC_INFO_SAVE_SIZE + PC_INFO_PARTNERS_OFS, &v[0], 12);
+        memcpy(info + PC_INFO_SAVES_OFS + 1 * PC_INFO_SAVE_SIZE + PC_INFO_PARTNERS_OFS, &v[3], 12);
+        memcpy(info + PC_INFO_SAVES_OFS + 2 * PC_INFO_SAVE_SIZE + PC_INFO_PARTNERS_OFS, &v[6], 12);
+    }
+    in = pcExtStateEncodeIcons(info, sizeof info, NULL, 0);
+    CHECK(in > 8 && in <= sizeof icon && pcExtStateEncodeIcons(info, sizeof info, icon, in) == in);
+    pcPartnersUnregister();
+    pcPartnerRegister("x:b", 3);  /* 8 now */
+    pcPartnerRegister("x:a", 55); /* 9 now */
+    CHECK(pcExtStateRemapIcons(info, sizeof info, icon, in) == 0);
+    memcpy(s32party, info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, 12);
+    CHECK(s32party[0] == 5 && s32party[1] == 12 && s32party[2] == 11); /* x:a is 9 now (+3), x:b is 8 (+3); the original is unchanged */
+    {
+        unsigned char x = 0;
+
+        for (i = PC_INFO_MAGIC_OFS; i < PC_INFO_USED; i++) x ^= info[i];
+        CHECK(info[0] == x);
+    }
+    pcPartnersUnregister();
+    pcPartnerRegister("x:b", 3); /* only x:b stays (8): x:a's icon becomes its stand-in's, original 0 -> value 3 */
+    memcpy(info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, (int[3]){5, 11, 12}, 12);
+    CHECK(pcExtStateRemapIcons(info, sizeof info, icon, in) == 1);
+    memcpy(s32party, info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, 12);
+    CHECK(s32party[0] == 5 && s32party[1] == 3 && s32party[2] == 11);
+    memcpy(info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, (int[3]){5, 40, 0}, 12); /* an index nobody has, no chunk: left alone (the art table read is guarded) */
+    CHECK(pcExtStateRemapIcons(info, sizeof info, NULL, 0) == 0);
+    memcpy(s32party, info + PC_INFO_SAVES_OFS + PC_INFO_PARTNERS_OFS, 12);
+    CHECK(s32party[0] == 5 && s32party[1] == 40 && s32party[2] == 0 && PC_PARTNER_ART(s32party[1] - 3) == 0);
+
+    /* the saved block's view: the first eight from the block, the rest from the array, -1 and an unknown index: a locked empty partner */
+    memset(g, 0, sizeof *g);
+    g->partnersCard[1].unlocked = 4;
+    PC_PARTNER(8).unlocked = 11;
+    CHECK(PC_PARTNER_SAVED(*g, 1).unlocked == 4 && PC_PARTNER_SAVED(*g, 8).unlocked == 11 && PC_PARTNER_SAVED(*g, -1).unlocked == 0 &&
+          PC_PARTNER_SAVED(*g, 200).unlocked == 0);
+
+    pcExtStateSetDigimonHooks(NULL, NULL, NULL);
+    pcExtStateSetTechHooks(NULL, NULL);
+    pcPartnersUnregister();
+    clearGame();
+}
+
+/* the harness' partner level seed: the exp a level needs, from the game's own formula (growth.c) */
+static void testLevelExp(void) {
+    static const int tier[4] = {0, 50, 800, 3000};
+
+    CHECK(pcLevelExpToExceed(10, 10, tier) == (1000 + 50 - 6) + 50);      /* expRate 10: the tier 1 */
+    CHECK(pcLevelExpToExceed(2, 10, tier) == (8 + 10 - 6) + 0);           /* the tier 0 */
+    CHECK(pcLevelExpToExceed(30, 12, tier) == (27000 + 150 - 6) * 12 / 10 + 800);
+    CHECK(pcLevelExpToExceed(40, 10, tier) == (64000 + 200 - 6) + 3000);
+    CHECK(pcLevelExpToExceed(1, 10, tier) == -1 && pcLevelExpToExceed(100, 10, tier) == -1 && pcLevelExpToExceed(10, 10, NULL) == -1);
+}
+
 int main(void)
 {
     int i;
     GameState snapshot;
     const char *tmp = getenv("TMPDIR");
 
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     pcExtStateReset();
 
     /* original ids reach the arrays inside GAME, first and last */
@@ -1351,11 +1969,11 @@ int main(void)
     CHECK(PC_ITEM_COUNT(403) == 0);
 
     /* every original id round-trips on its own cell */
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     for (i = 0; i < PC_ITEM_ORIG_COUNT; i++) PC_ITEM_COUNT(i) = (signed char)(i % 100);
     for (i = 0; i < PC_ITEM_ORIG_COUNT; i++) CHECK(GAME.itemsCard[i] == (signed char)(i % 100));
     for (i = 0; i < PC_ITEM_ORIG_COUNT; i++) CHECK(PC_ITEM_EQUIPPED(i) == 0);
-    memset(&GAME, 0, sizeof GAME);
+    clearGame();
     CHECK(gameIsClean());
 
     pcExtStateReset();
@@ -1367,6 +1985,10 @@ int main(void)
         testTechAccess();
         testDigimonAccess();
         testNewForms();
+        testPartnerArray();
+        testPartnerNames();
+        testTeamByName();
+        testPartnerTables();
         testPartnerEntries();
         testEvolutionStore();
         testTechRegistry();
@@ -1377,6 +1999,7 @@ int main(void)
         testCardRegistry();
         testCardResults();
         testFieldBattleResults();
+        testLevelExp();
         snprintf(cmd, sizeof cmd, "rm -rf '%s'", gRoot);
         if (system(cmd)) {}
     }

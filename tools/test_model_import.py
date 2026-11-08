@@ -2,7 +2,10 @@
 
 `python3 -I tools/test_model_import.py --demo <dir>` writes the demo model (a rigged robot made of boxes: robot.gltf,
 robot.bin, robot.png and its robot.json metadata) that is the minimum example of a `model-src-v1` source.
+`python3 -I tools/test_model_import.py --demo-partner <dir>` writes the same robot with the animations of a partner (idle, weak idle, dodge,
+flinch, hit, knock out, cheer, blast, attack: partner.gltf with its buffer embedded, partner.png and partner.json, whose "motions" name the slot of each one).
 """
+import base64
 import copy
 import json
 import math
@@ -135,6 +138,8 @@ def make_robot(prefix_scale=1.0, prefix_yaw=0.0, many_verts=0, anim_extra=None, 
     chan(4, "rotation", arm_q_keys, "VEC4")
     chan(3, "translation", [[t[0] * box_scale, t[1] * box_scale, t[2] * box_scale] for t in head_t], "VEC3")
     anims = [{"name": "idle", "samplers": samplers, "channels": channels}]
+    if anim_extra == "partner":
+        anims += partner_animations(gb, box_scale)
     if anim_extra == "spin":
         s2, c2 = [], []
         ts = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
@@ -161,6 +166,37 @@ def quat_matrix(q):
     return mi.quat_matrix(q)
 
 
+# name -> (duration in seconds, key times in 0..1, torso pitch in degrees, arm roll in degrees, hip offset (x, y, z) in metres)
+PARTNER_POSES = {
+    "idle_weak": (1.6, [0, 0.5, 1], [28, 34, 28], [-20, -10, -20], [(0, 0, 0)] * 3),
+    "dodge": (0.6, [0, 0.4, 1], [0, -10, 0], [0, 20, 0], [(0, 0, 0), (0.35, 0, 0), (0, 0, 0)]),
+    "flinch": (0.4, [0, 0.4, 1], [0, -18, 0], [0, 30, 0], [(0, 0, 0), (0, 0, -0.08), (0, 0, 0)]),
+    "hit": (0.7, [0, 0.3, 1], [0, -30, 0], [0, 60, 0], [(0, 0, 0), (0, 0, -0.2), (0, 0, 0)]),
+    "ko": (1.0, [0, 0.5, 1], [0, -60, -90], [0, 80, 80], [(0, 0, 0), (0, -0.1, -0.15), (0, -0.25, -0.2)]),
+    "cheer": (1.2, [0, 0.3, 0.6, 1], [0, -8, 0, -8], [0, 150, 0, 150], [(0, 0, 0), (0, 0.1, 0), (0, 0, 0), (0, 0.1, 0)]),
+    "blast": (1.2, [0, 0.5, 1], [0, 10, 0], [0, 100, 0], [(0, 0, 0), (0, 0.3, 0), (0, 0, 0)]),
+    "attack": (0.8, [0, 0.35, 0.6, 1], [0, 25, 10, 0], [0, -70, 40, 0], [(0, 0, 0), (0, 0, 0.05), (0, 0, 0.35), (0, 0, 0)]),
+}
+
+
+def partner_animations(gb, box_scale):
+    """The animations of a partner demo: one per pose of PARTNER_POSES, on the hip (translation), the torso (pitch) and the arm (roll)."""
+    out = []
+    for name, (dur, tk, torso, arm, hip) in PARTNER_POSES.items():
+        times = [dur * t for t in tk]
+        t_acc = gb.add(me.pack_f(times), F32, len(times), "SCALAR", minmax=([0.0], [times[-1]]))
+        samplers, channels = [], []
+        for node, path, vals, atype in (
+                (1, "translation", [[x * box_scale for x in h] for h in hip], "VEC3"),
+                (2, "rotation", [quat_axis((1, 0, 0), d) for d in torso], "VEC4"),
+                (4, "rotation", [quat_axis((0, 0, 1), d) for d in arm], "VEC4")):
+            acc = gb.add(me.pack_f([x for v in vals for x in v]), F32, len(vals), atype)
+            samplers.append({"input": t_acc, "output": acc, "interpolation": "LINEAR"})
+            channels.append({"sampler": len(samplers) - 1, "target": {"node": node, "path": path}})
+        out.append({"name": name, "samplers": samplers, "channels": channels})
+    return out
+
+
 def write_model(d, gltf, binary, png, meta, name="robot"):
     os.makedirs(d, exist_ok=True)
     Path(d, name + ".gltf").write_text(json.dumps(gltf))
@@ -177,6 +213,26 @@ DEMO_META = {"format": "model-src-v1", "name": "robot", "gltf": "robot.gltf", "f
 def write_demo(d):
     g, b, p, _ = make_robot()
     write_model(d, g, b, p, DEMO_META)
+
+
+# a partner's model.json: the animations are named after what they do, "motions" says the slot each one plays (docs/formats.md 4.6, "Ranuras de
+# movimiento"); the slots that no entry covers play "attack" ("fill"), the technique slots of the donor among them
+PARTNER_META = {"format": "model-src-v1", "name": "partner", "gltf": "partner.gltf", "fitHeight": 1800,
+                "effects": "dw3:digimon/383", "template": "dw3:digimon/383",
+                "motions": {"0": "idle", "1": "idle_weak", "2": "dodge", "3": "flinch", "4": "hit", "5": 4, "6": 4,
+                            "10": {"animation": "ko", "end": "hold"}, "11": 4, "12": "cheer", "13": "blast", "14": "attack",
+                            "15": 14, "16": 14, "17": 14, "20": 14, "32": 14},
+                "fill": "attack"}
+
+
+def write_partner_demo(d):
+    """partner.gltf (its buffer embedded as a data URI: no .bin to carry), partner.png and partner.json."""
+    g, b, p, _ = make_robot(anim_extra="partner", name="partner")
+    g["buffers"][0]["uri"] = "data:application/octet-stream;base64," + base64.b64encode(b).decode()
+    os.makedirs(d, exist_ok=True)
+    Path(d, "partner.gltf").write_text(json.dumps(g))
+    Path(d, "partner.png").write_bytes(p)
+    Path(d, "partner.json").write_text(json.dumps(PARTNER_META, indent=2))
 
 
 def make_glb(g, b, png):
@@ -304,10 +360,10 @@ def write_parity(d):
         Path(cd, "expected.bin").write_bytes(mi.bake(copy.deepcopy(meta), cd)["blob"])
 
 
-def bake_dir(meta, gltf, binary, png):
+def bake_dir(meta, gltf, binary, png, partner=False):
     with tempfile.TemporaryDirectory() as d:
-        write_model(d, gltf, binary, png, meta)
-        return mi.bake(meta, d)
+        write_model(d, gltf, binary, png, meta, name=meta["name"] if meta["name"] in ("partner",) else "robot")
+        return mi.bake(meta, d, partner)
 
 
 def parse(blob):
@@ -479,8 +535,8 @@ class BakeTests(unittest.TestCase):
         self.assertEqual(len(self.model["bones"]), 5)       # root + hip, torso, head, arm
         self.assertEqual(self.model["bones"][0]["mesh"], None)
         self.assertEqual([b["parent"] for b in self.model["bones"][1:]], [0, 1, 2, 2])
-        self.assertEqual(self.res["snippet"]["new"]["robot"]["model"]["model"], {"file": "<mod>:models/robot.bin", "entry": 1})
-        self.assertEqual(self.res["snippet"]["new"]["robot"]["model"]["effects"], "dw3:digimon/383")
+        self.assertEqual(self.res["snippet"]["model"]["model"], {"file": "<mod>:digimon/robot/model.bin", "entry": 1})
+        self.assertEqual(self.res["snippet"]["model"]["effects"], "dw3:digimon/383")
         self.assertEqual(self.res["stats"]["polys"], self.info["tris"])
 
     def test_rest_pose_matches_gltf(self):
@@ -715,6 +771,53 @@ class FoldingTests(unittest.TestCase):
         self.assertLess(worst, 0.02)
 
 
+class PartnerSlotTests(unittest.TestCase):
+    """--partner: one warning per motion slot a partner's battle code plays and the model leaves empty."""
+
+    def bake(self, meta_mutate=None, partner=True):
+        g, b, png, _ = make_robot(anim_extra="partner", name="partner")
+        meta = copy.deepcopy(PARTNER_META)
+        if meta_mutate:
+            meta_mutate(meta)
+        return bake_dir(meta, g, b, png, partner=partner)
+
+    def test_partner_demo_has_no_warning(self):
+        res = self.bake()
+        self.assertEqual(res["warnings"], [])
+        self.assertEqual(res["stats"]["slots"], mi.SLOTS)
+
+    def test_each_missing_slot_is_a_line(self):
+        def mut(m):
+            del m["fill"]
+            for k in ("3", "13", "20", "32"):
+                del m["motions"][k]
+        res = self.bake(meta_mutate=mut)
+        slots = [int(w.split()[2]) for w in res["warnings"] if "has no animation" in w]
+        self.assertEqual(slots, [3, 13, 20, 32], res["warnings"])
+        self.assertTrue(all(w.startswith("motion slot ") for w in res["warnings"]))
+        self.assertIn("(flinch)", res["warnings"][0])
+        self.assertFalse(any("are not mapped" in w for w in res["warnings"]))
+
+    def test_without_the_flag_the_generic_line_stays(self):
+        def mut(m):
+            del m["fill"]
+            del m["motions"]["3"]
+        res = self.bake(meta_mutate=mut, partner=False)
+        self.assertTrue(any("motion slots [3]" in w for w in res["warnings"]), res["warnings"])
+
+    def test_tables_are_sorted_and_cover_the_generic_minimum(self):
+        for table in (mi.ENEMY_NEEDS, mi.PARTNER_NEEDS):
+            slots = [t[0] for t in table]
+            self.assertEqual(slots, sorted(set(slots)))
+            self.assertTrue(set(mi.MIN_SLOTS) <= set(slots))
+        self.assertEqual([t[0] for t in mi.ENEMY_NEEDS], list(mi.MIN_SLOTS))
+
+    def test_check_flag_on_the_command_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_partner_demo(d)
+            self.assertEqual(mi.main([os.path.join(d, "partner.json"), "--check", "--partner"]), 0)
+
+
 class ValidationTests(unittest.TestCase):
     def bake(self, mutate=None, meta_mutate=None):
         g, b, png, _ = make_robot()
@@ -914,10 +1017,10 @@ class CliTests(unittest.TestCase):
             with redirect_stdout(buf):
                 rc = mi.main([os.path.join(d, "robot.json"), "--out", out])
             self.assertEqual(rc, 0)
-            blob = Path(out, "models", "robot.bin").read_bytes()
+            blob = Path(out, "digimon", "robot", "model.bin").read_bytes()
             text = buf.getvalue()
-            self.assertIn('"file": "mymod:models/robot.bin"', text)
-            self.assertIn("digimon-v1", text)
+            self.assertIn('"file": "mymod:digimon/robot/model.bin"', text)
+            self.assertIn("digimon-digimon-v1", text)
             model, motions = parse(blob)
             self.assertEqual(len(model["bones"]), 5)
             buf = io.StringIO()
@@ -955,6 +1058,9 @@ if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "--demo":
         write_demo(sys.argv[2])
         print("demo model written to %s" % sys.argv[2])
+    elif len(sys.argv) == 3 and sys.argv[1] == "--demo-partner":
+        write_partner_demo(sys.argv[2])
+        print("partner demo model written to %s" % sys.argv[2])
     elif len(sys.argv) == 3 and sys.argv[1] == "--parity":
         write_parity(sys.argv[2])
         print("parity cases written to %s" % sys.argv[2])

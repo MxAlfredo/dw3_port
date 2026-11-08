@@ -4,6 +4,7 @@
 #include "mods.h"
 #include "port_log.h"
 
+#include "port_paths.h"
 #include "port_version.h"
 #include "text_data.h"
 
@@ -274,6 +275,71 @@ static void repMark(const char *name, int status, const char *reason)
         r->status = status;
         snprintf(r->reason, sizeof r->reason, "%.199s", reason);
     }
+}
+
+/* ---- asset layers (mods.h) ---- */
+
+static char gDataDir[1100];
+
+void assetSetData(const char *dataDir) { snprintf(gDataDir, sizeof gDataDir, "%s", dataDir ? dataDir : ""); }
+const char *assetDataDir(void) { return gDataDir[0] ? gDataDir : NULL; }
+int assetLayerCount(void) { return gCount + (gDataDir[0] ? 1 : 0); }
+
+int assetLayerAt(int i, AssetLayer *out)
+{
+    if (i < 0 || i >= assetLayerCount()) return 0;
+    if (i < gCount) {
+        int m = gCount - 1 - i; /* the last mod wins */
+        out->root = gDirs[m];
+        out->mod = m;
+        snprintf(out->label, sizeof out->label, "mods/%s", gNames[m]);
+    } else {
+        out->root = gDataDir;
+        out->mod = -1;
+        snprintf(out->label, sizeof out->label, "data");
+    }
+    return 1;
+}
+
+/* <root>/<topic>/<rel> as a file or a folder, matched without regard to case (ADR-010 section 3); topic may be NULL */
+static int rootEntry(const char *root, const char *topic, const char *rel, char *path, size_t cap, int wantDir)
+{
+    char sub[600], real[1400];
+    struct stat st;
+    int n = topic && topic[0] ? snprintf(sub, sizeof sub, "%s/%s", topic, rel) : snprintf(sub, sizeof sub, "%s", rel);
+
+    if (n >= (int)sizeof sub) return 0;
+    if (!portPathsResolveCI(root, sub, real, sizeof real) || stat(real, &st) != 0) return 0;
+    if (wantDir ? !S_ISDIR(st.st_mode) : !S_ISREG(st.st_mode)) return 0;
+    return snprintf(path, cap, "%s", real) < (int)cap;
+}
+
+int assetLayerFile(const AssetLayer *layer, const char *topic, const char *rel, char *path, size_t cap)
+{
+    return rootEntry(layer->root, topic, rel, path, cap, 0);
+}
+
+int assetModFile(int mod, const char *topic, const char *rel, char *path, size_t cap)
+{
+    return mod >= 0 && mod < gCount && rootEntry(gDirs[mod], topic, rel, path, cap, 0);
+}
+
+int assetModDir(int mod, const char *topic, const char *rel, char *path, size_t cap)
+{
+    return mod >= 0 && mod < gCount && rootEntry(gDirs[mod], topic, rel, path, cap, 1);
+}
+
+int assetResolve(const char *topic, const char *rel, char *path, size_t cap, AssetLayer *from)
+{
+    AssetLayer l;
+    int i;
+
+    for (i = 0; assetLayerAt(i, &l); i++) {
+        if (!assetLayerFile(&l, topic, rel, path, cap)) continue;
+        if (from) *from = l;
+        return 1;
+    }
+    return 0;
 }
 
 int modsReportCount(void) { return gRepN; }

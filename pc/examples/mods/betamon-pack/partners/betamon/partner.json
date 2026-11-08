@@ -1,0 +1,17 @@
+{
+  "format": "partners-partner-v1",
+  "name": "betamon",
+  "base": "dw3:partner/3",
+  "firstForm": "betamon-pack:betamon",
+  "title": { "eng": "Betamon", "es-419": "Betamon" },
+  "description": {
+    "eng": "A swift river digimon.\nGrows into Seadramon.",
+    "es-419": "Un digimon de río, veloz.\nCrece hasta Seadramon."
+  },
+  "evolution": [
+    { "digimon": "betamon-pack:seadramon",
+      "needs": [ { "digimon": "betamon-pack:betamon", "level": 5 } ], "stat": "level", "value": 10 },
+    { "digimon": "betamon-pack:megaseadramon",
+      "needs": [ { "digimon": "betamon-pack:seadramon", "level": 20 } ], "stat": "level", "value": 30 }
+  ]
+}

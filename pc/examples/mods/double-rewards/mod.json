@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Double rewards",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Every battle gives double partner EXP and double money (data table battle_rewards)."
-}

@@ -1,0 +1,229 @@
+spritekiln: 1
+# Betamon DW2003 fan-game interpretation, SpriteKiln 0.3
+# Coordinates: X lateral, Y up, Z forward.
+name: betamon
+kind: character
+view: topdown
+size: 64
+directions: [s, sw, w, nw, n, ne, e, se]
+mirror: false
+camera: {pitch: 38, scale: 0.022, center: [0, 0.43, 0]}
+shadow: null
+light: {dir: [-0.55, 1, 0.45], rim: [0.8, 0.35, -0.9], rim_strength: 0.28, ambient: 0.28}
+render: {outline: dark, shading: flat, lines: none, highlights: false}
+brief:
+  summary: >-
+    Betamon, a low and broad green amphibian with a huge curved orange dorsal crest,
+    blue wavy crown markings, big red eyes, gray-white lower jaw, four stubby legs
+    ending in long silver-gray claws, and a small green rear fin.
+  must_keep: [low long spiked orange dorsal crest, red eyes, blue crown stripes, gray jaw, four silver claw tips]
+ramps:
+  skin: ['#122b1b', '#236d35', '#319848', '#5ac46a']
+  belly: ['#26343b', '#879a9d', '#c4d1d1', '#edf1ec']
+  fin: ['#742b1e', '#bb4226', '#e65a30', '#ff9651']
+  stripe: ['#142d63', '#244a9d', '#3976cf', '#76a7ed']
+  eye: ['#38151d', '#a92335', '#e83d50', '#ff7882']
+  white: ['#50646a', '#b9c7ce', '#ecf3f5', '#ffffff']
+  ink: ['#101b1b', '#101b1b', '#101b1b', '#101b1b']
+  claw: ['#48545c', '#89979e', '#c8d1d5', '#f1f4f5']
+materials:
+  skin: {ramp: skin}
+  belly: {ramp: belly}
+  fin: {ramp: fin}
+  stripe: {ramp: stripe}
+  eye: {ramp: eye}
+  white: {ramp: white}
+  ink: {ramp: ink, emissive: true, band: 1, outline: false}
+  claw: {ramp: claw}
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0
+  squash: 1
+  twist: 0
+  head_pitch: 0
+  head_yaw: 0
+  jaw: 0
+  eyes: 1
+  fl_L: 0
+  fb_L: 0
+  fl_up_L: 0
+  fb_up_L: 0
+  spread_L: 0
+  tail_pitch: 0
+  tail_yaw: 0
+  crest: 0
+bones:
+  body: {parent: root, pos: '[0, 0.31 + bob, 0]', rot: '[lean, twist, 0]', scale: '[1/sqrt(squash), squash, 1/sqrt(squash)]'}
+  head: {parent: body, pos: [0, 0.06, 0.20], rot: '[head_pitch, head_yaw, 0]'}
+  jawb: {parent: head, pos: [0, -0.095, 0.16], rot: '[0.4*jaw, 0, 0]'}
+  crestb: {parent: head, pos: [0, 0.13, -0.07], rot: '[-0.18*crest, 0, 0]'}
+  hipF_L: {parent: body, pos: [0.19, -0.09, 0.16], rot: '[-fl_L, 0, -spread_L]'}
+  hipB_L: {parent: body, pos: [0.19, -0.08, -0.17], rot: '[-fb_L, 0, -spread_L]'}
+  tail: {parent: body, pos: [0, 0.00, -0.24], rot: '[tail_pitch, tail_yaw, 0]'}
+parts:
+  body:
+    material: skin
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0, -0.01], r: [0.24, 0.16, 0.29]}
+      - ellipsoid: {c: [0, 0.015, 0.13], r: [0.24, 0.15, 0.20]}
+  belly:
+    material: belly
+    space: body
+    prims:
+      - ellipsoid: {c: [0, -0.095, 0.09], r: [0.18, 0.085, 0.24]}
+  head:
+    material: skin
+    space: head
+    blend: 0.055
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.295, 0.165, 0.26]}
+      - ellipsoid: {c: [0, -0.035, 0.205], r: [0.24, 0.11, 0.145]}
+  jaw:
+    material: belly
+    space: jawb
+    prims:
+      - ellipsoid: {c: [0, -0.015, 0.07], r: [0.225, 0.055, 0.145]}
+  mouth:
+    material: ink
+    space: jawb
+    when: 'jaw > 0.3'
+    prims:
+      - ellipsoid: {c: [0, 0.034, 0.10], r: [0.15, 0.018, 0.085]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.195, 0.075, 0.205], r: '0.079*eyes + 0.012'}
+  pupil_L:
+    material: ink
+    space: head
+    when: 'eyes > 0.5'
+    priority: 3
+    prims:
+      - sphere: {c: [0.205, 0.084, 0.266], r: 0.041}
+  glint_L:
+    material: white
+    space: head
+    when: 'eyes > 0.5'
+    priority: 4
+    prims:
+      - sphere: {c: [0.191, 0.111, 0.300], r: 0.014}
+  nostril_L:
+    material: ink
+    space: head
+    min_cover: 1
+    prims:
+      - sphere: {c: [0.060, -0.005, 0.344], r: 0.014}
+  # One continuous curved sail, oriented in the Y/Z plane.
+  crest:
+    material: fin
+    space: crestb
+    prims:
+      - extrude:
+          c: [0, 0, 0]
+          rot: [0, 1.5708, 0]
+          depth: 0.06
+          round: 0.012
+          profile:
+            polygon:
+              - [-0.08, -0.04]
+              - [-0.04, 0.14]
+              - [0.04, 0.22]
+              - [0.08, 0.16]
+              - [0.16, 0.30]
+              - [0.22, 0.20]
+              - [0.30, 0.32]
+              - [0.36, 0.20]
+              - [0.44, 0.26]
+              - [0.48, 0.12]
+              - [0.56, 0.10]
+              - [0.56, -0.02]
+              - [0.40, -0.08]
+              - [0.10, -0.08]
+  # Blue forehead markings: separate narrow, raised forms for readability at 64px.
+  stripe_center:
+    material: stripe
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.159, -0.025], r: [0.045, 0.010, 0.115]}
+  stripe_front_L:
+    material: stripe
+    space: head
+    prims:
+      - ellipsoid: {c: [0.105, 0.144, 0.035], r: [0.032, 0.012, 0.105]}
+  stripe_back_L:
+    material: stripe
+    space: head
+    prims:
+      - ellipsoid: {c: [0.185, 0.104, -0.055], r: [0.025, 0.012, 0.088]}
+  rear_fin:
+    material: skin
+    space: body
+    prims:
+      - cone: {a: [0, 0.08, -0.23], b: [0, 0.29, -0.31], r: [0.080, 0.006]}
+  legF_L:
+    material: skin
+    space: hipF_L
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0, 0], b: '[0.08, -0.09 + 0.05*fl_up_L, 0.055]', r: [0.085, 0.060]}
+      - ellipsoid: {c: '[0.09, -0.12 + 0.06*fl_up_L, 0.10]', r: [0.075, 0.050, 0.085]}
+  clawF_L:
+    material: claw
+    space: hipF_L
+    prims:
+      - cone: {a: '[0.105, -0.12 + 0.06*fl_up_L, 0.135]', b: '[0.17, -0.16 + 0.06*fl_up_L, 0.245]', r: [0.055, 0.005]}
+  legB_L:
+    material: skin
+    space: hipB_L
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0, 0], b: '[0.085, -0.09 + 0.05*fb_up_L, -0.045]', r: [0.080, 0.060]}
+      - ellipsoid: {c: '[0.10, -0.12 + 0.06*fb_up_L, -0.03]', r: [0.077, 0.052, 0.080]}
+  clawB_L:
+    material: claw
+    space: hipB_L
+    prims:
+      - cone: {a: '[0.115, -0.12 + 0.06*fb_up_L, -0.01]', b: '[0.19, -0.16 + 0.06*fb_up_L, 0.08]', r: [0.055, 0.005]}
+  tail:
+    material: skin
+    space: tail
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0, 0], b: [0, 0.02, -0.14], r: [0.075, 0.020]}
+animations:
+  stand:
+    frames: 4
+    ms: 600
+    channels:
+      bob: '0.009*sin(f*1.5707963)'
+      crest: '0.12*sin(f*1.5707963)'
+      head_pitch: '0.014*sin(f*1.5707963)'
+  idle:
+    frames: 4
+    ms: 700
+    channels:
+      bob: '0.012*sin(f*1.5707963)'
+      crest: '0.17*sin(f*1.5707963)'
+      tail_yaw: '0.10*sin(f*1.5707963)'
+  walk:
+    frames: 8
+    ms: 120
+    channels:
+      bob: '0.012*sin(f*1.5707963)'
+      fl_L: '0.26*sin(f*0.7853982)'
+      fb_L: '-0.26*sin(f*0.7853982)'
+      fl_up_L: '0.25*(1+sin(f*0.7853982))'
+      fb_up_L: '0.25*(1-sin(f*0.7853982))'
+      crest: '0.09*sin(f*0.7853982)'
+  attack:
+    frames: 4
+    ms: 160
+    channels:
+      lean: '0.12*(f==1)'
+      jaw: '1.0*(f==1) + 0.7*(f==2)'
+      head_pitch: '-0.10*(f==1)'
+      crest: '0.24*(f==1)'

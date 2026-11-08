@@ -1,0 +1,10 @@
+spritekiln: 1
+# The river MegaSeadramon of the quest (stage 330): the model (megaseadramon.yaml) in the five facings of a stage sprite
+# (down, down-left, left, up-left, up; the right side is mirrored by the game). make_art.py trims every frame to its box and places
+# it from the pivot (the water line under the serpent).
+name: megaseadramon_river
+extends: megaseadramon.yaml
+kind: character
+view: topdown
+size: 64
+directions: [s, sw, w, nw, n]

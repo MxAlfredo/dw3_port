@@ -41,9 +41,6 @@
 typedef struct VideoModIo {
     /* the first sector of the disc's movie `name` ("MOVIED01"), 1 when it is on the disc */
     int (*movieLba)(void *ud, const char *name, long *lba);
-    int (*modCount)(void *ud);
-    const char *(*modName)(void *ud, int i);
-    const char *(*modDir)(void *ud, int i); /* no trailing slash */
     void *ud;
 } VideoModIo;
 

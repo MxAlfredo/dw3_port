@@ -2,7 +2,7 @@
 
 Describe el modelo en memoria de un escenario del campo, su archivo
 `stage-v1`, el vocabulario de códigos, qué cubre y qué no, y cómo un mod lo parcha (`stage-patch-v1`, §7) con banderas propias (§7), textos con nombre (§8) y acciones nuevas (§9). Solo hay estructura y conteos: ningún valor del juego (ADR-001). Los archivos
-`data/stages/<nnn>.json` salen del disco del propio jugador y no se suben al repositorio.
+`data/stages/s<nnn>/stage.json` salen del disco del propio jugador y no se suben al repositorio.
 
 ## 1. Qué es un escenario
 
@@ -49,7 +49,7 @@ el gancho vive entre ese retorno y `FLAGS_00.updateModeFlags()`. Las tablas que 
 
 ## 3. El archivo `stage-v1`
 
-`<datos>/stages/<nnn>.json`, una copia de referencia por escenario (con `manifest.json`, la misma regla `.new` de las otras familias de `data/`: una copia
+`<datos>/stages/s<nnn>/stage.json`, una copia de referencia por escenario (en el `stages/manifest.json` único, que comparten las baldosas y los objetos del escenario; la misma regla `.new` de las otras familias de `data/`: una copia
 editada se queda y la nueva versión va al lado). El exportador corre al arrancar (ver §6) y se salta cuando la carpeta ya tiene la versión actual.
 
 ```json
@@ -154,17 +154,17 @@ Fuera del modelo, y por eso en `notes`:
 ## 6. El exportador
 
 `pcExportStageData` (`pc/boot.c`), al arrancar y antes de la primera ventana: corre el `setupStage` de cada escenario (la tabla `SD_SETUPS` sale de los objetos de los escenarios, regla
-`stage_setups.c` de `pc/Makefile`) con el progreso de 0 a 99 para ver qué cambia, lee el de progreso 0 al modelo, escribe `data/stages/<nnn>.json` y lo vuelve a leer para comprobar que es el mismo
+`stage_setups.c` de `pc/Makefile`) con el progreso de 0 a 99 para ver qué cambia, lee el de progreso 0 al modelo, escribe `data/stages/s<nnn>/stage.json` y lo vuelve a leer para comprobar que es el mismo
 escenario. Guarda y devuelve lo que el setup toca (`FIELDSTG_state`, `FIELDSTG_map`, `GAME`, las estáticas de los escenarios), así que con o sin la exportación el juego es idéntico
 (captura de un escenario byte a byte igual). Medido en el disco EU con una carpeta de usuario nueva: 294 escenarios en unos 0.3 s; el arranque que lo salta, sin costo apreciable.
-Cualquier cambio en el formato sube `SD_EXPORT_VERSION` y todos los archivos se reconstruyen (los editados se quedan y la nueva versión va como `<nnn>.json.new`).
+Cualquier cambio en el formato sube `SD_EXPORT_VERSION` y todos los archivos se reconstruyen (los editados se quedan y la nueva versión va como `stage.json.new`). Desde A7.2 el archivo vive en la carpeta del escenario (antes `stages/<nnn>.json`: ya no se lee; sus entradas salen del manifiesto y los archivos viejos quedan en su sitio, con una línea en el log).
 
 Prueba: `make -C pc stagedatatest` (ida y vuelta de los 65 535 códigos y de todas las formas de guion; un escenario sintético a JSON y de vuelta; la regla del manifiesto).
 
-## 7. Parches de mods: `stages/<nnn>.json` (`stage-patch-v1`) y banderas propias
+## 7. Parches de mods: `stages/s<nnn>/stage.json` (`stage-patch-v1`) y banderas propias
 
-Un mod cambia los personajes de un escenario con `mods/<mod>/stages/<nnn>.json` (`<nnn>` es el número del escenario, el mismo de `data/stages/<nnn>.json`). El
-esquema JSON está en `docs/modding/schema/stage-patch.schema.json`; el ejemplo es `pc/examples/mods/stage-npc/`.
+Un mod cambia los personajes de un escenario con `mods/<mod>/stages/s<nnn>/stage.json` (`s<nnn>` es el escenario, el mismo camino de `data/stages/s<nnn>/stage.json`; el archivo del mod lleva su encabezado `stage-patch-v1`, el de `data/` es `stage-v1`). El
+esquema JSON está en `docs/modding/schema/stage-patch.schema.json`; el ejemplo es `pc/examples/mods/training-field/stages/s330/stage.json`.
 
 ```json
 {
@@ -238,7 +238,7 @@ Una charla de un parche dice su línea por nombre en vez de por número: `{"text
 
 - El nombre completo que usa el parche es `"<carpeta del mod>:<nombre>"` (nombre con a-z 0-9 `_` `-` `/`). Cualquier mod puede usar el texto de otro, como las banderas.
 - **Inglés obligatorio.** Un nombre sin texto en inglés rechaza el archivo del parche que lo usa; un idioma al que le falta el nombre muestra el inglés (es-419 prueba el español primero). El validador lo dice: un nombre que
-  ningún mod define o sin inglés es un error del parche (`stages/<n>.json rejected: ... the text "<mod>:<nombre>" is not defined`), y un idioma que un mod da para unos nombres y no para otros es un aviso
+  ningún mod define o sin inglés es un error del parche (`stages/s<nnn>/stage.json rejected: ... the text "<mod>:<nombre>" is not defined`), y un idioma que un mod da para unos nombres y no para otros es un aviso
   (`text/<idioma>/stages.json: "<nombre>" is missing here and skipped: the English line is shown instead`). Un archivo `stages.json` con una línea vacía o que el códec de texto no puede escribir se rechaza entero.
 - **Cómo llega al juego.** `smLoad` lee todos los textos de todos los mods antes de los parches. Cuando empieza un escenario con charlas con nombre (`pcStagePatchHook`), los nombres que sus parches usan reciben una entrada propia
   *después* de las entradas del archivo de texto del escenario (`tdStageTextFirst` dice cuántas tiene el disco en inglés); la charla pasa a ese número. Todos los nombres de los parches del escenario se reservan juntos, usados o no
@@ -263,13 +263,22 @@ Cinco acciones que PS1 no tenía, cada una una llamada a una función del motor 
 | `["take-money", n]` | `GAME.money` baja `n`, hasta 0 | ídem |
 | `["set-progress", n]` | `GAME.progress` pasa a valer `n` (0 a 99) | la posición de la historia |
 | `["warp", escenario, x, y, dir]` | sale del campo hacia ese escenario y aparece en `(x, y)` (píxeles 0-8191) mirando `dir` 0-7 | `FIELDSTG_leaveField(modo, -1, x << 8, y << 8, dir)`, lo que hacen las salidas; el modo es el primero de los modos del escenario (`pcStageModes`) |
-| `["sound", "<nombre>"]` | suena uno de los sonidos compartidos del juego | `playSound`; nombres: `select cancel cursor menu-open menu-close menu-move menu-confirm count recovery teleport win-jingle inn-jingle` |
+| `["sound", "<nombre>"]` | suena uno de los sonidos compartidos del juego | `playSound`; nombres: `select cancel cursor menu-open menu-close menu-move menu-confirm count recovery teleport win-jingle inn-jingle` (no sirve para señalar un premio: eso es `["special", "0x13", 1]`, abajo) |
+
+**Señal de objeto recibido.** La acción `["special", "0x13", 1]` (no es una acción del puerto: es la condición `SPECIAL_CONDITIONS {0x13, 0x50, 0}` del juego, `showActorIcon`, `events.c`) pone el ícono del jugador (tarea `0x16`, `FIELD_TASK_ICON`)
+en su subestado 3: destella y suena `SOUND_ITEM_GET` al entrar (`actor_icon.c`). Es lo único que el original hace al dar un premio (sus charlas terminan en `{FLAG, ITEM, SPECIAL(0x13), 1}`; los guiones usan `["command", 813, 842, 2]`,
+`SCRIPT_COMMAND(0x32D, 0x34A, 2)`), así que **va última**, después de `item`, `give-money` y las banderas, y no se agrega música ni `sound`. El ícono solo se crea con un modo anterior a `MODE_NEW_GAME` (`0x2D7`) mirando el modo
+del respaldo (`pcModeAsOriginal`); en un escenario nuevo cuyo `fallback.stage` es posterior (p. ej. 880, modo 747) no hay ícono, y `showActorIcon` y los comandos 824/825/842 no hacen nada y escriben una línea `[field]` en el
+log (`pcActorIconSignal`; antes desreferenciaban nulo y cerraban el juego). Con `DW3_LOG=trace` el canal `field` imprime `actor icon: told to play`, y con `SND_DEBUG=1` el sonido sale como `sep play id=1 rec=9`.
+Prueba en el disco real: `["special", "0x13", 1]` en una charla de `stages/s330/stage.json` y en `stages/lower/` de `training-field`, y `["run-event", ...]` con `["command", 813, 842, 2]`: la línea del ícono y el sonido salen al cerrarse
+el texto, y la captura difiere de la misma charla sin la acción solo en el recuadro del ícono (11 x 9 px junto al jugador).
 
 Corren donde corren las acciones de una charla (al terminar de hablar), como las de tienda o posada, que también salen del campo desde `applyAction`. El validador rechaza un número fuera de rango, un escenario que la compilación no tiene
 y un sonido que no existe, con el motivo. `give`/`take` de un objeto de un mod ya existían: `["item", "<mod>:<nombre>", 1|0]` (registro de contenido, ADR-009).
 
 Con las filas de `special_conditions` que un mod agrega (S3) quedan otras acciones sin código nuevo: un `["special", "<mod>:<nombre>", 1]` con la fila `{primitive: 1 (compañero), op: 3, arg: n}` desbloquea al compañero `n` y
-`op: 8` cura al grupo.
+`op: 8` cura al grupo. El `arg` de una fila de compañero puede ser su nombre (`"arg": "<mod>:<llave>"`), que no se mueve cuando cambian los mods; con `op: 6` ("sigue bloqueado") como condición de la charla es una misión que
+entrega un compañero de mod (`docs/modding/README.md` §6.9b).
 
 **No hay (con el motivo).** *Dar un Digimon o una forma de compañero*: el motor no tiene un camino seguro y suelto (las formas se cambian por el laboratorio y las evoluciones, que leen y escriben `Partner` con su propio
 estado); lo único que existe es desbloquear un compañero por la fila `partner.unlock` de arriba.
@@ -290,7 +299,7 @@ Prueba: `make -C pc stagemodtest` (compilar y descompilar cada acción, rechazos
 `stage-patch-v1` tiene tres secciones más, al lado de `actors`: `slots`, `events` y `battles`. Mismas reglas que los personajes: el original es lo que el `setupStage` entregó esta vez, cada mod aplica
 en el orden de carga (el último gana, un conflicto va al log), cada archivo aplica `patch`, `add`, `remove` en ese orden, un índice que no existe a este progreso se omite con una línea y un archivo que no es
 válido se rechaza entero. Los datos se escriben a buffers del puerto después del `setupStage`, dos juegos que alternan (`pcSlotsInstall`, `pcEventsInstall`, `pcBattlesInstall` en `pc/boot.c`; `FieldState.slots`,
-`.events` y `.battles` pasan a apuntar a ellos); sin parche para esa parte no se cambia nada. Ejemplo: `pc/examples/mods/stage-npc/`.
+`.events` y `.battles` pasan a apuntar a ellos); sin parche para esa parte no se cambia nada. Ejemplo: `pc/examples/mods/training-field/`.
 
 ```json
 {
@@ -367,13 +376,12 @@ con un espacio de VRAM propio del puerto para cada personaje nuevo.
   mismo `character` comparten el espacio. Con `image` nada cambia respecto de §7.
 - **`character` del juego.** Cualquier id que el juego tenga con archivo de sprites (`FIELDSTG_fileEntries`, `FIELDSTG_fileEntryCount`, solo `#ifdef DW3_PC`), aunque el escenario no lo cargue (p. ej. el 75, que es del
   escenario 380). El tamaño del espacio sale del mayor cuadro que usa en su archivo (`sprMaxFrame`); si no se puede medir, 64x64 y una línea de log. Un id sin sprite se rechaza con motivo al cargar el parche.
-- **`sprite: "<nombre>"`.** Un personaje que el mod trae: la carpeta `mods/<mod>/sprites/<nombre>/` con un `sprite.json` (`sprite-v1`, el mismo de `images/field/sprt/<nombre>/` que escribe el exportador: cuadros,
+- **`sprite: "<nombre>"`.** Un personaje que el mod trae: la carpeta `mods/<mod>/sprites/<nombre>/` con un `sprite.json` (`sprites-sprite-v1`, o `sprite-v1` como en `partners/<nombre>/field/`: el mismo de `sprites/<nombre>/` que escribe el exportador: cuadros,
   animaciones y conjuntos) y un PNG por cuadro (indexado de hasta 16 colores, el índice 0 transparente por `tRNS`, hasta 256x224 px). `"<mod>:<nombre>"` nombra el de otro mod. El miembro opcional `actor_width`
   (8 a 256 px) es el ancho para las colisiones del campo y para la caja donde se le habla (por defecto, el cuadro más ancho; la caja es la mitad de ancha y un cuarto de alta, `FIELDSTG_findActorAt`; los letreros del juego son actores de 32 px, `FIELDSTG_actorWidths[63]`, y con menos de 32 solo se leen bien de los lados). `character` y `sprite` juntos se rechazan; un `character` de 16384 o más también (esos son los sprites de mods).
   Los sprites se arman al cargar (`spritesLoad`) en un **banco** que es un solo archivo virtual del puerto (un espacio del caché de 64 archivos, sin importar cuántos sprites), con el mismo formato de los
   archivos de sprites del juego, así que `FIELDSTG_animateActor` los reproduce sin cambios. Cada uno recibe el id `16384 + k` (carpetas en orden de nombre por mod); `FIELDSTG_state.getFileEntry` y
-  `getActorWidth` se envuelven para que esos ids apunten al banco. Se puede generar uno de partida con `pc/examples/tools/gen_art.py` (el ejemplo `stage-npc`: `rival`, una copia verde del sprite del jugador
-  hecha con TUS datos exportados; el repositorio no lleva ningún PNG del juego, ADR-001).
+  `getActorWidth` se envuelven para que esos ids apunten al banco. Un sprite de partida: `pc/examples/mods/training-field/sprites/sign/` (un letrero dibujado a mano por `tools/make_art.py`; el repositorio no lleva ningún PNG del juego, ADR-001).
 - **Dónde viven en VRAM (la banda del puerto).** Los cuadros de un espacio los carga `FIELDSTG_animateActor` en `imageX`/`imageY`. La banda es el bloque x 0-319, y 256-495 (en halfwords): cinco páginas de textura
   de 64 halfwords en y 256 (se llenan por estantes; un espacio de cuadros de 32 px ocupa 8 halfwords) para los cuadros, en y 256-479, y las paletas (16 halfwords cada una, 20 por fila) en y 480-495. **Por qué ahí:**
   el cuadro que dibuja PsyCross vive en x 0-319, y 0-239 de la misma VRAM y la borra cada cuadro (la primera versión usaba y 16-255 y los personajes salían como ruido: se midió con el volcado de arte); el juego
@@ -387,7 +395,7 @@ con un espacio de VRAM propio del puerto para cada personaje nuevo.
 - **API.** `SD_EXPORT_VERSION` pasó a 3 (las vistas previas de los eventos cambian de contenido: los archivos ya exportados se reescriben al reexportar). `sdActorFree` libera lo que posee un actor (la usa el anfitrión para quitar uno sin espacio).
 
 Prueba: `make -C pc imagetest` (la banda: capacidad, estantes sin cruce, paletas, tamaños límite; el banco de sprites y sus rechazos) y `make -C pc stagemodtest` (`character` sin `image`, `sprite`, rechazos con motivo,
-numeración de espacios). Ejemplo: `pc/examples/mods/stage-npc` (`visitor`, character 75, y `rival`, `sprite`).
+numeración de espacios). Ejemplo: `pc/examples/mods/training-field` (el guía usa el `character` 44 del juego y los letreros, `sprite`: `sign`).
 
 ## 12. Escenarios nuevos desde mods: el registro (T4, ADR-012)
 
@@ -423,7 +431,8 @@ Prueba: `make -C pc modstagetest memcardtest` (sin disco).
 
 ## 13. Escenarios nuevos desde mods: el cargador (T5, ADR-012)
 
-`pc/shim/stage_new.[ch]` arma un escenario desde `mods/<mod>/new-stages/<nombre>/` al iniciar (los mods se leen una vez). El escenario es `<mod>:<nombre>` (la carpeta; llave de 1 a 48 caracteres `a-z 0-9 - _`).
+`pc/shim/stage_new.[ch]` arma un escenario desde `mods/<mod>/stages/<nombre>/` al iniciar (los mods se leen una vez; hasta A7.3 era `new-stages/`, que ya no se lee). El escenario es `<mod>:<nombre>` (la carpeta; llave de 1 a 48 caracteres `a-z 0-9 - _`).
+Regla de nombres (A7.3): dentro de `stages/` una carpeta llamada exactamente `s` + 3 dígitos (`s330`, en cualquier caja) es un escenario **original** y su `stage.json` es un `stage-patch-v1`; cualquier otra carpeta es un escenario **nuevo** (`stage-new-v1`). Una carpeta `s<nnn>` nunca es un escenario nuevo, aunque `s123` sea una llave válida: el cargador de escenarios nuevos la salta en silencio y el del parche dice, si el archivo trae otro `format`, `"format" must be "stage-patch-v1"` (un error, una línea). Un nombre que no es llave (mayúsculas, espacios, más de 48 caracteres) da el aviso `<ruta> ignored: a new stage's folder is named with ...` solo del cargador de escenarios nuevos; los lectores de originales (`smLoad`, baldosas, objetos, `stageObjPackValidate`, `stageModValidate`) saltan esas carpetas sin decir nada. Un `format` que no corresponde a la carpeta es un error de validación (`stage-patch-v1` en una carpeta nueva: `"format" must be "stage-new-v1"`).
 Esquema: `docs/modding/schema/stage-new.schema.json`. Guía corta: `docs/modding/README.md` §6.11b. Prueba: `make -C pc newstagetest`.
 
 ### Archivos
@@ -466,7 +475,7 @@ secciones `actors`, `slots`, `events`, `battles` **solo con `add`**, leídas por
    los archivos que lo nombraban se vuelven a leer (hasta que no cambie nada), así que una salida a un escenario rechazado rechaza al que la tiene.
 4. `nsInstall`: archivos virtuales (TMPK primero, luego PACK) de los escenarios que quedaron, y los datos que `pcModStageSetup` copia al `FieldState`.
 
-`--validate-mod` corre los mismos cargadores y muestra esas líneas (`new-stages` está en las capas cubiertas de `pcValidateMods`).
+`--validate-mod` corre los mismos cargadores y muestra esas líneas (`stages` está en las capas cubiertas de `pcValidateMods`; una carpeta `new-stages/` sobrante da `folder new-stages/ is never read`).
 
 ### Lo que el juego necesita de un escenario sin `setupStage` (leído)
 
@@ -484,7 +493,7 @@ secciones `actors`, `slots`, `events`, `battles` **solo con `add`**, leídas por
 
 `make -C pc newstagetest` (sin disco): un escenario de 2 x 2 mosaicos hecho con PNG generados en la prueba; las tres capas del TMPK leídas como archivo virtual iguales a los PNG, los cuatro mosaicos del PACK decodificados iguales al fondo y su CLUT; las secciones aplicadas a un escenario
 vacío; catorce rechazos con su motivo; los rechazos de `nsCheck` (ranura y área que no existen), el modo que queda tomado, y el rechazo en cascada. Sin ventana, con el disco: `warp:330,4,fieldexit,reach:300` (de Parque Central al escenario por una salida
-agregada en `stages/330.json`) y `mode:300,fieldexit,reach:21D` (de vuelta por la salida del escenario).
+agregada en `stages/s330/stage.json`) y `mode:300,fieldexit,reach:21D` (de vuelta por la salida del escenario).
 
 ### T5b: encuentros propios (hecho)
 
@@ -650,4 +659,4 @@ Ejemplo (el campeón y la Tamer de `training-field`): primero gana, después `du
 ### Fichas de arnés y pruebas
 
 `askpick:yes|no` (responde la pregunta cuando el panel está listo; `fieldauto` aparte), `battleplay:win` (la batalla que empezó una acción termina como victoria a los 120 cuadros por el camino del juego: `BATTLE_RESULT` y `MODE_BATTLE_REPORT`; un grupo de nivel 1 no vence al duelo). Pruebas: `make -C pc stagemodtest` (`ask`: compilar, descompilar, `pcActionsAsk`, respuesta) y
-`make -C pc extstatetest` (`testFieldBattleResults`). El validador (`--validate-mod`) ya no avisa de la carpeta `sprites/`.
+`make -C pc extstatetest` (`testFieldBattleResults`). El validador (`--validate-mod`) revisa la carpeta `sprites/` (A7.5): el nombre de una original (`p001play`) son sus cuadros `NNN.png` y su `sprite.json` no se lee; cualquier otro nombre es un sprite nuevo y debe llevar `sprite.json`. Un sprite nuevo no puede llamarse como una original (el nombre sería de sus cuadros).

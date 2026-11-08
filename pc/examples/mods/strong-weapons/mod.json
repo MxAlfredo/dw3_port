@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Strong weapons",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Every weapon has double attack, up to the game's cap of 999 (table weapon_data)."
-}

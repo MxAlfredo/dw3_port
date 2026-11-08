@@ -20,6 +20,7 @@
 #include "shim/audio_export.h"
 #include "shim/audio_mod.h"
 #include "shim/midi_write.h"
+#include "shim/mods.h"
 #include "shim/snd_internal.h"
 #include "shim/text_data.h"
 #include "shim/vag_encode.h"
@@ -619,9 +620,9 @@ static void testExport(void) {
         free(orig);
         free(edited);
     }
-    /* the manifest holds the version of each bank beside the file hashes */
+    /* the manifest header holds the version of each bank, and the files hold their hashes */
     d = readAll("data/audio/manifest.json", &len);
-    CHECK(d != NULL && has(d, len, "TEST01/exporter") && has(d, len, "TEST01/vag_001.wav") && has(d, len, "TEST01/seq_0_00.mid"));
+    CHECK(d != NULL && has(d, len, "\"exporter\": {\n    \"TEST01\": ") && !has(d, len, "TEST01/exporter") && has(d, len, "TEST01/vag_001.wav") && has(d, len, "TEST01/seq_0_00.mid"));
     free(d);
     /* an older exporter version rebuilds the bank and replaces the files that were not edited */
     d = readAll("data/audio/manifest.json", &len);
@@ -631,13 +632,12 @@ static void testExport(void) {
         memcpy(text, d, len);
         text[len] = 0;
         free(d);
-        at = strstr(text, "TEST01/exporter");
+        at = strstr(text, "\"TEST01\": ");
         CHECK(at != NULL);
         if (at != NULL) {
-            at = strchr(at + 15, ':');
-            at = at != NULL ? strchr(at, '"') : NULL;
-            CHECK(at != NULL);
-            if (at != NULL) at[16] = '0'; /* the last digit of the version hex: 0000000000000001 -> ...0 */
+            at += strlen("\"TEST01\": ");
+            CHECK(*at >= '1' && *at <= '9' && (at[1] < '0' || at[1] > '9'));
+            *at = '0'; /* a one-digit version: 1 -> 0 */
             path(p, sizeof p, "data/audio/manifest.json");
             CHECK(tdWriteFileAtomic(p, text, strlen(text)) == 0);
         }
@@ -649,6 +649,11 @@ static void testExport(void) {
     CHECK(audioExportRequest("test01") == 1);
     waitJob();
     CHECK(audioExportBuilt() == 1);
+    /* the menu's job: the same bank on the worker thread, joined by the pump */
+    CHECK(audioExportStart("test01", 1) == 1);
+    waitJob();
+    CHECK(audioExportBuilt() == 1 && !audioExportActive() && !strcmp(audioExportStatus(), "Done (1)"));
+    CHECK(audioExportRun("test01") == 1 && audioExportBuilt() == 0); /* the settings.ini key: synchronous, up to date */
 }
 
 
@@ -933,18 +938,18 @@ static int amSlotBank(void *ud, int slot, char *name, int cap) {
     memcpy(name, "TESTBK", 7);
     return 1;
 }
-static int amModCount(void *ud) { (void)ud; return 2; }
-static const char *amModName(void *ud, int i) { (void)ud; return i == 0 ? "modA" : "modB"; }
-static char gModDirs[2][1400];
-static const char *amModDir(void *ud, int i) { (void)ud; return gModDirs[i]; }
 
+/* modtest/modA and modB are the active mods, modB last (it wins) */
 static void useMods(void) {
     AudioModIo io;
+    char root[1500];
+    static const char json[] = "{\"format\": \"mod-v1\"}\n";
 
+    writeFile("modtest/modA/mod.json", json, sizeof json - 1);
+    writeFile("modtest/modB/mod.json", json, sizeof json - 1);
+    path(root, sizeof root, "modtest");
+    modsInit(root, "modA, modB");
     io.slotBank = amSlotBank;
-    io.modCount = amModCount;
-    io.modName = amModName;
-    io.modDir = amModDir;
     io.ud = NULL;
     audioModSetup(&io);
 }
@@ -1020,8 +1025,6 @@ static void testBankPatch(void) {
     tdMakeDirs(d);
     path(d, sizeof d, "modtest/modB/audio/TESTBK");
     tdMakeDirs(d);
-    path(gModDirs[0], sizeof gModDirs[0], "modtest/modA");
-    path(gModDirs[1], sizeof gModDirs[1], "modtest/modB");
     useMods();
     fpReset();
 
@@ -1260,8 +1263,6 @@ static void testSongs(void) {
     tdMakeDirs(d);
     path(d, sizeof d, "modtest/modB/audio/TESTBK");
     tdMakeDirs(d);
-    path(gModDirs[0], sizeof gModDirs[0], "modtest/modA");
-    path(gModDirs[1], sizeof gModDirs[1], "modtest/modB");
     {
         /* start from nothing in the two mods */
         const char *old[] = {"modtest/modA/audio/TESTBK/vag_002.wav", "modtest/modB/audio/TESTBK/vag_002.wav"};

@@ -1,6 +1,0 @@
-{
-  "format": "card_shop_stock-v1",
-  "rows": {
-    "49": { "cards": { "remove": [59], "add": ["sample-card:test-card"] } }
-  }
-}

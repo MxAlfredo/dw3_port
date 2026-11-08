@@ -10,7 +10,7 @@
  * JSON files (stage-v1, what the reference export writes and what a mod patch will name) and written back, headless. The online project later
  * reuses it as it is.
  *
- * <data>/stages/<nnn>.json is the reference copy of stage WSTAG<nnn> in the user's own data folder: it is made from the player's disc, so it
+ * <data>/stages/s<nnn>/stage.json is the reference copy of stage WSTAG<nnn> in the user's own data folder: it is made from the player's disc, so it
  * is never committed (ADR-001). Same manifest and ".new" rule as the other data/ families (ADR-005); the manifest also holds the exporter
  * version, and a folder of the current version with every file present is skipped. Bump SD_EXPORT_VERSION when the output bytes change.
  *
@@ -23,7 +23,7 @@
 
 #include "stage_codes.h"
 
-#define SD_EXPORT_VERSION 3
+#define SD_EXPORT_VERSION 4
 #define SD_FORMAT "stage-v1"
 
 typedef struct SdList {
@@ -235,9 +235,9 @@ typedef struct SdExportStats {
 
 /* The data folder (NULL: no export). Loads the stages manifest. */
 void sdExportSetup(const char *dataDir);
-/* 1 when the folder has the current exporter version and every file `<numbers[i]>.json` */
+/* 1 when the folder has the current exporter version and every file `s<numbers[i]>/stage.json` */
 int sdExportUpToDate(const int *numbers, int count);
-/* Writes <data>/stages/<nnn>.json under the manifest rule. 0, or -1 on a failure. */
+/* Writes <data>/stages/s<nnn>/stage.json under the manifest rule. 0, or -1 on a failure. */
 int sdExportPut(int number, const char *text, SdExportStats *st);
 /* Stamps the exporter version (when nothing failed) and saves the manifest. */
 void sdExportEnd(int ok);

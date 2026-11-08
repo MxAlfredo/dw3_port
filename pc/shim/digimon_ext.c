@@ -2,6 +2,7 @@
  * Changes to existing Digimon from content mods: see digimon_ext.h.
  */
 
+#include <dirent.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -18,6 +19,7 @@
 #include "mods.h"
 #include "port_fs.h"
 #include "port_log.h"
+#include "script_mirror.h"
 #include "tech_ext.h"
 #include "text_data.h"
 
@@ -31,6 +33,7 @@
 #define LAST_ID 32767           /* BattleTableEntry.id, FighterEntry.id and BattleFighter.id are s16 */
 #define DIGNAM_ORIG_COUNT 251   /* entries of the name file (DIGNAM) on the disc, the same in every language */
 #define ENCOUNTER_ROWS 335      /* FIELDSTG_encounters (docs/data-tables.md section 3.5) */
+#define MOTION_SLOTS 62         /* the entries of a fighter's motions archive (docs/formats.md 4.6 point 5b) */
 #define ENEMY_KIND_MIN 0x3A     /* FighterEntry.kind from this on: an enemy (fighter_info.c) */
 
 enum { FACET_PARTNER = 1, FACET_ENEMY = 2 };
@@ -45,6 +48,7 @@ static int newCount(void);
 static const char *newText(int index, const char *langDir, int desc);
 static void setNameHooks(const char *(*nameOf)(int), int (*idOf)(const char *));
 static int baseOfNew(int id);
+static int acceptOwnModel(const ContentEntry *e);
 
 /* a new Digimon: an enemy is the base's battle table row with the overrides, a partner form the base's DigimonData with them;
    either shares the model, motions and effects of an original fighter of its own facet */
@@ -71,10 +75,21 @@ typedef struct FileRef {
 } FileRef;
 
 /* "model": {...}: the new Digimon's own FighterInfo row, from the template fighter's with these replaced */
+/* "scripts": {"<slot>": {"from": <original fighter>, "slot": <its slot>}}: one script of the effects archive taken from another fighter's */
+#define EFFECT_SLOTS 18 /* the script slots of an effects archive (TechData.script is 0..17) */
+typedef struct ScriptSrc {
+    int slot;    /* the slot of this Digimon's effects archive that is replaced */
+    int fighter; /* the original fighter whose archive the script comes from */
+    int from;    /* its slot there */
+} ScriptSrc;
+
 typedef struct OwnModel {
     int own;
     FileRef ref[3]; /* model, motions, effects */
     int height, distance; /* the value, or INT_MIN: the template's */
+    int fill;             /* "fill": a slot of the motions file whose offset every empty slot takes (by reference), or -1 */
+    int nScripts;
+    ScriptSrc scripts[EFFECT_SLOTS]; /* "scripts": in the order declared */
 } OwnModel;
 
 typedef struct NewRec {
@@ -89,6 +104,7 @@ typedef struct NewRec {
     int nEvo;
     EvoDecl evo[EVO_MAX]; /* partner forms: how a partner gets the form (Evolution lists, P3) */
     OwnModel own;         /* a "model" object: its own FighterInfo row (the template is `model`) */
+    int modelGiven;       /* the record has a "model" field: the folder's own model/ is then not used */
 } NewRec;
 _Static_assert(sizeof(DigimonData) <= REC_BYTES, "NewRec.row holds a DigimonData");
 
@@ -101,12 +117,16 @@ static const ContentType kDigimon = {
     "paralysis, confusion, sleep, knockOut} (0..255), statGrowth {strength, defense, spirit, wisdom, speed, charisma} (0..5), "
     "resistGrowth {0..6} (1..5), knownLevels {0..4} (1..99), skills {1..6: {tech, level}}; enemy: stats {attack, defense, spirit, "
     "wisdom, speed}, resistances {0..6}, statusResists {poison, paralysis, confusion, sleep, knockOut} (0..32767), family, techs "
-    "{1..3}, item, itemChance (0..1023); a new Digimon (\"new\") takes the fields of its base's facet, model (an original fighter "
-    "of the same facet), name and description, and \"encounters\" places enemies in encounters; a new partner form also takes "
+    "{1..3}, item, itemChance (0..1023); the fields above go in \"partner\" or \"enemy\" of digimon/d<nnn>/digimon.json to change original <nnn>; "
+    "a new Digimon (the folder digimon/<key>/) takes the fields of its base's facet, model (an original fighter of the same facet, or a model "
+    "source \"<mod>:<key>\"; without it the folder's own model/), title and description, and content/encounters.json places enemies in encounters; "
+    "a new partner form also takes "
     "evolution (how a partner gets it after a battle: partner, needs {digimon, level} up to 2, stat, value), blastForms (five partner "
     "forms by name, what a blast turns it into at each level tier) and pairPartner (a partner form by name, or 0 for none); scriptSlots (reference "
     "only) lists the animation slots the fighter has: a technique whose script is not there cannot be used by it",
     describe,
+    acceptOwnModel, 0,
+    "digimon", "digimon.json", "digimon-digimon-v1", digimonExtKeyIsOriginal,
 };
 
 static ContentSet sSet = {&kDigimon, NULL, 0};
@@ -661,6 +681,7 @@ static void takeEntry(const char *path, const char *key, const ExtJson *def) {
     for (i = 0; i < def->n; i++) {
         const char *k = def->keys[i];
 
+        if (!strcmp(k, "format") || !strcmp(k, "name") || !strcmp(k, "$schema") || !strcmp(k, "notes")) continue; /* the record's header */
         if (!strcmp(k, "partner") || !strcmp(k, "enemy")) {
             int facet = k[0] == 'p' ? FACET_PARTNER : FACET_ENEMY;
 
@@ -678,36 +699,82 @@ static void takeEntry(const char *path, const char *key, const ExtJson *def) {
 
 static void takePlacements(const char *path, const ExtJson *o);
 
-static void readModFile(int m) {
+/* digimon/d<nnn>/ is original fighter <nnn>'s folder (the id on three digits, as the data folder names it): not a new Digimon. Its digimon.json changes that
+   fighter (readChanges) and no mod can replace an original's model, so its model/ is never read. */
+int digimonExtKeyIsOriginal(const char *key) {
+    int i;
+
+    if (key[0] != 'd' || strlen(key) != 4) return 0;
+    for (i = 1; i < 4; i++) {
+        if (key[i] < '0' || key[i] > '9') return 0;
+    }
+    return 1;
+}
+
+/* mods/<mod>/digimon/d<nnn>/digimon.json (digimon-digimon-v1): the change of original <nnn>, {"partner": {...}} or {"enemy": {...}} */
+static void readChanges(int m) {
+    int id;
+
+    for (id = 0; id < 1000; id++) {
+        char rel[40], folder[8], path[1200];
+        uint8_t *data;
+        size_t len;
+        ExtJson root;
+        const ExtJson *fmt, *nm;
+
+        snprintf(folder, sizeof folder, "d%03d", id);
+        snprintf(rel, sizeof rel, "%s/digimon.json", folder);
+        if (!assetModFile(m, "digimon", rel, path, sizeof path) || tdReadFile(path, &data, &len) != 0) continue; /* a folder without a record: nothing to change */
+        if (extJsonParse(data, len, &root) != 0) {
+            plogLine("digimon", "%s rejected: not valid JSON\n", path);
+        } else if ((fmt = extJsonGet(&root, "format")) == NULL || fmt->t != 1 || strcmp(fmt->str, "digimon-digimon-v1") != 0) {
+            plogLine("digimon", "%s rejected: \"format\" must be \"digimon-digimon-v1\"\n", path);
+        } else if ((nm = extJsonGet(&root, "name")) != NULL && (nm->t != 1 || strcmp(nm->str, folder) != 0)) {
+            plogLine("digimon", "%s rejected: \"name\" must be \"%s\", the folder's name\n", path, folder);
+        } else if (id < ID_MIN || id > ID_MAX) {
+            plogLine("digimon", "%s rejected: %s is not an original Digimon (d%03d..d%03d)\n", path, folder, ID_MIN, ID_MAX);
+        } else {
+            snprintf(folder, sizeof folder, "%d", id);
+            takeEntry(path, folder, &root);
+        }
+        extJsonFree(&root);
+        free(data);
+    }
+}
+
+/* mods/<mod>/content/encounters.json (encounters-v1): {"encounters": {"<encounter>": {"<slot>": {...}}}} */
+static void readEncounters(int m) {
     char path[1200];
     uint8_t *data;
     size_t len;
     ExtJson root;
-    const ExtJson *change, *encounters;
-    int i;
+    const ExtJson *fmt, *encounters;
 
-    snprintf(path, sizeof path, "%s/content/digimon.json", modsDirOf(m));
-    if (tdReadFile(path, &data, &len) != 0) return; /* a content mod without Digimon */
-    /* a file that is not JSON or has another format was already logged by the core (contentLoad) */
-    if (extJsonParse(data, len, &root) == 0) {
-        const ExtJson *fmt = extJsonGet(&root, "format");
-
-        if (fmt != NULL && fmt->t == 1 && strcmp(fmt->str, "digimon-v1") == 0) {
-            change = extJsonGet(&root, "change");
-            if (change != NULL && change->t != 2) {
-                plogLine("digimon", "%s rejected: \"change\" must be an object of Digimon\n", path);
-            } else if (change != NULL) {
-                for (i = 0; i < change->n; i++) takeEntry(path, change->keys[i], &change->v[i]);
-            }
-            encounters = extJsonGet(&root, "encounters");
-            if (encounters != NULL) takePlacements(path, encounters);
-        }
+    if (!assetModFile(m, "content", "encounters.json", path, sizeof path) || tdReadFile(path, &data, &len) != 0) return; /* a content mod without placements */
+    if (extJsonParse(data, len, &root) != 0) {
+        plogLine("digimon", "%s rejected: not valid JSON\n", path);
+    } else if ((fmt = extJsonGet(&root, "format")) == NULL || fmt->t != 1 || strcmp(fmt->str, "encounters-v1") != 0) {
+        plogLine("digimon", "%s rejected: \"format\" must be \"encounters-v1\"\n", path);
+    } else if ((encounters = extJsonGet(&root, "encounters")) != NULL) {
+        takePlacements(path, encounters);
     }
     extJsonFree(&root);
     free(data);
 }
 
+static void readModFile(int m) {
+    readChanges(m);
+    readEncounters(m);
+}
+
 /* ---- new enemies ("new": the core reads the entries, this part owns the record and the rows) ---- */
+
+static void put32Le(unsigned char *p, unsigned v) {
+    p[0] = (unsigned char)v;
+    p[1] = (unsigned char)(v >> 8);
+    p[2] = (unsigned char)(v >> 16);
+    p[3] = (unsigned char)(v >> 24);
+}
 
 static void put16At(unsigned char *p, size_t off, long v) {
     p[off] = (unsigned char)v;
@@ -815,6 +882,56 @@ static int takeFileRef(const ExtJson *v, FileRef *r) {
     return 0;
 }
 
+/* "scripts": {"<slot 0..17>": {"from": an original fighter ("dw3:digimon/<id>"), "slot": 0..17}}: that slot of the effects archive plays the
+   script of the fighter's slot instead, converted for this Digimon's side when the fighter is of the other (buildScripts) */
+static int scriptSlotKey(const char *key) {
+    int v;
+
+    if (key[0] < '0' || key[0] > '9' || (key[1] != '\0' && (key[1] < '0' || key[1] > '9' || key[0] == '0' || key[2] != '\0'))) return -1;
+    v = key[1] == '\0' ? key[0] - '0' : (key[0] - '0') * 10 + (key[1] - '0');
+    return v < EFFECT_SLOTS ? v : -1;
+}
+
+static void takeScripts(const ContentEntry *e, NewRec *n, const ExtJson *v) {
+    int i, k;
+
+    if (v->t != 2) {
+        plogLine("digimon", "%s digimon \"%s\" field \"model.scripts\" rejected: an object {\"<slot 0..%d>\": {\"from\": \"dw3:digimon/<id>\", \"slot\": 0..%d}}\n",
+                 e->path, e->name, EFFECT_SLOTS - 1, EFFECT_SLOTS - 1);
+        return;
+    }
+    for (i = 0; i < v->n; i++) {
+        const ExtJson *x = &v->v[i], *from = extJsonGet(x, "from"), *slot = extJsonGet(x, "slot");
+        ScriptSrc s;
+        int ok = 1;
+
+        s.slot = scriptSlotKey(v->keys[i]);
+        s.fighter = -1;
+        s.from = -1;
+        if (s.slot < 0) {
+            plogLine("digimon", "%s digimon \"%s\" field \"model.scripts.%s\" rejected: unknown slot (an effects archive has the slots 0..%d)\n",
+                     e->path, e->name, v->keys[i], EFFECT_SLOTS - 1);
+            continue;
+        }
+        if (x->t != 2) {
+            ok = 0;
+        } else {
+            for (k = 0; k < x->n; k++) if (strcmp(x->keys[k], "from") != 0 && strcmp(x->keys[k], "slot") != 0) ok = 0;
+        }
+        if (ok && from != NULL && from->t == 1 && from->str != NULL) s.fighter = contentOriginalId(&kDigimon, from->str);
+        else if (ok && from != NULL && from->t == 0 && extWhole(from->num, ID_MIN, ID_MAX)) s.fighter = (int)from->num;
+        if (ok && slot != NULL && slot->t == 0 && extWhole(slot->num, 0, EFFECT_SLOTS - 1)) s.from = (int)slot->num;
+        if (!ok || s.fighter < 0 || fighterOf(s.fighter) == NULL || s.from < 0) {
+            plogLine("digimon", "%s digimon \"%s\" field \"model.scripts.%s\" rejected: {\"from\": an original fighter (\"dw3:digimon/<id>\"), "
+                     "\"slot\": 0..%d}\n", e->path, e->name, v->keys[i], EFFECT_SLOTS - 1);
+            continue;
+        }
+        for (k = 0; k < n->own.nScripts; k++) if (n->own.scripts[k].slot == s.slot) break;
+        n->own.scripts[k] = s; /* a slot named twice: the last wins */
+        if (k == n->own.nScripts) n->own.nScripts++;
+    }
+}
+
 /* "model": {"from": an original fighter of the same facet (the template: cameras, height, distance and whatever is not replaced),
    "model"/"motions"/"effects": a file reference each, "height", "distance"}: the Digimon gets its OWN FighterInfo row */
 static void takeOwnModel(const ContentEntry *e, NewRec *n, const ExtJson *v) {
@@ -823,9 +940,24 @@ static void takeOwnModel(const ContentEntry *e, NewRec *n, const ExtJson *v) {
 
     n->own.own = 1;
     n->own.height = n->own.distance = INT_MIN;
+    n->own.fill = -1;
     for (i = 0; i < v->n; i++) {
         const char *key = v->keys[i];
         const ExtJson *x = &v->v[i];
+
+        if (!strcmp(key, "fill")) {
+            if (x->t != 0 || !extWhole(x->num, 0, MOTION_SLOTS - 1)) {
+                plogLine("digimon", "%s digimon \"%s\" field \"model.fill\" rejected: a motion slot 0..%d\n", e->path, e->name, MOTION_SLOTS - 1);
+            } else {
+                n->own.fill = (int)x->num;
+            }
+            continue;
+        }
+
+        if (!strcmp(key, "scripts")) {
+            takeScripts(e, n, x);
+            continue;
+        }
 
         if (!strcmp(key, "from")) {
             id = modelFighter(n, x);
@@ -849,7 +981,7 @@ static void takeOwnModel(const ContentEntry *e, NewRec *n, const ExtJson *v) {
         }
         for (k = 0; k < 3 && strcmp(key, refKeys[k]) != 0; k++) {}
         if (k == 3) {
-            plogLine("digimon", "%s digimon \"%s\" field \"model.%s\" rejected: unknown key (from, model, motions, effects, height, distance)\n",
+            plogLine("digimon", "%s digimon \"%s\" field \"model.%s\" rejected: unknown key (from, model, motions, effects, scripts, fill, height, distance)\n",
                      e->path, e->name, key);
         } else if (!takeFileRef(x, &n->own.ref[k])) {
             memset(&n->own.ref[k], 0, sizeof n->own.ref[k]);
@@ -859,7 +991,7 @@ static void takeOwnModel(const ContentEntry *e, NewRec *n, const ExtJson *v) {
     }
 }
 
-/* "model": "<mod>:<key>": a model source of a content mod (mods/<mod>/content/models/<key>/model.json, shim/model_bake.c). The
+/* "model": "<mod>:<key>": a model source of a content mod (mods/<mod>/digimon/<key>/model/model.json, shim/model_bake.c). The
    Digimon gets its own info row: the model and motions are the baked archive's entries 1 and 0, the effects come from the
    donor fighter of the source, the template (cameras and the rest of the row) is the source's "template" (the base's fighter
    without one), height and distance are the source's "info". A source that cannot be baked is logged when it is resolved
@@ -870,7 +1002,7 @@ static void takeSourceModel(const ContentEntry *e, NewRec *n, const char *name) 
     int id;
 
     if (strlen(name) >= EVO_NAME || !modelsHas(name)) {
-        plogLine("digimon", "%s digimon \"%s\" field \"model\" rejected: no model source \"%s\" (mods/<mod>/content/models/<key>/model.json of a content mod), "
+        plogLine("digimon", "%s digimon \"%s\" field \"model\" rejected: no model source \"%s\" (mods/<mod>/digimon/<key>/model/model.json of a content mod), "
                  "and it is not an original fighter (a number or \"dw3:digimon/<id>\")\n", e->path, e->name, name);
         return;
     }
@@ -927,6 +1059,15 @@ static void takeModel(const ContentEntry *e, NewRec *n, const ExtJson *v) {
         return;
     }
     n->model = id;
+}
+
+/* the Digimon folder's own model: digimon/<key>/model/model.json is the model of "<mod>:<key>" when the record has no "model" field (with one, the field
+   wins and the folder's model/ is not used by this Digimon). Called by the core after the fields. */
+static int acceptOwnModel(const ContentEntry *e) {
+    NewRec *n = e->rec;
+
+    if (!n->modelGiven && modelsHas(e->name)) takeSourceModel(e, n, e->name);
+    return 1;
 }
 
 /* "evolution": how a partner gets this form after a battle, an object or a list of objects (one per partner):
@@ -1087,6 +1228,7 @@ static int newField(const ContentEntry *e, const char *key, const ExtJson *v) {
     int i, size = n->facet == FACET_PARTNER ? (int)sizeof(DigimonData) : BT_SIZE;
 
     if (!strcmp(key, "model")) {
+        n->modelGiven = 1;
         takeModel(e, n, v);
         return 1;
     }
@@ -1400,7 +1542,7 @@ static int modFileResolver(const char *name) {
     mod[colon - name] = '\0';
     for (m = 0; m < modsCount() && strcmp(modsNameOf(m), mod) != 0; m++) {}
     if (m == modsCount() || sModelFileCount >= MODEL_FILES) return -1;
-    snprintf(path, sizeof path, "%s/%s", modsDirOf(m), rel);
+    if (!assetModFile(m, NULL, rel, path, sizeof path)) return -1;
     f = fopen(path, "rb");
     if (f == NULL) return -1;
     if (fseek(f, 0, SEEK_END) != 0 || (size = ftell(f)) <= 0 || size > MODEL_FILE_MAX || fseek(f, 0, SEEK_SET) != 0) {
@@ -1420,6 +1562,11 @@ static int modFileResolver(const char *name) {
 }
 
 static int (*sResolveFile)(const char *name) = modFileResolver;
+static unsigned char *(*sDiscRead)(int file, size_t *len);
+
+void digimonExtSetDiscReader(unsigned char *(*read)(int file, size_t *len)) {
+    sDiscRead = read;
+}
 
 void digimonExtSetFileResolver(int (*resolve)(const char *name)) {
     sResolveFile = resolve != NULL ? resolve : modFileResolver;
@@ -1478,6 +1625,211 @@ static int resolveRef(const FileRef *r, const unsigned char *tpl, int slot, unsi
     }
 }
 
+/* The motions archive of a disc file that a model takes by reference: entry `entry` of file `data` is the archive, a table of MOTION_SLOTS offsets
+   (relative to the archive; 0 is an empty slot, which the game reads as the start of the file: garbage, file_cache.c getArchiveEntry has no bounds
+   check). The slots with a motion as a bit mask, or 0 when the bytes are not such an archive. *at is where the archive starts. */
+static uint64_t motionMask(const unsigned char *data, size_t len, int entry, size_t *at) {
+    uint64_t mask = 0;
+    size_t a;
+    int i;
+
+    if ((size_t)entry * 4 + 4 > len) return 0;
+    a = le32At(data + (size_t)entry * 4);
+    if (a + 4 > len || le32At(data + a) != 4 * MOTION_SLOTS || a + 4 * MOTION_SLOTS > len) return 0; /* the first offset is where the table ends */
+    for (i = 0; i < MOTION_SLOTS; i++) {
+        if (le32At(data + a + 4 * (size_t)i) != 0) mask |= (uint64_t)1 << i;
+    }
+    if (at != NULL) *at = a;
+    return mask;
+}
+
+/* A partner's effect scripts wait for each motion they play to end (model command 0 with motion 0 waits for ModelControl.motionDone,
+   battle_script.c:168), and a motion ends at a keyframe 0xFFFF (model_mesh.c:277; a partner's last step is {frame -1, endFrame 0}). An
+   enemy's motions hold their last pose instead: the last step is {frame 0x8000, endFrame k}, which loops the tail for ever (measured: Betamon,
+   Seadramon and MegaSeadramon's attack, slot 14). A partner's form that takes such a file would hang at its first attack, so its copy ends
+   those motions. The idle (0, 1) and the entrance and victory pose (12) keep holding: nothing waits for them. data[at..] is the archive. */
+static void endHoldingMotions(unsigned char *data, size_t len, size_t at, uint64_t mask) {
+    int i, k;
+
+    for (i = 2; i < MOTION_SLOTS; i++) {
+        size_t p;
+
+        if (i == 12 || !(mask >> i & 1)) continue;
+        p = at + le32At(data + at + 4 * (size_t)i);
+        for (k = 0; k < 256 && p + 8 <= len; k++, p += 8) {
+            if (data[p] == 0xFF && data[p + 1] == 0x7F) break; /* index 0x7FFF closes the list */
+            if (data[p + 2] == 0 && data[p + 3] == 0 && data[p + 4] == 0 && data[p + 5] == 0x80) { /* count 0, frame 0x8000: the held last pose */
+                put16At(data, p + 4, -1);
+                put16At(data, p + 6, 0);
+                break;
+            }
+        }
+    }
+}
+
+/* The motions a model takes by reference (a disc file): a partner's form gets a copy of the file (a virtual file) whose holding motions end
+   (endHoldingMotions), and "fill" also makes the empty slots play the fill slot; then one warning line for each slot the battle code plays that
+   is still empty (the same line as a baked model's; --validate-mod shows it). *ref becomes the copy's reference when there is one. */
+static void checkMotions(const NewRec *r, const char *name, int partner, unsigned *ref) {
+    const ModelSlotNeed *need;
+    unsigned char *data;
+    size_t len = 0, at = 0;
+    uint64_t mask;
+    int i, n = modelSlotNeeds(partner, &need), filled = 0;
+
+    if (sDiscRead == NULL || (data = sDiscRead((int)(*ref >> 16), &len)) == NULL) return;
+    mask = motionMask(data, len, (int)(*ref & 0xFFFF), &at);
+    if (mask != 0 && r->own.fill >= 0 && !(mask >> r->own.fill & 1)) {
+        plogLine("digimon", "digimon \"%s\" field \"model.fill\" rejected: slot %d of its motions is empty\n", name, r->own.fill);
+    } else if (mask != 0 && r->own.fill >= 0) {
+        unsigned want = le32At(data + at + 4 * (size_t)r->own.fill);
+
+        for (i = 0; i < MOTION_SLOTS; i++) {
+            if (!(mask >> i & 1)) put32Le(data + at + 4 * (size_t)i, want);
+        }
+        filled = 1;
+    }
+    if (mask != 0 && (partner || filled)) {
+        int file;
+
+        if (partner) endHoldingMotions(data, len, at, mask);
+        file = pfsAddVirtualFile(data, len);
+        if (file < 0) {
+            plogLine("digimon", "digimon \"%s\": the motions copy has no file number left; the donor's file is used as is\n", name);
+        } else {
+            *ref = ((unsigned)file << 16) | (*ref & 0xFFFF);
+            if (filled) mask = ((uint64_t)1 << MOTION_SLOTS) - 1;
+            PLOG("digimon", PLOG_MODS, "digimon \"%s\": motions copy (virtual file %d), holding motions %s, empty slots %s\n", name, file,
+                 partner ? "end" : "kept", filled ? "play the fill slot" : "kept");
+        }
+    }
+    if (mask != 0) {
+        for (i = 0; i < n; i++) {
+            if (!(mask >> need[i].slot & 1)) plogLine("digimon", "%s: motion slot %d (%s) has no animation: %s\n", name, need[i].slot, need[i].label, need[i].why);
+        }
+    }
+    free(data);
+}
+
+/* The slot table of the effects archive `ref` ((file << 16) | entry) in the bytes of its file: where the archive starts (*at) and how many slots
+   its table has (the first offset is where the table ends), or 0 when the bytes are no such archive */
+static size_t effectsTable(const unsigned char *data, size_t len, unsigned ref, size_t *at) {
+    size_t entry = (size_t)(ref & 0xFFFF) * 4, a, bytes;
+
+    if (entry + 4 > len || (a = le32At(data + entry)) + 4 > len) return 0;
+    bytes = le32At(data + a);
+    if (bytes < 4 || bytes % 4 != 0 || a + bytes > len) return 0;
+    *at = a;
+    return bytes / 4;
+}
+
+/* The script in slot `slot` of the effects archive of a disc file: its first byte, or NULL (*why says what). *avail is what the file holds
+   from there; *file is the file's bytes, which the caller frees. */
+static const unsigned char *scriptOf(unsigned ref, int slot, unsigned char **file, size_t *avail, const char **why) {
+    size_t len = 0, at = 0, slots, off;
+    unsigned char *data = sDiscRead != NULL ? sDiscRead((int)(ref >> 16), &len) : NULL;
+
+    *file = data;
+    if (data == NULL) {
+        *why = "its effects archive is not a disc file";
+        return NULL;
+    }
+    slots = effectsTable(data, len, ref, &at);
+    if (slots == 0) {
+        *why = "its effects archive has no slot table";
+        return NULL;
+    }
+    if ((size_t)slot >= slots || (off = le32At(data + at + 4 * (size_t)slot)) == 0 || at + off >= len) {
+        *why = NULL; /* the slot is empty */
+        return NULL;
+    }
+    *avail = len - (at + off);
+    return data + at + off;
+}
+
+/* "scripts": the effects archive the Digimon's row names (a copy of the file, a virtual file) with the declared slots replaced by the scripts of
+   other fighters' archives, converted for this Digimon's side and place (script_mirror.h). One line for each slot that cannot be given (an
+   unknown slot, an empty source slot, a command that cannot be mirrored); that slot keeps the donor's script. *ref becomes the copy's. */
+static void buildScripts(const NewRec *r, const char *name, int dstEnemy, ScriptPlace dst, unsigned *ref) {
+    unsigned char *data;
+    size_t len = 0, at = 0, size, slots, padded;
+    int k, given = 0, file;
+
+    if (r->own.nScripts == 0 || sDiscRead == NULL) return;
+    data = sDiscRead((int)(*ref >> 16), &len);
+    if (data == NULL) {
+        plogLine("digimon", "%s: field \"model.scripts\" rejected: its effects archive is not a disc file\n", name);
+        return;
+    }
+    slots = effectsTable(data, len, *ref, &at);
+    if (slots == 0) {
+        plogLine("digimon", "%s: field \"model.scripts\" rejected: its effects archive has no slot table\n", name);
+        free(data);
+        return;
+    }
+    size = len;
+    for (k = 0; k < r->own.nScripts; k++) {
+        const ScriptSrc *s = &r->own.scripts[k];
+        const unsigned char *src = NULL, *fe = fighterOf(s->fighter), *row = fe != NULL ? infoOf(fe) : NULL;
+        unsigned char *srcFile = NULL, *out, *grown;
+        const char *why = NULL;
+        char line[200];
+        size_t avail = 0;
+        int n;
+
+        if ((size_t)s->slot >= slots) {
+            plogLine("digimon", "%s: field \"model.scripts.%d\" rejected: unknown slot (its effects archive has %d slots)\n", name,
+                     s->slot, (int)slots);
+            continue;
+        }
+        if (row != NULL) src = scriptOf(le32At(row + 8), s->from, &srcFile, &avail, &why);
+        if (src == NULL) {
+            plogLine("digimon", "%s: field \"model.scripts.%d\" rejected: dw3:digimon/%d has no script in slot %d of its effects archive%s%s\n",
+                     name, s->slot, s->fighter, s->from, why != NULL ? " (" : "", why != NULL ? why : "");
+            free(srcFile);
+            continue;
+        }
+        out = (unsigned char *)malloc(avail);
+        n = out == NULL ? -1 : scriptConvert(src, avail, fe[3] >= ENEMY_KIND_MIN, (ScriptPlace){s16At(row, FI_HEIGHT), s16At(row, FI_DISTANCE)}, dstEnemy,
+                                            dst, out, avail, line, sizeof line);
+        free(srcFile);
+        if (n < 0) {
+            plogLine("digimon", "%s: field \"model.scripts.%d\" rejected: dw3:digimon/%d slot %d: %s\n", name, s->slot, s->fighter,
+                     s->from, out == NULL ? "out of memory" : line);
+            free(out);
+            continue;
+        }
+        grown = (unsigned char *)realloc(data, size + (size_t)n + 4);
+        if (grown == NULL) {
+            free(out);
+            continue;
+        }
+        data = grown;
+        if (size % 2 != 0) data[size++] = 0; /* a script starts on a word */
+        memcpy(data + size, out, (size_t)n);
+        put32Le(data + at + 4 * (size_t)s->slot, (unsigned)(size - at));
+        size += (size_t)n;
+        free(out);
+        given++;
+        PLOG("digimon", PLOG_MODS, "digimon \"%s\": slot %d is dw3:digimon/%d's slot %d (%d bytes, %s)\n", name, s->slot, s->fighter, s->from, n,
+             (fe[3] >= ENEMY_KIND_MIN) != dstEnemy ? "converted for this side" : "as it is");
+    }
+    if (given > 0) {
+        padded = (size + 2047) / 2048 * 2048;
+        data = (unsigned char *)realloc(data, padded);
+        if (data == NULL) return;
+        memset(data + size, 0, padded - size);
+        file = pfsAddVirtualFile(data, padded);
+        if (file < 0) {
+            plogLine("digimon", "digimon \"%s\": the effects copy has no file number left; the donor's file is used as is\n", name);
+        } else {
+            *ref = ((unsigned)file << 16) | (*ref & 0xFFFF);
+            PLOG("digimon", PLOG_MODS, "digimon \"%s\": effects copy (virtual file %d), %d script%s replaced\n", name, file, given, given == 1 ? "" : "s");
+        }
+    }
+    free(data);
+}
+
 /* One new Digimon's info row and kind, if it has an own model that resolves: the template's row with the references, height and
    distance replaced and the face list empty (`face`, an address as the file's base assumes it). 0: it shares the template's. */
 typedef struct OwnRow {
@@ -1487,6 +1839,19 @@ typedef struct OwnRow {
     unsigned char kind;
     unsigned char row[FI_PARTNER];
 } OwnRow;
+
+/* One line for each motion slot the battle code plays on a fighter of this facet that a baked model leaves empty (a game that plays an empty
+   slot reads garbage). A model with "fill" has none. --validate-mod shows each as a warning (shim/mod_tools.c, " has no animation"). */
+static void reportEmptySlots(const char *model, int partner) {
+    const ModelSlotNeed *need;
+    uint64_t mask;
+    int i, n = modelSlotNeeds(partner, &need);
+
+    if (!modelsSlots(model, &mask)) return;
+    for (i = 0; i < n; i++) {
+        if (!(mask >> need[i].slot & 1)) plogLine("digimon", "%s: motion slot %d (%s) has no animation: %s\n", model, need[i].slot, need[i].label, need[i].why);
+    }
+}
 
 static void makeOwnRow(const NewRec *r, const char *name, OwnRow *o) {
     const unsigned char *f = fighterOf(r->model), *tpl = f != NULL ? infoOf(f) : NULL;
@@ -1509,6 +1874,13 @@ static void makeOwnRow(const NewRec *r, const char *name, OwnRow *o) {
     o->has = 1;
     o->enemy = f[3] >= ENEMY_KIND_MIN;
     o->kind = f[3];
+    if (r->own.ref[1].kind == REF_NAME) reportEmptySlots(r->own.ref[1].name, !o->enemy);
+    else if (r->own.ref[1].kind != REF_TEMPLATE) checkMotions(r, name, !o->enemy, &v[1]);
+    {
+        ScriptPlace dst = {r->own.height != INT_MIN ? r->own.height : s16At(tpl, FI_HEIGHT), r->own.distance != INT_MIN ? r->own.distance : s16At(tpl, FI_DISTANCE)};
+
+        buildScripts(r, name, o->enemy, dst, &v[2]);
+    }
     memcpy(o->row, tpl, o->enemy ? FI_ENEMY : FI_PARTNER);
     for (k = 0; k < 3; k++) {
         o->row[4 * k] = (unsigned char)v[k];
@@ -1927,7 +2299,7 @@ static void putScriptSlots(Out *o, int id) {
 /* the folder the in-game export writes the fighter's model to (model_export.c), named even before it is exported */
 static void putModelFolder(Out *o, int id) {
     if (fighterOf(id) == NULL) return;
-    put(o, ", \"model\": \"models/%d/\"", id); /* data/models/<id>/, as model_export.c writes it */
+    put(o, ", \"model\": \"digimon/d%03d/model/\"", id); /* data/digimon/d<nnn>/model/, as model_export.c writes it */
 }
 
 static int describe(int id, char *out, size_t cap) {

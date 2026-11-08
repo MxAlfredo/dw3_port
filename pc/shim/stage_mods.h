@@ -4,7 +4,7 @@
 /*
  * The stage patch layer (port-close S4) and the mod flag codes (S5), docs/stages.md section 7.
  *
- * A mod changes a field stage with mods/<mod>/stages/<nnn>.json (stage-patch-v1): per stage, the characters (actors) it patches by index
+ * A mod changes a field stage with mods/<mod>/stages/s<nnn>/stage.json (stage-patch-v1, the same path as the stage data of the data folder): per stage, the characters (actors) it patches by index
  * or key, adds (with a key other patches can name) or removes, and the talks it replaces or puts before the existing ones. The patches
  * go through the same model as the original (stage_data.h): the original is what the stage's own setup produced -- read at run time, so a
  * stage whose setup depends on the story progress is merged against what it gave THIS time -- and the mods' patches follow in load
@@ -21,7 +21,7 @@
 #include "stage_data.h"
 
 #define SM_FORMAT "stage-patch-v1"
-#define SM_NEW_FORMAT "stage-new-v1" /* a stage a mod adds (new-stages T5): mods/<mod>/new-stages/<name>/stage.json, shim/stage_new.h */
+#define SM_NEW_FORMAT "stage-new-v1" /* a stage a mod adds (new-stages T5): mods/<mod>/stages/<name>/stage.json, shim/stage_new.h */
 
 /* A sprite a mod brings (S9): what the host built from mods/<mod>/sprites/<name>/ */
 typedef struct SmSprite {
@@ -54,7 +54,7 @@ typedef struct SmHost {
     /* S9: whether the game has a character with that id and a sprite file for it (a patch's "character"); NULL: any number */
     int (*characterOk)(int character);
     /* S9: builds the sprite of a folder (mods/<mod>/sprites/<name>, label "<mod>:<name>"). 0 and *out, or -1 with the reason in why. spritesDone runs after
-       the last one of a load (the host closes its file). NULL spriteAdd: the mods' sprites are ignored. */
+       the last one of a load (the host closes its file). A positive return means the folder is not a new sprite (it is an original sprite's, whose frames the images loader reads): skipped without a line. NULL spriteAdd: the mods' sprites are ignored. */
     int (*spriteAdd)(const char *dir, const char *label, SmSprite *out, char *why, size_t whySize);
     void (*spritesDone)(void);
     /* mod stages (new-stages T4): the stage number of a name "<mod>:<name>" an exit or a warp may name (-1: no such stage) and the name of a number it made
@@ -81,10 +81,10 @@ typedef struct SmReport {
     int fishingSet, spotsAdded, prizesSet;            /* T9: gauge slots with results (and the default's cells), hidden spots added, prize lists set */
 } SmReport;
 
-/* Reads mods/<mod>/stages/<nnn>.json of every active mod (modsCount/modsDirOf, in order). A file that is not valid is refused whole, with
+/* Reads mods/<mod>/stages/s<nnn>/stage.json of every active mod (modsCount/modsDirOf, in order). A file that is not valid is refused whole, with
    "[stages] <path> rejected: <reason>" on the log. Forgets what an earlier call loaded. Returns the number of files kept. */
 int smLoad(const SmHost *host);
-/* mods/<mod>/new-stages/<name>/stage.json (stage-new-v1) of every active mod whose "<mod>:<name>" the host's stageByName knows (nsScan registered it before): the
+/* mods/<mod>/stages/<name>/stage.json (stage-new-v1) of every active mod whose "<mod>:<name>" the host's stageByName knows (nsScan registered it before): the
    sections actors, slots, events and battles (only "add") are read by the same parser as a stage patch, as the patch of the stage's own number. The file counts in
    smPatchCount. A file that is not valid is refused whole ("[stages] <path> rejected: <reason>"). */
 void smUnload(void); /* forgets the patches and the table of mod ops */
@@ -111,6 +111,7 @@ int smApplyStage(int stage, SdStage *s, SmReport *rep);
 #define SM_SPRITES_MAX 0x3FFF
 int smSpriteCount(void);
 const char *smSpriteName(int character); /* "<mod>:<name>" of a mod sprite's character id, else NULL */
+int smSpriteFind(const char *label); /* the character id of the sprite "<mod>:<name>", or -1 */
 int smSpriteInfo(int character, SmSprite *out); /* 1 and the info for a mod sprite's character id */
 
 /* ---- mod events (S8) ----

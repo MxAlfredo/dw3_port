@@ -402,7 +402,7 @@ escritura y lectura del archivo y que un mod apagado no se carga. Las demás pes
 Lo pesado (videos, audio, modelos, escenarios) sale con **una** entrada: menú System > *Prepare modding files* o, sin ventana,
 `pc/build/boot "<disco>.bin" --export-all` (imprime `export-all: Videos 3/14`... en la salida estándar y devuelve 0, o 1 si algo falló). Los
 cuatro exportadores corren uno tras otro (videos, audio, modelos, escenarios), cada uno en su hilo, y saltan lo que ya está al día
-(`startIfNeeded` de `OptSysExport`; el menú viejo reconstruía todo). La lógica está en `shim/options_system.c` (`optionsSystemPrepStart`,
+(cada tipo de la tabla de exportadores, `shim/exp_types.h`, arranca con `"all"` y salta lo hecho; el menú viejo reconstruía todo). La lógica está en `shim/options_system.c` (`optionsSystemPrepStart`,
 `optionsSystemFrame`, `optionsSystemExportAllRun`) y la bandera se saca de `argv` con `inputCfgTakeFlag` (`shim/input_cfg.c`); `inputtest`
 cubre los dos. Las claves `[data] export_*` de `settings.ini` siguen igual (avanzadas). Guía para modders: `docs/modding/README.md` §2b.
 Medido en el disco EU con una carpeta de usuario nueva: `--export-all` 145 s, 14 videos, 71 bancos de audio, 248 modelos y 11 745 baldosas, código 0;
@@ -2058,9 +2058,23 @@ de cadencia ni "press until" a ciegas. Los tokens nuevos del guion
   - el confirm tiene el cursor en Yes por defecto: una X y el progreso corre
     solo; al terminar, `screen.c:165` pide `0x2D8` — **el juego vuelve al
     campo**.
+  - `namepick:<n>` (antes o después de `namedrive`): en la página de equipos
+    pulsa abajo/arriba hasta que el cursor (`PartnerChoice.choice`, leído del
+    estado de la página) esté en el equipo `n`, y recién entonces confirma
+    con X; `namestop` termina la corrida en esa página (captura) en vez de
+    confirmar. `mode:500,0,namedrive,...` también arranca el guion: la
+    pantalla de nombre sola, sin el título (el guion normal esperaba el menú
+    de país).
   Los tasks de STPLNMET no tienen id de registro: el arnés camina el árbol
   (`mode` → `scene` → `screen` → los 4 miembros) comparando punteros de
   `update`.
+- `gymdrive[:<k>]` — el gimnasio (`STGTRAIN`, `0xA00`), mapeado de `src/menus/gym/` (A4b): `mode:A00,0,gymdrive:<k>` abre el gimnasio y recorre un
+  entrenamiento hasta que existe la tarea del resultado (`win->result`: de ahí sale el actor con el conjunto de sprites que se prueba). Cada
+  pulsación responde a un estado que la propia tarea tiene: el partner (subestado 5 de la pantalla, X), el entrenamiento (subestado 10 del menú:
+  `k` veces derecha y X; el `k`-ésimo de la fila de arriba, `k` = 0 el primero), la intensidad (subestado 6 de la sesión, X) y el Yes (subestado
+  0x12, X). El partner es el primero del equipo (`DW3_STARTER_SET` lo cambia). Sin tiempos: el arnés busca el árbol `mode` → `scene` → `screen`
+  por punteros de `update` como `namedrive`. Con `DW3_OT_DUMP=<cuadro>` y `DW3_VRAM_DUMP=<ruta>` (cuadro 1000) la corrida es determinista: dos
+  corridas del mismo binario dan la misma captura y el mismo volcado de VRAM.
 - **Fin de la corrida por estado** — ninguna corrida del arnés ni escenario de
   `pc/review.sh` termina por agotar el presupuesto de cuadros. `until:<hex>`
   termina la corrida en el primer cuadro después de que el juego estuvo en ese
@@ -2072,6 +2086,11 @@ de cadencia ni "press until" a ciegas. Los tokens nuevos del guion
   (juego libre: `pc/review.sh libre`). `movieskip:<n>` salta una película con
   Start (`src/menus/title/movie.c:173`) tras `n` cuadros suyos (contador de
   cuadros entregados de la capa St; 15 cuadros/s).
+- **Crash forzado** (`--crash-test[=segv|abort|fpe|bus|ill]`, R1) — una opción de la línea de comandos (no una ficha de `<keys>`): provoca el fallo
+  elegido (`segv` por omisión: una escritura real a la dirección 0) una vez abierto el log, para probar el reporte de crash (sección "Reportes de
+  crash"). Se saca de `argv` antes de leer el resto: `boot --crash-test` solo es un arranque de jugador (log `dw3-*.log`), `boot <disco> --crash-test`
+  una corrida del arnés (stderr; en Android `logs/harness.log`). En Android van como extra del intent: `--esa args --crash-test` o
+  `--es argv 'disco.bin|--crash-test=abort'`. Un valor desconocido sale con código 2.
 - **Tabla de warp generada** (`warp:<escenario>[,<progreso>]`) — `pc/shim/warp_stages.inc` la
   genera `pc/gen_warp_stages.py` (`.venv/bin/python -I pc/gen_warp_stages.py`, determinista) a
   partir de `FIELDSTG_stages`/`FIELDSTG_extraStages` (`src/field/field_mode/data/fieldstg.c`) y del
@@ -2161,7 +2180,7 @@ de cadencia ni "press until" a ciegas. Los tokens nuevos del guion
   con las funciones del propio juego (`addPartnerEntry`, `STFGTREP_addDigimonExp` hasta el nivel,
   `STFGTREP_addSkill`/`STFGTREP_learnSkill`, `setPartnerSlots`), así que aprende las técnicas que le tocan,
   también las de mods. Se aplica al disparar `mode:` o una batalla (`battle`, `battleauto`); solo no hace
-  nada. Imprime `pad: partner seeded: ...`. Lo usan los escenarios `tecnica` y `tecnicacampo` de `review.sh`.
+  nada. Imprime `pad: partner seeded: ...`.
 
 - **Ficha de encuentro y barrido de batallas** — `battleenc:<n>[:<escenario>[:<música>]]` abre
   la batalla real con `FIELDSTG_encounters[n]` del propio juego (arreglos enlazados, no una tabla
@@ -2476,7 +2495,7 @@ tocar el disco. Nada de esto se versiona (ADR-001).
   disco del dueño: los 350 archivos de `AAA/DAT/COUNTRY/<LANG>` caen en su `ranura + 7k` según el LBA de la
   tabla (`FILE_SECTORS`). JPN y USA no se usan: el juego EU nunca los pide. Código: `pc/shim/text_data.c`.
 - **Carpeta.** `<datos>` es `DW3_DATA_DIR`, o `<carpeta del usuario>/data` (ADR-010):
-  `<datos>/text/manifest.json` (sello y hash por archivo) y `<datos>/text/<idioma>/<archivo>.json` con
+  `<datos>/text/manifest.json` (cabecera `asset-manifest-v1` y hash por archivo) y `<datos>/text/<idioma>/<archivo>.json` con
   idiomas `eng fra ita ger spa es-419` (es-419 = español + `localization/es-419`). Los reemplazos van en
   `mods/<mod>/text/<idioma>/<archivo>.json`. `<archivo>` es el nombre del disco sin `.BIN` **en minúsculas**
   (`esamtmap`, `ssamtmap`...; el es-419 usa los nombres del español); al leer un mod el nombre se compara sin
@@ -2484,8 +2503,8 @@ tocar el disco. Nada de esto se versiona (ADR-001).
 - **Overlay.** `DW3_L10N_DIR`, o `localization/es-419` relativo al directorio de trabajo, o relativo al
   binario. Cómo se empaqueta queda para la tarea de builds finales; sin overlay el es-419 no se ofrece y el
   juego corre desde el disco.
-- **Extracción** al arrancar si falta `<datos>/text/` o el sello cambia (hash de la identidad del disco +
-  hash del overlay + versión del códec): 300 archivos en 0,13 s; con el sello vigente, 2 ms. Un archivo cuyo
+- **Extracción** al arrancar si falta `<datos>/text/` o la cabecera del manifiesto cambia (`disc`, `inputs.overlay`,
+  `inputs.disc-text` y `exporter.text`, la versión del códec): 300 archivos en 0,13 s; con la cabecera vigente, 2 ms. Un archivo cuyo
   hash difiere del manifiesto es del usuario y no se pisa: la versión nueva va al lado como `.json.new`.
 - **Orden al servir** (`host_cd.c`, `cdRead` + envoltorio de `FILE_TABLE.getSectorCount`): `mods/`, luego el
   archivo de `data/` solo si fue editado, luego (solo con la variante es419 y para los archivos del español)
@@ -2513,7 +2532,8 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
 <pref>/import/                 tarjetas .mcd de PS1 por importar (y imported.txt)
 <pref>/data/config/            del port, se rehace: <nombre>.json (copia de referencia) y manifest.json
 <pref>/mods/<mod>/mod.json     de la comunidad, el port nunca escribe aquí
-<pref>/mods/<mod>/content/<tipo>.json    contenido nuevo (items.json, techs.json)
+<pref>/mods/<mod>/content/<tipo>.json    contenido nuevo (items.json, techs.json, teams.json, encounters.json)
+<pref>/mods/<mod>/digimon/<llave>/       un Digimon: digimon.json y model/ (d<nnn>: cambia a un original)
 <pref>/mods/<mod>/tables/<tabla>.json    parches de tablas
 <pref>/mods/<mod>/config/<nombre>.json   solo las claves que el mod cambia
 ```
@@ -2584,26 +2604,26 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   La primera tabla, `battle_rewards` (`STFGTREP_rewards`, 335 filas), se registra en `boot.c` (`pcRegisterTables`) y se
   aplica en el `onEnter` del ámbito `stfgtrep`, que corre después de que `state_scope` restaura el overlay.
   `DW3_TABLE_TRACE=1` imprime la fila y la cartera al entrar y salir del reporte. `make -C pc tabletest` (tabla
-  sintética; carpeta temporal en `$TMPDIR`). Guía: `docs/modding/README.md` §6.5; ejemplo: `pc/examples/mods/double-rewards/`.
+  sintética; carpeta temporal en `$TMPDIR`). Guía: `docs/modding/README.md` §6.5 (con el ejemplo mínimo).
   **Evoluciones y crecimiento (content-export E5b, `shim/game_tables.c`).** `evolutions` (352 filas: `socio*100 + entrada`),
   `blast_forms` (52 filas, llave = id del Digimon), `level_exp`, `vital_cuts`, `vital_random`, `stat_gains` y `resist_gains`. Las seis
   del overlay se registran con `gameTablesRegisterReport` y se aplican con `gameTablesApplyReport` en el `onEnter` de `stfgtrep`
   (`pcApplyReportTables`, `boot.c`); `blast_forms` se aplica una vez en `gameTablesRegister`. Con parche de `evolutions`, las primeras 44
   entradas de la lista propia del puerto (`pcEvolutionList`, la de los mods) reciben los originales parchados; las entradas 44+ son de
-  `digimon.json`. Las formas se dan por fila + 1 o por nombre; las filas 53-55 y un 0 en una fila de `blast_forms` que tiene formas se rechazan.
+  los `digimon/<llave>/digimon.json`. Las formas se dan por fila + 1 o por nombre; las filas 53-55 y un 0 en una fila de `blast_forms` que tiene formas se rechazan.
   Con `DW3_LOG=mods` sale una línea por fila cambiada (`evolutions row 0: value 1 (orig 5) by mods/m`). `make -C pc tabletest`.
   **Referencias a Digimon de 16 bits (U9).** `DigimonData.pairPartner` y `blastForms` son `u8` en el disco (fila + 1, hasta 254); el port los
   lleva también en `PcDigiLinks` (`shim/ext_state.[ch]`: `u16` por fila, original y de extensión, con la marca `set`) y el juego los lee con
   `PC_DIGIMON_BLAST(d, tier)` / `PC_DIGIMON_PAIR(d)` (`engine/digimon_access.h`; en PS1 se expanden a `d->blastForms[tier]` / `d->pairPartner`).
   Una fila sin `set` lee su `u8`, así que sin mods se lee lo mismo que el disco. `blast_forms` es ahora una tabla de filas propias (`rowAt`, campos
-  `TM_U16` 0..4096, validados contra las filas que existen), y `digimon.json` acepta `blastForms` (5 nombres) y `pairPartner` (un nombre o 0) en
+  `TM_U16` 0..4096, validados contra las filas que existen), y el `digimon.json` de un Digimon acepta `blastForms` (5 nombres) y `pairPartner` (un nombre o 0) en
   formas de socio nuevas. `findPairTech` compara la pareja con `PC_DIGIMON_REF` (fila + 1 en filas nuevas, `nameId` en las originales). Las
   listas de evolución ya eran de 32/16 bits (`Evolution.digimon` s32, `needs[].digimon` s16). Formato de partida sin cambios (ids de 16 bits).
   Pruebas: `digimontest` (`testWideRows`: 300 formas, filas 55-354) y `tabletest` (`blast_forms` con 360 filas).
   **Campo (content-export E5c, `shim/game_tables.c`).** `field_enemies` (523 filas de `FIELDSTG_enemies`), `field_encounters` (335) y
   `battle_rates` (6). Son datos del overlay FIELDSTG: se registran con `gameTablesRegisterField` y se aplican con
   `gameTablesApplyField` al comienzo del `onEnter` de `fieldstg` (`pcApplyEncounterPlacements`, `boot.c`; los emplazamientos de
-  `digimon.json` van después). Un `Encounter` del juego guarda tres punteros: la tabla trabaja con una copia plana (`enemy1`..`enemy3` =
+  `content/encounters.json` van después). Un `Encounter` del juego guarda tres punteros: la tabla trabaja con una copia plana (`enemy1`..`enemy3` =
   fila de `field_enemies`) y escribe los punteros de vuelta tras el parche (`boot.c` comprueba con `_Static_assert` que `GameFieldEncounter`
   tiene el layout de `Encounter`). El JSON de referencia trae `labels` con el nombre del Digimon (`TmTable.rowLabel`, `gameTablesSetFighterNames`).
   Prueba de estado: `stay,warp:330,optlang:4,fieldbattles:2,battlepilot` con un mod que parcha el encuentro 35 imprime los luchadores
@@ -2651,16 +2671,14 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   bytes recién leídos (disco o archivo crudo de `files/`), así que repetir no acumula; con un crudo del mismo archivo,
   el crudo va primero y el parche encima, buscando las filas por id. Con el registro de mods encendido,
   `[tables] battle_loot enemy N: item A (orig B), itemChance C (orig D) by mods/x` y `[tables] battle_loot drop: item N|none`
-  al abrirse el reporte; `DW3_TABLE_TRACE=1` suma `report enter/exit: dropped item N, in the bag M`. Ejemplo:
-  `pc/examples/mods/generous-loot/`. Guía §6.5.
+  al abrirse el reporte; `DW3_TABLE_TRACE=1` suma `report enter/exit: dropped item N, in the bag M`. Guía §6.5 (ejemplo mínimo).
 - **Precios de objetos (data-tables T7).** `item_prices` parchea `ITEMS` (`price` y `sellPrice`, ambos u16, llave = id
   del objeto, `ITEMS[id - 1]`), un arreglo del ejecutable que ningún ámbito reinicia (`state_scope` solo cubre datos
   de overlays), así que `pcRegisterTables` lo registra y aplica **una vez** al arrancar, antes del primer modo. La
   aplicación parte siempre del snapshot original (idempotente) y no toca `data`, `kind` ni `type`. El precio de venta
   es un campo propio, no una fracción del de compra (`trade.c:241,947`). Con el registro de mods encendido, al entrar
   a la tienda (hook `onEnter` del ámbito `stitshop`, `pcModLogShop`) sale una línea por objeto de la tienda o de la
-  bolsa con precio cambiado: `[tables] item_prices item N: price X (orig Y) by mods/x`. Ejemplo:
-  `pc/examples/mods/cheap-shops/`. Guía §6.5.
+  bolsa con precio cambiado: `[tables] item_prices item N: price X (orig Y) by mods/x`. Guía §6.5 (ejemplo mínimo).
 - **Tiendas (data-tables T8).** `shop_stock` parchea `STITSHOP_shops[31]` (`ShopList {count, items*}`, lista de ids
   terminada en 0). Es el primer campo **lista** del motor (`TmField.listMax`/`countOff`): un parche da el arreglo
   entero o `{"remove","add"}`, el motor arma el resultado en un buffer propio (por fila y campo, hasta 64 ids, id 1..402,
@@ -2669,17 +2687,17 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   una línea. Punto B: el hook `onEnter` del ámbito `stitshop` aplica `tmApply("shop_stock")` justo después de que
   `state_scope` restaura el overlay (la lista de la tienda se lee en `STITSHOP_getShopItems`, `equip.c:8`; la página
   se calcula con `count`, `item_list.c:139-147`, sin tope fijo). Registro: `[tables] shop_stock shop N: C items (orig O)
-  by mods/x` al abrir. Ejemplo: `pc/examples/mods/shop-extra-item/`. Guía §6.5.
+  by mods/x` al abrir. Guía §6.5 (ejemplo mínimo).
 - **Ejemplo.** Un mod con `config/stage_banner.json` que contenga `{"format": "stage_banner-v1", "hold_frames": 120}` deja
   el nombre del lugar 2 s en pantalla (hereda las demás claves). Ya no hay un mod de ejemplo instalable de este tipo: chocaba
   con la opción Display > Stage banner = Fast del port.
 
 ### Mods de ejemplo por tipo (U10)
 
-- `pc/examples/mods/` trae 24 ejemplos (uno por tipo de mod como mínimo: tablas, config, texto, imagen, sprites, baldosas y objetos de escenario, personajes de escenario, efecto de sonido,
-  canción, video, contenido) y `pc/examples/install_examples.sh [--only tables|content|media] [carpeta de usuario]` los instala **apagados** (`[mods] disabled`,
-  con `settings.ini.bak`, sin tocar `saves/`). Lo que depende del disco lo generan `pc/examples/tools/gen_text.py`, `gen_art.py` y `gen_media.py` (este último
-  sintético: pitido, carillón y barras de colores en AVI MJPEG con Pillow) desde el `data/` exportado del usuario (ADR-001). Guía: `pc/examples/README.md`.
+- `pc/examples/mods/` trae dos ejemplos completos (A9; los demás se borraron y lo que enseñaban está en la guía de mods): `training-field` (dos escenarios nuevos
+  con arte propio, un guía, un parche del Parque Central, un sprite, tablas y textos) y `sample-model` (un Digimon nuevo con modelo glTF propio), más la carpeta modelo
+  `_template`. `pc/examples/install_examples.sh [--only a,b] [carpeta de usuario]` los instala **apagados** (`[mods] disabled`, con `settings.ini.bak`, sin tocar
+  `saves/`); no generan nada desde el disco: todo el arte es original (`training-field/tools/make_art.py`; el robot sale de `tools/test_model_import.py --demo`). Guía: `pc/examples/README.md`.
 
 ## Arte de pantallas y menús en PNG (menu-art-png, T2 y T3)
 
@@ -2721,8 +2739,7 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   de escenario, `files/`, texto) y se reindexan las carpetas; sin eso, un cambio en un mod se ve al reiniciar.
 - **Registro.** `images: override <ruta> from mods/<mod>` (o `from data (edited)`) al construir; con `DW3_IMG_TRACE=1`,
   `images: load <ruta> (override|disc)` por cada imagen de pantalla que el juego sube.
-- **Ejemplo.** `pc/examples/mods/menu-frames-gold/` (README en español): solo cambia la paleta; el PNG se genera con
-  `tools/image_mod_palette.py` desde tu propia copia, nada del juego va en el repo.
+- **Ejemplo.** Recolorear un marco de menú: `docs/modding/README.md` §6.2g (piezas de `menus/`).
 - Código: `shim/png_read.c` (lector e inflate), `shim/image_data.c` (`imgSubstitute`, `imgOverridesBuild`,
   `imgOverrideTim`). Prueba: `make -C pc imagetest` (también lee PNG con deflate dinámico hechos con zlib).
 
@@ -2749,34 +2766,48 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
 - Código: `imgAtlasJson` en `shim/image_data.c`. Prueba: `make -C pc imagetest` (hoja sintética con cuadros: 4 y 8 bits,
   fusión de rectángulos, recorte `outside`, `read_as`, sin hoja, y el manifiesto).
 
-### Sprites de campo y su mapa `sprite-v1` (field-sprites-png, T2)
+### Sprites de campo y su mapa `sprites-sprite-v1` (field-sprites-png, T2; `sprites/` desde A7.5)
 
-- Los 179 `FIELD/SPRT/<NOMBRE>.BIN` se extraen a `data/images/field/sprt/<nombre>/<EEE>.png`: un PNG indexado de 4 bits
+- Los 171 `FIELD/SPRT/<NOMBRE>.BIN` (179 menos los 8 seguidores de compañeros, que van en `partners/<nombre>/field/`) los escribe el
+  exportador propio `export_sprites` (`shim/sprite_export.c`, al arrancar; por omisión `all`; `SPRITE_EXPORT_VERSION` 1) a
+  `data/sprites/<nombre>/<EEE>.png`, con `<nombre>` el nombre del archivo del disco en minúsculas (`p001play`; el juego
+  direcciona estos archivos por nombre, así que es la identidad estable y no hay número que usar): un PNG indexado de 4 bits
   por cuadro (`EEE` = índice de la entrada en el archivo, tres dígitos), con la paleta de 16 colores del propio cuadro
-  (índice 0 transparente, igual que el arte de menús). Más un `sprite.json` por archivo (formato `sprite-v1`, abajo).
+  (índice 0 transparente, igual que el arte de menús). Más un `sprite.json` por archivo (formato `sprites-sprite-v1`, abajo) y un
+  `sprites/manifest.json` (`asset-manifest-v1`; `names` lleva `p001play` → `dw3:sprite/p001play`). Antes de A7.5 salían de
+  `images/field/sprt/<nombre>/` (mismos bytes; el JSON solo cambia el nombre del formato); esa ruta ya no se exporta ni se lee.
   `FIELD/FIELDCOM.BIN` va por la vía de los menús: `field/fieldcom/02_00.png` y `03_00.png` con su mapa `atlas-v1`
   (cada imagen con la hoja de su entrada: la 0 para la 2 y la 1 para la 3). En el disco EU: 4812 PNG de cuadros (126 sin
   uso), 1276 animaciones, 425 conjuntos, 0 fallos, ~0.13 s; 23 MB en total con el arte de menús.
 - Misma huella, manifiesto y reglas que el arte de menús (`IMG_CODEC_VERSION` 3 regenera las carpetas): pristino se
   reescribe, editado se conserva y lo nuevo va a `<nombre>.new`.
-- Arte de los escenarios del campo (content-export E6a): `FIELD/STAGE/S<nnn>MASK.BIN` (294 archivos, 514 imágenes) y
-  `S415BG01/02`, `S815BG01/02` (22 imágenes) salen como `field/stage/s<nnn>mask/<ii>.png` (con `atlas-v1`) y
-  `field/stage/s<nnn>bg<nn>/<ii>.png` (sin mapa). Mismas reglas de huella, manifiesto, mods y `.new`
-  (`IMG_CODEC_VERSION` 5). La hoja de los `MASK` es la entrada 0 de su `S<nnn>TMPK.BIN` (`imgSheetPathOf`); la página `i`
-  del `MASK` es la entrada `i` y el modo y la paleta de cada página salen de las piezas de la hoja (`maskHints`).
-  Sin `TMPK` útil (34 escenarios) o sin paleta localizable, la imagen sale con rampa gris. Prueba: `imagetest`
-  (`testStageMask`).
+- Arte de los escenarios del campo (content-export E6a): los fondos `S415BG01/02` y `S815BG01/02` (22 imágenes) salen como `field/stage/s<nnn>bg<nn>/<ii>.png` (sin mapa; mismas reglas
+  de huella, manifiesto, mods y `.new`). Las páginas de los `FIELD/STAGE/S<nnn>MASK.BIN` (294 archivos) **ya no** se exportan ni se leen como `field/stage/s<nnn>mask/<ii>.png`
+  (A6.4, `IMG_CODEC_VERSION` 11): sus objetos se editan solo por pieza, abajo. La entrada por página de cada `MASK` queda en `imgOverridesBuild` solo como portadora de lo que escribe el
+  gancho de los escenarios (`imgIsStageMask`, como las pantallas de A5.5). Prueba: `imagetest` (`testStageMask`: un PNG de `images/` para un `MASK` no se lee y uno de un `BG` sí;
+  `testStagePartPalette`: `imgStagePagesOpen` e `imgPartPalette`).
+- Objetos de escenario por pieza (readable-assets A6.2, `shim/stage_obj_export.c` sobre `menu_export.c`): `data/stages/s<nnn>/objects/<pieza>.png` y `objects.json` (`stages-objects-v1`), una fila
+  más de `kExporters` (`export_stage_objects`, al arrancar, por omisión `all`). La hoja es la entrada del `TMPK` que fija el `setupStage` (`sheetEntry`, que el exportador lee de `data/stages/s<nnn>/stage.json`),
+  no la 0: 266 escenarios la 0, 10 la 1, 4 la 3 y 14 la 4. Disco EU: 294 `objects.json`, 8632 PNG, 10 456 158 bytes, 11 escenarios con `unexported` (hoja sin cuadros). Formato en `docs/formats.md` §7.5c;
+  prueba: `stageobjexptest` (hoja en la entrada 1, piezas de 4 y 8 bits, fila de cuadro +1, repintado cuadro por cuadro). `--validate-mod` cubre `stages/` (A6.4: `stageObjPackValidate`, `stageobjpacktest`).
+- Cartas originales por carpeta (readable-assets A7.4, `shim/card_export.c`): `data/cards/c<nnn>/face.png` y `card.json` (`cards-card-v1`), con `cards/manifest.json` (`names`: `c012` a `dw3:card/12`), una fila
+  más de `kExporters` (`export_cards`, al arrancar, por omisión `all`). `<nnn>` es el número de la carta del juego (`cardDrawerSetCard`: archivo `(id-1)>>6`, imagen `(id-1)&63`; `imgCardId`); el PNG es
+  el que el exportador de imágenes escribía en `images/card/cardpak<A>/<NN>.png` (mismos bytes), que ya no se exporta (`IMG_CODEC_VERSION` 12) ni se lee. Un `cards/c<nnn>/face.png` de un mod o editado en
+  `data/` entra por la misma tabla de sustituciones (`imgOverridesBuild` lee el tema `cards` para los `CARDPAK`; el manifiesto de comparación es `cards/manifest.json`). El arte de una carta nueva
+  de un mod pasó de `card/<llave>.png` a `cards/<llave>/face.png` (`card_ext.c`); una llave `c<nnn>` es de una carta original y no lee arte (`cardExtKeyIsOriginal`). `CARDDATA` (hojas de sprites del
+  combate de cartas) sigue en `images/card/carddata/`. Pruebas: `cardexptest` (disco sintético: números, manifiesto, `.new`, sin reescribir), `imagetest` (`testCardPak`), `extstatetest` (arte de cartas nuevas).
+  `--validate-mod`: `cards/` conocida, `card/` "is never read", y avisos por carpeta sin `face.png`, `c<nnn>` fuera de `c001`-`c316` y llave sin carta en `content/cards.json`.
 - Baldosas del mapa del campo (content-export E6b, `shim/stage_export.c`, `shim/stage_mod.c`, `field/stream.c`): `Z_STAGE/S<nnn>PACK.BIN`
-  (237 archivos, 11 745 baldosas) salen como `data/z_stage/s<nnn>pack/<FF>_<CC>.png` (8 bits, CLUT propia), `s<nnn>pack.json`
-  (`stage-pack-v1`) y un `manifest.json` por escenario (pequeño: el juego lo lee solo del escenario que entra). Bajo demanda como los
+  (237 archivos, 11 745 baldosas) salen como `data/stages/s<nnn>/tiles/<FF>_<CC>.png` (8 bits, CLUT propia) y `tiles.json`
+  (`stages-tiles-v1`), con su versión (unidad `stage-tiles/s<nnn>` del `exporter`) en el `stages/manifest.json` único que comparten el dato y los objetos del escenario (A7.2; antes `data/z_stage/s<nnn>pack/` con un manifiesto por escenario: ya no se lee, el exportador no lo borra y deja una línea de log; el manifiesto se lee una vez, al primer uso tras `stageModSetup`/`stageModRecheck`). Bajo demanda como los
   videos: menú System > *Prepare modding files* (un botón para videos, audio, modelos y escenarios) y `[data] export_stages = all | S233, S330` en
   `settings.ini` (avanzado), hilo aparte, se salta por versión del exportador (`STAGE_EXPORT_VERSION` + `STAGE_FILE_REV`), regla `.new`. Medido en el disco EU: 11 745 baldosas, 11 982 archivos (11 745 PNG + 237 JSON),
   0 fallos, 2.4 s y 256 MB la primera vez con PNG sin comprimir (ahora con deflate real, U3: 154 MB, ~10 s); 0.6 s el arranque que lo salta. Reemplazo: el juego
   copia `stream.c` en el host (`pc/field/stream.c`, igual que `file_loader.c`; `src/` intacto) y `FIELDSTG_loadStreamSprites` pregunta a
-  `stageModTim(sector del PACK, baldosa, TIM)` antes de cargar el TIM; `mods/<mod>/z_stage/s<nnn>pack/<FF>_<CC>.png` y el PNG editado de
-  `data/z_stage/` por las reglas de las demás imágenes (`imgSubstitute`), con el resultado guardado por baldosa y revisado una vez por
+  `stageModTim(sector del PACK, baldosa, TIM)` antes de cargar el TIM; `mods/<mod>/stages/s<nnn>/tiles/<FF>_<CC>.png` y el PNG editado de
+  `data/stages/s<nnn>/tiles/` por las reglas de las demás imágenes (`imgSubstitute`), con el resultado guardado por baldosa y revisado una vez por
   segundo; sin archivo devuelve NULL y todo queda igual (captura idéntica al binario anterior). Prueba: `make -C pc stagetest`.
-- Escenarios como datos (port-close S1/S2, `shim/stage_codes.c`, `shim/stage_data.c`, `docs/stages.md`): `data/stages/<nnn>.json` (`stage-v1`) por cada `WSTAG<nnn>`
+- Escenarios como datos (port-close S1/S2, `shim/stage_codes.c`, `shim/stage_data.c`, `docs/stages.md`): `data/stages/s<nnn>/stage.json` (`stage-v1`) por cada `WSTAG<nnn>`
   (294 con el campo propio, 260): inicio, música, personajes con sus condiciones y charlas (con el texto como vista previa), salidas, eventos con su guion y las funciones
   de C que quedan fuera del dato. Al arrancar corre cada `setupStage` (tabla `SD_SETUPS` generada por la regla `stage_setups.c` de `pc/Makefile` desde los objetos de los
   escenarios) con el progreso 0 a 99, lee el de 0 a un `SdStage` (modelo portátil, sin encabezados del juego) y escribe el archivo; guarda y devuelve el estado que el setup toca,
@@ -2784,7 +2815,7 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   `(código, valor)` y los comandos de guion se escriben simbólicos (`["flag", "1A:1F", 1]`, `["walk", 2, 191, 400, 3]`) y vuelven sin pérdida (lo que no tiene nombre es `raw`).
   Medido en el disco EU con una carpeta de usuario nueva: 294 escenarios, 3 710 personajes, 5 811 charlas, 8 499 listas de códigos (15 512 códigos), 450 eventos (365 guiones,
   51 529 palabras), 1 737 salidas, 0 diferencias al releer, 0 códigos `raw`, ~0.3 s; salida idéntica en dos corridas. Prueba: `make -C pc stagedatatest`.
-- Parches de escenario y banderas de mods (port-close S4/S5, `shim/stage_mods.c`, `docs/stages.md` §7, `docs/modding/README.md` §6.11): `mods/<mod>/stages/<nnn>.json` (`stage-patch-v1`) cambia, agrega o quita
+- Parches de escenario y banderas de mods (port-close S4/S5, `shim/stage_mods.c`, `docs/stages.md` §7, `docs/modding/README.md` §6.11): `mods/<mod>/stages/s<nnn>/stage.json` (`stage-patch-v1`, el mismo camino que el dato de `data/`) cambia, agrega o quita
   los personajes de un escenario y sus charlas. Un solo camino de carga: tras el `setupStage` (gancho `pcStagePatchHook` en `startField`, `field.c`) se lee `FieldState.actors` al modelo
   (lo que el escenario entregó ESTA vez, con el progreso real), se mezcla el original con los parches en orden de carga (el último gana, conflictos al log) y el resultado va a buffers del puerto
   (dos juegos que alternan) que `FieldState.actors` pasa a apuntar; sin parche para el escenario el puntero no se toca (captura idéntica byte a byte con y sin mods en 380 y 330). Un `index` que no existe al progreso
@@ -2792,7 +2823,7 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   `["mod-flag", "<mod>:<nombre>", 0|1]`, `["mod-var", ..., ">=", n]` y `["set-var", ..., n]` usan los grupos `0x62`-`0x68` de `checkCondition`/`applyAction` (sin uso en el juego; `#ifdef DW3_PC` llama a
   `pcModCheck`/`pcModApply`), el valor vive en `ext_state` por nombre y se guarda en la sección `EXTV` de la partida (todos los nombres se conservan al cargar, también los de un mod que no está). El validador
   (`--validate-mod`) rechaza un archivo inválido con su motivo y avisa de nombres que no son `stages/<número>.json`. Arnés: `DW3_MODVAR="<mod>:<nombre>=1"` y `DW3_LOG=trace` (qué charla diría cada personaje).
-  Pruebas: `make -C pc stagemodtest` (mezcla, códigos, variables y `EXTV`) y `memcardtest` (la sección en el archivo de la ranura y la carga real). Ejemplo: `pc/examples/mods/stage-npc`.
+  Pruebas: `make -C pc stagemodtest` (mezcla, códigos, variables y `EXTV`) y `memcardtest` (la sección en el archivo de la ranura y la carga real). Ejemplo: `pc/examples/mods/training-field`.
 - Condiciones de eventos, textos con nombre y acciones nuevas (port-close S3, S6, S7; `docs/stages.md` §8-§9, `docs/data-tables.md` §3.9, `docs/modding/README.md` §6.11):
   - **S3** (`shim/game_tables.c`, `gameTablesRegisterEvents`, una vez en el arranque y antes de cargar los parches de escenarios): `special_conditions` (`primitive`/`op`/`arg` como campos de dos nibbles del byte `check`),
     `money_required`, `money_gains`, `money_losses`, `progress_ranges` y `party_stat_thresholds` son tablas de mods con referencia en `data/tables/` y rechazo de fila entera. Un mod agrega condiciones con una fila
@@ -2817,7 +2848,7 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   ninguna regla y en el disco EU queda vacío). Qué queda cubierto sale de los mismos predicados que usa el exportador de imágenes (`imgIs*`, `sprIsSpriteFile`) y
   de las carpetas de texto (5 idiomas), audio, video, `Z_STAGE` y `FIGHT/MODEL`: un exportador nuevo saca sus archivos de aquí cambiando `rawKindOf`. Salida:
   `data/raw/<ruta del disco sin AAA/ en minúsculas>`, `README.txt` (inglés, generado), `raw.json` (`raw-v1`: notas por tipo y lista de archivos con tamaño y tipo)
-  y `manifest.json` (hash por archivo, versión del exportador por tipo: `kind/<tipo>`). `manifest.json` conserva el formato de `tdManifest` (sello y hashes), por eso las
+  y `manifest.json` (hash por archivo, versión del exportador por tipo, en `exporter` de la cabecera). `manifest.json` es el `asset-manifest-v1` de `tdManifest`, por eso las
   notas van en `raw.json` y no dentro de él. **Al arrancar, no bajo demanda:** son 15 MB (frente a los 256 MB de `Z_STAGE`), 1.5 s en total la primera
   vez y 1.1 s el arranque que lo salta; sin hilo ni menú, antes de abrir la ventana, como las imágenes. `[data] export_raw` = `all` (por defecto si falta la línea) |
   `off` | tipos separados por comas. Regla `.new` y salto por versión del exportador (`RAW_EXPORT_VERSION`; un tipo de la versión actual con todos sus archivos presentes no
@@ -2826,7 +2857,7 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   estado `stay,warp:330` con un `S330TMPK.BIN` modificado en un mod: `read 437 DAT/FIELD/STAGE/S330TMPK.BIN ... src=raw` (sin el mod `src=disc`). Efectos, demos,
   `F000COM`/`PGFGT`, hojas `CS` y `CARD_NPC` los lee el juego por la caché, así que deberían funcionar, pero no se corrió ninguno con un archivo reemplazado. `TRANIN`,
   `CARDPACK`, `COUNTRY/JPN|USA`, `NONE____` y los `.PRO` de código no los lee nadie (los `.PRO` están enlazados: `loadSubOverlay` no copia nada); `SMDLDATA.PRO` sí se lee.
-- `sprite.json`: `format` (`"sprite-v1"`), `source` (la ruta del disco), `set_table` (entrada con los conjuntos; -1 si no
+- `sprite.json`: `format` (`"sprites-sprite-v1"`; los `partners/<nombre>/field/` escriben `"sprite-v1"`, los mismos campos, y el lector acepta los dos), `source` (la ruta del disco), `set_table` (entrada con los conjuntos; -1 si no
   hay), `frames` (`id`, `image`, `w`, `h` en píxeles del PNG; `"used": false` si ninguna animación lo usa),
   `animations` (`id` = entrada, `loop`, `ticks` = suma de tiempos, `steps`: `frame`, `time`, `x`, `y`; `x`,`y` colocan
   la esquina superior izquierda respecto a la posición del actor, en píxeles), `sets` (`id`, `name` si el decompilado
@@ -2838,12 +2869,14 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   paleta de cada PNG.
 - Reglas de edición (también en `notes`): conserva ancho y alto de cada PNG y no pases de 16 colores; el JSON es solo
   informativo y se regenera. La unidad de `time` es el tic del motor (cada actualización resta `getFrameTime()`).
-- Vista previa (Pillow): `python3 tools/image_atlas_preview.py <data>/images/field/sprt/p001play` dibuja todos los cuadros
+- Vista previa (Pillow): `python3 tools/image_atlas_preview.py <data>/sprites/p001play` dibuja todos los cuadros
   numerados por id (en rojo los sin uso); `--anim <id>` o `--set <conjunto> --dir <0-7>` dibujan esa animación como tira de
   pasos sobre la posición del actor (la cruz); `--gif` escribe un GIF (`--tick-ms`, por defecto 1000/60: supuesto sin
   verificar). Sin `--out` va a la carpeta temporal.
-- **Mods de sprites (T3).** Mismas fuentes, orden y reglas que el arte de menús ("Mods de imágenes"), con la ruta
-  `mods/<mod>/images/field/sprt/<nombre>/<EEE>.png` (y un `data/images/...` que editaste). `<EEE>` es la entrada del cuadro
+- **Mods de sprites (T3, A7.5).** Mismas fuentes, orden y reglas que el arte de menús ("Mods de imágenes"), con la ruta
+  `mods/<mod>/sprites/<nombre>/<EEE>.png` (y un `data/sprites/...` que editaste, juzgado contra `sprites/manifest.json`).
+  Una carpeta de mod con el nombre de una original (`p001play`) son los cuadros de esa original y su `sprite.json` no se lee; cualquier otro nombre es un
+  sprite nuevo del mod (`sprite.json` + un PNG por cuadro, `docs/stages.md` §11), como `s<nnn>` y `c<nnn>` en escenarios y cartas. `<EEE>` es la entrada del cuadro
   (la que dice `sprite.json`). Cada cuadro es de 4 bits: mismo ancho y alto, a lo sumo 16 colores, y el PLTE del PNG
   reemplaza la paleta propia del cuadro (cada cuadro lleva la suya, no hay otra que tocar); alfa 0 = transparente. Las
   imágenes de `field/fieldcom/02_00.png` y `03_00.png` siguen las reglas de las páginas crudas del arte de menús (la paleta
@@ -2853,17 +2886,46 @@ Estructura (`<pref>` = la carpeta del usuario, ADR-010: la del ejecutable con `p
   valida y sustituye la primera vez que ese cuadro se pide y se guarda. La búsqueda es por desplazamiento (búsqueda
   binaria, el último archivo usado se recuerda); las fuentes salen del índice en memoria (arriba) y no se revisan mientras se juega
   (salvo `DW3_MODS_HOTRELOAD=1`: como mucho una vez por segundo **en total**, del archivo que se está usando). Registro: una línea por archivo y mod,
-  `images: override field/sprt/p002play/<EEE>.png (87) from mods/<mod>` (cuántos cuadros ofrece ese mod); un PNG rechazado
+  `images: override sprites/p002play/<EEE>.png (87) from mods/<mod>` (cuántos cuadros ofrece ese mod); un PNG rechazado
   dice `images: <ruta> rejected: <motivo>` al pedirse su cuadro. Con `DW3_IMG_TRACE=1`, `images: load <ruta> (override|disc)`
   por cada subida.
 - **Qué archivo es el protagonista.** Depende de la escena: en el Parque Central de la partida nueva (`warp:330`) el jugador
   es `P002PLAY` (cargó el cuadro 004, visto en el log); el decompilado da `P001PLAY` al personaje 1 (no verificado en otra
   escena). Para un mod del jugador se recolorean los dos. Con `DW3_IMG_TRACE=1` el log dice qué archivos y cuadros se cargan.
-- **Ejemplo.** `pc/examples/mods/player-recolor/` (README en español): azules a rojo en `P001PLAY`, `P002PLAY` y las poses `P002PLYD/F/K/L`; los PNG los
+- **Ejemplo.** Azules a rojo en `P001PLAY`, `P002PLAY` y las poses `P002PLYD/F/K/L` (guía §6.3); los PNG los
   genera `tools/image_mod_palette.py --sprite NOMBRE` desde tu propia copia.
 - Código: `shim/sprite_data.c` (`sprExtractFile`, `sprJson`, `sprTable`) y el reparto de hojas de `FIELDCOM` en `shim/image_data.c`.
   Prueba: `make -C pc imagetest` (archivo sintético con cuadros, animaciones y conjuntos; sin conjuntos; animación sin
   marca de fin; archivo que no lo es; `FIELDCOM` con dos hojas).
+
+## Reportes de crash (R1)
+
+Una señal fatal (SIGSEGV, SIGBUS, SIGFPE, SIGILL, SIGABRT) escribe su reporte en el log del propio juego (`logs/dw3-*.log`; en Android también
+`harness.log` y logcat, etiqueta `dw3`) y muere con la misma señal. Está en `shim/fault_report.c`: seguro dentro de una señal (el descriptor del
+log se abrió antes; solo `write()` de bytes ya formateados, sin stdio, malloc ni locks; la tabla de módulos se toma al arrancar). Un reporte:
+
+```
+boot: fatal signal 11 (SIGSEGV) code 1 fault addr 0x0000000000000000 tid 671487 thread "boot"
+boot: pc 0000652b05206718 exe+0x405718 sp 00007ffe128620d0
+  #00 pc 0000652b05206deb exe+0x405deb
+  #02 pc 0000652b05206718 exe+0x405718
+boot: module exe build-id 2f7d87007e7cdf21bd9ba5e6b7167456b2db783e
+boot: end of report
+```
+
+Cada marco es `módulo+desplazamiento`; el build id de cada módulo que aparece sale una vez al final (en Android, `libmain.so` y `libopenal.so`).
+Para nombrar la línea hace falta el binario **sin recortar** con ese mismo build id:
+
+- Escritorio: `addr2line -f -e pc/build/boot 0x<desplazamiento>` (el binario del `make` lleva `-g`).
+- Android: cada `pc/android/build.sh apk|release` guarda `libmain.so` y `libopenal.so` sin recortar en `pc/build-android-symbols/debug/` o
+  `.../<versión>/`, con `BUILD-ID.txt` (los ids del APK y de los guardados coinciden o el script falla). Un comando:
+  `llvm-addr2line -f -e pc/build-android-symbols/<debug|versión>/libmain.so 0x<desplazamiento>` (el `llvm-addr2line` está en el NDK, o dentro
+  de la imagen con `docker run --rm -v $PWD:/dw3 -w /dw3 dw3port-android sh -c '$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-addr2line ...'`).
+  Si el build id del reporte no es el del `BUILD-ID.txt`, el binario no es el de esa instalación. Los marcos 1 en adelante son direcciones de
+  retorno: para la línea de la llamada, restar 1 al desplazamiento.
+
+Límites conocidos: la pila alterna es solo del hilo que instala el reporte (el del juego); una librería cargada después de arrancar no está en la
+tabla (sale la dirección sin módulo). Prueba: `make -C pc faulttest` (formateador, argumento y un hijo que se cae por cada señal y deja el reporte en un log).
 
 ## Compilación cruzada a Windows (windows-build, W1)
 
@@ -3154,7 +3216,7 @@ del juego; cada archivo pedido durante un cuadro queda cargado al final de ese c
   el mismo gancho `TmField.byName`/`idOk` de los objetos (`cardExtByName`/`cardExtIdOk`, `card_ext.c`) con tope `PC_CARD_LIST_MAX - 1`; 315 y 316 se rechazan. `default_deck` guarda
   el id menos uno y los contraataques terminan en 0, por eso tienen sus envoltorios (`cardNameMinusOne`, `cardIdMinusOneOk`, `cardIdOrZeroOk`). Un nombre desconocido: `no installed mod
   defines "..."`.
-- Precio: `CardRec.price` (campo `price` de `cards.json`, 0-32767, 1 por defecto) en vez de una fila por carta en `card_prices` (44 filas fijas del disco); `STCRDSHP_getPrice`
+- Precio: `CardRec.price` (campo `price` de `card.json`, 0-32767, 1 por defecto) en vez de una fila por carta en `card_prices` (44 filas fijas del disco); `STCRDSHP_getPrice`
   pregunta a `pcCardPrice` bajo `DW3_PC` para ids >= 317.
 - La tienda dibujaba solo ids < 315: `CARD_PACK_IDS` era 315 (`card_grid.c:20,78` cortaba el dibujo). En PC es `PC_CARD_LIST_MAX`.
 - Álbum: los ids 315-316 siguen como dos huecos vacíos (indistinguibles de cualquier carta sin ver; quitarlos exigía renumerar `grid->first`, el cursor y las páginas en todo

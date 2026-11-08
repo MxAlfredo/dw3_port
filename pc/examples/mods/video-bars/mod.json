@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Movie: colour bars",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Replaces the opening movie with a synthetic colour-bars clip (video/MOVIEOPN.avi and MOVIEOP2.avi, generated at install time)."
-}

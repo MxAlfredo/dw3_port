@@ -57,10 +57,21 @@ typedef struct ModToolsLayers {
     void (*run)(void *ud);
     /* 1 when the disc has the file ("AAA/DAT/Z_STAGE/S330PACK.BIN", any case). NULL: the files/ folder is not checked. */
     int (*discHas)(void *ud, const char *discPath);
-    /* The folders `run` checks, comma separated ("config,content,tables,images,audio,video,z_stage"). A folder a mod has that is not in
+    /* The folders `run` checks, comma separated ("config,content,tables,images,audio,video,stages"). A folder a mod has that is not in
        the list is reported as not checked. */
     const char *covered;
     void *ud;
+    /* What a sprites/<name> folder is on this disc (A7.5): 0 a new sprite (no original has that name), 1 an original sprite (its NNN.png frames replace the
+       original's), 2 the follower of an original partner (partners/<name>/field/ holds it, not sprites/). NULL: every folder is taken as a new sprite. */
+    int (*spriteKind)(void *ud, const char *folder);
+    /* 1 when partners/<name> is an original partner's folder on this disc (the slug of its English name): its partner.json is never read (A8.2). NULL: none is. */
+    int (*partnerOriginal)(void *ud, const char *name);
+    /* 1 when `name` is the folder name of one of the gym's twelve trainings on this disc (partners/<key>/training/<name>/, the slug of the training's English name). NULL: every
+       name is taken as one. */
+    int (*partnerTraining)(void *ud, const char *name);
+    /* 1 when data/partners/<key>/ holds a file the user changed (its hash is not the one partners/manifest.json recorded): that folder is a layer of the partner's art
+       like a mod's (A8.4). NULL: none is. */
+    int (*partnerDataEdited)(void *ud, const char *key);
 } ModToolsLayers;
 
 /* Start capturing stderr (before modsInit and the loaders); modToolsValidate stops it. A second call does nothing. */

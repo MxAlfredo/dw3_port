@@ -98,6 +98,8 @@ int audioExportRequest(const char *spec);
 int audioExportRequestEx(const char *spec, int force);
 /* How many banks of the last job were really built (the rest were skipped as up to date) */
 int audioExportBuilt(void);
+/* The settings.ini key: audioExportRequest, then builds the queue now, on this thread. The queued count, or -1. */
+int audioExportRun(const char *spec);
 /* The menu's job: audioExportRequestEx, then a worker thread builds and writes the queue. Then call audioExportPump every frame */
 int audioExportStart(const char *spec, int force);
 /* Stops a running worker between two files (a bank in progress is left as it is, its manifest entry not written) and joins it;

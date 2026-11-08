@@ -12,6 +12,7 @@
 
 #include "avi_read.h"
 #include "jpeg_read.h"
+#include "mods.h"
 #include "port_log.h"
 #include "video_export.h" /* the 14 movie names */
 
@@ -251,21 +252,12 @@ long videoModFrames(void) {
     return vm.active ? vm.frames : 0;
 }
 
-static int fileExists(const char *path) {
-    FILE *f = fopen(path, "rb");
-
-    if (f == NULL) return 0;
-    fclose(f);
-    return 1;
-}
-
 int videoModArm(long lba) {
     int i, m, count;
     const char *name = NULL;
-    char lower[16];
 
     videoModStop();
-    if (!vmHaveIo || vmIo.movieLba == NULL || vmIo.modCount == NULL) return 0;
+    if (!vmHaveIo || vmIo.movieLba == NULL) return 0;
     count = videoExportCount();
     if (count > 32) count = 32;
     if (!vmLbaKnown) {
@@ -279,23 +271,17 @@ int videoModArm(long lba) {
         }
     }
     if (name == NULL) return 0;
-    for (i = 0; name[i] != '\0' && i < 15; i++) lower[i] = (char)((name[i] >= 'A' && name[i] <= 'Z') ? name[i] + 32 : name[i]);
-    lower[i] = '\0';
-    for (m = vmIo.modCount(vmIo.ud) - 1; m >= 0; m--) {
-        const char *dir = vmIo.modDir(vmIo.ud, m);
-        const char *mod = vmIo.modName(vmIo.ud, m);
-        char path[1024];
+    /* the mods only: data/video is the export of the originals, not a replacement (mods.h asset layers) */
+    for (m = 0; m < modsCount(); m++) {
+        AssetLayer layer;
+        const char *mod;
+        char rel[32], path[1024];
         char err[200];
-        int k, found = 0;
 
-        if (dir == NULL) continue;
-        for (k = 0; k < 3 && !found; k++) {
-            if (k == 0) snprintf(path, sizeof path, "%s/video/%s.avi", dir, name);
-            else if (k == 1) snprintf(path, sizeof path, "%s/video/%s.AVI", dir, name);
-            else snprintf(path, sizeof path, "%s/video/%s.avi", dir, lower);
-            found = fileExists(path);
-        }
-        if (!found) continue;
+        if (!assetLayerAt(m, &layer)) continue;
+        mod = modsNameOf(layer.mod);
+        snprintf(rel, sizeof rel, "%s.avi", name);
+        if (!assetLayerFile(&layer, "video", rel, path, sizeof path)) continue;
         err[0] = '\0';
         if (openReplacement(path, mod != NULL ? mod : "?", name, err, sizeof err)) {
             vm.armLba = lba;

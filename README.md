@@ -10,21 +10,21 @@ stages, models). *[Leer en español](LEEME.md)*
 > En/Fr/De/Es/It one, as `.cue` + `.bin` or a single `.bin`; the port reads everything from it on
 > your machine. It is a fan project, not affiliated with or endorsed by Bandai Namco or Sony.
 
-**Players:** [download version 1.1.0](https://github.com/MxAlfredo/dw3_port/releases/latest), install it, and point it at your own disc.
+**Players:** [download version 2.0.0](https://github.com/MxAlfredo/dw3_port/releases/latest), install it, and point it at your own disc.
 **Modders:** start with the [modding guide](docs/modding/README.en.md): a first mod in 5 minutes, where mods go on
 each system (including Android), the tools and the file formats. Bugs and ideas: [issues](https://github.com/MxAlfredo/dw3_port/issues).
 
 ## Download
 
-Get version **1.1.0** from **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (each file is listed in
+Get version **2.0.0** from **[Releases](https://github.com/MxAlfredo/dw3_port/releases/latest)** (each file is listed in
 `SHA256SUMS`; older versions are on the same page):
 
 | System | File |
 |---|---|
-| Windows (recommended) | `DW3Port-1.1.0-Setup.exe`: installer; it asks for your disc and, optionally, an emulator memory card |
-| Windows, portable | `DW3Port-1.1.0-windows-portable.zip`: unzip anywhere, put your disc in `game/`, run `DW3.exe` |
-| Linux (x86_64, glibc 2.34+, i.e. 2022 or newer) | `DW3Port-1.1.0-x86_64.AppImage`: make it executable and open it |
-| Android 10+ (arm64) | `DW3Port-1.1.0-android.apk`: copy it to the device, open it and allow installing from this source; the app asks for your disc through the system file picker |
+| Windows (recommended) | `DW3Port-2.0.0-Setup.exe`: installer; it asks for your disc and, optionally, an emulator memory card |
+| Windows, portable | `DW3Port-2.0.0-windows-portable.zip`: unzip anywhere, put your disc in `game/`, run `DW3.exe` |
+| Linux (x86_64, glibc 2.34+, i.e. 2022 or newer) | `DW3Port-2.0.0-x86_64.AppImage`: make it executable and open it |
+| Android 10+ (arm64) | `DW3Port-2.0.0-android.apk`: copy it to the device, open it and allow installing from this source; the app asks for your disc through the system file picker |
 
 Each download has a `README.txt` / `LEEME.txt` with the controls, where your saves are and what to
 do if something goes wrong.
@@ -39,15 +39,17 @@ do if something goes wrong.
 
 ## Status
 
-Version 1.1.0 adds new stages from mods (see the release notes). Bugs are welcome as issues: see [CONTRIBUTING.md](CONTRIBUTING.md) for what to include.
+Version 2.0.0 restructures the game's files (readable per-asset folders) and adds an example partner pack, more modding tools and Android fixes. Mods and the `data` folder from 1.x must be updated or re-exported (see the release notes). Bugs are welcome as issues: see [CONTRIBUTING.md](CONTRIBUTING.md) for what to include.
 
 ## Modding
 
 Everything a modder needs is in this repository:
 
 - [`docs/modding/README.en.md`](docs/modding/README.en.md) (Spanish: [`README.md`](docs/modding/README.md)): the guide: mod folders,
-  data tables, new Digimon, items, cards, images, audio, video, stages, models and how to load them.
-- [`pc/examples/`](pc/examples/README.md): ready-to-copy example mods.
+  data tables, new Digimon, items, cards, images, audio, video, stages, models and how to load them. Assets live in one folder per topic
+  (`stages/`, `cards/`, `partners/`, `digimon/`, `sprites/`, `menus/`...), the same in `data/` and in a mod; mods made for an earlier
+  version move with the guide's [migration table](docs/modding/README.en.md#11-migrating-from-the-previous-format).
+- [`pc/examples/`](pc/examples/README.md): three complete example mods (new stages, a Digimon with its own model, a partner pack) and a template.
 - [`docs/`](docs/): file formats (`formats.md`), data tables, extended game state, stage data and the design
   decisions (`docs/decisions/`).
 - [`tools/`](tools/): `model_export.py` / `model_import.py` (glTF models), `techcompat.py`,
@@ -109,7 +111,7 @@ Releases are built on a Linux machine with MinGW-w64, NSIS (`makensis`), Docker 
 above, from a clean checkout after `scripts/fetch_deps.sh`:
 
 ```sh
-pc/make_release.sh <version>      # e.g. 1.1.0
+pc/make_release.sh <version>      # e.g. 2.0.0
 ```
 
 It writes `pc/build-release/<version>/`: the Windows installer and portable zip, the Linux AppImage

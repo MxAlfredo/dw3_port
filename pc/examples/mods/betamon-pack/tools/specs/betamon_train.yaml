@@ -1,0 +1,74 @@
+spritekiln: 1
+name: betamon_train
+extends: betamon.yaml
+kind: character
+view: topdown
+size: 64
+directions: [e]
+camera: {pitch: 20, scale: 0.037, center: [0, 0.40, 0]}
+
+animations:
+  stand:
+    frames: 1
+    ms: 100
+    channels: {}
+  stand2:
+    frames: 1
+    ms: 100
+    channels: {bob: -0.015, crest: 0.4, head_pitch: 0.04}
+  crouch:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.84, bob: -0.06, lean: 0.10, head_pitch: 0.12, spread_L: 0.25, fl_up_L: 0.6, fb_up_L: 0.6}
+  windup:
+    frames: 1
+    ms: 100
+    channels: {lean: -0.30, squash: 0.95, bob: -0.02, head_pitch: -0.35, crest: 0.8, fl_L: -0.5, fl_up_L: 0.9, fb_L: 0.3, jaw: 0.0, tail_pitch: 0.3}
+  strike:
+    frames: 1
+    ms: 100
+    channels: {lean: 0.38, squash: 1.04, bob: 0.0, head_pitch: 0.25, jaw: 1, fl_L: 0.7, fl_up_L: 0.3, fb_L: -0.5, root: [0, 0, 0.12], crest: 0.9, tail_pitch: -0.2}
+  jump:
+    frames: 1
+    ms: 100
+    channels: {root: [0, 0.28, 0], lean: -0.12, squash: 1.1, fl_L: 0.5, fl_up_L: 1, fb_L: -0.5, fb_up_L: 1, spread_L: 0.2, jaw: 0.7, crest: 1, tail_pitch: -0.3}
+  cheer:
+    frames: 1
+    ms: 100
+    channels: {root: [0, 0.10, 0], lean: -0.55, squash: 1.04, head_pitch: -0.15, jaw: 1, eyes: 0.15, fl_L: 0.9, fl_up_L: 1, spread_L: 0.6, fb_L: 0.2, crest: 0.5, tail_pitch: 0.4}
+  slump:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.70, bob: -0.10, lean: 0.22, head_pitch: 0.5, eyes: 0.15, spread_L: 0.5, fl_up_L: 0.7, fb_up_L: 0.7, crest: -0.4, tail_pitch: -0.5}
+  hunch:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.86, bob: -0.05, lean: 0.12, head_pitch: 0.3, eyes: 0.15, spread_L: 0.15, fl_up_L: 0.6, fb_up_L: 0.6, crest: -0.3}
+  lookup:
+    frames: 1
+    ms: 100
+    channels: {lean: -0.20, head_pitch: -0.65, jaw: 0.5, crest: 0.7, tail_pitch: 0.2}
+  brace:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.88, bob: -0.04, lean: 0.16, head_pitch: 0.35, eyes: 0.15, fl_L: 0.35, fl_up_L: 0.4, fb_L: -0.35, spread_L: 0.1, crest: 0.2}
+  sit:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.80, bob: -0.07, lean: -0.15, head_pitch: -0.05, eyes: 0.15, spread_L: 0.3, fl_up_L: 0.8, fb_up_L: 0.8, jaw: 0}
+  lookdown:
+    frames: 1
+    ms: 100
+    channels: {head_pitch: 0.55, lean: 0.12, jaw: 0, crest: -0.2}
+  scared:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.9, bob: -0.04, lean: -0.18, head_pitch: -0.2, jaw: 1, spread_L: 0.1, fl_up_L: 0.6, fb_up_L: 0.4, crest: 1}
+  pant:
+    frames: 1
+    ms: 100
+    channels: {squash: 0.9, bob: -0.04, lean: 0.10, head_pitch: 0.1, jaw: 1, eyes: 0.15, spread_L: 0.2, fl_up_L: 0.6, fb_up_L: 0.6, crest: -0.5}
+  blown:
+    frames: 1
+    ms: 100
+    channels: {lean: 0.22, squash: 0.92, bob: -0.03, head_pitch: 0.2, eyes: 0.15, crest: 2.2, fl_L: 0.4, fb_L: -0.4, tail_pitch: 0.6}

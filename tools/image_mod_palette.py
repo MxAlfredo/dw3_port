@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""Recolour the palette of extracted PNGs to make an image mod (features menu-art-png T4 and field-sprites-png T4).
+"""Recolour the palette of exported PNGs to make an art mod (features menu-art-png T4, field-sprites-png T4, readable-assets A8.6).
 
-The port extracts the game's menu art to <data>/images/<dir>/<name>/<NN>_<MM>.png and the field sprites to
-<data>/images/field/sprt/<name>/<EEE>.png (one PNG per frame) from your own disc.
-This script copies some of those PNGs into a mod folder, changing ONLY the palette (the PLTE chunk):
+The port exports the game's art to <data> from your own disc, one topic folder each (ADR-016): menu pieces in
+<data>/menus/<screen>/<piece>.png, sprite frames in <data>/sprites/<name>/<NNN>.png, card faces in <data>/cards/<name>/face.png,
+partner art in <data>/partners/<name>/ and the few pages still under <data>/images/.
+This script copies some of those PNGs into a mod folder at the SAME relative path, changing ONLY the palette (the PLTE chunk):
 every colour whose hue is in the source range gets the target hue, keeping its saturation and
 brightness. The pixel data is copied byte for byte, so the size, the indices and the colour count
 stay exactly what the port requires. Nothing from the game is ever stored in this repository: the
 mod's PNGs are made on your machine from your own copy.
 
-    python3 tools/image_mod_palette.py                        # blue -> gold on the shop frames
-    python3 tools/image_mod_palette.py --to 120 screen/stshoptm/00_00.png   # blue -> green
+    python3 tools/image_mod_palette.py                        # blue -> gold on the shop menu pieces (menus/stshop)
+    python3 tools/image_mod_palette.py --to 120 menus/stshop/f000p00.png   # one piece, blue -> green
     python3 tools/image_mod_palette.py --list                 # the images you can recolour
-    python3 tools/image_mod_palette.py --sprite p001play --to 0   # every frame of a field sprite: blue -> red
-    python3 tools/image_mod_palette.py field/sprt/p001play    # a folder: every PNG in it
+    python3 tools/image_mod_palette.py --sprite p001play --to 0   # every frame of a sprite (sprites/p001play): blue -> red
+    python3 tools/image_mod_palette.py cards/c001 partners/kotemon/portrait.png   # a folder: every PNG in it
+
+Names are paths under <data> (any case; the port writes lower case): a topic folder (menus, sprites, cards, partners, images)
+and what is inside it. A folder takes every PNG below it. Stage tiles and objects (stages/s<nnn>/tiles, .../objects) work the
+same way. The result goes to <mod>/<the same path>, which is where the game looks for a mod's replacement.
 
 Defaults: --data <pref>/data (DW3_DATA_DIR), --mod <pref>/mods/menu-frames-gold (DW3_MODS_DIR; with --sprite,
 <pref>/mods/player-recolor), where
@@ -26,7 +31,8 @@ import struct
 import sys
 import zlib
 
-DEFAULT_IMAGES = ["screen/stshoptm/00_00.png"]
+DEFAULT_IMAGES = ["menus/stshop"]
+LIST_TOPICS = ("menus", "sprites", "cards", "partners", "images")  # --list skips stages/ (thousands of tiles) and digimon/ (models)
 SIG = b"\x89PNG\r\n\x1a\n"
 
 
@@ -109,11 +115,11 @@ def resolve_ci(root, name):
     return "/".join(out)
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("images", nargs="*", help="names under images/ (any case; the port writes lower case), e.g. screen/stshoptm/00_00.png, or a folder of them")
+    ap.add_argument("images", nargs="*", help="paths under <data> (any case; the port writes lower case), e.g. menus/stshop/f000p00.png, or a folder of them")
     ap.add_argument("--sprite", action="append", default=[], metavar="NAME",
-                    help="a field sprite file, e.g. p001play: every frame PNG of field/sprt/NAME (repeatable)")
+                    help="a sprite, e.g. p001play: every frame PNG of sprites/NAME (repeatable)")
     ap.add_argument("--data", default=os.environ.get("DW3_DATA_DIR") or os.path.join(pref_dir(), "data"))
     mods = os.environ.get("DW3_MODS_DIR") or os.path.join(pref_dir(), "mods")
     ap.add_argument("--mod", default=None, help="the mod folder to write into (default: menu-frames-gold, or player-recolor with --sprite)")
@@ -122,19 +128,20 @@ def main():
     ap.add_argument("--to", type=float, default=45, help="target hue in degrees (default 45, gold)")
     ap.add_argument("--min-saturation", type=float, default=0.2, help="greys below this stay (default 0.2)")
     ap.add_argument("--list", action="store_true", help="list the extracted images and exit")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
-    root = os.path.join(args.data, "images")
+    root = args.data
     if args.list:
-        for dirpath, _, names in sorted(os.walk(root)):
-            for n in sorted(names):
-                if n.endswith(".png"):
-                    print(os.path.relpath(os.path.join(dirpath, n), root))
+        for topic in LIST_TOPICS:
+            for dirpath, _, names in sorted(os.walk(os.path.join(root, topic))):
+                for n in sorted(names):
+                    if n.endswith(".png"):
+                        print(os.path.relpath(os.path.join(dirpath, n), root).replace(os.sep, "/"))
         return 0
     if args.mod is None:
         args.mod = os.path.join(mods, "player-recolor" if args.sprite else "menu-frames-gold")
     names = []
-    wanted = list(args.images) + ["field/sprt/" + n for n in args.sprite]
+    wanted = list(args.images) + ["sprites/" + n for n in args.sprite]
     for name in wanted or DEFAULT_IMAGES:
         name = resolve_ci(root, name)
         top = os.path.join(root, name)
@@ -156,7 +163,7 @@ def main():
             print(f"{name}: {e} (run the game once so it extracts {root})", file=sys.stderr)
             rc = 1
             continue
-        dst = os.path.join(args.mod, "images", name)
+        dst = os.path.join(args.mod, name)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         with open(dst, "wb") as f:
             f.write(new)
@@ -165,7 +172,7 @@ def main():
         if len(names) <= 5:
             print(f"{name}: {changed} palette entries recoloured -> {dst}")
     if done > 5:
-        print(f"{done} images, {total} palette entries recoloured -> {os.path.join(args.mod, 'images')}")
+        print(f"{done} images, {total} palette entries recoloured -> {args.mod}")
     return rc
 
 

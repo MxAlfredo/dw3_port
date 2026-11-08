@@ -48,7 +48,7 @@ El punto de aplicación (parchear el arreglo ya inicializado) es el mismo en los
 | Listas por tipo de objeto | `KEY_ITEM_IDS`, `USABLE_ITEM_IDS`, `WEAPON_IDS`, `ARMOR_IDS`, `ACCESSORY_IDS` | ejecutable | 52 / 84 / 124 / 78 / 69 | No, a propósito: derivan de `ItemInfo.kind` y los menús las indexan; los objetos nuevos ya entran solos (`item_ext.c`) |
 | Recompensas de batalla | `STFGTREP_rewards` / `BattleReward` | overlay STFGTREP | 335 | No |
 | Crecimiento y nivel | `STFGTREP_levelExp`, `_vitalCuts`, `_vitalRandom`, `_statGains`, `_resistGains` | overlay STFGTREP | 4, 4, 9, 6x9, 8 | **Sí** (`level_exp`, `vital_cuts`, `vital_random`, `stat_gains`, `resist_gains`, E5b): llave = primer nivel del tramo (1, 5, 20, 40 y 60, 80 en `stat_gains`) o ranura 0..n; se aplican al abrir el reporte |
-| Evoluciones | `STFGTREP_evolutionLists` / `Evolution` | overlay STFGTREP | 8 socios x 44 | **Sí** (`evolutions`, E5b): llave = `socio * 100 + entrada` (352 filas); las entradas 44+ de `digimon.json` no son filas |
+| Evoluciones | `STFGTREP_evolutionLists` / `Evolution` | overlay STFGTREP | 8 socios x 44 | **Sí** (`evolutions`, E5b): llave = `socio * 100 + entrada` (352 filas); las entradas 44+ de los `digimon/<llave>/digimon.json` no son filas |
 | Formas de ráfaga | `DigimonData.blastForms[5]` | ejecutable | 52 filas x 5 | **Sí** (`blast_forms`, E5b): llave = id del Digimon; solo importan las 8 filas de socio. Valores de 16 bits (U9: `PcDigiLinks` en `ext_state`, `PC_DIGIMON_BLAST`) |
 | Encuentros | `FIELDSTG_encounters` / `Encounter`; `FIELDSTG_enemies` / `BattleEnemy` | overlay FIELDSTG | 335; 523 (EU) | **Sí** (`field_encounters`, `field_enemies`, E5c; filas nuevas `"<mod>:<nombre>"` con recompensas, T5b): llave = número de fila; el encuentro nombra las filas de enemigo por número (`enemy1`..`enemy3`); se aplican al entrar al campo |
 | Tasas de encuentro | `FIELDSTG_battleRates` | overlay FIELDSTG | 6 | **Sí** (`battle_rates`, E5c): llave = índice de tasa 0-5 (el `count` de la lista de batallas del escenario) |
@@ -78,7 +78,7 @@ con `PartnerStats` y `PartnerEntry[44]` (`:299`, `:243`). `GAME_SAVE_SIZE` fija 
   `expLevel` (nivel tras el cual la experiencia crece más rápido), `expRate` (experiencia por nivel, en décimos);
   `hp`, `mp`, `hpGrowth`, `mpGrowth`; `statGrowth[6]`, `resistGrowth[7]`; `blastForms[5]` (forma de la "ráfaga" por
   nivel); `nameId` (cadena del archivo de texto `0x4F`); `family`.
-- Qué tabla usa cada campo de crecimiento (editables en `digimon.json`, `partner`): `statGrowth[i]` (0..5) es la columna de
+- Qué tabla usa cada campo de crecimiento (editables en `digimon/d<nnn>/digimon.json`, `partner`): `statGrowth[i]` (0..5) es la columna de
   `STFGTREP_statGains[tramo de nivel]` (`growth.c:56-57`, columna `statGrowth + 0..4`); `resistGrowth[i]` (1..5) elige en batalla
   `STFGTREP_resistGains[resistGrowth + 0..3]` (`growth.c:65-66`, hasta el nivel 40) y en el gimnasio
   `STGTRAIN_resistGainTables[(resistGrowth - 1) * 3 + tramo]` (`result.c:78-82`; tramo = valor <100, <300, más). Los
@@ -183,7 +183,7 @@ con `PartnerStats` y `PartnerEntry[44]` (`:299`, `:243`). `GAME_SAVE_SIZE` fija 
 **Tablas de `tables/` del campo (E5c).** Las tres son datos del overlay FIELDSTG, que el ámbito `fieldstg` restaura en cada
 entrada al campo; el parche va después, en el `onEnter` (`gameTablesApplyField`, `pc/shim/game_tables.c`). Sin parche no se
 escribe nada. Se aplican en este orden: `field_enemies`, `field_encounters`, `battle_rates`; después los emplazamientos
-`"encounters"` de `digimon.json` (que van encima de los huecos ya parchados).
+`content/encounters.json` (que van encima de los huecos ya parchados).
 
 - `field_enemies` (523 filas, llave = número de fila): `fighter` (id de la tabla de batalla; también `"dw3:digimon/<id>"` o
   `"<mod>:<clave>"`; una forma de socio se rechaza: no tiene fila en la tabla de batalla), `level` 1-99, `hp` 1-32767, `mp`
@@ -245,7 +245,7 @@ escribe nada. Se aplican en este orden: `field_enemies`, `field_encounters`, `ba
 CARDGAME (ambos rangos dentro de las secciones de ámbito, `check_scopes`): se registran al arrancar y se parchan en el `onEnter` del ámbito `stcrdshp` / `cardgame`.
 - `card_prices` (44 filas, llave = id de carta, `price` 0-32767): `STCRDSHP_getPrice` busca la primera fila con la carta (`shop.c:426-428`) y devuelve 1 si no hay;
   `price` es `s16` y se resta del dinero (`buy.c:279-329`). El `card` de la fila es la llave, no un campo. **Cartas de mods (U8c):** el precio de una carta de un mod (id >= 317) no es una
-  fila (las 44 no crecen): es `CardRec.price`, el campo `price` de su `cards.json` (0-32767, 1 si no lo trae, igual que una carta del disco sin fila), y `STCRDSHP_getPrice` lo pide a
+  fila (las 44 no crecen): es `CardRec.price`, el campo `price` de su `card.json` (0-32767, 1 si no lo trae, igual que una carta del disco sin fila), y `STCRDSHP_getPrice` lo pide a
   `pcCardPrice` (`#ifdef DW3_PC`, `card_access.h`). Una fila de `card_prices` con la llave de una carta de mod se rechaza como cualquier llave sin fila.
 - `card_shop_stock` (24 filas, llave = el `shop` de la fila, 49-67 y 70-74): la lista `cards` (ids 1-314 del disco, o `"<mod>:<nombre>"` de una carta de un mod: `CARD_PACK_IDS` es `PC_CARD_LIST_MAX` en PC, U8c, para que `card_grid.c:20,78` las dibuje) termina en 0 y
   `getStock` cuenta hasta el 0 (`shop.c:406-419`); la fila no tiene cuenta que guardar (`TM_NO_COUNT`, extensión del motor). La compra pagina de a seis (`buy.c:35,228,445`) y
@@ -321,6 +321,10 @@ Las condiciones y acciones de las charlas (`["special", ...]`, `["party-stat", .
   `arg`. Las ops de cada primitiva están en la nota del campo del archivo de referencia (`data/tables/special_conditions.json`, que además trae en `labels` lo que hace cada fila original). **Rechazo de fila entera**
   (`rowCheck`): un `primitive` fuera de 0-5, una `op` que la primitiva no tiene (conjunto 0-1, compañero 0-9, dinero 0-2, cuenta de banderas 0-1), un `arg` que indexaría fuera de un arreglo (compañero: 0-7 en las ops 1, 3, 4
   y 6; dinero: el índice de `money_required`, `money_gains` o `money_losses` según la op; rango de progreso: 0-33). La fila conserva sus valores originales. Un `arg` que el juego tolera sin leerlo (modo 3 de una cuenta de banderas) se acepta.
+- **Compañeros por nombre (P11).** En las ops de compañero (1, 3, 4, 6) `arg` también puede ser el nombre del compañero, `"<mod>:<llave>"` o `"dw3:partner/<n>"`: `pcPartnerFind` (el registro, `gameTablesSetPartnerFind`)
+  lo resuelve **una vez**, al leer la tabla, y el campo queda con el número de ese arranque; un nombre desconocido rechaza el campo (`row "x" field "arg" rejected: no installed mod defines "<nombre>"`): una fila original conserva su `arg` y una fila nueva de un mod no se crea (`TmTable.extRejected`: un campo rechazado de una fila fuera de la tabla). Un número sigue valiendo
+  como antes (y se revisa contra los compañeros que existen). Así una misión de mod (charla con acción `["special", ..., 1]` de op 3 y condición de op 6) no depende del orden alfabético de los mods. La op 9 (los ocho
+  desbloqueados) no cambia: cuenta a los ocho originales, es lógica de la historia del disco. El estado desbloqueado de un compañero de mod se guarda por nombre con su registro (ADR-014).
 - **Filas que agrega un mod.** Una fila de su `tables/special_conditions.json` con una llave `"<mod>:<nombre>"` crea una condición nueva: `{"rows": {"mimod:rico": {"primitive": 2, "op": 0, "arg": 0}}}`; los parches de escenario la usan como
   `["special", "mimod:rico", 1]`. Hasta 256 (el id es de 9 bits y los del juego terminan antes de `0xFF`), en un arreglo del puerto fuera de `SPECIAL_CONDITIONS` (que nunca crece): `checkSpecialCondition` pregunta a
   `pcSpecialExtRow` por los ids desde `0x100`. Una fila nueva nace inválida (primitiva 15): tiene que dar `primitive` y `op` (y `arg` si la op lo lee) y pasar el mismo chequeo que las originales, o el nombre no queda

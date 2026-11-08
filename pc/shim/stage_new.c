@@ -3,6 +3,7 @@
  */
 #include "stage_new.h"
 
+#include <ctype.h>
 #include <dirent.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -447,6 +448,17 @@ int nsPending(void) {
     return sPendCount;
 }
 
+/* s<nnn> (any case) is the folder of an original stage: its stage.json is a stage-patch-v1, and the loaders of the original stages own it */
+static int isOriginalFolder(const char *name) {
+    int i;
+
+    if (strlen(name) != 4 || tolower((unsigned char)name[0]) != 's') return 0;
+    for (i = 1; i <= 3; i++) {
+        if (!isdigit((unsigned char)name[i])) return 0;
+    }
+    return 1;
+}
+
 int nsScan(const SmHost *host) {
     int m, kept = 0;
 
@@ -456,7 +468,7 @@ int nsScan(const SmHost *host) {
         DIR *d;
         struct dirent *e;
 
-        snprintf(root, sizeof root, "%s/" NS_DIR, modsDirOf(m));
+        if (!assetModDir(m, NULL, NS_DIR, root, sizeof root)) continue;
         d = opendir(root);
         if (!d) continue;
         while ((e = readdir(d)) != NULL) {
@@ -469,8 +481,9 @@ int nsScan(const SmHost *host) {
             if (e->d_name[0] == '.') continue;
             snprintf(dir, sizeof dir, "%s/%s", root, e->d_name);
             if (stat(dir, &st) || !S_ISDIR(st.st_mode)) continue;
+            if (isOriginalFolder(e->d_name)) continue;
             if (!extValidKey(e->d_name)) {
-                plogLine("stages", "%s ignored: a stage folder is named with 1 to 48 characters of a-z, 0-9, - and _\n", dir);
+                plogLine("stages", "%s ignored: a new stage's folder is named with 1 to 48 characters of a-z, 0-9, - and _ (s<nnn> is an original stage)\n", dir);
                 continue;
             }
             snprintf(key, sizeof key, "%s:%s", modsNameOf(m), e->d_name);

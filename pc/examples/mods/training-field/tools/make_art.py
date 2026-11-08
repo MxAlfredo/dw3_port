@@ -3,7 +3,7 @@
 
 Everything here is original (nothing comes from the game disc, ADR-001) and Python standard library only:
 
-    python3 make_art.py            # writes ../new-stages/lower/ and ../new-stages/upper/
+    python3 make_art.py            # writes ../stages/lower/ and ../stages/upper/
 
 Each stage gets background.png (the picture), floor.png (collision), areas.png (battle zones) and stage.json
 (`stage-new-v1`). The pictures and the layers are drawn from ONE layout (rectangles and ellipses in pixels), so a
@@ -651,7 +651,7 @@ def rect(cx, cy, cw, ch):
 
 
 # ---------------------------------------------------------------------------------------------- the two floors
-MUSIC = {"bank": 9, "track": 0}  # Central Park's field music (data/stages/330.json: soundBank 9, music MUSIC(9, 0))
+MUSIC = {"bank": 9, "track": 0}  # Central Park's field music (data/stages/s330/stage.json: soundBank 9, music MUSIC(9, 0))
 NAME = "training-field"
 
 
@@ -728,7 +728,7 @@ def build_upper():
 
 
 # ---------------------------------------------------------------------------------------------- encounters
-FIGHT_STAGE = 1          # the battle arena of Central Park's own random battles (data/stages/330.json battles)
+FIGHT_STAGE = 1          # the battle arena of Central Park's own random battles (data/stages/s330/stage.json battles)
 FIGHT_MUSIC = 1611137024  # its battle music
 CARDMON = {"paralysis": 1, "confusion": 1, "sleep": 1, "steal": 1}  # the flags of the disc's Cardmon rows (encounters 327, 328)
 DUEL = {"confusion": 1, "sleep": 1, "knockOut": 1, "runAway": 1}   # the flags of the Seiryu Leader's trio (encounter 3): no running away
@@ -818,6 +818,8 @@ def talk(text, conditions=None, actions=None):
 # outlives the game's temporary flags 00:10/00:11 (they are cleared when the player leaves the stage), so the quest does not depend on talking to the Tamer
 # again before leaving
 CARD_WON = ["mod-flag", "dw3:card-won/13", 1]
+# the original's "item received" signal: the last action of a reward talk, after its item (docs/modding/README.md)
+ITEM_RECEIVED = ["special", "0x13", 1]
 SURVEY_ALL = [mf("seen-lake"), mf("seen-hill"), mf("seen-ring"), CARD_WON]
 ITEM_TREE_BOOTS, ITEM_POLE, ITEM_REWARD = "dw3:item/4", "dw3:item/5", "dw3:item/47"
 # game flags a card battle leaves (src/engine/game/events.c:739-748): 00:11 = a card battle just ended, 00:10 = the player won it
@@ -829,7 +831,7 @@ def ranger_talks():
     return [
         talk("ranger-done", [mv("quest", ">=", 2)]),
         talk("ranger-complete", [mv("quest", ">=", 1)] + SURVEY_ALL,
-             [["give-money", 300], ["item", ITEM_REWARD, 1], ["set-var", "%s:quest" % NAME, 2], ["sound", "win-jingle"]]),
+             [["give-money", 300], ["item", ITEM_REWARD, 1], ["set-var", "%s:quest" % NAME, 2], ITEM_RECEIVED]),
         talk("ranger-progress", [mv("quest", ">=", 1)]),
         talk("ranger-offer-tools", [["item", ITEM_TREE_BOOTS, 0]],
              [["item", ITEM_TREE_BOOTS, 1], ["item", ITEM_POLE, 1], ["set-var", "%s:quest" % NAME, 1], ["sound", "select"]]),
@@ -872,10 +874,10 @@ def duel_talks():
     return [
         talk("duel-rematch-go", [mv("rematch", "==", 1)], [["mod-flag", DUEL_WON, 0], setv("rematch", 3), start]),
         talk("duel-rematch-no", [mv("rematch", "==", 2)], [setv("rematch", 0)]),
-        talk("duel-rematch-won", [mv("rematch", "==", 3), ["mod-flag", DUEL_WON, 1]], [setv("rematch", 0), ["sound", "win-jingle"]]),
+        talk("duel-rematch-won", [mv("rematch", "==", 3), ["mod-flag", DUEL_WON, 1]], [setv("rematch", 0), ITEM_RECEIVED]),
         talk("duel-rematch-fled", [mv("rematch", "==", 3)], [setv("rematch", 0)]),
         talk("duel-after", [mf("duel-paid")], [ASK]),
-        talk("duel-reward", [mf("duel-started"), ["mod-flag", DUEL_WON, 1]], [["give-money", 500], ["sound", "win-jingle"], mf("duel-paid")]),
+        talk("duel-reward", [mf("duel-started"), ["mod-flag", DUEL_WON, 1]], [["give-money", 500], mf("duel-paid"), ITEM_RECEIVED]),
         talk("duel-fled", [mf("duel-started"), ["mod-flag", DUEL_PLAYED, 1]], [mf("duel-started", 0)]),
         talk("duel-offer", None, [mf("duel-started"), start]),
     ]
@@ -1155,7 +1157,7 @@ def write_tables(base):
 
 
 def main():
-    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(MOD, "new-stages")
+    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(MOD, "stages")
     for kind, builder in (("lower", build_lower), ("upper", build_upper)):
         s, start, n = builder()
         folder = os.path.join(out, kind)

@@ -1,0 +1,14 @@
+{
+  "format": "stage-text-v1",
+  "about": "The fisher's and the river Digimon's lines in Central Park (named texts of this mod). English is required.",
+  "texts": {
+    "intro": "Hi! I'm the fisher here.\nI study the Digimon of this river.",
+    "busy": "The fish aren't biting today...\nTalk to me another time.",
+    "request": "Have you seen MegaSeadramon? It lives in the deep part of the river.\nBeat it and you'll get Betamon's DDNA.\nBring it to me and I'll give you Betamon!",
+    "give": "That's Betamon's DDNA! You beat MegaSeadramon!\nThen Betamon is yours. Take care of it!\nYou'll find it in the lab's partner list.",
+    "already": "Betamon loves the water.\nAnd it loves its Tamer even more!",
+    "challenge": "A huge shadow rises from the water...\nMegaSeadramon wants to test your team!",
+    "defeated": "MegaSeadramon bows its head and sinks into the river.\nIt leaves behind a shimmering DDNA!",
+    "gone": "Only ripples are left on the water."
+  }
+}

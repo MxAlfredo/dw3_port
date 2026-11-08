@@ -54,7 +54,7 @@ const char *techExtText(int index, const char *langDir, int desc);
 /* The technique a mod names: an original (a "dw3:tech/<id>" name) or a technique of a mod ("<mod>:<key>"): its id, or -1 */
 int techExtResolve(const char *name);
 /* The first script slot (of `script`, and for a partner the ones its battle code can switch to) that the fighter `digimon`
-   lacks in its effects archive, or -1 when it has them all (or is unknown). The check of learnedBy and of digimon.json. */
+   lacks in its effects archive, or -1 when it has them all (or is unknown). The check of learnedBy and of digimon/<key>/digimon.json. */
 int techExtMissingSlot(int digimon, int script, int partner);
 /* Does the fighter of `digimon` have script `slot` in its effects archive? 1 yes, 0 no, -1 unknown (no fighters file to look in).
    The reference export lists these as "scriptSlots". */

@@ -94,6 +94,22 @@ typedef struct ContentType {
     const char *refNote; /* the fields a mod can set, one sentence, for the file's notes (plain ASCII, no quotes) */
     /* The settable fields of original `id` as JSON members ("price": 10, "sellPrice": 5), no braces; 0: no such record */
     int (*describe)(int id, char *out, size_t cap);
+
+    /* Optional: called once all the entry's fields were read, before it gets an id. 0 rejects it (the type has logged why), so a type
+       whose entry needs a field (a partner's first form) can refuse one without it and the ids stay those of the entries that remain. */
+    int (*accept)(const ContentEntry *e);
+    /* 1: "base" may be left out (baseId is then -1 and copyBase is called with it); a "base" that is there must still be an original */
+    int baseOptional;
+
+    /* A type kept one entry per folder instead of one file (cards, A8.1): `folder` is the topic folder ("cards") of every content mod, each of its
+       subfolders <key> holds `recordFile` ("card.json"), whose "format" is `recordFormat` ("cards-card-v1"), whose "name" (optional) is the folder's
+       name, and whose other members are the entry's fields as in content/<channel>.json ("title" and "description" are the language texts; the
+       members "$schema" and "notes" are ignored). NULL: the type reads mods/<mod>/content/<channel>.json ("new" map) as before. */
+    const char *folder;
+    const char *recordFile;
+    const char *recordFormat;
+    /* Optional, folder types: 1 when a folder key is not an entry of this type (a card's c<nnn> is an original card's art folder): skipped without a line */
+    int (*reservedKey)(const char *key);
 } ContentType;
 
 typedef struct ContentSet {
@@ -102,7 +118,7 @@ typedef struct ContentSet {
     int n;
 } ContentSet;
 
-/* Reads every active content mod's content/<channel>.json, assigns ids, logs them and calls publish. Returns the number
+/* Reads every active content mod's content/<channel>.json (or, for a folder type, its <folder>/<key>/<recordFile> files), assigns ids, logs them and calls publish. Returns the number
    of entries kept (the set is empty and nothing is published for 0). Call contentUnload first when reloading. */
 int contentLoad(ContentSet *s);
 /* Detaches the hooks and frees the set (the type puts its own redirects back first) */

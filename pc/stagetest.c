@@ -410,11 +410,11 @@ static void testExport(void) {
     CHECK(tot.tiles == 4 + 2 && tot.failed == 1);
 
     /* S233: 4 tiles with data, 2 empty (no file) */
-    CHECK(exists("data/z_stage/s233pack/00_00.png") && exists("data/z_stage/s233pack/00_01.png") && !exists("data/z_stage/s233pack/00_02.png") &&
-          exists("data/z_stage/s233pack/01_00.png") && exists("data/z_stage/s233pack/01_01.png") && !exists("data/z_stage/s233pack/01_02.png"));
-    CHECK(exists("data/z_stage/s233pack/s233pack.json") && exists("data/z_stage/s233pack/manifest.json"));
+    CHECK(exists("data/stages/s233/tiles/00_00.png") && exists("data/stages/s233/tiles/00_01.png") && !exists("data/stages/s233/tiles/00_02.png") &&
+          exists("data/stages/s233/tiles/01_00.png") && exists("data/stages/s233/tiles/01_01.png") && !exists("data/stages/s233/tiles/01_02.png"));
+    CHECK(exists("data/stages/s233/tiles/tiles.json") && exists("data/stages/manifest.json") && !exists("data/stages/s233/tiles/manifest.json") && !exists("data/z_stage"));
     /* the PNG round trip: pixels and palette are the TIM's */
-    pg = readPng("data/z_stage/s233pack/00_00.png");
+    pg = readPng("data/stages/s233/tiles/00_00.png");
     CHECK(pg.ok && pg.p.w == TW && pg.p.h == TH && pg.p.depth == 8 && pg.p.nPal == 256);
     if (pg.ok) {
         int x, y, bad = 0;
@@ -432,15 +432,15 @@ static void testExport(void) {
         CHECK(pg.p.nAlpha >= 1 && pg.p.alpha[0] == 0); /* colour 0 is transparent */
         pngImageFree(&pg.p);
     }
-    pg = readPng("data/z_stage/s233pack/01_01.png"); /* frame 4, RLEN, seed 5 */
+    pg = readPng("data/stages/s233/tiles/01_01.png"); /* frame 4, RLEN, seed 5 */
     CHECK(pg.ok && pg.p.px[1 * TW + 2] == pixelAt(2, 1, 5));
     if (pg.ok) pngImageFree(&pg.p);
     /* the descriptor */
-    js = slurp("data/z_stage/s233pack/s233pack.json", &n);
+    js = slurp("data/stages/s233/tiles/tiles.json", &n);
     CHECK(js != NULL);
     if (js) {
         const char *j = (const char *)js;
-        CHECK(strstr(j, "\"format\": \"stage-pack-v1\"") && strstr(j, "\"pack\": \"S233PACK\"") && strstr(j, "\"width\": 3") &&
+        CHECK(strstr(j, "\"format\": \"stages-tiles-v1\"") && strstr(j, "\"pack\": \"S233PACK\"") && strstr(j, "\"width\": 3") &&
               strstr(j, "\"height\": 2") && strstr(j, "\"tileBytes\": 4096") && strstr(j, "\"tileCount\": 4"));
         CHECK(strstr(j, "\"frame\": 0, \"row\": 0, \"col\": 0, \"png\": \"00_00.png\", \"size\": 200, \"rle\": false, \"timOffset\": 52"));
         CHECK(strstr(j, "\"frame\": 1, \"row\": 0, \"col\": 1, \"png\": \"00_01.png\", \"size\": 150, \"rle\": true, \"timOffset\": 28"));
@@ -451,13 +451,11 @@ static void testExport(void) {
         free(js);
     }
     /* S330: its good tile is there, the corrupt one is not, and the pack has no version mark */
-    CHECK(exists("data/z_stage/s330pack/00_00.png") && !exists("data/z_stage/s330pack/01_00.png"));
-    js = slurp("data/z_stage/s330pack/manifest.json", &n);
-    CHECK(js != NULL && strstr((const char *)js, "exporter") == NULL);
-    free(js);
-    js = slurp("data/z_stage/s233pack/manifest.json", &n);
-    CHECK(js != NULL && strstr((const char *)js, "\"exporter\"") != NULL && strstr((const char *)js, "\"00_00.png\"") != NULL &&
-          strstr((const char *)js, "\"s233pack.json\"") != NULL);
+    CHECK(exists("data/stages/s330/tiles/00_00.png") && !exists("data/stages/s330/tiles/01_00.png"));
+    js = slurp("data/stages/manifest.json", &n); /* one manifest for the whole topic */
+    CHECK(js != NULL && strstr((const char *)js, "\"stage-tiles/s330\"") == NULL && strstr((const char *)js, "\"s330/tiles/00_00.png\"") != NULL);
+    CHECK(js != NULL && strstr((const char *)js, "\"stage-tiles/s233\": ") != NULL && strstr((const char *)js, "\"s233/tiles/00_00.png\"") != NULL &&
+          strstr((const char *)js, "\"s233/tiles/tiles.json\"") != NULL && strstr((const char *)js, "\"topic\": \"stages\"") != NULL);
     free(js);
 
     /* a second request: S233 is up to date (skipped), S330 is tried again */
@@ -489,13 +487,13 @@ static void testExport(void) {
     {
         uint8_t edited[64];
         memset(edited, 7, sizeof edited);
-        spit("data/z_stage/s233pack/00_01.png", edited, sizeof edited);
+        spit("data/stages/s233/tiles/00_01.png", edited, sizeof edited);
         CHECK(stageExportRequestEx("S233", 1) == 1);
         while (stageExportPump(1000)) {
         }
         stageExportTotals(&tot);
-        CHECK(tot.newFiles == 1 && exists("data/z_stage/s233pack/00_01.png.new"));
-        js = slurp("data/z_stage/s233pack/00_01.png", &n);
+        CHECK(tot.newFiles == 1 && exists("data/stages/s233/tiles/00_01.png.new"));
+        js = slurp("data/stages/s233/tiles/00_01.png", &n);
         CHECK(js != NULL && n == 64 && js[0] == 7);
         free(js);
         /* a skipped request (up to date) leaves the edited file alone and writes nothing */
@@ -503,9 +501,10 @@ static void testExport(void) {
         while (stageExportPump(1000)) {
         }
         CHECK(stageExportBuilt() == 0);
+        CHECK(stageExportRun("S233") == 1 && stageExportBuilt() == 0); /* the settings.ini key, synchronous */
     }
     /* an unedited file whose content is stale is replaced: change the manifest-known file by hand-writing the old export's own bytes */
-    snprintf(rel, sizeof rel, "data/z_stage/s233pack/00_00.png");
+    snprintf(rel, sizeof rel, "data/stages/s233/tiles/00_00.png");
     {
         size_t pl;
         uint8_t *cur = slurp(rel, &pl);
@@ -518,13 +517,13 @@ static void testExport(void) {
         cur[pl - 1] ^= 1;
         spit(rel, cur, pl);
         /* the manifest says this changed file is what the exporter wrote */
-        snprintf(mp, sizeof mp, "%s/data/z_stage/s233pack/manifest.json", gRoot);
+        snprintf(mp, sizeof mp, "%s/data/stages/manifest.json", gRoot);
         snprintf(path, sizeof path, "%s/%s", gRoot, rel);
         memset(&m, 0, sizeof m);
         CHECK(tdReadFile(mp, &mt, &ml) == 0 && tdManifestParse((const char *)mt, ml, &m, err, sizeof err) == 0);
         free(mt);
         tdHashHex(tdHash(cur, pl), hex);
-        tdManifestSet(&m, "00_00.png", hex);
+        tdManifestSet(&m, "s233/tiles/00_00.png", hex);
         {
             char *text = tdManifestFormat(&m);
             CHECK(text != NULL && tdWriteFileAtomic(mp, text, strlen(text)) == 0);
@@ -536,7 +535,7 @@ static void testExport(void) {
         while (stageExportPump(1000)) {
         }
         stageExportTotals(&tot);
-        CHECK(tot.written == 1 && !exists("data/z_stage/s233pack/00_00.png.new")); /* replaced */
+        CHECK(tot.written == 1 && !exists("data/stages/s233/tiles/00_00.png.new")); /* replaced */
         pg = readPng(rel);
         CHECK(pg.ok);
         if (pg.ok) pngImageFree(&pg.p);
@@ -626,6 +625,7 @@ static void testMod(void) {
 
     CHECK(scratch());
     dataDir(dd, sizeof dd);
+    assetSetData(dd);
     snprintf(modsRoot, sizeof modsRoot, "%s/mods", gRoot);
     len0 = makeTim(tim0, 1); /* tile 0 of S233 */
     len1 = makeTim(tim1, 2); /* tile 1 */
@@ -640,8 +640,8 @@ static void testMod(void) {
 
     /* a mod: tile 0 with palette entry 5 recoloured, the tile 1 PNG of the wrong size */
     touchMod("a");
-    putTilePng("mods/a/z_stage/s233pack/00_00.png", 1, 256, 5, 255, 0, 0, TW, TH);
-    putTilePng("mods/a/z_stage/s233pack/00_01.png", 2, 256, 5, 255, 0, 0, 16, 8);
+    putTilePng("mods/a/stages/s233/tiles/00_00.png", 1, 256, 5, 255, 0, 0, TW, TH);
+    putTilePng("mods/a/stages/s233/tiles/00_01.png", 2, 256, 5, 255, 0, 0, 16, 8);
     CHECK(modsInit(modsRoot, NULL) == 1);
     stageModSetup(dd, &io);
     r = stageModTim(LBA_A, 0, tim0);
@@ -672,7 +672,7 @@ static void testMod(void) {
         for (i = 0; i < TW * TH; i++) px[i] = pixelAt(i % TW, i / TW, 2);
         px[1] = 77;
         CHECK(pngWriteIndexed(px, TW, TH, 8, rgb, 256, alpha, 1, &png, &pl) == 0);
-        spit("mods/a/z_stage/s233pack/00_01.png", png, pl);
+        spit("mods/a/stages/s233/tiles/00_01.png", png, pl);
         free(png);
         stageModRecheck();
         r = stageModTim(LBA_A, 1, tim1); /* the file changed: looked at again */
@@ -681,8 +681,8 @@ static void testMod(void) {
 
     /* last mod wins; a refused file of the last one falls to the one before */
     touchMod("b");
-    putTilePng("mods/b/z_stage/s233pack/00_00.png", 1, 256, 5, 0, 255, 0, TW, TH);
-    putTilePng("mods/b/z_stage/s233pack/00_01.png", 2, 256, 5, 0, 0, 255, 64, 8); /* wrong size */
+    putTilePng("mods/b/stages/s233/tiles/00_00.png", 1, 256, 5, 0, 255, 0, TW, TH);
+    putTilePng("mods/b/stages/s233/tiles/00_01.png", 2, 256, 5, 0, 0, 255, 64, 8); /* wrong size */
     CHECK(modsInit(modsRoot, NULL) == 2);
     stageModSetup(dd, &io);
     r = stageModTim(LBA_A, 0, tim0);
@@ -691,14 +691,14 @@ static void testMod(void) {
     CHECK(r != NULL && r[8 + 12 + 512 + 12 + 1] == 77); /* b refused (64x8), a's applies */
 
     /* fewer colours than the CLUT: the first ones are replaced, the rest stay */
-    putTilePng("mods/b/z_stage/s233pack/00_00.png", 1, 4, 2, 255, 255, 0, TW, TH);
+    putTilePng("mods/b/stages/s233/tiles/00_00.png", 1, 4, 2, 255, 255, 0, TW, TH);
     stageModRecheck();
     r = stageModTim(LBA_A, 0, tim0);
     CHECK(r != NULL && clutAt(r, 2) == 0x03FF && clutAt(r, 3) == clutAt(tim0, 3) && clutAt(r, 4) == clutAt(tim0, 4) &&
           clutAt(r, 100) == clutAt(tim0, 100));
     /* a mod whose folder is spelled in capitals still works (ADR-010) */
     touchMod("e");
-    putTilePng("mods/e/Z_STAGE/S330PACK/00_00.PNG", 7, 256, 9, 1, 2, 3, TW, TH);
+    putTilePng("mods/e/Stages/S330/Tiles/00_00.PNG", 7, 256, 9, 1, 2, 3, TW, TH);
     CHECK(modsInit(modsRoot, NULL) == 3);
     stageModSetup(dd, &io);
     r = stageModTim(LBA_B, 0, tim0);
@@ -713,7 +713,7 @@ static void testMod(void) {
     }
     stageModRecheck();
     CHECK(stageModTim(LBA_A, 0, tim0) == NULL && stageModTim(LBA_A, 1, tim1) == NULL); /* exported, unedited */
-    snprintf(rel, sizeof rel, "data/z_stage/s233pack/00_00.png");
+    snprintf(rel, sizeof rel, "data/stages/s233/tiles/00_00.png");
     putTilePng(rel, 1, 256, 8, 9, 99, 200, TW, TH);
     stageModRecheck();
     r = stageModTim(LBA_A, 0, tim0);
@@ -721,7 +721,7 @@ static void testMod(void) {
     CHECK(stageModTim(LBA_A, 1, tim1) == NULL);
     /* a mod beats the edited data file */
     touchMod("c");
-    putTilePng("mods/c/z_stage/s233pack/00_00.png", 1, 256, 8, 255, 0, 0, TW, TH);
+    putTilePng("mods/c/stages/s233/tiles/00_00.png", 1, 256, 8, 255, 0, 0, TW, TH);
     CHECK(modsInit(modsRoot, "c") == 1);
     stageModSetup(dd, &io);
     r = stageModTim(LBA_A, 0, tim0);
@@ -729,7 +729,49 @@ static void testMod(void) {
     stageExportSetup(NULL, NULL);
     stageModSetup(NULL, NULL);
     modsInit(NULL, NULL);
+    assetSetData(NULL);
     CHECK(stageModTim(LBA_A, 0, tim0) == NULL);
+    rmtree(gRoot);
+}
+
+/* --validate-mod over stages/s<nnn>/tiles: one line per bad case, none for a good tile, the old z_stage/ folder is not looked at */
+static void testValidate(void) {
+    char dd[1100], modsRoot[1100], logPath[1200], log[8192];
+    FILE *f;
+    size_t n = 0;
+    int saved, looked;
+
+    CHECK(scratch());
+    dataDir(dd, sizeof dd);
+    snprintf(modsRoot, sizeof modsRoot, "%s/mods", gRoot);
+    putTilePng("data/stages/s233/tiles/00_00.png", 1, 256, -1, 0, 0, 0, TW, TH); /* the exported original: its size is the tile's */
+    touchMod("v");
+    putTilePng("mods/v/stages/s233/tiles/00_00.png", 1, 256, 5, 255, 0, 0, TW, TH); /* good */
+    putTilePng("mods/v/stages/s233/tiles/00_01.png", 2, 256, 5, 255, 0, 0, 16, 8);  /* no original: only the format is checked */
+    putTilePng("mods/v/stages/S233/Tiles/01_00.png", 3, 256, 5, 0, 0, 255, TW, TH); /* any case */
+    spit("mods/v/stages/s233/tiles/01_01.png", "not a png", 9);                      /* bad */
+    spit("mods/v/stages/s233/tiles/notes.txt", "x", 1);                              /* not a tile */
+    putTilePng("mods/v/z_stage/s233pack/00_00.png", 1, 256, 5, 255, 0, 0, TW, TH);  /* the old place: not looked at */
+    CHECK(modsInit(modsRoot, "v") == 1);
+    snprintf(logPath, sizeof logPath, "%s/validate.log", gRoot);
+    fflush(stderr);
+    saved = dup(2);
+    CHECK(freopen(logPath, "wb", stderr) != NULL);
+    looked = stageModValidate(modsDirOf(0), "v", dd);
+    fflush(stderr);
+    dup2(saved, 2);
+    close(saved);
+    clearerr(stderr);
+    if ((f = fopen(logPath, "rb")) != NULL) {
+        n = fread(log, 1, sizeof log - 1, f);
+        fclose(f);
+    }
+    log[n] = '\0';
+    CHECK(looked == 4); /* 00_00, 00_01, 01_00, 01_01 */
+    CHECK(strstr(log, "stages/s233/tiles/01_01.png rejected") != NULL);
+    CHECK(strstr(log, "v: stages/s233/tiles/notes.txt ignored: a tile is <RR>_<CC>.png") != NULL);
+    CHECK(strstr(log, "00_00.png") == NULL && strstr(log, "00_01.png") == NULL && strstr(log, "01_00.png") == NULL && strstr(log, "z_stage") == NULL);
+    modsInit(NULL, NULL);
     rmtree(gRoot);
 }
 
@@ -738,6 +780,7 @@ int main(void) {
     testFormats();
     testExport();
     testMod();
+    testValidate();
     if (failures) {
         printf("stagetest: %d check(s) failed\n", failures);
         return 1;

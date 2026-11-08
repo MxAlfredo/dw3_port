@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port stages/s<nnn>/tiles/tiles.json (stages-tiles-v1)",
+  "description": "The descriptor of one original stage's background tiles (data/stages/s<nnn>/tiles/: tiles.json and one PNG per tile). Written by the exporter from the disc's S<nnn>PACK.BIN (pc/shim/stage_export.c, jsonTile). Descriptive: no code parses it (the exporter only checks that it exists to know the stage is exported); a mod replaces a tile by putting a PNG of the same name in mods/<mod>/stages/s<nnn>/tiles/. Editing this file changes nothing.",
+  "type": "object",
+  "required": [
+    "format",
+    "pack",
+    "width",
+    "height",
+    "tileBytes",
+    "tileCount",
+    "tiles"
+  ],
+  "properties": {
+    "format": {
+      "const": "stages-tiles-v1"
+    },
+    "pack": {
+      "type": "string",
+      "description": "The disc's archive the tiles come from, such as S202PACK."
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Tiles per row of the stage's grid."
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Tile rows of the grid."
+    },
+    "tileBytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Size of one tile's slot in the archive, in bytes."
+    },
+    "tileCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of entries in tiles."
+    },
+    "tiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "frame",
+          "row",
+          "col",
+          "png",
+          "size",
+          "rle",
+          "timOffset",
+          "width",
+          "height",
+          "depths"
+        ],
+        "properties": {
+          "frame": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Index of the tile in the archive (row * width + col)."
+          },
+          "row": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "col": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "png": {
+            "type": "string",
+            "pattern": "^[0-9]+_[0-9]+\\.png$",
+            "description": "The tile's picture, <row>_<col>.png, in the same folder."
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The tile's size in the archive, in bytes."
+          },
+          "rle": {
+            "type": "boolean",
+            "description": "True when the tile is stored run-length encoded."
+          },
+          "timOffset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Where the tile's TIM picture starts inside the tile, in bytes."
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Size of the PNG in pixels."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "depths": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "The three depth layers of the tile (behind the actors, with them, in front), each the list of sprites the game cuts out of the picture.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y",
+                  "u",
+                  "v",
+                  "w",
+                  "h"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "integer",
+                    "description": "Where the sprite is drawn, in the tile, in pixels."
+                  },
+                  "y": {
+                    "type": "integer"
+                  },
+                  "u": {
+                    "type": "integer",
+                    "description": "Where it is cut from, in the tile's picture, in pixels."
+                  },
+                  "v": {
+                    "type": "integer"
+                  },
+                  "w": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "h": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

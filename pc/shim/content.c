@@ -2,6 +2,7 @@
  * The shared content core: see content.h.
  */
 
+#include <dirent.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -283,7 +284,9 @@ static void addEntry(const ContentType *t, const char *mod, const char *key, con
     }
     snprintf(full, sizeof full, "%s:%s", mod, key);
     base = def->t == 2 ? baseOf(t, extJsonGet(def, "base")) : -1;
-    if (base < 0) {
+    if (base < 0 && t->baseOptional && def->t == 2 && extJsonGet(def, "base") == NULL) {
+        /* no base and none needed: the record starts empty (copyBase gets -1) */
+    } else if (base < 0) {
         plogLine(t->channel, "%s %s \"%s\" rejected: \"base\" must be an original %s id (%d..%d)\n", path, t->kind, full, t->noun,
                  t->origMin, t->origMax);
         return;
@@ -312,8 +315,9 @@ static void addEntry(const ContentType *t, const char *mod, const char *key, con
         const ExtJson *v = &def->v[i];
 
         if (!strcmp(k, "base")) continue;
-        if (!strcmp(k, "name")) {
-            extTakeTexts(e->text[0], v, t->kind, path, full, "name");
+        if (t->folder != NULL && (!strcmp(k, "format") || !strcmp(k, "name") || !strcmp(k, "$schema") || !strcmp(k, "notes"))) continue; /* the record's header */
+        if (!strcmp(k, t->folder != NULL ? "title" : "name")) {
+            extTakeTexts(e->text[0], v, t->kind, path, full, t->folder != NULL ? "title" : "name");
         } else if (!strcmp(k, "description")) {
             extTakeTexts(e->text[1], v, t->kind, path, full, "description");
         } else if (!t->field(e, k, v)) {
@@ -321,7 +325,11 @@ static void addEntry(const ContentType *t, const char *mod, const char *key, con
         }
     }
     if (e->text[0][0] == NULL) {
-        plogLine(t->channel, "%s %s \"%s\" rejected: it needs a name in \"eng\"\n", path, t->kind, full);
+        plogLine(t->channel, "%s %s \"%s\" rejected: it needs a %s in \"eng\"\n", path, t->kind, full, t->folder != NULL ? "title" : "name");
+        freeEntry(t, e);
+        return;
+    }
+    if (t->accept != NULL && !t->accept(e)) {
         freeEntry(t, e);
         return;
     }
@@ -330,16 +338,16 @@ static void addEntry(const ContentType *t, const char *mod, const char *key, con
 
 /* one content mod's file of this type */
 static void readFile(const ContentType *t, int m, ContentEntry **list, int *n) {
-    char path[1200], format[40];
+    char path[1200], rel[80], format[40];
     uint8_t *data;
     size_t len;
     ExtJson root;
     const ExtJson *fmt, *news;
     int i;
 
-    snprintf(path, sizeof path, "%s/content/%s.json", modsDirOf(m), t->channel);
+    snprintf(rel, sizeof rel, "%s.json", t->channel);
     snprintf(format, sizeof format, "%s-v1", t->channel);
-    if (tdReadFile(path, &data, &len) != 0) return; /* a content mod without this type */
+    if (!assetModFile(m, "content", rel, path, sizeof path) || tdReadFile(path, &data, &len) != 0) return; /* a content mod without this type */
     if (extJsonParse(data, len, &root) != 0) {
         plogLine(t->channel, "%s rejected: not valid JSON\n", path);
     } else if ((fmt = extJsonGet(&root, "format")) == NULL || fmt->t != 1 || strcmp(fmt->str, format) != 0) {
@@ -355,6 +363,38 @@ static void readFile(const ContentType *t, int m, ContentEntry **list, int *n) {
     free(data);
 }
 
+/* one content mod's folders of a folder type: <folder>/<key>/<recordFile> each */
+static void readFolders(const ContentType *t, int m, ContentEntry **list, int *n) {
+    char dirPath[1400];
+    DIR *d;
+    struct dirent *de;
+
+    if (!assetModDir(m, NULL, t->folder, dirPath, sizeof dirPath) || (d = opendir(dirPath)) == NULL) return;
+    while ((de = readdir(d)) != NULL) {
+        char path[1700], rel[300];
+        uint8_t *data;
+        size_t len;
+        ExtJson root;
+        const ExtJson *fmt, *nm;
+
+        if (de->d_name[0] == '.' || (t->reservedKey != NULL && t->reservedKey(de->d_name))) continue;
+        snprintf(rel, sizeof rel, "%s/%s", de->d_name, t->recordFile);
+        if (!assetModFile(m, t->folder, rel, path, sizeof path) || tdReadFile(path, &data, &len) != 0) continue; /* a folder without a record (art only): not an entry */
+        if (extJsonParse(data, len, &root) != 0) {
+            plogLine(t->channel, "%s rejected: not valid JSON\n", path);
+        } else if ((fmt = extJsonGet(&root, "format")) == NULL || fmt->t != 1 || strcmp(fmt->str, t->recordFormat) != 0) {
+            plogLine(t->channel, "%s rejected: \"format\" must be \"%s\"\n", path, t->recordFormat);
+        } else if ((nm = extJsonGet(&root, "name")) != NULL && (nm->t != 1 || strcmp(nm->str, de->d_name) != 0)) {
+            plogLine(t->channel, "%s rejected: \"name\" must be \"%s\", the folder's name\n", path, de->d_name);
+        } else {
+            addEntry(t, modsNameOf(m), de->d_name, &root, path, list, n);
+        }
+        extJsonFree(&root);
+        free(data);
+    }
+    closedir(d);
+}
+
 int contentLoad(ContentSet *s) {
     const ContentType *t = s->t;
     ContentEntry *list = NULL;
@@ -362,7 +402,8 @@ int contentLoad(ContentSet *s) {
 
     for (m = 0; m < modsCount(); m++) {
         if (strcmp(modsKindOf(m), "content") != 0) continue;
-        readFile(t, m, &list, &n);
+        if (t->folder != NULL) readFolders(t, m, &list, &n);
+        else readFile(t, m, &list, &n);
     }
     if (n == 0) {
         free(list);
@@ -482,12 +523,16 @@ static void putEscaped(Buf *B, const char *s) {
 
 char *contentReferenceText(const ContentType *t, const char *(*engName)(int id)) {
     Buf B = {0};
-    char member[2048];
+    char member[2048], where[160], fmtBuf[48];
     int id, first = 1;
 
+    if (t->folder != NULL) snprintf(where, sizeof where, "mods/<mod>/%s/<key>/%s", t->folder, t->recordFile);
+    else snprintf(where, sizeof where, "mods/<mod>/content/%s.json", t->channel);
+    snprintf(fmtBuf, sizeof fmtBuf, "%s-v1", t->channel);
+
     put(&B, "{\n  \"format\": \"content-ref-v1\",\n  \"kind\": \"%s\",\n  \"notes\": {\n", t->kind);
-    put(&B, "    \"about\": \"Reference copy of the original %s, written by the port from your disc. Editing this file does not change the game: it is only a list of names. Your changes go in a content mod, mods/<mod>/content/%s.json (format %s-v1).\",\n",
-        t->plural, t->channel, t->channel);
+    put(&B, "    \"about\": \"Reference copy of the original %s, written by the port from your disc. Editing this file does not change the game: it is only a list of names. Your changes go in a content mod, %s (format %s).\",\n",
+        t->plural, where, t->folder != NULL ? t->recordFormat : fmtBuf);
     put(&B, "    \"names\": \"Wherever a mod gives the id of an original %s it can write the name shown here (dw3:%s/<id>) instead of the number; a new %s of a mod is <mod folder>:<key>.\"", t->noun, t->kind, t->noun);
     if (t->refNote != NULL) {
         put(&B, ",\n    \"fields\": \"");

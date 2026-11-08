@@ -5,7 +5,7 @@
 #
 #   pc/review.sh <scenario> [disc.bin]
 #
-# Scenarios: batalla, resultados, cambio, libre, inicio, digilab, pelicula, video2, menu, cargar, laboratorio, tecnica, tecnicacampo, nombre, gimnasio, tienda, tiendacartas, mazo, album, cartas, controles (alias: opciones).
+# Scenarios: batalla, resultados, cambio, libre, inicio, digilab, pelicula, video2, menu, cargar, laboratorio, nombre, gimnasio, tienda, tiendacartas, mazo, album, cartas, controles (alias: opciones), betamon, seadramon, betamonpesca.
 # Every scenario ends by itself when its scene is done, read from the game's
 # mode (harness tokens `until:<hex>`, implied by `mode:` and the battle tokens;
 # the log prints "end: left mode 0x.. for 0x.. -> end of run"). Only `libre`
@@ -92,24 +92,6 @@ laboratorio)
     echo "para volver. Sin entradas aprendidas, 'Digivolve' dice que no se puede"
     echo "cargar una técnica (el estado de partida nueva)."
     echo "Termina solo al salir del laboratorio (triángulo en el menú)."
-    ;;
-tecnica)
-    keys="partner:0,3,2,battle"
-    echo "Batalla directa donde el primer compañero está en la forma 3 (nivel 2), la que aprende"
-    echo "la técnica del mod sample-tech (Golpe chispa / Spark Strike). Pide el mod ACTIVO en"
-    echo "Opciones > Mods (el piloto no toca tu settings.ini). Revisar: Tech en el menú de"
-    echo "comandos muestra la técnica nueva con su coste de 3 PM, y se puede usar."
-    echo "Token: partner:<miembro>,<forma>[,<nivel>] (forma = id de Digimon; ver docs/modding)."
-    echo "Termina solo al salir de la batalla."
-    ;;
-tecnicacampo)
-    keys="partner:0,3,2,40,mode:1000,3,stay"
-    echo "Pantalla Techniques del menú del campo (mode:1000,3) con el primer compañero en la forma 3"
-    echo "(nivel 2, PV al 40 %), que aprende la técnica curativa del mod sample-tech (Chispa sanadora /"
-    echo "Mend Spark, basada en una curación original). Pide el mod ACTIVO en Opciones > Mods."
-    echo "Revisar: la técnica sale en la lista, se elige, se elige objetivo y los PV suben (PM baja 2)."
-    echo "Token: partner:<miembro>,<forma>[,<nivel>[,<PV %>]] (ver README)."
-    echo "Se queda abierto (stay): cierra la ventana al terminar."
     ;;
 nombre)
     keys="mode:B00"
@@ -199,13 +181,72 @@ pelicula)
     echo "Revisar: velocidad e imagen sincronizadas con el audio."
     echo "Reproduce unos 5 segundos y la salta sola (Start); termina al volver el título."
     ;;
+betamon)
+    pack=1
+    keys="stay,warp:330,4"
+    export DW3_STARTER_SET=betamon-pack:river
+    export DW3_SEED_PARTNER="8.0=betamon-pack:betamon@5/0"
+    export DW3_SEED_PARTNER_LEVEL="8=9"
+    echo "Paquete Betamon, primera evolución: Parque Central (escenario 330) con el equipo Río"
+    echo "(Veemon, Betamon, Kumamon; en esta copia Betamon va al frente porque la EXP la recibe el"
+    echo "que pelea). Betamon está en nivel 9, con la forma al nivel 5: a UNA batalla ganada del"
+    echo "nivel 10, que son los umbrales reales del paquete."
+    echo "Hacer: caminá en el pasto hasta una batalla (o usá un enemigo cualquiera) y ganala."
+    echo "Revisar: en resultados sale el nivel 10 y «aprendió Seadramon». En la siguiente batalla,"
+    echo "menú DV (digievolución): Betamon -> Seadramon con su modelo; habilidades y daño razonables."
+    echo "Las partidas de esta prueba van a pc/build/review-saves; tus mods y partidas no se tocan."
+    echo "No termina solo, a propósito: cerrá la ventana cuando quieras."
+    ;;
+seadramon)
+    pack=1
+    keys="stay,warp:330,4"
+    export DW3_STARTER_SET=betamon-pack:river
+    export DW3_SEED_PARTNER="8.0=betamon-pack:betamon@5/1,8.1=betamon-pack:seadramon@20/0"
+    export DW3_SEED_PARTNER_LEVEL="8=29"
+    echo "Paquete Betamon, segunda evolución: Parque Central (escenario 330), equipo Río con Betamon"
+    echo "al frente. Seadramon ya está aprendido y es la forma con que empieza la batalla (forma al"
+    echo "nivel 20, nivel de Betamon 29): a UNA batalla ganada del nivel 30, umbrales reales del paquete."
+    echo "Hacer: ganá una batalla. Revisar: nivel 30 y «aprendió MegaSeadramon» en resultados."
+    echo "En la siguiente batalla, menú DV: Seadramon -> MegaSeadramon (modelo y encuadre)."
+    echo "Las partidas de esta prueba van a pc/build/review-saves; tus mods y partidas no se tocan."
+    echo "No termina solo, a propósito: cerrá la ventana cuando quieras."
+    ;;
+betamonpesca)
+    pack=1
+    # Progress 20 is inside the story window of the quest (special 0x24, progress 14-38); the three default partners (0, 6, 7) are
+    # put at level 24 (the harness seed, applied when the stage is made), so their levels add up to 72: inside 45-74, the window
+    # the fisher asks for (the same two thresholds as the stage's own Patamon and Renamon givers).
+    keys="stay,warp:330,20"
+    export DW3_SEED_PARTNER_LEVEL="0=24,6=24,7=24"
+    echo "Paquete Betamon, misión del DDNA (como las misiones de DDNA del juego): Parque Central (escenario 330,"
+    echo "progreso 20) con el equipo por defecto en nivel 24 (suman 72: la misión pide entre 45 y 74)."
+    echo "Hacer: 1) hablale al pescador (abajo, cerca de x 900, y 960): se presenta; 2) hablale otra vez: te cuenta de"
+    echo "MegaSeadramon y la pantalla se vuelve a armar (la serpiente aparece en la orilla, a la derecha, cerca de x 1010, y 1012);"
+    echo "3) hablale a la serpiente: batalla de evento contra MegaSeadramon (no se puede huir); 4) al ganar, hablale otra vez:"
+    echo "te deja el DDNA de Betamon (objeto «Betamon DDNA») con el ícono de «objeto recibido» sobre tu cabeza;"
+    echo "5) llevale el DDNA al pescador: desbloquea a Betamon (ícono de nuevo; el DDNA se queda en tu bolsa, como en el original)."
+    echo "Revisar: textos en es-419, que la serpiente solo aparece tras el paso 2 y desaparece al tener el DDNA, y en el"
+    echo "laboratorio o la memory card que Betamon ya aparece desbloqueado; si hablás de nuevo con el pescador no repite."
+    echo "Las partidas de esta prueba van a pc/build/review-saves; tus mods y partidas no se tocan."
+    echo "No termina solo, a propósito: cerrá la ventana cuando quieras."
+    ;;
 *)
-    echo "uso: pc/review.sh batalla|resultados|cambio|libre|inicio|digilab|pelicula|video2|menu|cargar|laboratorio|tecnica|tecnicacampo|nombre|gimnasio|tienda|tiendacartas|mazo|album|cartas|controles|opciones [disco.bin]" >&2
+    echo "uso: pc/review.sh batalla|resultados|cambio|libre|inicio|digilab|pelicula|video2|menu|cargar|laboratorio|nombre|gimnasio|tienda|tiendacartas|mazo|album|cartas|controles|opciones|betamon|seadramon|betamonpesca [disco.bin]" >&2
     exit 2
     ;;
 esac
 
 make -C pc >/dev/null
+if [ -n "$pack" ]; then
+    # The Betamon pack in a fresh copy and fresh saves, so the owner's mods and saves stay untouched.
+    rm -rf pc/build/review-mods pc/build/review-saves
+    mkdir -p pc/build/review-mods pc/build/review-saves
+    cp -r pc/examples/mods/betamon-pack pc/build/review-mods/
+    # Betamon takes the exp only when it fights, so the copy puts it first in the River team
+    sed -i 's|"dw3:partner/4", "betamon-pack:betamon"|"betamon-pack:betamon", "dw3:partner/4"|' pc/build/review-mods/betamon-pack/content/teams.json
+    export DW3_MODS_DIR="$PWD/pc/build/review-mods"
+    export DW3_SAVES_DIR="$PWD/pc/build/review-saves"
+fi
 # Every run keeps a detailed log (audio events included, SND_DEBUG) so an
 # intermittent problem the owner hears can be compared against a good run.
 logdir=pc/build/review-logs

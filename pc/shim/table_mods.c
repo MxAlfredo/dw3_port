@@ -3,6 +3,7 @@
  */
 #include "table_mods.h"
 
+#include "exp_core.h"
 #include "mods.h"
 #include "port_log.h"
 #include "text_data.h"
@@ -529,7 +530,7 @@ static int parseRowFields(Cur *c, const Entry *e, const char *path, const char *
     }
     for (;;) {
         char name[64];
-        int f = -1, i;
+        int f = -1, i, before = p->n;
         if (parseString(c, name, sizeof name) || eat(c, ':')) return -1;
         for (i = 0; i < e->t.nfields; i++) {
             if (!strcmp(e->t.fields[i].name, name)) f = i;
@@ -577,6 +578,8 @@ static int parseRowFields(Cur *c, const Entry *e, const char *path, const char *
             plogLine("tables", "%s row \"%s\" field \"%s\" rejected: not a number or an operation\n", path, rowKey, name);
             if (skipValue(c, 0)) return -1;
         }
+        /* a scalar field of a record outside the table that was given and not kept (its log line is out): the table is told */
+        if (f >= 0 && e->t.fields[f].listMax == 0 && row == OP_ROW_EXT && p->n == before && e->t.extRejected) e->t.extRejected(p->curExt);
         ws(c);
         if (c->p < c->end && *c->p == ',') {
             c->p++;
@@ -857,80 +860,38 @@ static char *referenceText(const Entry *e)
     return B.b;
 }
 
-/* Writes one generated file of the data folder (<data>/<family>/<rel>) under the manifest rule of ADR-005: an unedited
-   copy is replaced, an edited one stays and the new version goes beside it as <rel>.new. `man` is that family's manifest. */
-static void exportText(const char *family, const char *rel, const char *want, TdManifest *man, int *manDirty)
+/* Writes one generated file of the data folder (<data>/<family>/<rel>) under the manifest rule of ADR-005 (exp_core.h), through that
+   family's manifest <data>/<family>/manifest.json */
+static void exportReferenceFile(const char *family, const char *rel, const char *want)
 {
-    char path[1200], dir[1200], hex[17], wantHex[17];
-    uint8_t *cur = NULL;
-    size_t curLen = 0;
-    int edited = 0;
+    char dir[1200], mp[1250];
+    ExpManifest man;
+    ExpSink sink;
 
-    snprintf(path, sizeof path, "%s/%s/%s", gDataDir, family, rel);
     snprintf(dir, sizeof dir, "%s/%s", gDataDir, family);
-    tdHashHex(tdHash(want, strlen(want)), wantHex);
-    if (tdReadFile(path, &cur, &curLen) == 0) {
-        tdHashHex(tdHash(cur, curLen), hex);
-        free(cur);
-        if (!strcmp(hex, wantHex)) {
-            if (!tdManifestFind(man, rel)) { tdManifestSet(man, rel, hex); *manDirty = 1; }
-            return;
-        }
-        edited = tdFileState(1, tdManifestFind(man, rel), hex) == TD_FILE_EDITED;
-    }
-    if (edited) { /* the user's copy stays; the new version goes beside it */
-        char np[1300];
-        snprintf(np, sizeof np, "%s.new", path);
-        if (tdMakeDirs(dir) || tdWriteFileAtomic(np, want, strlen(want))) plogLine(family, "cannot write %s\n", np);
-        else plogLine(family, "%s was edited, kept; the new version is %s.new\n", rel, rel);
-    } else if (tdMakeDirs(dir) || tdWriteFileAtomic(path, want, strlen(want))) {
-        plogLine(family, "cannot write the reference copy %s\n", path);
-    } else {
-        tdManifestSet(man, rel, wantHex);
-        *manDirty = 1;
-    }
+    snprintf(mp, sizeof mp, "%s/manifest.json", dir);
+    expManOpen(&man, family, mp, family);
+    expSinkInPlace(&sink, family, dir, &man, NULL);
+    expPut(&sink, rel, want, strlen(want));
+    expManSave(&man, 1);
+    expManFree(&man);
 }
 
-static void exportReference(const Entry *e, TdManifest *man, int *manDirty)
+static void exportReference(const Entry *e)
 {
     char rel[96];
     char *want = referenceText(e);
 
     snprintf(rel, sizeof rel, "%s.json", e->t.name);
     if (!want) return;
-    exportText("tables", rel, want, man, manDirty);
+    exportReferenceFile("tables", rel, want);
     free(want);
 }
 
 void tmExportFile(const char *family, const char *rel, const char *text)
 {
-    TdManifest man;
-    char mpath[1200];
-    int dirty = 0;
-    uint8_t *mt;
-    size_t ml;
-
     if (!gDataDir[0] || !text) return;
-    memset(&man, 0, sizeof man);
-    snprintf(man.stamp, sizeof man.stamp, "%s-v1", family);
-    snprintf(mpath, sizeof mpath, "%s/%s/manifest.json", gDataDir, family);
-    if (tdReadFile(mpath, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&man);
-            man = old;
-        }
-        free(mt);
-    }
-    exportText(family, rel, text, &man, &dirty);
-    if (dirty) {
-        char *out = tdManifestFormat(&man);
-        if (!out || tdWriteFileAtomic(mpath, out, strlen(out))) plogLine(family, "cannot write %s\n", mpath);
-        free(out);
-    }
-    tdManifestFree(&man);
+    exportReferenceFile(family, rel, text);
 }
 
 /* ---- registration and application ---- */
@@ -979,13 +940,13 @@ static void loadPatches(Entry *e)
 {
     int mi;
     for (mi = 0; mi < modsCount(); mi++) {
-        char path[1200], err[160];
+        char path[1200], rel[80], err[160];
         uint8_t *data;
         size_t len;
         Patch p, *np;
 
-        snprintf(path, sizeof path, "%s/tables/%s.json", modsDirOf(mi), e->t.name);
-        if (tdReadFile(path, &data, &len)) continue; /* the mod does not patch this table */
+        snprintf(rel, sizeof rel, "%s.json", e->t.name);
+        if (!assetModFile(mi, "tables", rel, path, sizeof path) || tdReadFile(path, &data, &len)) continue; /* the mod does not patch this table */
         memset(&p, 0, sizeof p);
         p.mod = mi;
         if (parsePatch(e, path, (const char *)data, len, &p, err, sizeof err)) {
@@ -1101,34 +1062,7 @@ static int registerEntry(const TmTable *t, const void *orig, int fileBacked)
     memcpy(e->orig, orig, bytes);
     (void)fileBacked;
     gEntries[gCount++] = e;
-    if (gDataDir[0]) {
-        TdManifest man;
-        char mpath[1200];
-        int dirty = 0;
-        uint8_t *mt;
-        size_t ml;
-
-        memset(&man, 0, sizeof man);
-        snprintf(man.stamp, sizeof man.stamp, "tables-v1");
-        snprintf(mpath, sizeof mpath, "%s/tables/manifest.json", gDataDir);
-        if (tdReadFile(mpath, &mt, &ml) == 0) {
-            TdManifest old;
-            char err[120];
-            memset(&old, 0, sizeof old);
-            if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-                tdManifestFree(&man);
-                man = old;
-            }
-            free(mt);
-        }
-        exportReference(e, &man, &dirty);
-        if (dirty) {
-            char *text = tdManifestFormat(&man);
-            if (!text || tdWriteFileAtomic(mpath, text, strlen(text))) plogLine("tables", "cannot write %s\n", mpath);
-            free(text);
-        }
-        tdManifestFree(&man);
-    }
+    if (gDataDir[0]) exportReference(e);
     loadPatches(e);
     return 0;
 }

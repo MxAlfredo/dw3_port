@@ -1,0 +1,15 @@
+spritekiln: 1
+# The memory card icon (44x28): the whole animal in profile, looking right.
+name: betamon_icon
+extends: betamon.yaml
+kind: character
+view: topdown
+size: 64
+directions: [e]
+camera: {pitch: 20, scale: 0.033, center: [0, 0.34, 0]}
+
+animations:
+  icon:
+    frames: 1
+    ms: 100
+    channels: {crest: 0.2}

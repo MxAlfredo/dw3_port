@@ -28,6 +28,7 @@
 #include "shim/options_language.h"
 #include "shim/options_audio.h"
 #include "shim/options_system.h"
+#include "shim/exp_types.h"
 #include "shim/options_mods.h"
 #include "shim/mods.h"
 #include "shim/snd_internal.h"
@@ -1330,10 +1331,11 @@ static int prepStatusN[4], prepActiveFor[4], prepFails[4], prepQueued[4], prepFo
 static char prepText[4][32];
 
 #define PREP_FAKE(N) \
-    static int prepStart##N(void) { prepForced[N]++; return 3; } \
-    static int prepIfNeeded##N(void) { \
+    static int prepStart##N(const char *spec, int force) { \
         size_t l = strlen(prepLog); \
+        (void)spec; \
         prepCalls[N]++; \
+        prepForced[N] += force; \
         prepLog[l] = (char)('0' + N); \
         prepLog[l + 1] = '\0'; \
         if (prepQueued[N] <= 0) return prepQueued[N] == 0 ? 0 : -1; \
@@ -1341,33 +1343,34 @@ static char prepText[4][32];
         prepActiveFor[N] = prepQueued[N]; \
         return prepQueued[N]; \
     } \
-    static void prepPump##N(void) { \
+    static int prepPump##N(unsigned budgetMs) { \
+        (void)budgetMs; \
         if (prepActiveFor[N] > 0) { \
             prepActiveFor[N]--; \
             prepStatusN[N]++; \
         } \
+        return prepActiveFor[N] > 0; \
     } \
     static const char *prepStatus##N(void) { \
         snprintf(prepText[N], sizeof prepText[N], prepActiveFor[N] > 0 ? "Exporting %d/3" : "Done (3)", prepStatusN[N]); \
         return prepText[N]; \
     } \
     static int prepActive##N(void) { return prepActiveFor[N] > 0; } \
-    static int prepFailed##N(void) { return prepFails[N]; }
+    static void prepCounts##N(int *done, int *failed, int *total) { *done = 0; *failed = prepFails[N]; *total = 3; } \
+    static int prepRun##N(const char *spec) { (void)spec; return 0; }
 PREP_FAKE(0)
 PREP_FAKE(1)
 PREP_FAKE(2)
 PREP_FAKE(3)
 
+#define PREP_ROW(N, KEY, NAME) \
+    {KEY, NAME, NULL, NULL, NULL, prepRun##N, NULL, prepStart##N, prepPump##N, prepActive##N, prepCounts##N, prepStatus##N, NULL}
+
 static void prepRegister(void) {
-    /* the numbers are the fakes', not the run order: 0 videos, 1 audio, 2 models, 3 stages */
-    static const OptSysExport v = {prepStart0, prepPump0, prepStatus0, prepActive0, prepIfNeeded0, prepFailed0};
-    static const OptSysExport a = {prepStart1, prepPump1, prepStatus1, prepActive1, prepIfNeeded1, prepFailed1};
-    static const OptSysExport m = {prepStart2, prepPump2, prepStatus2, prepActive2, prepIfNeeded2, prepFailed2};
-    static const OptSysExport st = {prepStart3, prepPump3, prepStatus3, prepActive3, prepIfNeeded3, prepFailed3};
-    optionsSystemSetExportVideos(&v);
-    optionsSystemSetExportAudio(&a);
-    optionsSystemSetExport(&m);
-    optionsSystemSetExportStages(&st);
+    /* the numbers are the fakes', and the table's order is the run order: 0 videos, 1 audio, 2 models, 3 stages */
+    static const ExpType types[] = {PREP_ROW(0, "export_videos", "Videos"), PREP_ROW(1, "export_audio", "Audio"),
+                                    PREP_ROW(2, "export_models", "Models"), PREP_ROW(3, "export_stages", "Stages")};
+    expTypesSet(types, 4);
 }
 
 static void testPrepareModding(void) {
@@ -1398,10 +1401,7 @@ static void testPrepareModding(void) {
     /* no exporter registered: no row, nothing to start */
     csSettingsInstall();
     csWidgetsClear();
-    optionsSystemSetExportVideos(NULL);
-    optionsSystemSetExportAudio(NULL);
-    optionsSystemSetExport(NULL);
-    optionsSystemSetExportStages(NULL);
+    expTypesSet(NULL, 0);
     optionsSystemInit();
     CHECK(csTabRowCount(CS_TAB_SYSTEM) == 3 && optionsSystemPrepStart() == 0 && !optionsSystemPrepActive());
     csWidgetsClear();
@@ -1467,10 +1467,75 @@ static void testPrepareModding(void) {
 
     csClose();
     csWidgetsClear();
-    optionsSystemSetExportVideos(NULL);
-    optionsSystemSetExportAudio(NULL);
-    optionsSystemSetExport(NULL);
-    optionsSystemSetExportStages(NULL);
+    expTypesSet(NULL, 0);
+}
+
+/* B3: the table of exporter types: setup in order, the settings.ini keys (given, default, off, absent), the notes in a save */
+static char etLog[256];
+static void etSetupA(const char *d) { snprintf(etLog + strlen(etLog), sizeof(etLog) - strlen(etLog), "sA:%s;", d != NULL ? d : "-"); }
+static void etSetupB(const char *d) { (void)d; strcat(etLog, "sB;"); }
+static int etRunA(const char *spec) { snprintf(etLog + strlen(etLog), sizeof(etLog) - strlen(etLog), "rA=%s;", spec); return 0; }
+static int etRunB(const char *spec) { snprintf(etLog + strlen(etLog), sizeof(etLog) - strlen(etLog), "rB=%s;", spec); return 0; }
+static int etRunC(const char *spec) { snprintf(etLog + strlen(etLog), sizeof(etLog) - strlen(etLog), "rC=%s;", spec); return 0; }
+static void etAfterB(void) { strcat(etLog, "aB;"); }
+
+static void testExportTypes(void) {
+    static const ExpType types[] = {
+        {"export_et_a", "A", "; note of a\n", NULL, etSetupA, etRunA, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+        {"export_et_b", "B", "; note of b\n", "all", etSetupB, etRunB, etAfterB, NULL, NULL, NULL, NULL, NULL, NULL},
+        {"export_et_c", "C", NULL, NULL, NULL, etRunC, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    };
+    const char *file = "inputtest_exptypes.ini";
+    static char text[16384];
+    InputCfg c;
+    FILE *f;
+    int i;
+
+    /* every row is addressable and has a unique key and a run function */
+    expTypesSet(types, 3);
+    CHECK(expTypeCount() == 3 && expTypesJobCount() == 0 && !expTypeIsJob(expTypeAt(0)) && expTypeAt(3) == NULL && expTypeAt(-1) == NULL);
+    for (i = 0; i < expTypeCount(); i++) {
+        int j;
+        CHECK(expTypeAt(i)->run != NULL && expTypeAt(i)->key != NULL && strncmp(expTypeAt(i)->key, "export_", 7) == 0);
+        for (j = 0; j < i; j++) CHECK(strcmp(expTypeAt(i)->key, expTypeAt(j)->key) != 0);
+    }
+    f = fopen(file, "wb");
+    CHECK(f != NULL);
+    fprintf(f, "[data]\nexport_et_a = 12, 13\nexport_et_b = off\nexport_et_c = all\n");
+    fclose(f);
+    inputCfgSetPath(file);
+    setenv("DW3_SETTINGS", file, 1);
+    etLog[0] = '\0';
+    expTypesSetup("data");
+    CHECK(strcmp(etLog, "sA:data;sB;") == 0); /* in table order */
+    etLog[0] = '\0';
+    expTypesRunSettings("data");
+    CHECK(strcmp(etLog, "rA=12, 13;rC=all;") == 0); /* b is off: neither run nor after */
+    etLog[0] = '\0';
+    expTypesRunSettings(NULL);
+    CHECK(etLog[0] == '\0'); /* no data folder: nothing */
+    f = fopen(file, "wb");
+    CHECK(f != NULL);
+    fprintf(f, "[data]\nexport_et_c = 5\n");
+    fclose(f);
+    etLog[0] = '\0';
+    expTypesRunSettings("data");
+    CHECK(strcmp(etLog, "rB=all;aB;rC=5;") == 0); /* the default of b, its after hook; a is absent and has none */
+    /* a save writes each value back with the note the row registered (c has none) and one [data] header */
+    inputCfgDefaults(&c);
+    inputCfgLoadFile(file, &c, NULL);
+    f = fopen(file, "wb");
+    fprintf(f, "[data]\nexport_et_a = 1\nexport_et_c = 5\n");
+    fclose(f);
+    inputCfgReadExport("export_et_a", text, sizeof(text));
+    inputCfgLoadFile(file, &c, NULL);
+    CHECK(inputCfgFormat(&c, text, sizeof(text)) > 0);
+    CHECK(strstr(text, "\n; note of a\n[data]\nexport_et_a = 1\n") != NULL && strstr(text, "\nexport_et_c = 5\n") != NULL);
+    CHECK(strstr(text, "note of b") == NULL && strstr(strstr(text, "[data]") + 1, "[data]") == NULL);
+    unsetenv("DW3_SETTINGS");
+    remove(file);
+    expTypesSet(NULL, 0);
+    CHECK(expTypeCount() == 0 && expTypeAt(0) == NULL);
 }
 
 /* C4: controller type -> family, Auto vs forced icons, device tracking, button -> atlas cell, settings round trip */
@@ -3212,6 +3277,7 @@ int main(int argc, char **argv) {
     testOptionsSystem();
     testRestartHandoff();
     testPrepareModding();
+    testExportTypes();
     testOptionsMods(dir);
     testLongModsLines(dir);
     testPromptIcons();

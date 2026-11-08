@@ -1,0 +1,68 @@
+{
+  "format": "digimon-digimon-v1",
+  "name": "seadramon",
+  "base": "dw3:digimon/383",
+  "model": {
+    "from": "dw3:digimon/148",
+    "model": "dw3:digimon/10",
+    "motions": "dw3:digimon/10",
+    "effects": "dw3:digimon/374",
+    "scripts": {
+      "5": { "from": "dw3:digimon/10", "slot": 5 }
+    },
+    "fill": 14
+  },
+  "title": {
+    "eng": "Seadramon",
+    "es-419": "Seadramon"
+  },
+  "hp": 170,
+  "mp": 140,
+  "hpGrowth": 80,
+  "mpGrowth": 55,
+  "stats": {
+    "strength": 50,
+    "defense": 46,
+    "spirit": 44,
+    "wisdom": 44,
+    "speed": 52,
+    "charisma": 1
+  },
+  "statGrowth": {
+    "strength": 3,
+    "defense": 3,
+    "spirit": 3,
+    "wisdom": 3,
+    "speed": 3,
+    "charisma": 3
+  },
+  "skills": {
+    "1": {
+      "tech": "dw3:tech/156",
+      "level": 5
+    },
+    "2": {
+      "tech": "betamon-pack:tidal-arrow",
+      "level": 10
+    },
+    "3": {
+      "tech": "dw3:tech/149",
+      "level": 15
+    },
+    "4": {
+      "tech": "dw3:tech/145",
+      "level": 25
+    },
+    "6": {
+      "tech": "dw3:tech/147",
+      "level": 60
+    }
+  },
+  "knownLevels": {
+    "0": 35,
+    "1": 75,
+    "2": 45,
+    "3": 99,
+    "4": 1
+  }
+}

@@ -41,12 +41,22 @@ static int sNEntries;
 static unsigned sEpoch = 1;
 static time_t sEpochAt;
 static Pack *sLast;
+/* the topic's manifest (<data>/stages/manifest.json: the files the exporter wrote and their hashes), read once at the first data tile and again after
+   stageModSetup or stageModRecheck (the hot reload's epoch included); the parse of its ~20000 entries takes a few milliseconds */
+static TdManifest sMan;
+static int sManLoaded;
+
+static void manifestDrop(void) {
+    tdManifestFree(&sMan);
+    sManLoaded = 0;
+}
 
 static void dropAll(void) {
     int i;
     for (i = 0; i < sNEntries; i++) free(sEntries[i].tim);
     free(sEntries);
     free(sPacks);
+    manifestDrop();
     sEntries = NULL;
     sPacks = NULL;
     sNEntries = sNPacks = 0;
@@ -89,46 +99,31 @@ static Pack *packFor(long lba) {
     return sLast->ok ? sLast : NULL;
 }
 
-/* <root>/<rel>, matched without regard to case when the exact spelling is not there (ADR-010 section 3) */
-static void resolve(const char *root, const char *rel, char *path, size_t cap) {
-    struct stat st;
-    char real[1400];
-    snprintf(path, cap, "%s/%s", root, rel);
-    if (stat(path, &st) == 0) return;
-    if (portPathsResolveCI(root, rel, real, sizeof real)) snprintf(path, cap, "%s", real);
-}
+/* the tile as the layers and the manifest name it: stages/s233/tiles/<RR>_<CC>.png without the topic ("s233/tiles/00_00.png"); the pack key is "s233pack" */
+static void tileRel(const Pack *pk, const char *name, char *rel, size_t cap) { snprintf(rel, cap, "%.4s/tiles/%s", pk->key, name); }
 
-/* Source s of a tile: the mods from the last to the first, then the data folder (s == modsCount()) */
+/* Layer s of a tile (mods.h asset layers: the mods from the last to the first, then data/): 1 and its path when the layer has the file */
 static int sourcePath(int s, const Pack *pk, const char *name, char *path, size_t cap, char *label, size_t lcap) {
-    int nm = modsCount();
+    AssetLayer l;
     char rel[120];
 
-    snprintf(rel, sizeof rel, "z_stage/%s/%s", pk->key, name);
-    if (s < nm) {
-        int m = nm - 1 - s;
-        resolve(modsDirOf(m), rel, path, cap);
-        snprintf(label, lcap, "mods/%s", modsNameOf(m));
-        return 1;
-    }
-    if (s == nm && sDataDir[0]) {
-        resolve(sDataDir, rel, path, cap);
-        snprintf(label, lcap, "data (edited)");
-        return 1;
-    }
-    return 0;
+    if (!assetLayerAt(s, &l)) return 0;
+    tileRel(pk, name, rel, sizeof rel);
+    snprintf(label, lcap, "%s", l.mod < 0 ? "data (edited)" : l.label);
+    return assetLayerFile(&l, "stages", rel, path, cap);
 }
 
 /* a number that changes when any source file of the tile (existence, mtime, size) changes */
 static unsigned long sourcesSig(const Pack *pk, const char *name) {
     unsigned long h = 1469598103934665603ul;
-    int s, nm = modsCount();
+    int s;
     char path[1400], label[100];
 
-    for (s = 0; s <= nm; s++) {
+    for (s = 0; s < assetLayerCount(); s++) {
         struct stat st;
         unsigned long v = 0;
-        if (!sourcePath(s, pk, name, path, sizeof path, label, sizeof label)) continue;
-        if (stat(path, &st) == 0) v = (unsigned long)st.st_mtime * 31ul + (unsigned long)st.st_size + 1ul;
+        if (sourcePath(s, pk, name, path, sizeof path, label, sizeof label) && stat(path, &st) == 0)
+            v = (unsigned long)st.st_mtime * 31ul + (unsigned long)st.st_size + 1ul;
         h = (h ^ v) * 1099511628211ul;
     }
     return h;
@@ -136,48 +131,49 @@ static unsigned long sourcesSig(const Pack *pk, const char *name) {
 
 /* The data folder's PNG counts only when the user changed it: its hash is not the one the exporter wrote */
 static int dataEdited(const Pack *pk, const char *name, const uint8_t *png, size_t len) {
-    char mp[1300], hex[17];
-    uint8_t *mt;
-    size_t ml;
-    TdManifest m;
+    char mp[1300], hex[17], rel[120];
     const char *have;
-    int edited = 1;
 
-    memset(&m, 0, sizeof m);
-    snprintf(mp, sizeof mp, "%s/z_stage/%s/manifest.json", sDataDir, pk->key);
-    if (tdReadFile(mp, &mt, &ml) == 0) {
-        char err[120];
-        if (tdManifestParse((const char *)mt, ml, &m, err, sizeof err) != 0) memset(&m, 0, sizeof m);
-        free(mt);
+    if (!sManLoaded) {
+        uint8_t *mt;
+        size_t ml;
+
+        snprintf(mp, sizeof mp, "%s/stages/manifest.json", sDataDir);
+        if (tdReadFile(mp, &mt, &ml) == 0) {
+            char err[120];
+            if (tdManifestParse((const char *)mt, ml, &sMan, err, sizeof err) != 0) memset(&sMan, 0, sizeof sMan);
+            free(mt);
+        }
+        sManLoaded = 1;
     }
+    tileRel(pk, name, rel, sizeof rel);
     tdHashHex(tdHash(png, len), hex);
-    have = m.files != NULL ? tdManifestFind(&m, name) : NULL;
-    edited = tdFileState(1, have, hex) == TD_FILE_EDITED;
-    tdManifestFree(&m);
-    return edited;
+    have = sMan.files != NULL ? tdManifestFind(&sMan, rel) : NULL;
+    return tdFileState(1, have, hex) == TD_FILE_EDITED;
 }
 
 static void resolveEntry(Entry *e, const Pack *pk, const char *name, const uint8_t *tim, size_t timLen) {
-    int s, nm = modsCount();
+    int s;
+    AssetLayer l;
     char path[1400], label[100];
 
     free(e->tim);
     e->tim = NULL;
     e->len = 0;
-    for (s = 0; s <= nm && e->tim == NULL; s++) {
+    for (s = 0; s < assetLayerCount() && e->tim == NULL; s++) {
         uint8_t *png, *res;
         size_t pl;
         char why[200];
 
         if (!sourcePath(s, pk, name, path, sizeof path, label, sizeof label) || tdReadFile(path, &png, &pl)) continue;
-        if (s == nm && !dataEdited(pk, name, png, pl)) {
+        if (assetLayerAt(s, &l) && l.mod < 0 && !dataEdited(pk, name, png, pl)) { /* data/: only a tile the user changed */
             free(png);
             continue;
         }
         if (imgSubstitute(tim, timLen, NULL, png, pl, &res, why, sizeof why) == 0) {
             e->tim = res;
             e->len = timLen;
-            plogLine("images", "override z_stage/%s/%s from %s\n", pk->key, name, label);
+            plogLine("images", "override stages/%.4s/tiles/%s from %s\n", pk->key, name, label);
         } else {
             plogLine("images", "%s rejected: %s\n", path, why);
         }
@@ -187,7 +183,10 @@ static void resolveEntry(Entry *e, const Pack *pk, const char *name, const uint8
 
 static time_t nowSec(void) { return time(NULL); }
 
-void stageModRecheck(void) { sEpoch++; }
+void stageModRecheck(void) {
+    sEpoch++;
+    manifestDrop();
+}
 
 const uint8_t *stageModTim(long lba, int frame, const uint8_t *tim) {
     Pack *pk = packFor(lba);
@@ -201,6 +200,7 @@ const uint8_t *stageModTim(long lba, int frame, const uint8_t *tim) {
     if (modsHotReload() && nowSec() != sEpochAt) { /* opt-in (DW3_MODS_HOTRELOAD=1): a modder may edit while the game runs, look again at most once a second overall; by default the mods are read once per tile */
         sEpochAt = nowSec();
         sEpoch++;
+        manifestDrop();
     }
     stageTileName(pk->width, frame, name, sizeof name);
     for (i = sNEntries - 1; i >= 0; i--) {
@@ -233,80 +233,109 @@ const uint8_t *stageModTim(long lba, int frame, const uint8_t *tim) {
     }
 done:
     if (plogOn("images", PLOG_TRACE)) {
-        plogLine("images", "load z_stage/%s/%s (%s)\n", pk->key, name, e->tim != NULL ? "override" : "disc");
+        plogLine("images", "load stages/%.4s/tiles/%s (%s)\n", pk->key, name, e->tim != NULL ? "override" : "disc");
     }
     return e->tim;
 }
 
+/* a name that is `want` in any case (ADR-010 section 3) */
+static int sameName(const char *a, const char *b) {
+    for (; *a && *b; a++, b++) {
+        if (tolower((unsigned char)*a) != tolower((unsigned char)*b)) return 0;
+    }
+    return *a == *b;
+}
+
+/* "s233" (any case) as a stage folder: 1 */
+static int isStageFolder(const char *name) {
+    int i;
+
+    if (strlen(name) != 4 || tolower((unsigned char)name[0]) != 's') return 0;
+    for (i = 1; i <= 3; i++) {
+        if (!isdigit((unsigned char)name[i])) return 0;
+    }
+    return 1;
+}
+
+/* the tiles of one stage folder of a mod; the PNGs looked at */
+static int validateTiles(const char *tilesDir, const char *shown, const char *stageFolder, const char *modName, const char *dataDir) {
+    DIR *pd = opendir(tilesDir);
+    struct dirent *f;
+    int n = 0;
+
+    if (pd == NULL) return 0;
+    while ((f = readdir(pd)) != NULL) {
+        char path[1800], ref[1800], why[200];
+        uint8_t *png, *refPng;
+        size_t pl, rl;
+        PngImage im, orig;
+        int rr, cc, ok;
+
+        if (f->d_name[0] == '.') continue;
+        if (strlen(f->d_name) != 9 || sscanf(f->d_name, "%2d_%2d.png", &rr, &cc) != 2 || !isdigit((unsigned char)f->d_name[0]) ||
+            !isdigit((unsigned char)f->d_name[1]) || f->d_name[2] != '_') {
+            plogLine("images", "%s: stages/%s/%s/%s ignored: a tile is <RR>_<CC>.png\n", modName, stageFolder, shown, f->d_name);
+            continue;
+        }
+        snprintf(path, sizeof path, "%s/%s", tilesDir, f->d_name);
+        n++;
+        if (tdReadFile(path, &png, &pl)) {
+            plogLine("images", "%s rejected: cannot read the file\n", path);
+            continue;
+        }
+        ok = pngReadIndexed(png, pl, &im, why, sizeof why) == 0;
+        free(png);
+        if (!ok) {
+            plogLine("images", "%s rejected: %s\n", path, why);
+            continue;
+        }
+        if (dataDir != NULL && dataDir[0] != '\0') {
+            snprintf(ref, sizeof ref, "%s/stages/%s/tiles/%s", dataDir, stageFolder, f->d_name);
+            if (tdReadFile(ref, &refPng, &rl) == 0) {
+                if (pngReadIndexed(refPng, rl, &orig, why, sizeof why) == 0) {
+                    if (orig.w != im.w || orig.h != im.h)
+                        plogLine("images", "%s rejected: size %dx%d, the tile is %dx%d\n", path, im.w, im.h, orig.w, orig.h);
+                    pngImageFree(&orig);
+                }
+                free(refPng);
+            }
+        }
+        pngImageFree(&im);
+    }
+    closedir(pd);
+    return n;
+}
+
 /* --validate-mod (U5). The tile's own TIM is only at hand while the map streams, so what is checked here is what a file can be checked
-   against without the game: it names a tile (z_stage/s<nnn>pack/<RR>_<CC>.png), it is an indexed PNG of at most 256 colors (the reader
-   of the rules), and, when the exported original is in <dataDir>/z_stage/, it has that PNG's size. A refusal is logged as
-   `images: <path> rejected: <why>`, like the loader's. Returns how many PNGs were looked at. */
+   against without the game: it names a tile (stages/s<nnn>/tiles/<RR>_<CC>.png), it is an indexed PNG of at most 256 colors (the reader
+   of the rules), and, when the exported original is in <dataDir>/stages/s<nnn>/tiles/, it has that PNG's size. A refusal is logged as
+   `images: <path> rejected: <why>`, like the loader's. The stage folders themselves and what else they hold (objects/, stage.json) are the
+   business of stageObjPackValidate and the stage patch loader. Returns how many PNGs were looked at. */
 int stageModValidate(const char *modDir, const char *modName, const char *dataDir) {
     char root[1100];
     DIR *d;
     struct dirent *e;
     int n = 0;
 
-    snprintf(root, sizeof root, "%s/z_stage", modDir);
+    snprintf(root, sizeof root, "%s/stages", modDir);
     d = opendir(root);
     if (d == NULL) return 0;
     while ((e = readdir(d)) != NULL) {
-        char packDir[1400];
-        DIR *pd;
+        char stageDir[1400], tilesDir[1700], folder[8];
+        DIR *sd;
         struct dirent *f;
-        int a, i, isPack = 0;
-        if (e->d_name[0] == '.') continue;
-        if (strlen(e->d_name) == 8 && sscanf(e->d_name, "s%3dpack", &a) == 1) {
-            isPack = 1;
-            for (i = 1; i <= 3; i++) isPack &= isdigit((unsigned char)e->d_name[i]) != 0;
-            isPack &= strcmp(e->d_name + 4, "pack") == 0;
+
+        if (e->d_name[0] == '.' || !isStageFolder(e->d_name)) continue;
+        snprintf(folder, sizeof folder, "s%.3s", e->d_name + 1);
+        snprintf(stageDir, sizeof stageDir, "%s/%s", root, e->d_name);
+        sd = opendir(stageDir);
+        if (sd == NULL) continue;
+        while ((f = readdir(sd)) != NULL) {
+            if (!sameName(f->d_name, "tiles")) continue;
+            snprintf(tilesDir, sizeof tilesDir, "%s/%s", stageDir, f->d_name);
+            n += validateTiles(tilesDir, f->d_name, folder, modName, dataDir);
         }
-        snprintf(packDir, sizeof packDir, "%s/%s", root, e->d_name);
-        if (!isPack) {
-            plogLine("images", "%s: z_stage/%s ignored: a stage folder is s<nnn>pack\n", modName, e->d_name);
-            continue;
-        }
-        pd = opendir(packDir);
-        if (pd == NULL) continue;
-        while ((f = readdir(pd)) != NULL) {
-            char path[1500], ref[1500], why[200];
-            uint8_t *png, *refPng;
-            size_t pl, rl;
-            PngImage im, orig;
-            int rr, cc, ok;
-            if (f->d_name[0] == '.') continue;
-            if (strlen(f->d_name) != 9 || sscanf(f->d_name, "%2d_%2d.png", &rr, &cc) != 2 || !isdigit((unsigned char)f->d_name[0]) ||
-                !isdigit((unsigned char)f->d_name[1]) || f->d_name[2] != '_') {
-                plogLine("images", "%s: z_stage/%s/%s ignored: a tile is <RR>_<CC>.png\n", modName, e->d_name, f->d_name);
-                continue;
-            }
-            snprintf(path, sizeof path, "%s/%s", packDir, f->d_name);
-            n++;
-            if (tdReadFile(path, &png, &pl)) {
-                plogLine("images", "%s rejected: cannot read the file\n", path);
-                continue;
-            }
-            ok = pngReadIndexed(png, pl, &im, why, sizeof why) == 0;
-            free(png);
-            if (!ok) {
-                plogLine("images", "%s rejected: %s\n", path, why);
-                continue;
-            }
-            if (dataDir != NULL && dataDir[0] != '\0') {
-                snprintf(ref, sizeof ref, "%s/z_stage/%s/%s", dataDir, e->d_name, f->d_name);
-                if (tdReadFile(ref, &refPng, &rl) == 0) {
-                    if (pngReadIndexed(refPng, rl, &orig, why, sizeof why) == 0) {
-                        if (orig.w != im.w || orig.h != im.h)
-                            plogLine("images", "%s rejected: size %dx%d, the tile is %dx%d\n", path, im.w, im.h, orig.w, orig.h);
-                        pngImageFree(&orig);
-                    }
-                    free(refPng);
-                }
-            }
-            pngImageFree(&im);
-        }
-        closedir(pd);
+        closedir(sd);
     }
     closedir(d);
     return n;

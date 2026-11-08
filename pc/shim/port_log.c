@@ -298,9 +298,17 @@ int plogTeeToLogcat(const char *logFile) {
     setvbuf(stdout, NULL, _IOLBF, 4096);
     return 1;
 }
+
+int plogLogFd(void) {
+    return teeFile;
+}
 #else
 int plogTeeToLogcat(const char *logFile) {
     (void)logFile;
     return 0;
+}
+
+int plogLogFd(void) {
+    return -1;
 }
 #endif

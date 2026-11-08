@@ -5,14 +5,16 @@
  * The original battle models as neutral sources (model-import I7, ADR-010 / ADR-011): for a fighter id, the model, its motions
  * and its texture are read from the disc and written as
  *
- *   <data>/models/<id>/model.gltf  model.bin  model.png  model.json   (model-src-v1, what model_bake.c reads)
+ *   <data>/digimon/d<nnn>/model/model.gltf  model.bin  model.png  model.json   (model-src-v1, what model_bake.c reads)
  *
- * so a modder can open the glTF in Blender, edit it, and drop the folder unchanged into a mod's content/models/<key>/.
+ * <nnn> is the fighter id zero-padded to three digits; the manifest <data>/digimon/manifest.json names each folder ("d012": "dw3:digimon/12").
+ *
+ * so a modder can open the glTF in Blender, edit it, and drop the folder unchanged into a mod's digimon/<key>/model/.
  * The glTF is at Blender size (1/1000: Kotemon, 1886 game units, is about 1.9 m tall) and model.json says "scale": 1000, which the baker undoes.
  *
  * The exporter is a port of tools/model_export.py (--source) and writes the same model.gltf, model.bin and model.json bytes (the
  * PNG has the same pixels; its deflate stream is the port's own). Portable C like the baker (ADR-009 section 7): the disc comes
- * in through a callback, nothing here knows the file layers. Compile with -ffp-contract=off. Only the menu's job thread (below) uses SDL, and only its threads and mutex.
+ * in through a callback, nothing here knows the file layers. Compile with -ffp-contract=off. The menu's job thread comes from the shared job engine (exp_job.h), not from here.
  *
  * On demand only (all 248 are about 190 MB): the System tab's "Export models" row and the [data] export_models key of
  * settings.ini. The menu's job runs on a worker thread (modelExportStart) so the game keeps its frame rate; the settings.ini key at start runs synchronously; every file follows the rule of
@@ -28,10 +30,10 @@
 #define MODEL_EXPORT_FILE_FIGHTERS 0x1CC /* FILE_FIGHTERS in the EU version */
 #define MODEL_EXPORT_UNIT_SCALE (1.0 / 1000.0)
 
-/* Bump whenever the bytes the exporter writes change (the tests compare them with tools/model_export.py): a manifest that
+/* Bump whenever the bytes the exporter writes, or where it writes them, change (the tests compare them with tools/model_export.py): a manifest that
    remembers an older version makes every fighter be built again once, and the baker's cache key of a model.json that starts
    from an original ("from", model_bake.h) follows it. */
-#define MODEL_EXPORT_VERSION 1
+#define MODEL_EXPORT_VERSION 2
 
 /* The bytes of a file number as on the disc (NULL: it cannot be read). The exporter copies them before it returns from the call
    that asked, so the callback may reuse its buffer. */
@@ -63,6 +65,8 @@ int modelExportRequest(const char *spec);
 int modelExportRequestEx(const char *spec, int force);
 /* How many fighters of the last job were really built (the rest were skipped as up to date) */
 int modelExportBuilt(void);
+/* The settings.ini key: modelExportRequest, then builds the queue now, on this thread. The queued count, or -1. */
+int modelExportRun(const char *spec);
 /* The menu's job: modelExportRequestEx, then a worker thread builds and writes the queue. The worker never calls the disc reader (it
    shares a FILE* with the game): the main thread's modelExportPump reads the files of the next fighters into memory for it.
    The queued count, or -1 (nothing to do, or a job is already running: it is left alone). Then call modelExportPump every frame */
@@ -79,7 +83,7 @@ void modelExportCounts(int *done, int *failed, int *total);
 const char *modelExportStatus(void);
 /* One fighter, now (the files are written under the manifest rule). 0, or -1 (logged) */
 int modelExportOne(int fighterId);
-/* The folder of a fighter relative to the data folder, "models/<id>/": what data/content/digimon.json names */
+/* The folder of a fighter relative to the data folder, "digimon/d<nnn>/model/": what data/content/digimon.json names */
 void modelExportFolder(int fighterId, char *out, size_t cap);
 
 #endif

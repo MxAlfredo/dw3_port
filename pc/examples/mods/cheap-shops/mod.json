@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Cheap shops",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Every item costs half as much in the shops (data table item_prices)."
-}

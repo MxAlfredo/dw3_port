@@ -1,0 +1,15 @@
+{
+  "format": "items-v1",
+  "new": {
+    "betamon-ddna": {
+      "base": "dw3:item/35",
+      "price": 0,
+      "sellPrice": 0,
+      "name": { "eng": "Betamon DDNA", "es-419": "Betamon DDNA" },
+      "description": {
+        "eng": "Betamon's DDNA. Show it to the fisher.",
+        "es-419": "El DDNA de Betamon. Muéstraselo al pescador."
+      }
+    }
+  }
+}

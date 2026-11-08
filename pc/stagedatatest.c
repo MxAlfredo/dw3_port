@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "shim/stage_data.h"
+#include "shim/text_data.h"
 
 static int failures;
 
@@ -320,6 +321,13 @@ static void testScripts(void) {
         CHECK(extJsonParse((const uint8_t *)doc, strlen(doc), &root) == 0);
         CHECK(scScriptFromJson(extJsonGet(&root, "l"), &o, &n, err, sizeof err) == -1 && strstr(err, "must be the last"));
         extJsonFree(&root);
+        /* the "item received" signal of a script: SCRIPT_COMMAND(0x32D, 0x34A, 2) (wstag741.c:217), 813 = the command task, 842 = the icon's substate 3 */
+        doc = "{\"l\": [[\"command\", 813, 842, 2], [\"end\"]]}";
+        CHECK(extJsonParse((const uint8_t *)doc, strlen(doc), &root) == 0);
+        CHECK(scScriptFromJson(extJsonGet(&root, "l"), &o, &n, err, sizeof err) == 0 && n >= 5 && o[0] == 0x101 && o[1] == 0x32D && o[2] == 0x34A && o[3] == 2);
+        CHECK(scriptRoundTrip(o, n, "[[\"command\", 813, 842, 2], [\"end\"]]"));
+        free(o);
+        extJsonFree(&root);
     }
 }
 
@@ -511,15 +519,32 @@ static void testExport(void) {
     json = sdStageToJson(&ENV, &s);
 
     memset(&st, 0, sizeof st);
+    {
+        /* a manifest of the old layout (stages/<nnn>.json): its entries are dropped, the rest is kept */
+        TdManifest old;
+        char *text, dir[800];
+
+        memset(&old, 0, sizeof old);
+        snprintf(old.topic, sizeof old.topic, "stages");
+        CHECK(tdKvSet(&old.exporter, "stage-objects", "1") == 0);
+        CHECK(tdManifestSet(&old, "380.json", "0123456789abcdef") == 0 && tdManifestSet(&old, "s380/objects/f000p00.png", "0123456789abcdef") == 0);
+        text = tdManifestFormat(&old);
+        snprintf(dir, sizeof dir, "%s/stages", gRoot);
+        snprintf(path, sizeof path, "%s/manifest.json", dir);
+        CHECK(text != NULL && tdMakeDirs(dir) == 0 && tdWriteFileAtomic(path, text, strlen(text)) == 0);
+        free(text);
+        tdManifestFree(&old);
+    }
     sdExportSetup(gRoot);
     CHECK(!sdExportUpToDate(nums, 2));
     CHECK(sdExportPut(380, json, &st) == 0 && st.written == 1);
     CHECK(sdExportPut(381, json, &st) == 0 && st.written == 2);
     sdExportEnd(1);
-    snprintf(path, sizeof path, "%s/stages/380.json", gRoot);
+    snprintf(path, sizeof path, "%s/stages/s380/stage.json", gRoot);
     CHECK(readAll(path, buf, sizeof buf) && !strcmp(buf, json));
     snprintf(path, sizeof path, "%s/stages/manifest.json", gRoot);
-    CHECK(readAll(path, buf, sizeof buf) && strstr(buf, "380.json") && strstr(buf, "stages-v1"));
+    CHECK(readAll(path, buf, sizeof buf) && strstr(buf, "s380/stage.json") && strstr(buf, "\"topic\": \"stages\""));
+    CHECK(strstr(buf, "\"380.json\"") == NULL && strstr(buf, "s380/objects/f000p00.png") && strstr(buf, "\"stage-objects\"")); /* the old entry went, the objects' stayed */
 
     /* a second run: up to date, so nothing to build; and if it ran, every file is kept */
     sdExportSetup(gRoot);
@@ -529,7 +554,7 @@ static void testExport(void) {
     sdExportEnd(1);
 
     /* the player edits a file: the new version goes beside it and the edit stays */
-    snprintf(path, sizeof path, "%s/stages/380.json", gRoot);
+    snprintf(path, sizeof path, "%s/stages/s380/stage.json", gRoot);
     writeFile(path, "{\"edited\": true}\n");
     sdExportSetup(gRoot);
     memset(&st, 0, sizeof st);
@@ -539,11 +564,11 @@ static void testExport(void) {
     CHECK(sdExportPut(380, json, &st) == 0 && st.newFiles == 1);
     sdExportEnd(1);
     CHECK(readAll(path, buf, sizeof buf) && strstr(buf, "edited"));
-    snprintf(path, sizeof path, "%s/stages/380.json.new", gRoot);
+    snprintf(path, sizeof path, "%s/stages/s380/stage.json.new", gRoot);
     CHECK(readAll(path, buf, sizeof buf) && !strcmp(buf, json));
 
     /* a missing file is not up to date */
-    snprintf(path, sizeof path, "%s/stages/381.json", gRoot);
+    snprintf(path, sizeof path, "%s/stages/s381/stage.json", gRoot);
     remove(path);
     sdExportSetup(gRoot);
     CHECK(!sdExportUpToDate(nums, 2));

@@ -1,0 +1,31 @@
+{
+  "format": "model-src-v1",
+  "name": "partner",
+  "gltf": "partner.gltf",
+  "fitHeight": 1800,
+  "effects": "dw3:digimon/383",
+  "template": "dw3:digimon/383",
+  "motions": {
+    "0": "idle",
+    "1": "idle_weak",
+    "2": "dodge",
+    "3": "flinch",
+    "4": "hit",
+    "5": 4,
+    "6": 4,
+    "10": {
+      "animation": "ko",
+      "end": "hold"
+    },
+    "11": 4,
+    "12": "cheer",
+    "13": "blast",
+    "14": "attack",
+    "15": 14,
+    "16": 14,
+    "17": 14,
+    "20": 14,
+    "32": 14
+  },
+  "fill": "attack"
+}

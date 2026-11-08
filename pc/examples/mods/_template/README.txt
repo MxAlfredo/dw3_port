@@ -9,10 +9,17 @@ mod.json            obligatorio. "format": "mod-v1"; "kind": "assets" (reemplaza
                     "port": ">=0.4" pide una version minima del puerto; "requires": ["otro-mod"] lo
                     hace depender de otros mods (por nombre de carpeta).
 tables/<tabla>.json  parches de tablas del juego (recompensas, botin, precios, tiendas...).
-content/<tipo>.json  contenido nuevo: items.json, techs.json, digimon.json, cards.json (solo con "kind": "content").
-card/<llave>.png    arte de las cartas nuevas de content/cards.json (PNG indexado 32x32).
+content/<tipo>.json  contenido nuevo: items.json, techs.json, teams.json, encounters.json (solo con "kind": "content").
+digimon/<llave>/     un Digimon nuevo: digimon.json (digimon-digimon-v1) y, si tiene modelo propio, model/ (model.json, glTF y PNG); la carpeta
+                    d<nnn> (el numero del Digimon del juego) cambia a la original con su digimon.json (solo con "kind": "content").
+cards/<carta>/face.png  arte de una carta: c<nnn> (el numero de la carta del juego) reemplaza el de la original (PNG indexado 32x32,
+                    hasta 256 colores); cards/<llave>/card.json (cards-card-v1) mas su face.png es una carta nueva (solo con "kind": "content").
+partners/<llave>/    un companero nuevo: partner.json (partners-partner-v1) junto a su arte (portrait.png, icon.png, field/, training/); el nombre de
+                    una original (agumon) solo reemplaza su arte (solo con "kind": "content").
 config/              tiempos y banner (stage_banner.json, transitions.json); solo las claves que cambias.
 text/<idioma>/       textos del juego, un JSON por archivo de texto.
+sprites/<nombre>/    personajes del campo: el nombre de una original (p001play, el de su archivo del disco) reemplaza sus cuadros con NNN.png;
+                    otro nombre es un sprite nuevo (sprite.json y un PNG por cuadro, hasta 16 colores).
 images/              imagenes PNG indexadas, con el mismo tamano que la original.
 audio/<BANCO>/       efectos (vag_NNN.wav) y musica (seq_P_RR.wav) en WAV de 16 bits.
 video/<NOMBRE>.avi   peliculas AVI con MJPEG.

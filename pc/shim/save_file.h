@@ -8,7 +8,7 @@
  *
  *   offset  size
  *   0       8     magic "DW3SAVE\0"
- *   8       4     format version (1; a newer one is refused, never guessed at)
+ *   8       4     format version (1, or 2 for a file with a "PTNR" section; a newer one than this build knows is refused, never guessed at)
  *   12      4     port save version (the port's own number, informational)
  *   16      4     section count
  *   20      4     total file size, trailer included
@@ -26,7 +26,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SAVEFILE_FORMAT_VERSION 1
+#define SAVEFILE_FORMAT_VERSION 2 /* the newest this build reads */
+#define SAVEFILE_FORMAT_PARTNERS 2 /* a file with a "PTNR" section (ADR-014): the partners above the original eight, the party by name; format 1 otherwise */
 #define SAVEFILE_PORT_VERSION 1
 /* the format stores any count; this is what a SaveFile holds (the first builds wrote up to 8, a file with more than this
    reads as SAVEFILE_ERR_FORMAT, an add past it returns 0 and logs on [saves]) */

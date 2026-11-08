@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "exp_core.h"
 #include "port_log.h"
 #include "text_data.h"
 
@@ -702,7 +703,7 @@ int sdStageEqual(const SdStage *a, const SdStage *b) {
 
 /* ---- the reference export ---- */
 
-#define MARK_KEY "version"
+#define MARK_KEY "stage-data" /* its key in the `exporter` header of stages/manifest.json (stage_obj_export.h marks its own there) */
 
 static char sDataDir[1024];
 static TdManifest sMan;
@@ -710,12 +711,19 @@ static int sManLoaded;
 
 static void stagesDir(char *out, size_t cap) { snprintf(out, cap, "%s/stages", sDataDir); }
 
-static void versionHex(char *hex) { snprintf(hex, 17, "%016x", (unsigned)SD_EXPORT_VERSION); }
+/* "<nnn>.json": where a stage's data lived before stages/s<nnn>/stage.json (readable-assets A7.2); nothing reads it any more */
+static int oldLayoutPath(const char *path) {
+    int i;
+
+    for (i = 0; i < 3; i++) {
+        if (path[i] < '0' || path[i] > '9') return 0;
+    }
+    return strcmp(path + 3, ".json") == 0;
+}
 
 void sdExportSetup(const char *dataDir) {
     char path[1200];
-    uint8_t *mt;
-    size_t ml;
+    int n;
 
     if (sManLoaded) tdManifestFree(&sMan);
     memset(&sMan, 0, sizeof sMan);
@@ -723,20 +731,11 @@ void sdExportSetup(const char *dataDir) {
     sDataDir[0] = 0;
     if (!dataDir || !dataDir[0]) return;
     snprintf(sDataDir, sizeof sDataDir, "%s", dataDir);
-    snprintf(sMan.stamp, sizeof sMan.stamp, "stages-v1");
     snprintf(path, sizeof path, "%s/stages/manifest.json", sDataDir);
-    if (tdReadFile(path, &mt, &ml) == 0) {
-        TdManifest old;
-        char err[120];
-
-        memset(&old, 0, sizeof old);
-        if (tdManifestParse((const char *)mt, ml, &old, err, sizeof err) == 0) {
-            tdManifestFree(&sMan);
-            sMan = old;
-        }
-        free(mt);
-    }
+    expManLoad("stages", path, "stages", &sMan);
     sManLoaded = 1;
+    n = tdManifestDrop(&sMan, oldLayoutPath);
+    if (n > 0) plogLine("stages", "%d stages/<nnn>.json file(s) of the old layout are not read any more (the data is stages/s<nnn>/stage.json); you can delete them\n", n);
 }
 
 static int fileExists(const char *p) {
@@ -748,17 +747,17 @@ static int fileExists(const char *p) {
 }
 
 int sdExportUpToDate(const int *numbers, int count) {
-    char hex[17], dir[1100], path[1250];
+    char dec[16], dir[1100], path[1250];
     const char *have;
     int i;
 
     if (!sManLoaded) return 0;
-    have = tdManifestFind(&sMan, MARK_KEY);
-    versionHex(hex);
-    if (!have || strcmp(have, hex)) return 0;
+    have = tdKvFind(&sMan.exporter, MARK_KEY);
+    snprintf(dec, sizeof dec, "%u", (unsigned)SD_EXPORT_VERSION);
+    if (!have || strcmp(have, dec)) return 0;
     stagesDir(dir, sizeof dir);
     for (i = 0; i < count; i++) {
-        snprintf(path, sizeof path, "%s/%03d.json", dir, numbers[i]);
+        snprintf(path, sizeof path, "%s/s%03d/stage.json", dir, numbers[i]);
         if (!fileExists(path)) return 0;
     }
     return 1;
@@ -773,10 +772,10 @@ int sdExportPut(int number, const char *text, SdExportStats *st) {
     const char *man;
 
     if (!sManLoaded) return -1;
-    snprintf(rel, sizeof rel, "%03d.json", number);
+    snprintf(rel, sizeof rel, "s%03d/stage.json", number);
     man = tdManifestFind(&sMan, rel);
-    stagesDir(dir, sizeof dir);
-    snprintf(path, sizeof path, "%s/%s", dir, rel);
+    snprintf(dir, sizeof dir, "%s/stages/s%03d", sDataDir, number); /* the stage's own folder */
+    snprintf(path, sizeof path, "%s/stage.json", dir);
     tdHashHex(tdHash(text, len), hex);
     if (tdReadFile(path, &cur, &curLen) == 0) {
         exists = 1;
@@ -810,13 +809,13 @@ int sdExportPut(int number, const char *text, SdExportStats *st) {
 }
 
 void sdExportEnd(int ok) {
-    char path[1200], dir[1100], hex[17];
+    char path[1200], dir[1100], dec[16];
     char *out;
 
     if (!sManLoaded) return;
     if (ok) {
-        versionHex(hex);
-        tdManifestSet(&sMan, MARK_KEY, hex);
+        snprintf(dec, sizeof dec, "%u", (unsigned)SD_EXPORT_VERSION);
+        tdKvSet(&sMan.exporter, MARK_KEY, dec);
     }
     stagesDir(dir, sizeof dir);
     snprintf(path, sizeof path, "%s/manifest.json", dir);

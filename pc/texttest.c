@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "shim/mods.h"
 #include "shim/text_codec.h"
@@ -548,10 +549,111 @@ static void testIndexMap(void)
     CHECK_STR(tdDiscDir(TD_ENG), "ENG");
 }
 
+/* A manifest of the size the stage objects make (about 10k files): the text the formatter writes is the file format byte for byte (insertion order, the layout
+   of the keys), parsing it back and setting the same entries again change nothing, and the lookups and the parse stay linear (a parse used to cost 108 ms
+   at 9222 entries, because every set searched the whole list). The time is printed for the report. */
+#define BIG_MANIFEST 10000
+
+static void testBigManifest(void)
+{
+    TdManifest m, m2;
+    char err[120], key[72], hash[17];
+    char *want, *text, *tail;
+    size_t wn = 0, cap = (size_t)BIG_MANIFEST * 120 + 512;
+    struct timespec t0, t1, tp, t2;
+    double parseMs, buildMs;
+    int i, same = 1;
+
+    want = (char *)malloc(cap);
+    CHECK(want != NULL);
+    if (!want) return;
+    wn = (size_t)snprintf(want, cap,
+                          "{\n  \"format\": \"asset-manifest-v1\",\n  \"topic\": \"big\",\n  \"exporter\": {},\n  \"disc\": \"\",\n  \"names\": {},\n  \"files\": {\n");
+    memset(&m, 0, sizeof m);
+    snprintf(m.topic, sizeof m.topic, "big");
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (i = 0; i < BIG_MANIFEST; i++) {
+        snprintf(key, sizeof key, "s%03d/objects/f%03dp%02d.png", i % 300, i / 300, i % 7);
+        snprintf(hash, sizeof hash, "%016llx", (unsigned long long)tdHash(key, strlen(key)));
+        CHECK(tdManifestSet(&m, key, hash) == 0);
+        wn += (size_t)snprintf(want + wn, cap - wn, "    \"%s\": \"%s\"%s\n", key, hash, i + 1 < BIG_MANIFEST ? "," : "");
+    }
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    snprintf(want + wn, cap - wn, "  }\n}\n");
+    CHECK(m.count == BIG_MANIFEST);
+    text = tdManifestFormat(&m);
+    CHECK(text != NULL && strcmp(text, want) == 0);
+    if (!text) return;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    memset(&m2, 0, sizeof m2);
+    CHECK(tdManifestParse(text, strlen(text), &m2, err, sizeof err) == 0);
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+    buildMs = (double)(t1.tv_sec - t0.tv_sec) * 1e3 + (double)(t1.tv_nsec - t0.tv_nsec) / 1e6;
+    parseMs = (double)(t2.tv_sec - tp.tv_sec) * 1e3 + (double)(t2.tv_nsec - tp.tv_nsec) / 1e6;
+    printf("texttest: manifest of %d files: set %.1f ms, parse %.1f ms\n", BIG_MANIFEST, buildMs, parseMs);
+    CHECK(parseMs < 60.0);
+    CHECK(m2.count == BIG_MANIFEST);
+    tail = tdManifestFormat(&m2);
+    CHECK(tail != NULL && strcmp(tail, want) == 0); /* parse then format is the identity */
+    for (i = 0; i < BIG_MANIFEST && same; i++) {
+        same = tdManifestFind(&m2, m.files[i].path) != NULL && strcmp(tdManifestFind(&m2, m.files[i].path), m.files[i].hash) == 0 &&
+               strcmp(m2.files[i].path, m.files[i].path) == 0; /* the same order too */
+    }
+    CHECK(same);
+    CHECK(tdManifestFind(&m2, "s000/objects/none.png") == NULL);
+    snprintf(key, sizeof key, "s%03d/objects/f%03dp%02d.png", 5, 0, 5 % 7); /* a replaced entry keeps its place and does not grow the list */
+    CHECK(tdManifestSet(&m2, key, "0000000000000000") == 0 && m2.count == BIG_MANIFEST);
+    CHECK_STR(tdManifestFind(&m2, key), "0000000000000000");
+    CHECK(strcmp(m2.files[5].path, key) == 0);
+    free(tail);
+    free(text);
+    free(want);
+    tdManifestFree(&m2);
+    tdManifestFree(&m);
+}
+
+/* the asset-manifest-v1 text (ADR-016 4): what the parser accepts, what the formatter writes, and that everything else is refused */
+static void testManifestV1Text(void)
+{
+    static const char v1[] =
+        "{\n  \"format\": \"asset-manifest-v1\",\n  \"topic\": \"t\",\n  \"exporter\": {\n    \"u\": 3,\n    \"v/w\": 12\n  },\n"
+        "  \"disc\": \"00ff00ff00ff00ff\",\n  \"inputs\": {\n    \"overlay\": \"none\"\n  },\n  \"names\": {\n    \"agumon\": \"dw3:partner/0\"\n  },\n"
+        "  \"files\": {\n    \"a/b.png\": \"0123456789abcdef\",\n    \"c.json\": \"fedcba9876543210\"\n  }\n}\n";
+    static const char *const refused[] = {
+        "{\n  \"stamp\": \"x-v1\",\n  \"files\": {\n    \"a\": \"0123456789abcdef\"\n  }\n}\n",                         /* the old manifest */
+        "{\"format\": \"asset-manifest-v2\", \"files\": {}}",                                                         /* another version */
+        "{\"format\": \"asset-manifest-v1\", \"files\": {}, \"extra\": \"x\"}",                                         /* an unknown field */
+        "{\"format\": \"asset-manifest-v1\", \"exporter\": {\"u\": \"3\"}, \"files\": {}}",                            /* a version is a number */
+        "{\"format\": \"asset-manifest-v1\", \"exporter\": {\"u\": 03}, \"files\": {}}",                                /* no leading zero */
+        "{\"format\": \"asset-manifest-v1\"}",                                                                       /* no files */
+        "{\"files\": {}}",                                                                                            /* no format */
+        "{\"format\": \"asset-manifest-v1\", \"files\": {}} x",                                                         /* text after */
+    };
+    TdManifest m;
+    char err[120];
+    char *out;
+    size_t i;
+
+    CHECK(tdManifestParse(v1, strlen(v1), &m, err, sizeof err) == 0);
+    CHECK(m.count == 2);
+    CHECK_STR(tdManifestFind(&m, "c.json"), "fedcba9876543210");
+    out = tdManifestFormat(&m);
+    CHECK(out != NULL && strcmp(out, v1) == 0); /* parse then format is the identity, header included */
+    free(out);
+    tdManifestFree(&m);
+    for (i = 0; i < sizeof refused / sizeof *refused; i++) {
+        err[0] = 0;
+        CHECK(tdManifestParse(refused[i], strlen(refused[i]), &m, err, sizeof err) != 0);
+        CHECK(err[0] != 0 && m.count == 0 && m.files == NULL);
+    }
+}
+
+static int dropOldStage(const char *path) { return strcmp(path, "380.json") == 0; }
+
 static void testManifestAndDecisions(void)
 {
     TdManifest m, m2;
-    char hex[17], hex2[17], err[120], stamp[256], stamp2[256];
+    char hex[17], hex2[17], err[120];
     char *text;
 
     CHECK(tdHash("a", 1) != tdHash("b", 1) && tdHash("abc", 3) == tdHash("abc", 3));
@@ -561,12 +663,11 @@ static void testManifestAndDecisions(void)
     tdHashHex(0, hex2);
     CHECK_STR(hex2, "0000000000000000");
 
-    tdMakeStamp(stamp, sizeof stamp, "d1", "o1");
-    tdMakeStamp(stamp2, sizeof stamp2, "d1", "o2");
-    CHECK(strcmp(stamp, stamp2) != 0 && strstr(stamp, "d1") && strstr(stamp, "codec="));
-
     memset(&m, 0, sizeof m);
-    snprintf(m.stamp, sizeof m.stamp, "%s", stamp);
+    snprintf(m.topic, sizeof m.topic, "text");
+    snprintf(m.disc, sizeof m.disc, "d1");
+    CHECK(tdKvSet(&m.exporter, "text", "7") == 0 && tdKvSet(&m.inputs, "overlay", "o1") == 0 && tdKvSet(&m.names, "spa", "dw3:text/spa") == 0);
+    CHECK(tdKvSet(&m.exporter, "text", "8") == 0 && m.exporter.count == 1); /* replaces */
     CHECK(tdManifestSet(&m, "spa/SSAMTMAP.json", hex) == 0);
     CHECK(tdManifestSet(&m, "es-419/SSAMTMAP.json", hex2) == 0);
     CHECK(tdManifestSet(&m, "spa/SSAMTMAP.json", hex2) == 0); /* replaces */
@@ -575,14 +676,32 @@ static void testManifestAndDecisions(void)
     CHECK(text != NULL);
     memset(&m2, 0, sizeof m2);
     CHECK(tdManifestParse(text, strlen(text), &m2, err, sizeof err) == 0);
-    CHECK_STR(m2.stamp, stamp);
-    CHECK(m2.count == 2);
+    CHECK_STR(m2.topic, "text");
+    CHECK_STR(m2.disc, "d1");
+    CHECK_STR(tdKvFind(&m2.exporter, "text"), "8");
+    CHECK_STR(tdKvFind(&m2.inputs, "overlay"), "o1");
+    CHECK_STR(tdKvFind(&m2.names, "spa"), "dw3:text/spa");
+    CHECK(tdKvFind(&m2.exporter, "other") == NULL);
+    CHECK(tdManifestSameRun(&m, &m2) && m2.count == 2);
+    /* the run header: another disc, version or input is another run; the files are not part of it */
+    snprintf(m2.disc, sizeof m2.disc, "d2");
+    CHECK(!tdManifestSameRun(&m, &m2));
+    snprintf(m2.disc, sizeof m2.disc, "d1");
+    CHECK(tdKvSet(&m2.exporter, "text", "9") == 0 && !tdManifestSameRun(&m, &m2));
+    CHECK(tdKvSet(&m2.exporter, "text", "8") == 0 && tdKvSet(&m2.inputs, "overlay", "o2") == 0 && !tdManifestSameRun(&m, &m2));
+    CHECK(tdKvSet(&m2.inputs, "overlay", "o1") == 0 && tdManifestSet(&m2, "extra.json", hex) == 0 && tdManifestSameRun(&m, &m2));
     CHECK_STR(tdManifestFind(&m2, "spa/SSAMTMAP.json"), hex2);
     CHECK(tdManifestFind(&m2, "eng/none.json") == NULL);
+    CHECK(tdManifestSet(&m2, "380.json", hex) == 0 && tdManifestSet(&m2, "s380/stage.json", hex) == 0 && m2.count == 4);
+    CHECK(tdManifestDrop(&m2, dropOldStage) == 1 && m2.count == 3 && tdManifestFind(&m2, "380.json") == NULL); /* the order and the index of the rest hold */
+    CHECK_STR(tdManifestFind(&m2, "s380/stage.json"), hex);
+    CHECK_STR(tdManifestFind(&m2, "spa/SSAMTMAP.json"), hex2);
+    CHECK(strcmp(m2.files[0].path, "spa/SSAMTMAP.json") == 0 && strcmp(m2.files[2].path, "s380/stage.json") == 0);
+    CHECK(tdManifestDrop(&m2, dropOldStage) == 0 && tdManifestSet(&m2, "380.json", hex2) == 0 && m2.count == 4);
     tdManifestFree(&m2);
     free(text);
     {
-        static const char *const bad[] = {"", "{", "{\"stamp\": 3}", "{\"files\": {}}", "[1]", "{\"stamp\":\"a\\\"b\"}"};
+        static const char *const bad[] = {"", "{", "{\"stamp\": 3}", "{\"files\": {}}", "[1]", "{\"format\":\"a\\\"b\"}"};
         int i;
         for (i = 0; i < 6; i++) {
             CHECK(tdManifestParse(bad[i], strlen(bad[i]), &m2, err, sizeof err) != 0);
@@ -1370,7 +1489,9 @@ int main(int argc, char **argv)
     testJson();
     testMerge();
     testIndexMap();
+    testManifestV1Text();
     testManifestAndDecisions();
+    testBigManifest();
     testBuildValidation();
     testModTextPaths();
     testReflow();

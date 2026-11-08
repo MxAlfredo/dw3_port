@@ -630,6 +630,11 @@ static void gameLayers(void *ud)
     /* the images layer of the real game is checked on the disc (image_data.c); here a loader's refusal is a line in the log like any other */
     if (exists("mods/oversize/images/SCREEN/X/00_00.png"))
         plogLine("images", "%s/mods/oversize/images/SCREEN/X/00_00.png rejected: 40x40, the original is 32x32\n", gRoot);
+    /* P8: digimon_ext.c says one line for each motion slot a baked model leaves empty */
+    if (exists("mods/slotmod/mod.json")) {
+        plogLine("digimon", "slotmod:pal: motion slot 3 (flinch) has no animation: a hit of an attack that lands (effect script 1)\n");
+        plogLine("digimon", "slotmod:pal: motion slot 13 (blast entrance) has no animation: the temporary form coming in\n");
+    }
 }
 
 static int discHas(void *ud, const char *path)
@@ -638,10 +643,37 @@ static int discHas(void *ud, const char *path)
     return gDiscSaysYes && !strcmp(path, "AAA/DAT/Z_STAGE/S330PACK.BIN");
 }
 
+/* the disc of the test has two original sprites: p001play and the follower of a partner (A7.5) */
+static int spriteKind(void *ud, const char *folder)
+{
+    (void)ud;
+    return !strcmp(folder, "p001play") ? 1 : !strcmp(folder, "p006agum") ? 2 : 0;
+}
+
+/* the disc of the test has two original partners with folders: agumon and gabumon (A8.2) */
+static int partnerOriginal(void *ud, const char *name)
+{
+    (void)ud;
+    return !strcmp(name, "agumon") || !strcmp(name, "gabumon");
+}
+
+/* the gym of the test has two trainings, punch and defense; the user changed the files of data/partners/agumon (A8.4) */
+static int partnerTraining(void *ud, const char *name)
+{
+    (void)ud;
+    return !strcmp(name, "punch") || !strcmp(name, "defense");
+}
+
+static int partnerDataEdited(void *ud, const char *key)
+{
+    (void)ud;
+    return !strcmp(key, "agumon");
+}
+
 static char *validate(const char *target, int *rc)
 {
     char mods[1300];
-    ModToolsLayers L = {gameLayers, discHas, "config,content,tables,images", NULL};
+    ModToolsLayers L = {gameLayers, discHas, "config,content,digimon,tables,images,sprites,partners", NULL, spriteKind, partnerOriginal, partnerTraining, partnerDataEdited};
     FILE *out = tmpfile();
     char *txt;
     snprintf(mods, sizeof mods, "%s/mods", gRoot);
@@ -679,6 +711,38 @@ static void testListAndValidate(void)
     put("mods/oversize/text/eng/a.json", "{}");
     put("mods/assetsmod/mod.json", "{\"format\":\"mod-v1\"}");
     put("mods/assetsmod/content/items.json", "{}");
+    put("mods/assetsmod/sprites/p001play/000.png", "x");      /* an original's frame: nothing to say */
+    put("mods/assetsmod/sprites/p001play/sprite.json", "{}"); /* not read in an original's folder */
+    put("mods/assetsmod/sprites/p001play/notes.txt", "x");    /* not a frame */
+    put("mods/assetsmod/sprites/p006agum/000.png", "x");      /* a partner's follower lives in partners/ */
+    put("mods/assetsmod/sprites/p002fake/sprite.json", "{}"); /* looks like an original's name, the disc has none: a new sprite */
+    put("mods/assetsmod/sprites/fox/sprite.json", "{}");      /* a new sprite: nothing to say here */
+    put("mods/assetsmod/sprites/stray.txt", "x");
+    put("mods/assetsmod/images/field/sprt/p001play/000.png", "x"); /* the route of before A7.5: never read */
+    put("mods/assetsmod/cards/c012/face.png", "x");      /* an original's art: nothing to say */
+    put("mods/assetsmod/cards/c013/card.json", "{}");    /* an original's folder: its card.json is never read; no face.png */
+    put("mods/assetsmod/cards/bee/card.json", "{}");     /* a new card in a mod that is not "content" */
+    put("mods/assetsmod/cards/bee/face.png", "x");
+    put("mods/assetsmod/cards/artonly/face.png", "x");   /* no card.json: not a card */
+    put("mods/assetsmod/cards/stray.txt", "x");
+    put("mods/assetsmod/content/cards.json", "{}");      /* the registry of before A8.1: never read */
+    put("mods/assetsmod/partners/agumon/icon.png", "x"); /* an original partner's art: nothing to say */
+    put("mods/assetsmod/partners/gabumon/partner.json", "{}"); /* an original's folder: its partner.json is never read */
+    put("mods/assetsmod/partners/bee/partner.json", "{}");     /* a new partner in a mod that is not "content" */
+    put("mods/assetsmod/partners/bee/portrait.png", "x");
+    put("mods/assetsmod/partners/artonly/portrait.png", "x");  /* no partner.json: art only, nothing to say here (A8.4) */
+    put("mods/assetsmod/content/partners.json", "{}");   /* the registry of before A8.2: never read */
+    put("mods/assetsmod/content/digimon.json", "{}");    /* the registry of before A8.3: never read */
+    put("mods/assetsmod/content/models/robot/model.json", "{}"); /* the models of before A8.3: never read */
+    put("mods/assetsmod/content/encounters.json", "{}"); /* the placements: a content file, nothing to say */
+    put("mods/assetsmod/digimon/d012/model/model.json", "{}"); /* an original's folder: its model/ is never read */
+    put("mods/assetsmod/digimon/d012/digimon.json", "{}");     /* a change of an original in a mod that is not "content" */
+    put("mods/assetsmod/digimon/bee/digimon.json", "{}");      /* a new Digimon in a mod that is not "content" */
+    put("mods/assetsmod/digimon/bee/model/model.json", "{}");  /* its model: nothing to say */
+    put("mods/assetsmod/digimon/modelonly/model/model.json", "{}"); /* a model source with no Digimon: nothing to say */
+    put("mods/assetsmod/digimon/empty/readme.txt", "x");       /* neither a record nor a model */
+    put("mods/assetsmod/digimon/nomodel/model/model.png", "x"); /* a model/ with no model.json */
+    put("mods/assetsmod/digimon/stray.txt", "x");              /* a file straight in digimon/ */
 
     /* --list-mods */
     logBegin();
@@ -725,6 +789,35 @@ static void testListAndValidate(void)
     CHECK(strstr(txt, "images/SCREEN/X/00_00.png") && strstr(txt, "40x40")); /* oversize image, attributed to its mod */
     CHECK(strstr(txt, "text/ not checked"));
     CHECK(strstr(txt, "content/ is ignored: this mod's kind is \"assets\""));
+    CHECK(strstr(txt, "sprites/p001play/sprite.json is ignored: p001play is an original sprite"));
+    CHECK(strstr(txt, "sprites/p001play/notes.txt is ignored (a frame of an original sprite is NNN.png"));
+    CHECK(!strstr(txt, "sprites/p001play/000.png is") && !strstr(txt, "sprites/fox"));
+    CHECK(strstr(txt, "sprites/p006agum is ignored: that is the follower of an original partner"));
+    CHECK(strstr(txt, "sprites/p002fake is read as a new sprite: the disc has no original sprite with that name"));
+    CHECK(strstr(txt, "sprites/stray.txt is ignored (a sprite is a folder"));
+    CHECK(strstr(txt, "folder images/field/sprt/ is never read (the frames of an original sprite are sprites/<name>/NNN.png"));
+    CHECK(strstr(txt, "cards/c013/card.json is never read (an original card's folder only replaces its face.png"));
+    CHECK(strstr(txt, "cards/c013 has no face.png (it is ignored)"));
+    CHECK(strstr(txt, "cards/bee/card.json is ignored: this mod's kind is \"assets\""));
+    CHECK(strstr(txt, "cards/artonly is ignored: it has no card.json"));
+    CHECK(strstr(txt, "cards/stray.txt is ignored (a card is a folder"));
+    CHECK(strstr(txt, "content/cards.json is never read (a card is cards/<card>/card.json and face.png"));
+    CHECK(strstr(txt, "partners/gabumon/partner.json is never read (an original partner's folder only replaces its art"));
+    CHECK(strstr(txt, "partners/bee/partner.json is ignored: this mod's kind is \"assets\""));
+    CHECK(strstr(txt, "content/partners.json is never read (a partner is partners/<partner>/partner.json beside its art"));
+    CHECK(!strstr(txt, "partners/ not checked") && !strstr(txt, "partners/agumon/icon.png"));
+    CHECK(strstr(txt, "partners/artonly is ignored: it is not an original partner's folder and no active mod has a partners/artonly/partner.json"));
+    CHECK(!strstr(txt, "content/partners.json is ignored"));
+    CHECK(strstr(txt, "content/digimon.json is never read (a Digimon is digimon/<digimon>/digimon.json and model/"));
+    CHECK(strstr(txt, "content/models/ is never read (a model is digimon/<digimon>/model/"));
+    CHECK(strstr(txt, "digimon/d012/model/ is never read (no mod replaces an original's model"));
+    CHECK(strstr(txt, "digimon/d012/digimon.json is ignored: this mod's kind is \"assets\""));
+    CHECK(strstr(txt, "digimon/bee/digimon.json is ignored: this mod's kind is \"assets\""));
+    CHECK(strstr(txt, "digimon/empty is ignored: it has no digimon.json and no model/"));
+    CHECK(strstr(txt, "digimon/nomodel/model/ has no model.json (it is ignored)"));
+    CHECK(strstr(txt, "digimon/stray.txt is ignored (a Digimon is a folder"));
+    CHECK(!strstr(txt, "digimon/modelonly") && !strstr(txt, "digimon/bee/model") && !strstr(txt, "encounters.json is ignored") && !strstr(txt, "digimon/ not checked"));
+    CHECK(!strstr(txt, "cards/c012 ") && !strstr(txt, "cards/c012/card") && !strstr(txt, "cards/bee/face.png"));
     CHECK(strstr(txt, "summary: 6 mods"));
     CHECK(strstr(txt, "ok\n") != NULL); /* the good mod */
     free(txt);
@@ -759,6 +852,102 @@ static void testListAndValidate(void)
     (void)err;
     fclose(out);
     wipe();
+}
+
+/* A8.4: what --validate-mod says of a mod's partners/ folders besides what the loaders say (their lines come from the game: art sizes, partner.json, training.json) */
+static int countOf(const char *txt, const char *what)
+{
+    int n = 0;
+    const char *p = txt;
+    while ((p = strstr(p, what)) != NULL) {
+        n++;
+        p += strlen(what);
+    }
+    return n;
+}
+
+/* P8: a model with empty slots is a warning line each (never an error), owned by the mod that the model's name starts with */
+static void testValidateEmptySlots(void)
+{
+    char *txt;
+    int rc;
+
+    wipe();
+    put("mods/slotmod/mod.json", "{\"format\":\"mod-v1\",\"kind\":\"content\"}");
+    txt = validate("slotmod", &rc);
+    CHECK(rc == 0 && countOf(txt, "  warning slotmod:pal: motion slot ") == 2 && !strstr(txt, "  error"));
+    CHECK(strstr(txt, "warning slotmod:pal: motion slot 3 (flinch) has no animation: ") && strstr(txt, "warning slotmod:pal: motion slot 13 (blast entrance) has no animation: "));
+    CHECK(strstr(txt, "0 errors, 2 warnings"));
+    free(txt);
+    wipe();
+}
+
+static void testValidatePartners(void)
+{
+    char *txt;
+    int rc;
+
+    wipe();
+    put("mods/p1/mod.json", "{\"format\":\"mod-v1\",\"kind\":\"content\"}");
+    /* a good new partner */
+    put("mods/p1/partners/bee/partner.json", "{}");
+    put("mods/p1/partners/bee/portrait.png", "x");
+    put("mods/p1/partners/bee/icon.png", "x");
+    put("mods/p1/partners/bee/field/sprite.json", "{}");
+    put("mods/p1/partners/bee/field/000.png", "x");
+    put("mods/p1/partners/bee/training/punch/training.json", "{}");
+    put("mods/p1/partners/bee/training/punch/000.png", "x");
+    /* a new partner with what nobody reads */
+    put("mods/p1/partners/ant/partner.json", "{}");
+    put("mods/p1/partners/ant/notes.txt", "x");
+    put("mods/p1/partners/ant/portait.png", "x");
+    put("mods/p1/partners/ant/extra/a.txt", "x");
+    put("mods/p1/partners/ant/field/000.png", "x");
+    put("mods/p1/partners/ant/training/punch/000.png", "x");
+    put("mods/p1/partners/ant/training/nosuch/training.json", "{}");
+    put("mods/p1/partners/ant/training/stray.txt", "x");
+    /* an original's folder: its art and gym stand, a file nobody reads is a warning, a field/ without sprite.json is how the exporter's frames go in */
+    put("mods/p1/partners/agumon/portrait.png", "x");
+    put("mods/p1/partners/agumon/field/000.png", "x");
+    put("mods/p1/partners/agumon/training/defense/training.json", "{}");
+    put("mods/p1/partners/agumon/stray.txt", "x");
+    /* art for the partner another mod declares, and a folder nothing declares */
+    put("mods/p3/mod.json", "{\"format\":\"mod-v1\",\"kind\":\"assets\"}");
+    put("mods/p3/partners/bee/icon.png", "x");
+    put("mods/p3/partners/orphan/icon.png", "x");
+
+    txt = validate(NULL, &rc);
+    CHECK(strstr(txt, "partners/ant/notes.txt is ignored (a partner's folder holds partner.json, portrait.png, icon.png, field/ and training/)"));
+    CHECK(strstr(txt, "partners/ant/portait.png is ignored (did you mean portrait.png?)"));
+    CHECK(strstr(txt, "partners/ant/extra is ignored (a partner's folder holds"));
+    CHECK(strstr(txt, "partners/ant/field/ is ignored: it has no sprite.json"));
+    CHECK(strstr(txt, "partners/ant/training/punch has no training.json (it is ignored)"));
+    CHECK(strstr(txt, "partners/ant/training/nosuch is ignored: no training is called that"));
+    CHECK(strstr(txt, "partners/ant/training/stray.txt is ignored (a training is a folder: training/<name>/training.json)"));
+    CHECK(strstr(txt, "partners/agumon/stray.txt is ignored (a partner's folder holds"));
+    CHECK(!strstr(txt, "partners/agumon/field") && !strstr(txt, "partners/agumon/training") && !strstr(txt, "partners/bee/field") && !strstr(txt, "partners/bee/training"));
+    CHECK(!strstr(txt, "partners/bee/portrait") && !strstr(txt, "partners/bee/icon") && !strstr(txt, "partners/bee/partner.json"));
+    CHECK(strstr(txt, "partners/orphan is ignored: it is not an original partner's folder and no active mod has a partners/orphan/partner.json"));
+    CHECK(!strstr(txt, "partners/bee is ignored"));
+    /* one line per shared folder, with both layers and the winner: p3 loads after p1 */
+    CHECK(countOf(txt, "partners/bee/ is shared by") == 1);
+    CHECK(strstr(txt, "partners/bee/ is shared by mods/p3, mods/p1: mods/p3 wins (a file is read from the first layer that has it: the mods from the last to the first, then data/)"));
+    CHECK(countOf(txt, "partners/agumon/ is shared by") == 1);
+    CHECK(strstr(txt, "partners/agumon/ is shared by mods/p1, data/ (edited): mods/p1 wins"));
+    CHECK(!strstr(txt, "partners/orphan/ is shared"));
+    free(txt);
+    /* one mod alone: the folders it shares still say so */
+    txt = validate("p1", &rc);
+    CHECK(countOf(txt, "partners/bee/ is shared by") == 1 && strstr(txt, "partners/agumon/ is shared by"));
+    free(txt);
+    /* a good partner alone in its mod: nothing to say */
+    wipe();
+    put("mods/q1/mod.json", "{\"format\":\"mod-v1\",\"kind\":\"content\"}");
+    put("mods/q1/partners/bee/partner.json", "{}");
+    put("mods/q1/partners/bee/icon.png", "x");
+    txt = validate(NULL, &rc);
+    CHECK(rc == 0 && !strstr(txt, "is shared by") && !strstr(txt, "is ignored") && strstr(txt, "ok"));
+    free(txt);
 }
 
 static void testValidateClean(void)
@@ -800,6 +989,8 @@ int main(void)
     testToolArgs();
     testNewMod();
     testListAndValidate();
+    testValidatePartners();
+    testValidateEmptySlots();
     testValidateClean();
     {
         char cmd[1200];

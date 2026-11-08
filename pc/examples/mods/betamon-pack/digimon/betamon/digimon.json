@@ -1,0 +1,52 @@
+{
+  "format": "digimon-digimon-v1",
+  "name": "betamon",
+  "base": "dw3:digimon/383",
+  "model": {
+    "from": "dw3:digimon/373",
+    "model": "dw3:digimon/4",
+    "motions": "dw3:digimon/4",
+    "effects": "dw3:digimon/373",
+    "scripts": {
+      "5": { "from": "dw3:digimon/4", "slot": 5 }
+    },
+    "fill": 14
+  },
+  "title": {
+    "eng": "Betamon",
+    "es-419": "Betamon"
+  },
+  "hp": 150,
+  "mp": 120,
+  "hpGrowth": 80,
+  "mpGrowth": 55,
+  "stats": {
+    "strength": 44,
+    "defense": 40,
+    "spirit": 38,
+    "wisdom": 40,
+    "speed": 48,
+    "charisma": 1
+  },
+  "statGrowth": {
+    "strength": 3,
+    "defense": 3,
+    "spirit": 3,
+    "wisdom": 3,
+    "speed": 3,
+    "charisma": 3
+  },
+  "skills": {
+    "6": {
+      "tech": "betamon-pack:spark-bubble",
+      "level": 1
+    }
+  },
+  "knownLevels": {
+    "0": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  }
+}

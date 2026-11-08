@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DW3 port cards/c<nnn>/card.json as exported (cards-card-v1, descriptive)",
+  "description": "The card.json the game exports for an ORIGINAL card (data/cards/c<nnn>/card.json beside face.png), from pc/shim/card_export.c (onFace). Descriptive: never read. The same format name is the registry record of a mod's NEW card (cards/<key>/card.json), which is a different set of members: see card.schema.json for that one.",
+  "type": "object",
+  "required": [
+    "format",
+    "name",
+    "id",
+    "number",
+    "disc",
+    "face",
+    "notes"
+  ],
+  "properties": {
+    "format": {
+      "const": "cards-card-v1"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^c[0-9]{3}$",
+      "description": "The folder, c<number> with three digits."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^dw3:card/[0-9]+$",
+      "description": "The card's identity, dw3:card/<number>."
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The game's card number (card file * 64 + index + 1)."
+    },
+    "disc": {
+      "type": "object",
+      "required": [
+        "file",
+        "index"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "The disc file in lowercase without AAA/ (dat/card/cardpak0.bin)."
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 63,
+          "description": "The card's index inside that file."
+        }
+      },
+      "additionalProperties": false
+    },
+    "face": {
+      "const": "face.png"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

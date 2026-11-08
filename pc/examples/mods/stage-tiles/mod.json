@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Stage tiles: purple",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "Recolours the map tiles of stage 330 (Central Park) to purple (z_stage/s330pack/, generated at install time from your exported stage)."
-}

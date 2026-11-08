@@ -1,6 +1,0 @@
-{
-  "format": "card_opponents-v1",
-  "rows": {
-    "2": { "card1": "sample-card:test-card", "card2": "sample-card:test-card", "card3": "sample-card:test-card" }
-  }
-}

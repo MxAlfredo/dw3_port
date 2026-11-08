@@ -1,7 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Text: capital item names",
-  "version": "1.0.0",
-  "author": "DW3 port",
-  "description": "The item names in capital letters in every language (text/<language>/ssitmnam.json, made at install time from your exported data)."
-}

@@ -1,8 +1,0 @@
-{
-  "format": "mod-v1",
-  "name": "Sample Digimon",
-  "version": "1.0.0",
-  "kind": "content",
-  "author": "DW3 port",
-  "description": "Changes existing Digimon: a stronger starter partner with a technique of its own, and a tougher early enemy (content mod: content/digimon.json)."
-}

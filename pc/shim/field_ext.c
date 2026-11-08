@@ -164,8 +164,7 @@ static void readMod(const FeHost *host, int m) {
     const ExtJson *fmt, *rows;
     int i, j;
 
-    snprintf(path, sizeof path, "%s/tables/field_encounters.json", modsDirOf(m));
-    if (tdReadFile(path, &data, &len) != 0) return; /* the mod does not patch this table */
+    if (!assetModFile(m, "tables", "field_encounters.json", path, sizeof path) || tdReadFile(path, &data, &len) != 0) return; /* the mod does not patch this table */
     /* a file that is not JSON, or has another format, is refused whole by the table engine, which says so */
     if (extJsonParse(data, len, &root) == 0) {
         fmt = extJsonGet(&root, "format");

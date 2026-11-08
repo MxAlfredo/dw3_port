@@ -101,6 +101,11 @@ typedef struct TmTable {
        the mods add, keyed by a name: shim/field_ext.c). A key it claims (returns nonzero) is skipped here without a log line, and
        its value is not looked at; every other key is handled as before. */
     int (*ownKey)(const char *key);
+    /* Optional, after the positional members. extRejected: a patch gave a scalar field of the record extRow(id) returns and the
+       engine rejected it (a name nobody defines, a number out of range; the log line is already out), so the record would run
+       with whatever the field held instead of what the mod meant. The table decides what that means (special_conditions
+       drops the row). Tables without it behave as before. */
+    void (*extRejected)(long long id);
 } TmTable;
 
 /* The data folder of the reference exports (NULL: no export). Forgets every registered table. Call

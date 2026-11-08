@@ -350,12 +350,16 @@ static void testRegistry(const char *fixture) {
     unsetenv("DW3_CACHE_DIR");
     portPathsReset();
     snprintf(dir, sizeof dir, "%s/rm", mods);
-    sh("mkdir -p '%s/content/models'", dir);
+    sh("mkdir -p '%s/digimon'", dir);
     snprintf(path, sizeof path, "%s/mod.json", dir);
     spits(path, "{\"format\":\"mod-v1\",\"name\":\"rm\",\"version\":\"1.0\",\"kind\":\"content\"}");
-    snprintf(dir, sizeof dir, "%s/rm/content/models/robot", mods);
+    snprintf(dir, sizeof dir, "%s/rm/digimon/robot/model", mods);
     copyDir(fixture, dir);
-    snprintf(dir, sizeof dir, "%s/rm/content/models/bad", mods);
+    snprintf(dir, sizeof dir, "%s/rm/digimon/d012/model", mods); /* the folder of original fighter 12: reserved, its model/ is never read */
+    copyDir(fixture, dir);
+    snprintf(dir, sizeof dir, "%s/rm/content/models/old", mods); /* the layout of before A8.3: not read */
+    copyDir(fixture, dir);
+    snprintf(dir, sizeof dir, "%s/rm/digimon/bad/model", mods);
     copyDir(fixture, dir);
     snprintf(path, sizeof path, "%s/m.png", dir);
     remove(path);
@@ -367,7 +371,7 @@ static void testRegistry(const char *fixture) {
     snprintf(want, sizeof want, "%s/expected.bin", fixture);
     exp = slurp(want, &elen);
     CHECK(exp != NULL);
-    CHECK(modelsHas("rm:robot") && modelsHas("rm:bad") && !modelsHas("rm:none") && !modelsHas("zz:robot") && !modelsHas("rm") && !modelsHas("rm:Robot"));
+    CHECK(modelsHas("rm:robot") && modelsHas("rm:bad") && !modelsHas("rm:none") && !modelsHas("zz:robot") && !modelsHas("rm") && !modelsHas("rm:Robot") && !modelsHas("rm:d012") && !modelsHas("rm:old"));
     CHECK(modelsInfo("rm:robot", &info) && info.templateId == 4 && info.effectsId == 383 && info.distance == -1500 && info.height == INT_MIN);
     logBegin();
     t0 = nowMs();
@@ -381,6 +385,22 @@ static void testRegistry(const char *fixture) {
     CHECK(strstr(log, "[models] rm:bad rejected: texture file not found") != NULL);
     served = pfsResolve(f1, &glen, 0, NULL);
     CHECK(served != NULL && glen == elen && exp != NULL && memcmp(served, exp, elen) == 0);
+    {   /* P8: the slots with a motion, read from the baked archive (the robot has "fill": all 62), and from a cache hit alike */
+        uint64_t mask = 0;
+        const ModelSlotNeed *need;
+        int n, i, last = -1;
+
+        CHECK(modelsSlots("rm:robot", &mask) && mask == (((uint64_t)1 << 62) - 1) && modelBlobSlots(served, glen) == mask);
+        CHECK(!modelsSlots("rm:bad", &mask) && !modelsSlots("rm:none", &mask) && modelBlobSlots(NULL, 0) == 0);
+        n = modelSlotNeeds(0, &need); /* an enemy's: the generic minimum of the baker's own warning (0, 1, 2, 3, 4, 10, 11, 12, 14) */
+        CHECK(n == 9 && need[0].slot == 0 && need[8].slot == 14);
+        n = modelSlotNeeds(1, &need); /* a partner's adds 13 (blast entrance), 20 and 32 (the attack scripts 6 and 8) */
+        CHECK(n == 12);
+        for (i = 0; i < n; i++) {
+            CHECK(need[i].slot > last && need[i].slot < 62 && need[i].label[0] != '\0' && need[i].why[0] != '\0');
+            last = need[i].slot;
+        }
+    }
     /* the cache file is on disk; a reload (virtual files cleared) takes the blob from it */
     snprintf(path, sizeof path, "%s/cache/models", user);
     {
@@ -401,9 +421,13 @@ static void testRegistry(const char *fixture) {
     CHECK(f1 >= 100 && strstr(log, "from the cache") != NULL);
     served = pfsResolve(f1, &glen, 0, NULL);
     CHECK(served != NULL && glen == elen && exp != NULL && memcmp(served, exp, elen) == 0);
+    {
+        uint64_t mask = 0;
+        CHECK(modelsSlots("rm:robot", &mask) && mask == (((uint64_t)1 << 62) - 1)); /* the same from the cache */
+    }
     printf("modeltest: registry: cold %.2f ms, from the cache %.2f ms\n", tCold, tWarm);
     /* a changed source is a new key: the old cache file is not used for it */
-    snprintf(path, sizeof path, "%s/rm/content/models/robot/model.json", mods);
+    snprintf(path, sizeof path, "%s/rm/digimon/robot/model/model.json", mods);
     got2 = slurp(path, &glen);
     if (got2 != NULL) {
         char *at = strstr((char *)got2, "1800");
@@ -513,12 +537,27 @@ static void testExport(const char *robot, const char *xparity) {
     /* export, then bake the exported source back: the same bones and polygons (the scale is undone by model.json) */
     snprintf(dir, sizeof dir, "%s/data", gRoot);
     modelExportSetup(dir, &io);
+    sh("mkdir -p '%s/data/models'", gRoot); /* the folder of before A8.3 */
+    logBegin();
     CHECK(modelExportRequest("100, 101, 7, nonsense") == 2);
+    log = logEnd();
+    CHECK(strstr(log, "models/ is the old layout of the models and is not read any more") != NULL);
     CHECK(modelExportActive());
     while (modelExportPump(1000)) {}
+    {
+        size_t ml = 0;
+        char mp[900];
+        unsigned char *mf;
+        snprintf(mp, sizeof mp, "%s/data/digimon/manifest.json", gRoot);
+        mf = slurp(mp, &ml);
+        CHECK(mf != NULL && strstr((char *)mf, "\"d100\": \"dw3:digimon/100\"") != NULL && strstr((char *)mf, "\"d101\": \"dw3:digimon/101\"") != NULL);
+        free(mf);
+        snprintf(mp, sizeof mp, "%s/data/models/100", gRoot);
+        CHECK(access(mp, F_OK) != 0);
+    }
     modelExportCounts(&d1, &f1, &f2);
     CHECK(d1 == 2 && f1 == 0 && f2 == 2 && strstr(modelExportStatus(), "Done (2)") != NULL);
-    snprintf(dir, sizeof dir, "%s/data/models/100", gRoot);
+    snprintf(dir, sizeof dir, "%s/data/digimon/d100/model", gRoot);
     {
         ModelBaked b2;
         CHECK(modelBake(dir, "model.json", NULL, NULL, NULL, &b2, err, sizeof err) == 0);
@@ -533,7 +572,7 @@ static void testExport(const char *robot, const char *xparity) {
         sh("mkdir -p '%s'", xparity);
         snprintf(path, sizeof path, "cp -r '%s' '%%s/blobs'", gBlobDir);
         sh(path, xparity);
-        snprintf(path, sizeof path, "cp -r '%s/data/models' '%%s/c'", gRoot);
+        snprintf(path, sizeof path, "cp -r '%s/data/digimon' '%%s/c'", gRoot);
         sh(path, xparity);
     }
     /* idempotent: a fighter written by this exporter version with its four files in place is skipped without building it */
@@ -541,7 +580,7 @@ static void testExport(const char *robot, const char *xparity) {
     while (modelExportPump(1000)) {}
     modelExportCounts(&d1, &f1, &f2);
     CHECK(d1 == 2 && f1 == 0 && modelExportBuilt() == 0);
-    snprintf(path, sizeof path, "%s/data/models/101/model.png", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d101/model/model.png", gRoot);
     CHECK(remove(path) == 0);
     CHECK(modelExportRequest("100, 101") == 2);
     while (modelExportPump(1000)) {}
@@ -549,9 +588,10 @@ static void testExport(const char *robot, const char *xparity) {
     CHECK(modelExportRequestEx("100, 101", 1) == 2);
     while (modelExportPump(1000)) {}
     CHECK(modelExportBuilt() == 2);
+    CHECK(modelExportRun("100, 101") == 2 && modelExportBuilt() == 0); /* the settings.ini key: synchronous, all up to date */
     /* a manifest from before the version existed: rebuilt once, then skipped again */
-    snprintf(path, sizeof path, "%s/data/models/manifest.json", gRoot);
-    sh("sed -i 's#/exporter\"#/exporterold\"#g' '%s'", path);
+    snprintf(path, sizeof path, "%s/data/digimon/manifest.json", gRoot);
+    sh("sed -i 's#\"\\(d10[01]\\)\": [0-9][0-9]*#\"\\1\": 0#g' '%s'", path);
     snprintf(dir, sizeof dir, "%s/data", gRoot);
     modelExportSetup(dir, &io);
     CHECK(modelExportRequest("100, 101") == 2);
@@ -561,31 +601,31 @@ static void testExport(const char *robot, const char *xparity) {
     while (modelExportPump(1000)) {}
     CHECK(modelExportBuilt() == 0);
     /* the manifest rule: an edited file stays and the fresh one goes beside it as .new; an unedited one is replaced silently */
-    snprintf(path, sizeof path, "%s/data/models/100/model.json", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d100/model/model.json", gRoot);
     edited = slurp(path, &len);
     spits(path, "{\"edited\": true}\n");
-    snprintf(path, sizeof path, "%s/data/models/100/model.bin", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d100/model/model.bin", gRoot);
     spits(path, "junk");
     CHECK(modelExportRequestEx("100", 1) == 1);
     logBegin();
     while (modelExportPump(1000)) {}
     log = logEnd();
     CHECK(strstr(log, "model.json was edited, kept") != NULL);
-    snprintf(path, sizeof path, "%s/data/models/100/model.json.new", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d100/model/model.json.new", gRoot);
     {
         size_t l2 = 0;
         unsigned char *nw = slurp(path, &l2);
         CHECK(nw != NULL && edited != NULL && l2 == len && memcmp(nw, edited, len) == 0);
         free(nw);
     }
-    snprintf(path, sizeof path, "%s/data/models/100/model.json", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d100/model/model.json", gRoot);
     {
         size_t l2 = 0;
         unsigned char *kept = slurp(path, &l2);
         CHECK(kept != NULL && strstr((char *)kept, "\"edited\"") != NULL);
         free(kept);
     }
-    snprintf(path, sizeof path, "%s/data/models/100/model.bin", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/d100/model/model.bin", gRoot);
     {
         size_t l2 = 0;
         unsigned char *bin = slurp(path, &l2);
@@ -594,7 +634,7 @@ static void testExport(const char *robot, const char *xparity) {
         free(bin);
     }
     free(edited);
-    snprintf(path, sizeof path, "%s/data/models/manifest.json", gRoot);
+    snprintf(path, sizeof path, "%s/data/digimon/manifest.json", gRoot);
     CHECK(access(path, F_OK) == 0);
     /* the menu's job on a worker thread: same files and bytes as the synchronous job, a second request while it runs is refused,
        and quitting in the middle stops it cleanly */
@@ -618,15 +658,15 @@ static void testExport(const char *robot, const char *xparity) {
         size_t la = 0, lb = 0;
         unsigned char *ba, *bb;
         if (i < 4 && (i % 4 == 1 || i % 4 == 3)) continue; /* fighter 100's .bin and .json were edited by the rule test above */
-        snprintf(a, sizeof a, "%s/data/models/%d/%s", gRoot, 100 + i / 4, names[i % 4]);
-        snprintf(b2, sizeof b2, "%s/data2/models/%d/%s", gRoot, 100 + i / 4, names[i % 4]);
+        snprintf(a, sizeof a, "%s/data/digimon/d%d/model/%s", gRoot, 100 + i / 4, names[i % 4]);
+        snprintf(b2, sizeof b2, "%s/data2/digimon/d%d/model/%s", gRoot, 100 + i / 4, names[i % 4]);
         ba = slurp(a, &la);
         bb = slurp(b2, &lb);
         CHECK(ba != NULL && bb != NULL && la == lb && memcmp(ba, bb, la) == 0);
         free(ba);
         free(bb);
     }
-    snprintf(path, sizeof path, "%s/data2/models/manifest.json", gRoot);
+    snprintf(path, sizeof path, "%s/data2/digimon/manifest.json", gRoot);
     CHECK(access(path, F_OK) == 0);
     CHECK(modelExportStart("100", 1) == 1); /* a finished job is reaped by the next request */
     modelExportShutdown();
@@ -797,10 +837,10 @@ static void testFrom(const char *robot) {
         unsetenv("DW3_CACHE_DIR");
         portPathsReset();
         snprintf(dir, sizeof dir, "%s/rt", mods);
-        sh("mkdir -p '%s/content/models/kot'", dir);
+        sh("mkdir -p '%s/digimon/kot/model'", dir);
         snprintf(path, sizeof path, "%s/mod.json", dir);
         spits(path, "{\"format\":\"mod-v1\",\"name\":\"rt\",\"version\":\"1.0\",\"kind\":\"content\"}");
-        snprintf(dir, sizeof dir, "%s/rt/content/models/kot", mods);
+        snprintf(dir, sizeof dir, "%s/rt/digimon/kot/model", mods);
         putJson(dir, "{\"from\": \"dw3:model/100\", \"template\": \"dw3:digimon/4\"}\n");
         modsInit(mods, NULL);
         pfsInit(NULL, 100);
